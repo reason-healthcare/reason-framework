@@ -1,0 +1,43 @@
+{
+  "resourceType" : "ValueSet",
+  "id" : "Height",
+  "url" : "http://example.org/ValueSet/Height",
+  "version" : "0.1.0",
+  "name" : "Height",
+  "status" : "active",
+  "date" : "2023-01-02T12:45:23-05:00",
+  "publisher" : "Example Publisher",
+  "contact" : [{
+    "name" : "Example Publisher",
+    "telecom" : [{
+      "system" : "url",
+      "value" : "http://example.org/example-publisher"
+    }]
+  }],
+  "compose" : {
+    "include" : [{
+      "system" : "http://loinc.org",
+      "version" : "2.73",
+      "concept" : [{
+        "code" : "8302-2",
+        "display" : "Body height"
+      },
+      {
+        "code" : "8306-3",
+        "display" : "Body height --lying"
+      },
+      {
+        "code" : "8308-9",
+        "display" : "Body height --standing"
+      },
+      {
+        "code" : "3137-7",
+        "display" : "Body height Measured"
+      },
+      {
+        "code" : "3138-5",
+        "display" : "Body height Stated"
+      }]
+    }]
+  }
+}

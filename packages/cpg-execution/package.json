@@ -1,0 +1,47 @@
+{
+  "name": "@reason-framework/cpg-execution",
+  "version": "0.0.1-alpha",
+  "main": "dist/apply.js",
+  "types": "dist/apply.d.ts",
+  "scripts": {
+    "build": "rimraf dist && tsc -p .",
+    "ig": "./bin/prepare-ig",
+    "test": "jest ./test",
+    "lint": "ts-standard -p ./tsconfig.lint.json -f stylish",
+    "fmt": "prettier --write ."
+  },
+  "dependencies": {
+    "cql-exec-fhir": "^2.1.3",
+    "cql-execution": "^2.4.3",
+    "fhir-kit-client": "^1.9.2",
+    "fhirpath": "^3.3.0",
+    "flat-cache": "^3.0.4",
+    "glob": "^8.0.3",
+    "lodash": "^4.17.21",
+    "node-cache": "^5.1.2",
+    "object-hash": "^3.0.0",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@types/fhir": "^0.0.34",
+    "@types/flat-cache": "^2.0.0",
+    "@types/glob": "^8.0.0",
+    "@types/jest": "^27.5.0",
+    "@types/lodash": "^4.14.191",
+    "@types/object-hash": "^2.2.1",
+    "@types/uuid": "^8.3.4",
+    "prettier": "2.8.1",
+    "rimraf": "^3.0.2",
+    "ts-jest": "^28.0.1",
+    "ts-standard": "^12.0.2",
+    "typescript": "^4.9.4"
+  },
+  "ts-standard": {
+    "report": "stylish"
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "trailingComma": "none"
+  }
+}

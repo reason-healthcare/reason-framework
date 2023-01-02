@@ -1,0 +1,7 @@
+{
+  "resourceType": "PlanDefinition",
+  "id": "SimplePlanDefinition",
+  "name": "SimplePlanDefinition",
+  "url": "http://example.org/PlanDefinition/SimplePlanDefinition",
+  "status": "active"
+}

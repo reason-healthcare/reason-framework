@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+SCRIPT_DIR="$(cd -P "$(dirname -- "${BASH_SOURCE}")" >/dev/null 2>&1 && pwd)"
+
+echo
+echo Run IG Publisher and then clean up the output directory
+echo =======================================================
+echo
+
+(
+cd $SCRIPT_DIR/../test/fixtures/ExampleIG \
+  && ./_genonce.sh \
+  && find ./output -maxdepth 1 -type d -not \( -name 'output' \) -exec rm -rf "{}" \; \
+  && find ./output -type f -not \( -name '*.json' \) -delete \
+  && rm ./output/canonicals.json ./output/expansions.json ./output/qa.json ./output/usage-stats.json ./output/package.*
+)

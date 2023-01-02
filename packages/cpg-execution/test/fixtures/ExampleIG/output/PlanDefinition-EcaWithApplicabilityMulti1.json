@@ -1,0 +1,40 @@
+{
+  "resourceType" : "PlanDefinition",
+  "id" : "EcaWithApplicabilityMulti1",
+  "url" : "http://example.org/PlanDefinition/EcaWithApplicabilityMulti1",
+  "version" : "0.1.0",
+  "type" : {
+    "coding" : [{
+      "system" : "http://terminology.hl7.org/CodeSystem/plan-definition-type",
+      "code" : "eca-rule"
+    }]
+  },
+  "status" : "draft",
+  "date" : "2023-01-02T12:45:23-05:00",
+  "publisher" : "Example Publisher",
+  "contact" : [{
+    "name" : "Example Publisher",
+    "telecom" : [{
+      "system" : "url",
+      "value" : "http://example.org/example-publisher"
+    }]
+  }],
+  "library" : ["http://example.org/Library/ExampleLibrary"],
+  "action" : [{
+    "id" : "1",
+    "condition" : [{
+      "kind" : "applicability",
+      "expression" : {
+        "language" : "text/cql-identifier",
+        "expression" : "is true"
+      }
+    },
+    {
+      "kind" : "applicability",
+      "expression" : {
+        "language" : "text/cql-identifier",
+        "expression" : "is true"
+      }
+    }]
+  }]
+}

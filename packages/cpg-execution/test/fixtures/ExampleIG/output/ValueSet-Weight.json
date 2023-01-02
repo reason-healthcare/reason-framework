@@ -1,0 +1,51 @@
+{
+  "resourceType" : "ValueSet",
+  "id" : "Weight",
+  "url" : "http://example.org/ValueSet/Weight",
+  "version" : "0.1.0",
+  "name" : "Weight",
+  "status" : "active",
+  "date" : "2023-01-02T12:45:23-05:00",
+  "publisher" : "Example Publisher",
+  "contact" : [{
+    "name" : "Example Publisher",
+    "telecom" : [{
+      "system" : "url",
+      "value" : "http://example.org/example-publisher"
+    }]
+  }],
+  "compose" : {
+    "include" : [{
+      "system" : "http://loinc.org",
+      "version" : "2.73",
+      "concept" : [{
+        "code" : "29463-7",
+        "display" : "Body weight"
+      },
+      {
+        "code" : "3141-9",
+        "display" : "Body weight Measured"
+      },
+      {
+        "code" : "3142-7",
+        "display" : "Body weight Stated"
+      },
+      {
+        "code" : "75292-3",
+        "display" : "Body weight - Reported --usual"
+      },
+      {
+        "code" : "79348-9",
+        "display" : "Body weight --used for drug calculation"
+      },
+      {
+        "code" : "8350-1",
+        "display" : "Body weight Measured --with clothes"
+      },
+      {
+        "code" : "8351-9",
+        "display" : "Body weight Measured --without clothes"
+      }]
+    }]
+  }
+}

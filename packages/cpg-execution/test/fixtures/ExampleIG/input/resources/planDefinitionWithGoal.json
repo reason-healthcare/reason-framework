@@ -1,0 +1,14 @@
+{
+  "resourceType": "PlanDefinition",
+  "id": "SimplePlanDefinitionWithGoal",
+  "name": "SimplePlanDefinitionWithGoal",
+  "url": "http://example.org/PlanDefinition/SimplePlanDefinitionWithGoal",
+  "status": "active",
+  "goal": [
+    {
+      "description": {
+        "text": "to improve"
+      }
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "resourceType": "PlanDefinition",
+  "id": "PlanDefinitionWithActionMultiNested",
+  "name": "PlanDefinitionWithActionMultiNested",
+  "url": "http://example.org/PlanDefinition/PlanDefinitionWithActionMultiNested",
+  "version": "0.1.0",
+  "status": "active",
+  "action": [
+    {
+      "id": "action-1",
+      "prefix": "action-1 prefix",
+      "title": "action-1 title",
+      "description": "action-1 description",
+      "textEquivalent": "action-1 textEquivalent",
+      "priority": "routine",
+      "code": [
+        { "text": "action-1 code" }
+      ],
+      "relatedAction": [
+        {
+          "actionId": "action-1 relatedActionId",
+          "relationship": "before"
+        }
+      ],
+      "action": [
+        {
+          "id": "action-1.1",
+          "prefix": "action-1.1 prefix",
+          "title": "action-1.1 title",
+          "description": "action-1.1 description",
+          "textEquivalent": "action-1.1 textEquivalent",
+          "priority": "routine",
+          "code": [
+            { "text": "action-1.1 code" }
+          ],
+          "relatedAction": [
+            {
+              "actionId": "action-1.1 relatedActionId",
+              "relationship": "before"
+            }
+          ],
+          "action": [
+            {
+              "id": "action-1.1.1",
+              "prefix": "action-1.1.1 prefix",
+              "title": "action-1.1.1 title",
+              "description": "action-1.1.1 description",
+              "textEquivalent": "action-1.1.1 textEquivalent",
+              "priority": "routine",
+              "code": [
+                { "text": "action-1.1.1 code" }
+              ],
+              "relatedAction": [
+                {
+                  "actionId": "action-1.1.1 relatedActionId",
+                  "relationship": "before"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

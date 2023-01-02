@@ -1,0 +1,47 @@
+{
+  "resourceType" : "PlanDefinition",
+  "id" : "PlanDefinitionWithActionMultiFlat",
+  "url" : "http://example.org/PlanDefinition/PlanDefinitionWithActionMultiFlat",
+  "version" : "0.1.0",
+  "name" : "PlanDefinitionWithActionMultiFlat",
+  "status" : "active",
+  "date" : "2023-01-02T12:45:23-05:00",
+  "publisher" : "Example Publisher",
+  "contact" : [{
+    "name" : "Example Publisher",
+    "telecom" : [{
+      "system" : "url",
+      "value" : "http://example.org/example-publisher"
+    }]
+  }],
+  "action" : [{
+    "id" : "action-1",
+    "prefix" : "action-1 prefix",
+    "title" : "action-1 title",
+    "description" : "action-1 description",
+    "textEquivalent" : "action-1 textEquivalent",
+    "priority" : "routine",
+    "code" : [{
+      "text" : "action-1 code"
+    }],
+    "relatedAction" : [{
+      "actionId" : "action-1 relatedActionId",
+      "relationship" : "before"
+    }]
+  },
+  {
+    "id" : "action-2",
+    "prefix" : "action-2 prefix",
+    "title" : "action-2 title",
+    "description" : "action-2 description",
+    "textEquivalent" : "action-2 textEquivalent",
+    "priority" : "routine",
+    "code" : [{
+      "text" : "action-2 code"
+    }],
+    "relatedAction" : [{
+      "actionId" : "action-2 relatedActionId",
+      "relationship" : "before"
+    }]
+  }]
+}

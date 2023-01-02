@@ -1,0 +1,39 @@
+{
+  "resourceType": "ActivityDefinition",
+  "id": "ActivityDefinitionWithFhirPath",
+  "url": "SimpleActivityDefinitionWithFhirPath",
+  "status": "draft",
+  "kind": "MedicationRequest",
+  "productCodeableConcept": {
+    "coding": [
+      {
+        "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+        "code": "1946772",
+        "display": "methotrexate 25 MG/ML Injectable Solution"
+      }
+    ]
+  },
+  "dynamicValue": [
+    {
+      "path": "reasonCode[0].text",
+      "expression": {
+        "language": "text/fhirpath",
+        "expression": "'rheumatoid arthritis'"
+      }
+    },
+    {
+      "path": "reasonCode[0].coding[0].system",
+      "expression": {
+        "language": "text/fhirpath",
+        "expression": "'http://hl7.org/fhir/sid/icd-10'"
+      }
+    },
+    {
+      "path": "reasonCode[0].coding[0].code",
+      "expression": {
+        "language": "text/fhirpath",
+        "expression": "'M06.9'"
+      }
+    }
+  ]
+}
