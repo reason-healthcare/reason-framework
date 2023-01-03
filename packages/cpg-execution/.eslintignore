@@ -1,1 +1,4 @@
 test/fixtures
+lib
+dist
+node_modules

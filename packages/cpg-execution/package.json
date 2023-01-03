@@ -1,10 +1,10 @@
 {
   "name": "@reason-framework/cpg-execution",
   "version": "0.0.1-alpha",
-  "main": "dist/apply.js",
-  "types": "dist/apply.d.ts",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "scripts": {
-    "build": "rimraf dist && tsc -p .",
+    "build": "rimraf lib && tsc -p .",
     "ig": "./bin/prepare-ig",
     "test": "jest ./test",
     "lint": "ts-standard -p ./tsconfig.lint.json -f stylish",

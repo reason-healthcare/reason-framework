@@ -34,7 +34,7 @@ describe('.apply', () => {
       terminologyEndpoint: fileEndpoint,
       dataEndpoint: fileEndpoint
     })
-    const { resource } = result ?? {}
+    const resource = result
     if (is.MedicationRequest(resource)) {
       expect(resource.status).toEqual('draft')
       const { medicationCodeableConcept } = resource
@@ -58,7 +58,7 @@ describe('.apply', () => {
       terminologyEndpoint: fileEndpoint,
       dataEndpoint: fileEndpoint
     })
-    const { resource } = result ?? {}
+    const resource = result
     if (is.MedicationRequest(resource)) {
       expect(resource.reasonCode?.[0]?.text).toEqual('rheumatoid arthritis')
       expect(resource.reasonCode?.[0]?.coding?.[0].system).toEqual(
@@ -86,7 +86,7 @@ describe('.apply', () => {
       terminologyEndpoint: fileEndpoint,
       dataEndpoint: fileEndpoint
     })
-    const { resource } = result ?? {}
+    const resource = result ?? {}
     if (is.CommunicationRequest(resource)) {
       expect(resource.payload?.[0]?.contentString).toEqual(
         'welcome to my message'

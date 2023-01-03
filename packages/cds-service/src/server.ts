@@ -1,5 +1,6 @@
 import dotenv from 'dotenv'
 import app from './app'
+
 dotenv.config()
 
 const server = app({ logger: { prettyPrint: true } }) // don't pretty print in prod

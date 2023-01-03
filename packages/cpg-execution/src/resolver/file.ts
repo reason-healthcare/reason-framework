@@ -5,6 +5,7 @@ import { Resolver } from '../resolver'
 import BaseResolver from './base'
 import Cache from '../cache'
 import { is, notEmpty } from '../helpers'
+import { Bundle } from 'fhir/r4'
 
 const resourcesByCanonical: Record<string, fhir4.FhirResource> = {}
 const resourcesByReference: Record<string, fhir4.FhirResource> = {}
@@ -47,6 +48,10 @@ class FileResolver extends BaseResolver implements Resolver {
           console.warn(error)
         }
       })
+  }
+
+  public async allByResourceType(resourceType: string) {
+    return resourcesByResourceType[resourceType]
   }
 
   public async resolveCanonical(canonical: string | undefined) {

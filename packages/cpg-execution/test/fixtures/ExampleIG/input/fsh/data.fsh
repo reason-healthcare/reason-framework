@@ -72,8 +72,13 @@ InstanceOf: PlanDefinition
 * insert CanonicalMetadata(PlanDefinition, EcaWithApplicabilityMulti1)
 * type = http://terminology.hl7.org/CodeSystem/plan-definition-type#eca-rule
 * library = Canonical(ExampleLibrary)
+* title = "Example ECA Rule"
+* description = "An example that will create a recommendation for a communication request."
 * action
   * id = "1"
+  * trigger
+    * type = #named-event
+    * name = "patient-view"
   * condition[+]
     * kind = #applicability
     * expression
@@ -84,6 +89,7 @@ InstanceOf: PlanDefinition
     * expression
       * language = #text/cql-identifier
       * expression = "is true"
+  * definitionCanonical = Canonical(CommunicationRequestActivity)
 
 Instance: EcaWithApplicabilityMulti2
 InstanceOf: PlanDefinition

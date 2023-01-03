@@ -1,0 +1,37 @@
+{
+	"info": {
+		"_postman_id": "80ce25f9-a10e-4447-a592-91ed033f0eed",
+		"name": "Reasoning Framework",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "ActivityDefinition Simple",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"resourceType\": \"Parameters\",\n    \"parameter\": [\n        {\n            \"name\": \"subject\",\n            \"valueReference\": \"Patient/123\"\n        },\n        {\n            \"name\": \"activityDefinition\",\n            \"resource\": {\n                \"resourceType\": \"ActivityDefinition\",\n                \"id\": \"ActivityDefinitionWithFhirPath\",\n                \"url\": \"SimpleActivityDefinitionWithFhirPath\",\n                \"version\": \"0.1.0\",\n                \"status\": \"draft\",\n                \"date\": \"2023-01-02T12:45:23-05:00\",\n                \"publisher\": \"Example Publisher\",\n                \"contact\": [\n                    {\n                        \"name\": \"Example Publisher\",\n                        \"telecom\": [\n                            {\n                                \"system\": \"url\",\n                                \"value\": \"http://example.org/example-publisher\"\n                            }\n                        ]\n                    }\n                ],\n                \"kind\": \"MedicationRequest\",\n                \"productCodeableConcept\": {\n                    \"coding\": [\n                        {\n                            \"system\": \"http://www.nlm.nih.gov/research/umls/rxnorm\",\n                            \"code\": \"1946772\",\n                            \"display\": \"methotrexate 25 MG/ML Injectable Solution\"\n                        }\n                    ]\n                },\n                \"dynamicValue\": [\n                    {\n                        \"path\": \"reasonCode[0].text\",\n                        \"expression\": {\n                            \"language\": \"text/fhirpath\",\n                            \"expression\": \"'rheumatoid arthritis'\"\n                        }\n                    },\n                    {\n                        \"path\": \"reasonCode[0].coding[0].system\",\n                        \"expression\": {\n                            \"language\": \"text/fhirpath\",\n                            \"expression\": \"'http://hl7.org/fhir/sid/icd-10'\"\n                        }\n                    },\n                    {\n                        \"path\": \"reasonCode[0].coding[0].code\",\n                        \"expression\": {\n                            \"language\": \"text/fhirpath\",\n                            \"expression\": \"'M06.9'\"\n                        }\n                    }\n                ]\n            }\n        },\n        {\n            \"name\": \"contentEndpoint\",\n            \"resource\": {\n                \"resourceType\": \"Endpoint\",\n                \"address\": \"file:///Users/bkaney/projects/reason-framework/packages/cpg-execution/test/fixtures/ExampleIG/output\",\n                \"status\": \"active\",\n                \"payloadType\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"code\": \"content\"\n                            }\n                        ]\n                    }\n                ],\n                \"connectionType\": {\n                    \"code\": \"hl7-fhir-file\"\n                }\n            }\n        },\n        {\n            \"name\": \"terminologyEndpoint\",\n            \"resource\": {\n                \"resourceType\": \"Endpoint\",\n                \"address\": \"file:///Users/bkaney/projects/reason-framework/packages/cpg-execution/test/fixtures/ExampleIG/output\",\n                \"status\": \"active\",\n                \"payloadType\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"code\": \"terminology\"\n                            }\n                        ]\n                    }\n                ],\n                \"connectionType\": {\n                    \"code\": \"hl7-fhir-file\"\n                }\n            }\n        },\n        {\n            \"name\": \"data\",\n            \"resource\": {\n                \"resourceType\": \"Bundle\",\n                \"type\": \"collection\",\n                \"entry\": [\n                    {\n                        \"resource\": {\n                            \"resourceType\": \"Patient\",\n                            \"id\": \"123\",\n                            \"name\": [\n                                {\n                                    \"given\": \"Sam\"\n                                }\n                            ]\n                        }\n                    }\n                ]\n            }\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:9001/ActivityDefinition/$apply",
+					"host": [
+						"localhost"
+					],
+					"port": "9001",
+					"path": [
+						"ActivityDefinition",
+						"$apply"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

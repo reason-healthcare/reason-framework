@@ -3,6 +3,7 @@
   "id" : "EcaWithApplicabilityMulti1",
   "url" : "http://example.org/PlanDefinition/EcaWithApplicabilityMulti1",
   "version" : "0.1.0",
+  "title" : "Example ECA Rule",
   "type" : {
     "coding" : [{
       "system" : "http://terminology.hl7.org/CodeSystem/plan-definition-type",
@@ -10,7 +11,7 @@
     }]
   },
   "status" : "draft",
-  "date" : "2023-01-02T12:45:23-05:00",
+  "date" : "2023-01-02T18:53:16-05:00",
   "publisher" : "Example Publisher",
   "contact" : [{
     "name" : "Example Publisher",
@@ -19,9 +20,14 @@
       "value" : "http://example.org/example-publisher"
     }]
   }],
+  "description" : "An example that will create a recommendation for a communication request.",
   "library" : ["http://example.org/Library/ExampleLibrary"],
   "action" : [{
     "id" : "1",
+    "trigger" : [{
+      "type" : "named-event",
+      "name" : "patient-view"
+    }],
     "condition" : [{
       "kind" : "applicability",
       "expression" : {
@@ -35,6 +41,7 @@
         "language" : "text/cql-identifier",
         "expression" : "is true"
       }
-    }]
+    }],
+    "definitionCanonical" : "http://example.org/ActivityDefinition/CommunicationRequestActivity"
   }]
 }

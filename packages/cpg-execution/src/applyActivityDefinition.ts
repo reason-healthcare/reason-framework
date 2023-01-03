@@ -52,15 +52,8 @@ export interface ApplyActivityDefinitionArgs {
  * @returns Bundle with the first entry as the target resource
  */
 export const applyActivityDefinition = async (
-  args: ApplyActivityDefinitionArgs,
-  resourceBundle: fhir4.Bundle = {
-    resourceType: 'Bundle',
-    type: 'collection',
-    entry: []
-  }
-): Promise<
-  { resource: RequestResource; resourceBundle: fhir4.Bundle } | undefined
-> => {
+  args: ApplyActivityDefinitionArgs
+): Promise<RequestResource | undefined> => {
   const {
     subject,
     data,
@@ -479,10 +472,7 @@ export const applyActivityDefinition = async (
     }
 
     if (is.RequestResource(targetResource)) {
-      return {
-        resource: removeUndefinedProps(targetResource),
-        resourceBundle
-      }
+      return removeUndefinedProps(targetResource)
     }
   }
 }

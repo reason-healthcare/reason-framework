@@ -5,7 +5,7 @@
   "version" : "0.1.0",
   "name" : "ExampleIG",
   "status" : "draft",
-  "date" : "2023-01-02T12:45:23-05:00",
+  "date" : "2023-01-02T18:53:16-05:00",
   "publisher" : "Example Publisher",
   "contact" : [{
     "name" : "Example Publisher",
@@ -664,6 +664,7 @@
         "reference" : "PlanDefinition/EcaWithApplicabilityMulti1"
       },
       "name" : "EcaWithApplicabilityMulti1",
+      "description" : "An example that will create a recommendation for a communication request.",
       "exampleBoolean" : true
     },
     {

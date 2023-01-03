@@ -4,6 +4,7 @@ import Cache from '../cache'
 import { Resolver } from '../resolver'
 import BaseResolver from './base'
 import { canonicalResources, is, notEmpty } from '../helpers'
+import { FhirResource } from 'fhir/r4'
 
 class RestResolver extends BaseResolver implements Resolver {
   client: Client
@@ -58,6 +59,19 @@ class RestResolver extends BaseResolver implements Resolver {
       resourceType: 'Bundle',
       type: 'batch',
       entry
+    }
+  }
+
+  // TODO: Deal with pagination
+  public async allByResourceType(resourceType: string) {
+    const bundle = await this.client.search({
+      resourceType,
+      searchParams: { _count: 1000 }
+    })
+    if (is.Bundle(bundle)) {
+      return bundle.entry
+        ?.map((entry) => entry.resource)
+        .filter(is.FhirResource)
     }
   }
 

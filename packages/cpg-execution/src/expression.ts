@@ -91,7 +91,7 @@ export const processDynamicValue = async (
       return targetResource
     }
 
-    const value = await evaulateCqlExpression(
+    const value = await evaluateCqlExpression(
       expression,
       dataContext,
       contentResolver,
@@ -118,17 +118,22 @@ const resolveBundleOrEndpoint = async (
     return
   }
 
+  let resource: fhir4.FhirResource | undefined
+
   if (data != null) {
-    return data.entry
+    resource = data.entry
       ?.map((e) => e.resource)
       .find((r) => {
         const [resourceType, id] = reference.split('/')
         return r?.resourceType === resourceType && r?.id === id
       })
   }
-  if (dataResolver) {
-    return await dataResolver.resolveReference(reference)
+
+  if (resource == null && dataResolver != null) {
+    resource = await dataResolver.resolveReference(reference)
   }
+
+  return resource
 }
 /**
  * Create a FHIR Bundle data context from references
@@ -200,7 +205,7 @@ export const buildDataContext = async (
  * @param libraries Array of libraries to evaluate
  * @returns Array of Results
  */
-export const evaulateCqlExpression = async (
+export const evaluateCqlExpression = async (
   expression: fhir4.Expression,
   dataContext: fhir4.Bundle,
   contentResolver: Resolver,

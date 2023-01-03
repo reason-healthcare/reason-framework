@@ -1,14 +1,16 @@
 {
   "name": "reason-framework",
   "scripts": {
-    "clean": "rimraf \"packages/**/dist\"",
-    "build": "tsc -b tsconfig.build.json"
+    "clean": "rimraf \"packages/**/lib\"",
+    "build": "npm run clean && tsc -b tsconfig.build.json",
+    "fmt": "./bin/fmt"
   },
   "workspaces": [
     "packages/cpg-execution",
     "packages/cds-service"
   ],
   "devDependencies": {
+    "concurrently": "^7.6.0",
     "rimraf": "^3.0.2",
     "typescript": "^4.4.3"
   }

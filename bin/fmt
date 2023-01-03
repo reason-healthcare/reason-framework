@@ -1,0 +1,9 @@
+#!/usr/bin/env node
+const child_process = require('child_process');
+const path = require('path');
+
+const package = require(path.resolve(path.join(__dirname, '..', 'package.json')));
+package.workspaces.forEach(workspace => {
+  const results = child_process.execSync(`cd ${workspace} && npm run fmt`);
+  console.log(results.toString());
+});

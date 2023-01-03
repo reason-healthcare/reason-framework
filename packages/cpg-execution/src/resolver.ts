@@ -14,6 +14,10 @@ export interface Resolver {
     reference: string | undefined
   ) => Promise<fhir4.FhirResource | undefined>
 
+  allByResourceType: (
+    resourceType: string
+  ) => Promise<fhir4.FhirResource[] | undefined>
+
   /**
    * Given ELM library, load and cache valuesets for processing.
    *

@@ -10,7 +10,7 @@ import {
 import {
   buildDataContext,
   evaluateFhirpath,
-  evaulateCqlExpression,
+  evaluateCqlExpression,
   processDynamicValue
 } from './expression'
 import {
@@ -18,7 +18,8 @@ import {
   is,
   safeBundleEntryPush,
   RequestResource,
-  referenceFromResource
+  referenceFromResource,
+  inspect
 } from './helpers'
 
 const isApplicable = async (
@@ -50,7 +51,7 @@ const isApplicable = async (
       } else if (expression?.language === 'text/fhirpath') {
         return evaluateFhirpath(expression?.expression)
       } else if (expression?.language === 'text/cql-identifier') {
-        return await evaulateCqlExpression(
+        return await evaluateCqlExpression(
           expression,
           dataContext,
           contentResolver,
@@ -230,11 +231,7 @@ export const applyPlanDefinitionAction = async (
         activityDefinition: definitionResource
       }
 
-      const appliedResourceAndBundle = await applyActivityDefinition(
-        activityDefinitionArgs,
-        resourceBundle
-      )
-      appliedResource = appliedResourceAndBundle?.resource
+      appliedResource = await applyActivityDefinition(activityDefinitionArgs)
 
       // Apply any dynamicValues from the PD now
       if (
