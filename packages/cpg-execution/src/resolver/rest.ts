@@ -108,9 +108,9 @@ class RestResolver extends BaseResolver implements Resolver {
           Cache.setKey(`canonical-resource-${canonical}`, result)
           return result
         } else {
-          console.warn(
-            `Found multiple matches for ${canonical}`,
-            JSON.stringify(resources)
+          throw new Error(
+            `Did not find one and only one resource for ${canonical}. Found: ` +
+              `${JSON.stringify(resources)}`
           )
         }
       }

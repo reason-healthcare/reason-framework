@@ -6,13 +6,24 @@
 	},
 	"item": [
 		{
-			"name": "ActivityDefinition Simple",
+			"name": "CPG - ActivityDefinition $apply",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"resourceType\": \"Parameters\",\n    \"parameter\": [\n        {\n            \"name\": \"subject\",\n            \"valueReference\": \"Patient/123\"\n        },\n        {\n            \"name\": \"activityDefinition\",\n            \"resource\": {\n                \"resourceType\": \"ActivityDefinition\",\n                \"id\": \"ActivityDefinitionWithFhirPath\",\n                \"url\": \"SimpleActivityDefinitionWithFhirPath\",\n                \"version\": \"0.1.0\",\n                \"status\": \"draft\",\n                \"date\": \"2023-01-02T12:45:23-05:00\",\n                \"publisher\": \"Example Publisher\",\n                \"contact\": [\n                    {\n                        \"name\": \"Example Publisher\",\n                        \"telecom\": [\n                            {\n                                \"system\": \"url\",\n                                \"value\": \"http://example.org/example-publisher\"\n                            }\n                        ]\n                    }\n                ],\n                \"kind\": \"MedicationRequest\",\n                \"productCodeableConcept\": {\n                    \"coding\": [\n                        {\n                            \"system\": \"http://www.nlm.nih.gov/research/umls/rxnorm\",\n                            \"code\": \"1946772\",\n                            \"display\": \"methotrexate 25 MG/ML Injectable Solution\"\n                        }\n                    ]\n                },\n                \"dynamicValue\": [\n                    {\n                        \"path\": \"reasonCode[0].text\",\n                        \"expression\": {\n                            \"language\": \"text/fhirpath\",\n                            \"expression\": \"'rheumatoid arthritis'\"\n                        }\n                    },\n                    {\n                        \"path\": \"reasonCode[0].coding[0].system\",\n                        \"expression\": {\n                            \"language\": \"text/fhirpath\",\n                            \"expression\": \"'http://hl7.org/fhir/sid/icd-10'\"\n                        }\n                    },\n                    {\n                        \"path\": \"reasonCode[0].coding[0].code\",\n                        \"expression\": {\n                            \"language\": \"text/fhirpath\",\n                            \"expression\": \"'M06.9'\"\n                        }\n                    }\n                ]\n            }\n        },\n        {\n            \"name\": \"contentEndpoint\",\n            \"resource\": {\n                \"resourceType\": \"Endpoint\",\n                \"address\": \"file:///Users/bkaney/projects/reason-framework/packages/cpg-execution/test/fixtures/ExampleIG/output\",\n                \"status\": \"active\",\n                \"payloadType\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"code\": \"content\"\n                            }\n                        ]\n                    }\n                ],\n                \"connectionType\": {\n                    \"code\": \"hl7-fhir-file\"\n                }\n            }\n        },\n        {\n            \"name\": \"terminologyEndpoint\",\n            \"resource\": {\n                \"resourceType\": \"Endpoint\",\n                \"address\": \"file:///Users/bkaney/projects/reason-framework/packages/cpg-execution/test/fixtures/ExampleIG/output\",\n                \"status\": \"active\",\n                \"payloadType\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"code\": \"terminology\"\n                            }\n                        ]\n                    }\n                ],\n                \"connectionType\": {\n                    \"code\": \"hl7-fhir-file\"\n                }\n            }\n        },\n        {\n            \"name\": \"data\",\n            \"resource\": {\n                \"resourceType\": \"Bundle\",\n                \"type\": \"collection\",\n                \"entry\": [\n                    {\n                        \"resource\": {\n                            \"resourceType\": \"Patient\",\n                            \"id\": \"123\",\n                            \"name\": [\n                                {\n                                    \"given\": \"Sam\"\n                                }\n                            ]\n                        }\n                    }\n                ]\n            }\n        }\n    ]\n}",
+					"raw": "{\n    \"resourceType\": \"Parameters\",\n    \"parameter\": [\n        {\n            \"name\": \"subject\",\n            \"valueReference\": \"Patient/Patient123\"\n        },\n        {\n            \"name\": \"practitioner\",\n            \"valueReference\": \"Practitioner/Practitioner123\"\n        },\n        {\n            \"name\": \"encounter\",\n            \"valueReference\": \"Encounter/Encounter123\"\n        },\n        {\n            \"name\": \"activityDefinition\",\n            \"resource\": {\n                \"resourceType\": \"ActivityDefinition\",\n                \"id\": \"CommunicationRequestActivity\",\n                \"url\": \"http://example.org/ActivityDefinition/CommunicationRequestActivity\",\n                \"version\": \"0.1.0\",\n                \"status\": \"draft\",\n                \"date\": \"2023-01-03T16:05:35-05:00\",\n                \"publisher\": \"Example Publisher\",\n                \"contact\": [\n                    {\n                        \"name\": \"Example Publisher\",\n                        \"telecom\": [\n                            {\n                                \"system\": \"url\",\n                                \"value\": \"http://example.org/example-publisher\"\n                            }\n                        ]\n                    }\n                ],\n                \"library\": [\n                    \"http://example.org/Library/ExampleLibrary\"\n                ],\n                \"kind\": \"CommunicationRequest\",\n                \"dynamicValue\": [\n                    {\n                        \"path\": \"payload[0].contentString\",\n                        \"expression\": {\n                            \"language\": \"text/cql-identifier\",\n                            \"expression\": \"example message\"\n                        }\n                    }\n                ]\n            }\n        },\n        {\n            \"name\": \"contentEndpoint\",\n            \"resource\": {\n                \"resourceType\": \"Endpoint\",\n                \"address\": \"{{contentEndpointAddress}}\",\n                \"status\": \"active\",\n                \"payloadType\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"code\": \"content\"\n                            }\n                        ]\n                    }\n                ],\n                \"connectionType\": {\n                    \"code\": \"{{contentEndpointType}}\"\n                }\n            }\n        },\n        {\n            \"name\": \"terminologyEndpoint\",\n            \"resource\": {\n                \"resourceType\": \"Endpoint\",\n                \"address\": \"{{terminologyEndpointAddress}}\",\n                \"status\": \"active\",\n                \"payloadType\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"code\": \"terminology\"\n                            }\n                        ]\n                    }\n                ],\n                \"connectionType\": {\n                    \"code\": \"{{terminologyEndpointType}}\"\n                }\n            }\n        },\n        {\n            \"name\": \"dataEndpoint\",\n            \"resource\": {\n                \"resourceType\": \"Endpoint\",\n                \"address\": \"{{dataEndpointAddress}}\",\n                \"status\": \"active\",\n                \"payloadType\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"code\": \"data\"\n                            }\n                        ]\n                    }\n                ],\n                \"connectionType\": {\n                    \"code\": \"{{dataEndpointType}}\"\n                }\n            }\n        }\n    ]\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -20,11 +31,10 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:9001/ActivityDefinition/$apply",
+					"raw": "{{server}}/ActivityDefinition/$apply",
 					"host": [
-						"localhost"
+						"{{server}}"
 					],
-					"port": "9001",
 					"path": [
 						"ActivityDefinition",
 						"$apply"
@@ -32,6 +42,168 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "CPG - PlanDefinition $apply",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"resourceType\": \"Parameters\",\n    \"parameter\": [\n        {\n            \"name\": \"subject\",\n            \"valueReference\": \"Patient/Patient123\"\n        },\n        {\n            \"name\": \"practitioner\",\n            \"valueReference\": \"Practitioner/Practitioner123\"\n        },\n        {\n            \"name\": \"encounter\",\n            \"valueReference\": \"Encounter/Encounter123\"\n        },\n        {\n            \"name\": \"planDefinition\",\n            \"resource\": {\n                \"resourceType\": \"PlanDefinition\",\n                \"id\": \"EcaWithApplicabilityMulti1\",\n                \"url\": \"http://example.org/PlanDefinition/EcaWithApplicabilityMulti1\",\n                \"version\": \"0.1.0\",\n                \"title\": \"Example ECA Rule\",\n                \"type\": {\n                    \"coding\": [\n                        {\n                            \"system\": \"http://terminology.hl7.org/CodeSystem/plan-definition-type\",\n                            \"code\": \"eca-rule\"\n                        }\n                    ]\n                },\n                \"status\": \"draft\",\n                \"date\": \"2023-01-03T16:05:35-05:00\",\n                \"publisher\": \"Example Publisher\",\n                \"contact\": [\n                    {\n                        \"name\": \"Example Publisher\",\n                        \"telecom\": [\n                            {\n                                \"system\": \"url\",\n                                \"value\": \"http://example.org/example-publisher\"\n                            }\n                        ]\n                    }\n                ],\n                \"description\": \"An example that will create a recommendation for a communication request.\",\n                \"library\": [\n                    \"http://example.org/Library/ExampleLibrary\"\n                ],\n                \"action\": [\n                    {\n                        \"id\": \"1\",\n                        \"trigger\": [\n                            {\n                                \"type\": \"named-event\",\n                                \"name\": \"patient-view\"\n                            }\n                        ],\n                        \"condition\": [\n                            {\n                                \"kind\": \"applicability\",\n                                \"expression\": {\n                                    \"language\": \"text/cql-identifier\",\n                                    \"expression\": \"is true\"\n                                }\n                            },\n                            {\n                                \"kind\": \"applicability\",\n                                \"expression\": {\n                                    \"language\": \"text/cql-identifier\",\n                                    \"expression\": \"is true\"\n                                }\n                            }\n                        ],\n                        \"definitionCanonical\": \"http://example.org/ActivityDefinition/CommunicationRequestActivity\"\n                    }\n                ]\n            }\n        },\n        {\n            \"name\": \"contentEndpoint\",\n            \"resource\": {\n                \"resourceType\": \"Endpoint\",\n                \"address\": \"{{contentEndpointAddress}}\",\n                \"status\": \"active\",\n                \"payloadType\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"code\": \"content\"\n                            }\n                        ]\n                    }\n                ],\n                \"connectionType\": {\n                    \"code\": \"{{contentEndpointType}}\"\n                }\n            }\n        },\n        {\n            \"name\": \"terminologyEndpoint\",\n            \"resource\": {\n                \"resourceType\": \"Endpoint\",\n                \"address\": \"{{terminologyEndpointAddress}}\",\n                \"status\": \"active\",\n                \"payloadType\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"code\": \"terminology\"\n                            }\n                        ]\n                    }\n                ],\n                \"connectionType\": {\n                    \"code\": \"{{terminologyEndpointType}}\"\n                }\n            }\n        },\n        {\n            \"name\": \"dataEndpoint\",\n            \"resource\": {\n                \"resourceType\": \"Endpoint\",\n                \"address\": \"{{dataEndpointAddress}}\",\n                \"status\": \"active\",\n                \"payloadType\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"code\": \"data\"\n                            }\n                        ]\n                    }\n                ],\n                \"connectionType\": {\n                    \"code\": \"{{dataEndpointType}}\"\n                }\n            }\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}/PlanDefinition/$apply",
+					"host": [
+						"{{server}}"
+					],
+					"path": [
+						"PlanDefinition",
+						"$apply"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CDS Services - Discovery",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}/cds-services",
+					"host": [
+						"{{server}}"
+					],
+					"path": [
+						"cds-services"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CDS Services - Simple Call Hook",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"hook\": \"patient-view\",\n    \"hook\"\n    \"context\": {\n        \"userId\": \"Practitioner/Practitioner123\",\n        \"patientId\": \"Patient/Patient123\",\n        \"encounterId\": \"Encounter/Encounter123\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:9001/cds-services/http%3A%2F%2Fexample.org%2FPlanDefinition%2FEcaWithApplicabilityMulti1",
+					"host": [
+						"localhost"
+					],
+					"port": "9001",
+					"path": [
+						"cds-services",
+						"http%3A%2F%2Fexample.org%2FPlanDefinition%2FEcaWithApplicabilityMulti1"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "server",
+			"value": "localhost:9001"
+		},
+		{
+			"key": "contentEndpointAddress",
+			"value": "http://hapi.fhir.org/baseR4",
+			"type": "default"
+		},
+		{
+			"key": "contentEndpointType",
+			"value": "hl7-fhir-rest",
+			"type": "default"
+		},
+		{
+			"key": "terminologyEndpointAddress",
+			"value": "http://hapi.fhir.org/baseR4",
+			"type": "default"
+		},
+		{
+			"key": "terminologyEndpointType",
+			"value": "hl7-fhir-rest",
+			"type": "default"
+		},
+		{
+			"key": "dataEndpointAddress",
+			"value": "http://hapi.fhir.org/baseR4",
+			"type": "default"
+		},
+		{
+			"key": "dataEndpointType",
+			"value": "hl7-fhir-rest",
+			"type": "default"
 		}
 	]
 }

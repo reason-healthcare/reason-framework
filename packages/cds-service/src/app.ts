@@ -90,22 +90,27 @@ const resourceFromParameters = (
     ?.resource
 }
 
-const fileEndpoint: fhir4.Endpoint = {
+const connectionTypeCode = process.env.ENDPOINT_ADDRESS?.startsWith('http')
+  ? 'hl7-fhir-rest'
+  : process.env.ENDPOINT_ADDRESS?.startsWith('file')
+  ? 'hl7-fhir-file'
+  : 'unknown'
+
+const defaultEndpoint: fhir4.Endpoint = {
   resourceType: 'Endpoint',
-  address:
-    'file:///Users/bkaney/projects/reason-framework/packages/cpg-execution/test/fixtures/ExampleIG/output',
+  address: process.env.ENDPOINT_ADDRESS ?? 'unknown',
   status: 'active',
   payloadType: [
     {
       coding: [
         {
-          code: 'content',
+          code: 'all',
         },
       ],
     },
   ],
   connectionType: {
-    code: 'hl7-fhir-file',
+    code: connectionTypeCode,
   },
 }
 
@@ -150,8 +155,8 @@ export default (options?: FastifyServerOptions): FastifyInstance => {
   const app = fastify(options)
 
   app.get('/cds-services', async (req, res): Promise<void> => {
-    const resolver = Resolver(fileEndpoint)
-    
+    const resolver = Resolver(defaultEndpoint)
+
     const planDefinitions = (
       await resolver.allByResourceType('PlanDefinition')
     )?.filter(is.PlanDefinition)
@@ -181,14 +186,14 @@ export default (options?: FastifyServerOptions): FastifyInstance => {
     Params: { serviceCanonical: string }
     Body: CDSHooks.HookRequest
   }>('/cds-services/:serviceCanonical', async (req, res): Promise<void> => {
-    const resolver = Resolver(fileEndpoint)
+    const resolver = Resolver(defaultEndpoint)
     const { hook, context } = req.body
     const { serviceCanonical } = req.params
     const planDefinition = await resolver.resolveCanonical(serviceCanonical)
 
-    const dataEndpoint = fileEndpoint
-    const contentEndpoint = fileEndpoint
-    const terminologyEndpoint = fileEndpoint
+    const dataEndpoint = defaultEndpoint
+    const contentEndpoint = defaultEndpoint
+    const terminologyEndpoint = defaultEndpoint
 
     if (is.PlanDefinition(planDefinition)) {
       const trigger = planDefinition.action?.[0]?.trigger?.find(
@@ -249,7 +254,14 @@ export default (options?: FastifyServerOptions): FastifyInstance => {
         practitioner,
         data,
       }
-      res.send(await applyPlanDefinition(args))
+      let result
+      try {
+        result = await applyPlanDefinition(args)
+        res.send(result)
+      } catch (e) {
+        console.log('in catch block')
+        throw e
+      }
     }
   })
 

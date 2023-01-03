@@ -1,11 +1,10 @@
-import glob from 'glob'
+import glob from 'fast-glob'
 import fs from 'fs'
 import { ValueSet } from 'cql-execution'
 import { Resolver } from '../resolver'
 import BaseResolver from './base'
 import Cache from '../cache'
 import { is, notEmpty } from '../helpers'
-import { Bundle } from 'fhir/r4'
 
 const resourcesByCanonical: Record<string, fhir4.FhirResource> = {}
 const resourcesByReference: Record<string, fhir4.FhirResource> = {}

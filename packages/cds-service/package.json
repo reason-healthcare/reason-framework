@@ -2,9 +2,12 @@
   "name": "@reason-framework/cds-service",
   "version": "0.0.1-alpha",
   "main": "lib/index.js",
-  "files": [ "lib" ],
+  "files": [
+    "lib"
+  ],
   "scripts": {
     "dev": "ts-node --files ./src/server.ts",
+    "server": "node lib/server.js",
     "build": "tsc -p tsconfig.json",
     "start": "node lib/index.js",
     "fmt": "prettier --write ."

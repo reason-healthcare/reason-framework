@@ -41,7 +41,8 @@ export default (endpoint: fhir4.Endpoint) => {
     return new FileResolver(endpoint)
   } else {
     throw new Error(
-      "Endpoint.connectionType must be 'hl7-fhir-rest' or 'hl7-fhir-file'"
+      `Endpoint.connectionType must be 'hl7-fhir-rest' or 'hl7-fhir-file'.  ` +
+        `Endpoint ${JSON.stringify(endpoint, null, 2)}`
     )
   }
 }

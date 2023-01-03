@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+SCRIPT_DIR="$(cd -P "$(dirname -- "${BASH_SOURCE}")" >/dev/null 2>&1 && pwd)"
+
+cd $SCRIPT_DIR/../
+
+if [[ $1 == http* ]];
+then
+  docker run --rm \
+    --name reason \
+    -p 9001:9001 \
+    -e "ENDPOINT_ADDRESS=$1" \
+    reason
+elif [[ $1 == file* ]];
+then
+  docker run --rm \
+    --name reason \
+    -p 9001:9001 \
+    -v "$(readlink -f $(echo $1 | cut -c 8-)):/content" \
+    -e "ENDPOINT_ADDRESS=file:///content" \
+    reason
+else
+echo "address must start with file:// or http(s)://"
+fi

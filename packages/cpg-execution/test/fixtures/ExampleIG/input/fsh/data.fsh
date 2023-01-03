@@ -9,6 +9,19 @@ InstanceOf: Patient
   * given = "Sam"
   * family = "Smith"
 
+Instance: Practitioner123
+InstanceOf: Practitioner
+* name
+  * prefix = "Dr"
+  * given = "Betta"
+  * family = "Safe"
+
+Instance: Encounter123
+InstanceOf: Encounter
+* status = #in-progress
+* class = http://terminology.hl7.org/CodeSystem/v3-ActCode#AMB
+
+
 Instance: ExampleLibrary
 InstanceOf: Library
 * insert CanonicalMetadata(Library, ExampleLibrary)

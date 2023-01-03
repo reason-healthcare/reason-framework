@@ -5,7 +5,7 @@
   "version" : "0.1.0",
   "name" : "ExampleIG",
   "status" : "draft",
-  "date" : "2023-01-02T18:53:16-05:00",
+  "date" : "2023-01-03T16:05:35-05:00",
   "publisher" : "Example Publisher",
   "contact" : [{
     "name" : "Example Publisher",
@@ -714,6 +714,17 @@
     {
       "extension" : [{
         "url" : "http://hl7.org/fhir/tools/StructureDefinition/resource-information",
+        "valueString" : "Encounter"
+      }],
+      "reference" : {
+        "reference" : "Encounter/Encounter123"
+      },
+      "name" : "Encounter123",
+      "exampleBoolean" : true
+    },
+    {
+      "extension" : [{
+        "url" : "http://hl7.org/fhir/tools/StructureDefinition/resource-information",
         "valueString" : "Library"
       }],
       "reference" : {
@@ -731,6 +742,17 @@
         "reference" : "Patient/Patient123"
       },
       "name" : "Patient123",
+      "exampleBoolean" : true
+    },
+    {
+      "extension" : [{
+        "url" : "http://hl7.org/fhir/tools/StructureDefinition/resource-information",
+        "valueString" : "Practitioner"
+      }],
+      "reference" : {
+        "reference" : "Practitioner/Practitioner123"
+      },
+      "name" : "Practitioner123",
       "exampleBoolean" : true
     },
     {

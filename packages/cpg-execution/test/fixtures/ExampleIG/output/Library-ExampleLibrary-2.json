@@ -90,7 +90,7 @@
             }
          }, {
             "localId" : "5",
-            "locator" : "10:1-11:25",
+            "locator" : "10:1-11:35",
             "name" : "example message",
             "context" : "Patient",
             "accessLevel" : "Public",
@@ -103,16 +103,16 @@
                   }, {
                      "r" : "4",
                      "s" : [ {
-                        "value" : [ "'welcome to my message'" ]
+                        "value" : [ "'welcome to my message from CQL!'" ]
                      } ]
                   } ]
                }
             } ],
             "expression" : {
                "localId" : "4",
-               "locator" : "11:3-11:25",
+               "locator" : "11:3-11:35",
                "valueType" : "{urn:hl7-org:elm-types:r1}String",
-               "value" : "welcome to my message",
+               "value" : "welcome to my message from CQL!",
                "type" : "Literal"
             }
          }, {

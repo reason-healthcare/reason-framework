@@ -8,7 +8,7 @@ valueset "Weight": 'http://example.org/ValueSet/Weight' version '0.1.0'
 context Patient
 
 define "example message": 
-  'welcome to my message'
+  'welcome to my message from CQL!'
 
 define "is false":
   false
