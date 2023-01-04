@@ -21,6 +21,7 @@ import {
   referenceFromResource,
   inspect
 } from './helpers'
+import { doc } from 'prettier'
 
 const isApplicable = async (
   planDefinintionAction: fhir4.PlanDefinitionAction,
@@ -165,6 +166,7 @@ export const applyPlanDefinitionAction = async (
     description,
     priority,
     relatedAction,
+    documentation,
     code,
     textEquivalent,
     timingAge,
@@ -191,6 +193,7 @@ export const applyPlanDefinitionAction = async (
     description,
     priority,
     relatedAction,
+    documentation,
     code,
     textEquivalent,
     type,
@@ -201,6 +204,17 @@ export const applyPlanDefinitionAction = async (
     cardinalityBehavior
   }
 
+  // Priority
+  if (priority != null) {
+    requestGroupAction.priority = priority
+  }
+
+  // Documentation
+  if (documentation != null) {
+    requestGroupAction.documentation = documentation
+  }
+
+  // Timing
   if (timingAge != null) {
     requestGroupAction.timingAge = timingAge
   } else if (timingDuration != null) {

@@ -9,12 +9,16 @@ process.on('SIGINT', function () {
   process.exit()
 })
 
-const server = app({ logger: { prettyPrint: true } }) // don't pretty print in prod
-server.listen(process.env.PORT || 9001, '0.0.0.0', (error, address: string) => {
-  if (error) {
-    console.error(error)
-    process.exit(1)
-  }
+app({ logger: true }).then((s) => {
+  s.listen(
+    { port: Number.parseInt(process.env.PORT ?? '9001') },
+    (error, address: string) => {
+      if (error) {
+        console.error(error)
+        process.exit(1)
+      }
 
-  console.info(`Server started at ${address}`)
+      console.info(`Server started...${address}`)
+    }
+  )
 })

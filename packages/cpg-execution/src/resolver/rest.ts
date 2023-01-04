@@ -3,8 +3,7 @@ import { ValueSet } from 'cql-execution'
 import Cache from '../cache'
 import { Resolver } from '../resolver'
 import BaseResolver from './base'
-import { canonicalResources, is, notEmpty } from '../helpers'
-import { FhirResource } from 'fhir/r4'
+import { canonicalResources, inspect, is, notEmpty } from '../helpers'
 
 class RestResolver extends BaseResolver implements Resolver {
   client: Client
@@ -120,9 +119,13 @@ class RestResolver extends BaseResolver implements Resolver {
 
   public async resolveReference(reference: string | undefined) {
     if (reference != null) {
-      const resource = await this.client.request(reference, { method: 'GET' })
-      if (is.FhirResource(resource)) {
-        return resource
+      try {
+        const resource = await this.client.request(reference, { method: 'GET' })
+        if (is.FhirResource(resource)) {
+          return resource
+        }
+      } catch (e) {
+        console.error(inspect(e))
       }
     }
     return undefined

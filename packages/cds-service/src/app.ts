@@ -1,9 +1,9 @@
-import fastify, {
-  FastifyInstance,
+import Fastify, {
   FastifyReply,
   FastifyRequest,
   FastifyServerOptions,
 } from 'fastify'
+import cors from '@fastify/cors'
 import CDSHooks from 'smart-typescript-support/types/cds-hooks'
 import {
   applyActivityDefinition,
@@ -151,8 +151,14 @@ const isOrderSignContext = (
   )
 }
 
-export default (options?: FastifyServerOptions): FastifyInstance => {
-  const app = fastify(options)
+export default async (options?: FastifyServerOptions) => {
+  const app = Fastify(options)
+
+  await app.register(cors, {
+    origin: '*',
+    allowedHeaders: ['*'],
+    methods: ['*'],
+  })
 
   app.get('/cds-services', async (req, res): Promise<void> => {
     const resolver = Resolver(defaultEndpoint)
@@ -179,19 +185,25 @@ export default (options?: FastifyServerOptions): FastifyInstance => {
       })
       .filter((service) => service?.hook != null)
 
-    res.send(cdsHooksServices)
+    res.send({ services: cdsHooksServices })
   })
 
   app.post<{
     Params: { serviceCanonical: string }
-    Body: CDSHooks.HookRequest
+    Body: CDSHooks.HookRequestWithFhir
   }>('/cds-services/:serviceCanonical', async (req, res): Promise<void> => {
     const resolver = Resolver(defaultEndpoint)
-    const { hook, context } = req.body
+    const { hook, context, fhirServer } = req.body
     const { serviceCanonical } = req.params
     const planDefinition = await resolver.resolveCanonical(serviceCanonical)
 
     const dataEndpoint = defaultEndpoint
+    if (fhirServer != null) {
+      console.info(`Setting data server to ${fhirServer}`)
+      defaultEndpoint.address = fhirServer
+      defaultEndpoint.connectionType.code = 'hl7-fhir-rest'
+    }
+
     const contentEndpoint = defaultEndpoint
     const terminologyEndpoint = defaultEndpoint
 
@@ -211,7 +223,7 @@ export default (options?: FastifyServerOptions): FastifyInstance => {
         data: fhir4.Bundle = { resourceType: 'Bundle', type: 'collection' }
 
       if (isPatientViewContext(context, hook)) {
-        subject = context.patientId
+        subject = `Patient/${context.patientId}`
         practitioner = context.userId
         encounter = context.encounterId
       } else if (isOrderSelectContext(context, hook)) {
@@ -257,9 +269,62 @@ export default (options?: FastifyServerOptions): FastifyInstance => {
       let result
       try {
         result = await applyPlanDefinition(args)
-        res.send(result)
+        if (is.Bundle(result)) {
+          const [requestGroup, ...others] =
+            result.entry?.map((e) => e.resource).filter(is.FhirResource) ?? []
+
+          let cards: CDSHooks.Card[] = []
+
+          if (is.RequestGroup(requestGroup)) {
+            cards.push(
+              ...(requestGroup.action
+                ?.map((action) => {
+                  // Add indicator
+                  const priority =
+                    action.priority || requestGroup.priority || 'routine'
+                  const indicatorByPriority = {
+                    routine: 'info',
+                    urgent: 'warning',
+                    asap: 'critical',
+                    stat: 'critical',
+                  }
+                  const indicator =
+                    indicatorByPriority[priority] === 'routine'
+                      ? ('info' as const)
+                      : indicatorByPriority[priority] === 'urgent'
+                      ? ('warning' as const)
+                      : indicatorByPriority[priority] === 'stat' ||
+                        indicatorByPriority[priority] === 'asap'
+                      ? ('critical' as const)
+                      : ('info' as const)
+
+                  // Add source
+                  let source: CDSHooks.Source = { label: 'Placeholder Label' }
+                  const relatedArtifact = action.documentation?.find(
+                    (d) => d.type === 'documentation'
+                  )
+                  if (relatedArtifact != null) {
+                    source = {
+                      label: relatedArtifact.label ?? 'Placeholder Label',
+                      url: relatedArtifact.url ?? '',
+                    }
+                  }
+
+                  // Return CDS Hook Card
+                  return {
+                    summary: action.title ?? 'Unknown Title',
+                    detail: action.description,
+                    indicator,
+                    source,
+                  }
+                })
+                .filter(notEmpty) ?? [])
+            )
+          }
+          const response: CDSHooks.HookResponse = { cards }
+          res.send(response)
+        }
       } catch (e) {
-        console.log('in catch block')
         throw e
       }
     }

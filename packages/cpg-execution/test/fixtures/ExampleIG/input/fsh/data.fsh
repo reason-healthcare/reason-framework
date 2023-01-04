@@ -21,7 +21,6 @@ InstanceOf: Encounter
 * status = #in-progress
 * class = http://terminology.hl7.org/CodeSystem/v3-ActCode#AMB
 
-
 Instance: ExampleLibrary
 InstanceOf: Library
 * insert CanonicalMetadata(Library, ExampleLibrary)
@@ -79,7 +78,6 @@ InstanceOf: PlanDefinition
       * language = #text/cql-identifier
       * expression = "is true"
 
-
 Instance: EcaWithApplicabilityMulti1
 InstanceOf: PlanDefinition
 * insert CanonicalMetadata(PlanDefinition, EcaWithApplicabilityMulti1)
@@ -89,6 +87,13 @@ InstanceOf: PlanDefinition
 * description = "An example that will create a recommendation for a communication request."
 * action
   * id = "1"
+  * title = "Recommend a communication request"
+  * description = "When a patient needs to be communicated to based on some logic."
+  * priority = #routine
+  * documentation
+    * type = #documentation
+    * label = "Some pubmed article"
+    * url = "http://pubmed.org/some-article"
   * trigger
     * type = #named-event
     * name = "patient-view"

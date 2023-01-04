@@ -11,7 +11,7 @@
     }]
   },
   "status" : "draft",
-  "date" : "2023-01-03T16:05:35-05:00",
+  "date" : "2023-01-03T18:41:20-05:00",
   "publisher" : "Example Publisher",
   "contact" : [{
     "name" : "Example Publisher",
@@ -24,6 +24,17 @@
   "library" : ["http://example.org/Library/ExampleLibrary"],
   "action" : [{
     "id" : "1",
+    "title" : "Recommend a communication request",
+    "description" : "When a patient needs to be communicated to based on some logic.",
+    "priority" : "routine",
+    "documentation" : [{
+      "type" : "documentation",
+      "label" : "Some pubmed article",
+      "url" : "http://pubmed.org/some-article",
+      "document" : {
+        "url" : "http://pubmed.org/some-article"
+      }
+    }],
     "trigger" : [{
       "type" : "named-event",
       "name" : "patient-view"
