@@ -16,7 +16,7 @@ class RestResolver extends BaseResolver implements Resolver {
     }
 
     if (!endpoint.address.startsWith('http')) {
-      throw new Error('Endpoint address must start with http')
+      throw new Error(`Endpoint address must start with 'http', got: '${endpoint.address}'`)
     }
 
     // Build FHIR Rest client
@@ -84,8 +84,11 @@ class RestResolver extends BaseResolver implements Resolver {
     }
 
     if (canonical != null) {
+
       // Batch search
-      const results = await this.client.batch({
+      let results
+      try {
+        results = await this.client.batch({
         body: this.canonicalSearchBundle(
           canonical,
           resourceTypes
@@ -93,6 +96,9 @@ class RestResolver extends BaseResolver implements Resolver {
           type: 'batch'
         } // TODO: Update FKC type here `fhir4.Bundle & { type: 'batch' }`
       })
+      } catch(e) {
+        throw new Error(`Problem with canonical search ${inspect(e)}`)
+      } 
 
       // Unwrap bundle of bundles
       if (is.Bundle(results)) {

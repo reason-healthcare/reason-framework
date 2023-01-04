@@ -3,6 +3,7 @@ import { applyPlanDefinitionAction } from './applyPlanDefinitionAction'
 import {
   baseUrl,
   canonicalize,
+  inspect,
   is,
   notEmpty,
   referenceFromResource,
@@ -17,8 +18,6 @@ import Resolver from './resolver'
  * This implementation assumes requestGroupsOnly
  *
  * TODO:
- * - remove resolver, use endpoints
- * - support for valuesets
  * - support dynamic questionnaire feature
  *
  * TODO (later):
@@ -88,6 +87,14 @@ export const applyPlanDefinition = async (
     contentEndpoint,
     terminologyEndpoint
   } = args
+
+  if (!is.PlanDefinition(planDefinition)) {
+    throw new Error(
+      `planDefinintion does not seem to be a FHIR PlanDefinition" ${inspect(
+        planDefinition
+      )}`
+    )
+  }
 
   if (data == null && dataEndpoint == null) {
     throw new Error('Need to provide data, or specify dataEndpoint')

@@ -12,7 +12,11 @@ import {
   ApplyPlanDefinitionArgs,
 } from '@reason-framework/cpg-execution'
 import Resolver from '@reason-framework/cpg-execution/lib/resolver'
-import { is, notEmpty } from '@reason-framework/cpg-execution/lib/helpers'
+import {
+  inspect,
+  is,
+  notEmpty,
+} from '@reason-framework/cpg-execution/lib/helpers'
 
 /**
  * The patient whose record was opened, including their encounter, if
@@ -197,11 +201,11 @@ export default async (options?: FastifyServerOptions) => {
     const { serviceCanonical } = req.params
     const planDefinition = await resolver.resolveCanonical(serviceCanonical)
 
-    const dataEndpoint = defaultEndpoint
+    const dataEndpoint = JSON.parse(JSON.stringify(defaultEndpoint))
     if (fhirServer != null) {
-      console.info(`Setting data server to ${fhirServer}`)
-      defaultEndpoint.address = fhirServer
-      defaultEndpoint.connectionType.code = 'hl7-fhir-rest'
+      console.info(`Setting data endpoint to ${fhirServer}`)
+      dataEndpoint.address = fhirServer
+      dataEndpoint.connectionType.code = 'hl7-fhir-rest'
     }
 
     const contentEndpoint = defaultEndpoint
