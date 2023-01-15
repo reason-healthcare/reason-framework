@@ -142,7 +142,7 @@ export const referenceFromString = (
   reference: string,
   resourceType: string
 ): fhir4.Reference => {
-  return reference.includes('/')
+  return reference?.includes('/')
     ? { reference }
     : { reference: `${resourceType}/${reference}`, type: resourceType }
 }

@@ -13,7 +13,6 @@ import {
 } from '@reason-framework/cpg-execution'
 import Resolver from '@reason-framework/cpg-execution/lib/resolver'
 import {
-  inspect,
   is,
   notEmpty,
 } from '@reason-framework/cpg-execution/lib/helpers'
@@ -203,7 +202,6 @@ export default async (options?: FastifyServerOptions) => {
 
     const dataEndpoint = JSON.parse(JSON.stringify(defaultEndpoint))
     if (fhirServer != null) {
-      console.info(`Setting data endpoint to ${fhirServer}`)
       dataEndpoint.address = fhirServer
       dataEndpoint.connectionType.code = 'hl7-fhir-rest'
     }
@@ -354,11 +352,11 @@ export default async (options?: FastifyServerOptions) => {
         const contentEndpoint = resourceFromParameters(
           parameters,
           'contentEndpoint'
-        ) as fhir4.Endpoint
+        ) as fhir4.Endpoint ?? defaultEndpoint
         const terminologyEndpoint = resourceFromParameters(
           parameters,
           'terminologyEndpoint'
-        ) as fhir4.Endpoint
+        ) as fhir4.Endpoint ?? defaultEndpoint
 
         const args: ApplyActivityDefinitionArgs = {
           activityDefinition,
@@ -408,11 +406,11 @@ export default async (options?: FastifyServerOptions) => {
         const contentEndpoint = resourceFromParameters(
           parameters,
           'contentEndpoint'
-        ) as fhir4.Endpoint
+        ) as fhir4.Endpoint ?? defaultEndpoint
         const terminologyEndpoint = resourceFromParameters(
           parameters,
           'terminologyEndpoint'
-        ) as fhir4.Endpoint
+        ) as fhir4.Endpoint ?? defaultEndpoint
 
         const args: ApplyPlanDefinitionArgs = {
           planDefinition,
