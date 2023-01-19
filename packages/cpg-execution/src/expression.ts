@@ -17,6 +17,7 @@ export const processDynamicValue = async (
   dynamicValue:
     | fhir4.ActivityDefinitionDynamicValue
     | fhir4.PlanDefinitionActionDynamicValue,
+  definitionalResource: fhir4.PlanDefinition | fhir4.ActivityDefinition,
   targetResource: RequestResource | fhir4.Questionnaire,
   contentResolver: Resolver,
   terminologyResolver: Resolver,
@@ -54,7 +55,7 @@ export const processDynamicValue = async (
 
     const result = evaluateFhirpath(
       expression.expression ?? '',
-      targetResource,
+      definitionalResource,
       {
         subject: subjectResource,
         encounter: encounterResource,
@@ -89,6 +90,31 @@ export const processDynamicValue = async (
         )}`
       )
       return targetResource
+    }
+
+    const inBundle = (
+      entry: fhir4.BundleEntry,
+      bundle: fhir4.Bundle
+    ): boolean => {
+      return (
+        bundle.entry?.some((be) => {
+          const { resource: entryResource } = entry
+          const { resource: bundleResource } = be
+          if (entryResource != null && bundleResource != null) {
+            return (
+              entryResource.id === bundleResource.id &&
+              entryResource.resourceType === bundleResource.resourceType
+            )
+          }
+          return false
+        }) ?? false
+      )
+    }
+
+    if (is.Bundle(dataContext) && is.Bundle(data) && data != null) {
+      ;(dataContext.entry ||= [])?.push(
+        ...(data.entry?.filter((e) => !inBundle(e, dataContext)) ?? [])
+      )
     }
 
     const value = await evaluateCqlExpression(
@@ -218,11 +244,34 @@ export const evaluateCqlExpression = async (
 
   if (patients?.length !== 1) {
     throw new Error(
-      `Should be one and only one patient in dataContext, found ${
+      `should be one and only one patient in dataContext, found ${
         patients?.length ?? 0
       } -- ${inspect(dataContext)}`
     )
   }
+
+  const allLibraries = (await contentResolver.allByResourceType('Library'))
+    ?.filter(is.Library)
+    ?.filter((l) =>
+      l.content?.some((c) => c.contentType === 'application/elm+json')
+    )
+  console.log("All libraries are", allLibraries)
+  const libraryManager = allLibraries?.reduce((acc, library) => {
+    const { content } = library
+    if (library.name) {
+      const elmEncoded = content?.find(
+        (c) => c.contentType === 'application/elm+json'
+      )
+      const elmJson = Buffer.from(elmEncoded?.data ?? '', 'base64').toString(
+        'utf-8'
+      )
+      console.log("adding", library.name)
+      return acc[library.name] === JSON.parse(elmJson)
+    }
+    return acc
+  }, {} as any)
+
+  console.log("LM", libraryManager)
 
   const patientKey = patients?.[0]?.id
   if (patientKey == null) {
@@ -238,7 +287,12 @@ export const evaluateCqlExpression = async (
       )
       if (is.Library(libraryResource)) {
         results.push(
-          evaluateCqlLibrary(libraryResource, terminologyResolver, dataContext)
+          evaluateCqlLibrary(
+            libraryResource,
+            libraryManager,
+            terminologyResolver,
+            dataContext
+          )
         )
       }
     } else {
@@ -247,6 +301,7 @@ export const evaluateCqlExpression = async (
           results.push(
             evaluateCqlLibrary(
               libraryResource,
+              libraryManager,
               terminologyResolver,
               dataContext
             )
@@ -255,6 +310,10 @@ export const evaluateCqlExpression = async (
       })
     }
 
+    console.log(
+      'Raw results',
+      inspect(results[0].patientResults?.[patientKey]?.['Patient id'].value)
+    )
     // Find the value in the CQL results
     let value: any = null
     results.forEach((r) => {
@@ -279,6 +338,7 @@ export const evaluateCqlExpression = async (
  */
 export const evaluateCqlLibrary = (
   library: fhir4.Library,
+  libraryManager: Record<string, any>,
   terminologyResolver?: Resolver | undefined,
   dataContext?: fhir4.Bundle | undefined
 ): Results => {
@@ -293,10 +353,11 @@ export const evaluateCqlLibrary = (
     )
     const lib = new cql.Library(JSON.parse(elmJson))
     const executor = new cql.Executor(lib, terminologyResolver)
-    if (dataContext != null) {
+    if (is.Bundle(dataContext)) {
       patientSource.loadBundles([dataContext])
     }
-
+    console.log('called for', library.url)
+    console.log('executor', executor)
     return executor.exec(patientSource)
   } catch (error) {
     handleError(`Problem evaluating ${library.url ?? library.id ?? 'Unknown'}`)

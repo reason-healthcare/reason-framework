@@ -13,6 +13,7 @@ import {
 } from '@reason-framework/cpg-execution'
 import Resolver from '@reason-framework/cpg-execution/lib/resolver'
 import {
+  inspect,
   is,
   notEmpty,
 } from '@reason-framework/cpg-execution/lib/helpers'
@@ -360,21 +361,21 @@ export default async (options?: FastifyServerOptions) => {
 
         const args: ApplyActivityDefinitionArgs = {
           activityDefinition,
-          subject: valueFromParameters(parameters, 'subject', 'valueReference'),
+          subject: valueFromParameters(parameters, 'subject', 'valueString'),
           practitioner: valueFromParameters(
             parameters,
             'practitioner',
-            'valueReference'
+            'valueString'
           ),
           encounter: valueFromParameters(
             parameters,
             'encounter',
-            'valueReference'
+            'valueString'
           ),
           organization: valueFromParameters(
             parameters,
             'organization',
-            'valueReference'
+            'valueString'
           ),
           data,
           dataEndpoint,

@@ -5,7 +5,9 @@ import {
   RequestResource,
   is,
   removeUndefinedProps,
-  canonicalize
+  canonicalize,
+  inspect,
+  notEmpty
 } from './helpers'
 import Resolver from './resolver'
 
@@ -403,6 +405,13 @@ export const applyActivityDefinition = async (
       if (priority != null) {
         targetResource.priority = priority
       }
+      if (intent != null) {
+        if (intent === 'directive') {
+          targetResource.intent = 'unknown'
+        } else {
+          targetResource.intent = intent
+        }
+      }
       if (timingPeriod != null) {
         targetResource.executionPeriod = timingPeriod
       }
@@ -436,6 +445,23 @@ export const applyActivityDefinition = async (
       )
     }
 
+    const dynamicValueExpressions = activityDefinition.dynamicValue?.map(
+      (dv) => dv.expression
+    )
+    if (dynamicValueExpressions != null) {
+      libraryResults.push(
+        await Promise.all(
+          dynamicValueExpressions
+            .map(async (expression) => {
+              const { reference } = expression
+              if (reference != null) {
+                await contentResolver.resolveCanonical(reference)
+              }
+            })
+            .filter(notEmpty)
+        )
+      )
+    }
     const libraries = libraryResults.filter(is.Library)
 
     let newTargetResources: (
@@ -450,6 +476,7 @@ export const applyActivityDefinition = async (
           if (is.RequestResource(targetResource)) {
             return await processDynamicValue(
               dynamicValue,
+              activityDefinition,
               targetResource,
               contentResolver,
               terminologyResolver,

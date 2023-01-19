@@ -142,6 +142,7 @@ export const referenceFromString = (
   reference: string,
   resourceType: string
 ): fhir4.Reference => {
+  console.log('reference ', inspect(reference))
   return reference?.includes('/')
     ? { reference }
     : { reference: `${resourceType}/${reference}`, type: resourceType }
@@ -162,7 +163,7 @@ export const removeUndefinedProps = (data: any): any => {
   }
 
   return Object.keys(data).reduce(function (accumulator, key) {
-    const isObject = typeof data[key] === 'object'
+    const isObject = typeof data[key] === 'object' && data[key] != null
     let value = isObject ? removeUndefinedProps(data[key]) : data[key]
 
     if (Array.isArray(data[key])) {

@@ -196,6 +196,7 @@ export const applyPlanDefinition = async (
         async (action) =>
           await applyPlanDefinitionAction(
             action,
+            planDefinition,
             args,
             contentResolver,
             terminologyResolver,

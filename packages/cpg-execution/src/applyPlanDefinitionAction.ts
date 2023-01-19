@@ -118,6 +118,7 @@ const isAtomic = (
  */
 export const applyPlanDefinitionAction = async (
   action: fhir4.PlanDefinitionAction,
+  planDefinition: fhir4.PlanDefinition,
   args: ApplyPlanDefinitionArgs,
   contentResolver: Resolver,
   terminologyResolver: Resolver,
@@ -255,6 +256,7 @@ export const applyPlanDefinitionAction = async (
         dynamicValue?.forEach((dv) =>
           processDynamicValue(
             dv,
+            planDefinition,
             appliedResource as RequestResource | fhir4.Questionnaire, // XXX: Why is this needed?
             contentResolver,
             terminologyResolver,
@@ -312,6 +314,7 @@ export const applyPlanDefinitionAction = async (
         async (a) =>
           await applyPlanDefinitionAction(
             a,
+            planDefinition,
             args,
             contentResolver,
             terminologyResolver,
