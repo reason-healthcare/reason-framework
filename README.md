@@ -33,10 +33,24 @@ npm run dev
 
 ## Content
 
-There is fixture content in `packages/cpg-execution/test/fixtures/ExampleIG`.
-This is built using IG Publisher, so you will need to make sure you have all the
-requirements to run that installed. Once you do, there is a script that will
-help create the output and clear un-necessary files:
+There is fixture content (pre-built) in `packages/cpg-execution/test/fixtures/ExampleIG`.
+
+If you wish to edit and build the content yourself, this process uses IG Publisher. 
+You will need to make sure you have all the requirements to run that installed.
+If you are using asdf, the `.tool-versions` file includes all the requirements, so `asdf install` should work. After running, you will need to install the following:
+
+```
+npm install -g fsh-sushi
+gem install jekyll -N
+```
+
+The first time, you will also need to install IG Publisher:
+```
+cd packages/cpg-execution/test/fixtures/ExampleIG
+./_updatePublisher.sh
+```
+
+Once you do, there is a script that will help create the output and clear unnecessary files:
 
 ```
 cd packages/cpg-execution
