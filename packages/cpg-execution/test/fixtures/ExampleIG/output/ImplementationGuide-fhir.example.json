@@ -5,7 +5,7 @@
   "version" : "0.1.0",
   "name" : "ExampleIG",
   "status" : "draft",
-  "date" : "2023-01-03T18:41:20-05:00",
+  "date" : "2023-01-23T15:45:25-05:00",
   "publisher" : "Example Publisher",
   "contact" : [{
     "name" : "Example Publisher",
@@ -643,6 +643,17 @@
       },
       "name" : "Weight",
       "exampleBoolean" : false
+    },
+    {
+      "extension" : [{
+        "url" : "http://hl7.org/fhir/tools/StructureDefinition/resource-information",
+        "valueString" : "Library"
+      }],
+      "reference" : {
+        "reference" : "Library/ChildLibrary"
+      },
+      "name" : "ChildLibrary",
+      "exampleBoolean" : true
     },
     {
       "extension" : [{

@@ -21,6 +21,12 @@ InstanceOf: Encounter
 * status = #in-progress
 * class = http://terminology.hl7.org/CodeSystem/v3-ActCode#AMB
 
+Instance: ChildLibrary
+InstanceOf: Library
+* insert CanonicalMetadata(Library, ChildLibrary)
+* type = http://terminology.hl7.org/CodeSystem/library-type#logic-library
+* content.id = "ig-loader-ChildLibrary.cql"
+
 Instance: ExampleLibrary
 InstanceOf: Library
 * insert CanonicalMetadata(Library, ExampleLibrary)

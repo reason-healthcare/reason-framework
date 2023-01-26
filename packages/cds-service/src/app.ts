@@ -13,6 +13,7 @@ import {
 } from '@reason-framework/cpg-execution'
 import Resolver from '@reason-framework/cpg-execution/lib/resolver'
 import {
+  inspect,
   is,
   notEmpty,
 } from '@reason-framework/cpg-execution/lib/helpers'
@@ -412,6 +413,7 @@ export default async (options?: FastifyServerOptions) => {
           'terminologyEndpoint'
         ) as fhir4.Endpoint ?? defaultEndpoint
 
+        console.log(`Content endpoint`, inspect(contentEndpoint))
         const args: ApplyPlanDefinitionArgs = {
           planDefinition,
           subject: valueFromParameters(parameters, 'subject', 'valueReference'),

@@ -1,0 +1,29 @@
+{
+  "resourceType" : "Library",
+  "id" : "ChildLibrary",
+  "url" : "http://example.org/Library/ChildLibrary",
+  "version" : "0.1.0",
+  "status" : "draft",
+  "type" : {
+    "coding" : [{
+      "system" : "http://terminology.hl7.org/CodeSystem/library-type",
+      "code" : "logic-library"
+    }]
+  },
+  "date" : "2023-01-23T15:45:25-05:00",
+  "publisher" : "Example Publisher",
+  "contact" : [{
+    "name" : "Example Publisher",
+    "telecom" : [{
+      "system" : "url",
+      "value" : "http://example.org/example-publisher"
+    }]
+  }],
+  "content" : [{
+    "contentType" : "text/cql",
+    "data" : "bGlicmFyeSBmaGlyX2V4YW1wbGUuQ2hpbGRMaWJyYXJ5IHZlcnNpb24gJzAuMS4wJwoKdXNpbmcgRkhJUiB2ZXJzaW9uICc0LjAuMScKCmNvbnRleHQgUGF0aWVudAoKZGVmaW5lICJleGFtcGxlIG1lc3NhZ2UiOiAKICAnd2VsY29tZSB0byBteSBtZXNzYWdlIGZyb20gQ1FMIChjaGlsZCBsaWJyYXJ5KSEn"
+  },
+  {
+    "contentType" : "application/elm+xml"
+  }]
+}

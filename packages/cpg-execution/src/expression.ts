@@ -220,7 +220,7 @@ export const evaluateCqlExpression = async (
     throw new Error(
       `Should be one and only one patient in dataContext, found ${
         patients?.length ?? 0
-      }`
+      } -- ${inspect(dataContext)}`
     )
   }
 

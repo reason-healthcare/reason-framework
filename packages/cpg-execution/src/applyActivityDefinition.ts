@@ -340,8 +340,11 @@ export const applyActivityDefinition = async (
       if (bodySite != null) {
         targetResource.bodySite = bodySite
       }
-      if (code != null) {
-        targetResource.code = code
+      if (productCodeableConcept != null) {
+        targetResource.code = productCodeableConcept
+      }
+      if (productReference != null) {
+        console.warn(`For ServiceRequest, use productCodeableConcept.`)
       }
       if (timingTiming != null) {
         targetResource.occurrenceTiming = timingTiming
