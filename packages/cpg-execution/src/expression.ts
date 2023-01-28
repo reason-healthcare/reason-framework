@@ -9,6 +9,7 @@ import {
   handleError,
   inspect,
   is,
+  notEmpty,
   removeUndefinedProps,
   RequestResource
 } from './helpers'
@@ -123,6 +124,7 @@ export const processDynamicValue = async (
       dataContext,
       contentResolver,
       terminologyResolver,
+      dataResolver,
       libraries
     )
     set(targetResource, path, value)
@@ -184,7 +186,8 @@ export const buildDataContext = async (
 ): Promise<fhir4.Bundle> => {
   const context: fhir4.Bundle = {
     resourceType: 'Bundle',
-    type: 'collection'
+    type: 'collection',
+    entry: data != null ? data.entry : []
   }
 
   if (subject != null) {
@@ -237,6 +240,7 @@ export const evaluateCqlExpression = async (
   dataContext: fhir4.Bundle,
   contentResolver: Resolver,
   terminologyResolver: Resolver,
+  dataResolver?: Resolver | undefined,
   libraries?: fhir4.Library[] | undefined
 ): Promise<any> => {
   const patients = dataContext?.entry
@@ -301,27 +305,36 @@ export const evaluateCqlExpression = async (
       )
       if (is.Library(libraryResource)) {
         results.push(
-          evaluateCqlLibrary(
+          await evaluateCqlLibrary(
             libraryResource,
             libraryManager,
             terminologyResolver,
+            dataResolver,
             dataContext
           )
         )
       }
     } else {
-      libraries?.forEach((libraryResource) => {
+      const libResults = await Promise.all(
+        libraries?.map(async (libraryResource) => {
         if (is.Library(libraryResource)) {
-          results.push(
-            evaluateCqlLibrary(
-              libraryResource,
-              libraryManager,
-              terminologyResolver,
-              dataContext
-            )
+          return evaluateCqlLibrary(
+            libraryResource,
+            libraryManager,
+            terminologyResolver,
+            dataResolver,
+            dataContext
           )
         }
-      })
+        }).filter(notEmpty) ?? []
+      )
+      if (libResults != null) {
+        libResults.forEach(r => {
+          if (r != null) {
+            results.push(r)
+          }
+        })
+      }
     }
 
     // Find the value in the CQL results
@@ -346,16 +359,39 @@ export const evaluateCqlExpression = async (
  * @param dataContext Data context for evaluation
  * @returns Results object from cql-execution
  */
-export const evaluateCqlLibrary = (
+export const evaluateCqlLibrary = async (
   library: fhir4.Library,
   libraryManager: Record<string, any>,
   terminologyResolver: Resolver,
+  dataResolver?: Resolver | undefined,
   dataContext?: fhir4.Bundle | undefined
-): Results => {
+): Promise<Results> => {
+  const { dataRequirement: dataRequirements } = library
+
   const elmEncoded = library.content?.find(
     (c) => c.contentType === 'application/elm+json'
   )
   const patientSource = cqlFhir.PatientSource.FHIRv401()
+
+  // Use data-requirement to fetch data
+  if (dataResolver != null && dataRequirements != null) {
+    const requiredResourceTypes = await Promise.all(
+      dataRequirements.map(async (dataRequirement) => {
+        const entries =
+          (await dataResolver.allByResourceType(dataRequirement.type))
+            ?.filter(is.FhirResource)
+            .map((resource) => {
+              return { resource }
+            })
+            .filter(notEmpty) ?? []
+        return entries
+      })
+    )
+    // Add to dataContext
+    if (requiredResourceTypes != null) {
+      dataContext?.entry?.push(...requiredResourceTypes.flatMap((n) => n))
+    }
+  }
 
   try {
     const elmJson = Buffer.from(elmEncoded?.data ?? '', 'base64').toString(
@@ -368,13 +404,14 @@ export const evaluateCqlLibrary = (
     if (is.Bundle(dataContext)) {
       patientSource.loadBundles([dataContext])
     }
-    console.log('called for', library.url)
-    console.log('executor', executor)
-    return executor.exec(patientSource)
+    const cqlResults = executor.exec(patientSource)
+    console.info(cqlResults)
+    return cqlResults
   } catch (error) {
     handleError(`Problem evaluating ${library.url ?? library.id ?? 'Unknown'}`)
     handleError(error)
-    return new cql.Executor({}).exec(patientSource)
+    const patientSourceFallback = cqlFhir.PatientSource.FHIRv401()
+    return new cql.Executor({}).exec(patientSourceFallback)
   }
 }
 

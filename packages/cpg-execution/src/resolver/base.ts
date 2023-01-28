@@ -1,4 +1,4 @@
-import { ValueSet } from 'cql-execution'
+import { Code, ValueSet } from 'cql-execution'
 import Cache from '../cache'
 
 export class BaseResolver {
@@ -22,10 +22,20 @@ export class BaseResolver {
 
   public findValueSets(oid: string, version?: string | undefined) {
     const valuesetsByVersion = Cache.getKey(oid)
+    let valueSets: ValueSet[] = []
     if (version != null) {
-      return [valuesetsByVersion[version] as ValueSet]
+      valueSets = [valuesetsByVersion[version] as ValueSet]
     }
-    return Object.values(valuesetsByVersion) as ValueSet[]
+    valueSets = Object.values(valuesetsByVersion) as ValueSet[]
+    
+    return valueSets.map(
+      (vs) =>
+        new ValueSet(
+          oid,
+          version,
+          vs.codes.map((c) => new Code(c.code, c.system, c.version, c.display))
+        )
+    )
   }
 
   /**

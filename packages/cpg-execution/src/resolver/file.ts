@@ -34,25 +34,20 @@ class FileResolver extends BaseResolver implements Resolver {
             fs.readFileSync(filename, { encoding: 'utf8' }).toString()
           )
           if (rawResource.url != null && rawResource.resourceType != null) {
-            console.log("adding to file resolver", rawResource.url, filename)
             this.resourcesByCanonical[rawResource.url] = rawResource
           }
           if (rawResource.resourceType != null) {
             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             const key: string = `${rawResource?.resourceType?.toString()}/${rawResource?.id?.toString()}`
             this.resourcesByReference[key] = rawResource
-            ;(this.resourcesByResourceType[rawResource?.resourceType] ||= []).push(
-              rawResource
-            )
+            ;(this.resourcesByResourceType[rawResource?.resourceType] ||=
+              []).push(rawResource)
           }
         } catch (error) {
           console.warn(`problem with ${filename}`)
           console.warn(error)
         }
       })
-    console.log(
-      `Loaded ${Object.keys(this.resourcesByCanonical).length} resources from disk`
-    )
   }
 
   public async allByResourceType(resourceType: string) {

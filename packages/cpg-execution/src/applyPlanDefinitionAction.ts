@@ -21,12 +21,12 @@ import {
   referenceFromResource,
   inspect
 } from './helpers'
-import { doc } from 'prettier'
 
 const isApplicable = async (
   planDefinintionAction: fhir4.PlanDefinitionAction,
   contentResolver: Resolver,
   terminologyResolver: Resolver,
+  dataResolver: Resolver | undefined,
   dataContext: fhir4.Bundle,
   libraries?: fhir4.Library[] | undefined
 ): Promise<boolean> => {
@@ -57,6 +57,7 @@ const isApplicable = async (
           dataContext,
           contentResolver,
           terminologyResolver,
+          dataResolver,
           libraries
         )
       } else {
@@ -151,6 +152,7 @@ export const applyPlanDefinitionAction = async (
       action,
       contentResolver,
       terminologyResolver,
+      dataResolver,
       dataContext,
       libraries
     ))
