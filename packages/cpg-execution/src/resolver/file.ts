@@ -4,16 +4,16 @@ import { ValueSet } from 'cql-execution'
 import { Resolver } from '../resolver'
 import BaseResolver from './base'
 import Cache from '../cache'
-import { is, notEmpty } from '../helpers'
-
-const resourcesByCanonical: Record<string, fhir4.FhirResource> = {}
-const resourcesByReference: Record<string, fhir4.FhirResource> = {}
-const resourcesByResourceType: Record<string, fhir4.FhirResource[]> = {}
+import { inspect, is, notEmpty } from '../helpers'
 
 /**
  * A simple FileResolver implementing Resolver interface.
  */
 class FileResolver extends BaseResolver implements Resolver {
+  resourcesByCanonical: Record<string, fhir4.FhirResource> = {}
+  resourcesByReference: Record<string, fhir4.FhirResource> = {}
+  resourcesByResourceType: Record<string, fhir4.FhirResource[]> = {}
+
   constructor(endpoint: fhir4.Endpoint) {
     super(endpoint)
 
@@ -33,15 +33,15 @@ class FileResolver extends BaseResolver implements Resolver {
           const rawResource = JSON.parse(
             fs.readFileSync(filename, { encoding: 'utf8' }).toString()
           )
-          if (rawResource.url != null) {
+          if (rawResource.url != null && rawResource.resourceType != null) {
             console.log("adding to file resolver", rawResource.url, filename)
-            resourcesByCanonical[rawResource.url] = rawResource
+            this.resourcesByCanonical[rawResource.url] = rawResource
           }
           if (rawResource.resourceType != null) {
             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             const key: string = `${rawResource?.resourceType?.toString()}/${rawResource?.id?.toString()}`
-            resourcesByReference[key] = rawResource
-            ;(resourcesByResourceType[rawResource?.resourceType] ||= []).push(
+            this.resourcesByReference[key] = rawResource
+            ;(this.resourcesByResourceType[rawResource?.resourceType] ||= []).push(
               rawResource
             )
           }
@@ -51,20 +51,20 @@ class FileResolver extends BaseResolver implements Resolver {
         }
       })
     console.log(
-      `Loaded ${Object.keys(resourcesByCanonical).length} resources from disk`
+      `Loaded ${Object.keys(this.resourcesByCanonical).length} resources from disk`
     )
   }
 
   public async allByResourceType(resourceType: string) {
-    return resourcesByResourceType[resourceType]
+    return this.resourcesByResourceType[resourceType]
   }
 
   public async resolveCanonical(canonical: string | undefined) {
-    return canonical != null ? resourcesByCanonical[canonical] : undefined
+    return canonical != null ? this.resourcesByCanonical[canonical] : undefined
   }
 
   public async resolveReference(reference: string | undefined) {
-    return reference != null ? resourcesByReference[reference] : undefined
+    return reference != null ? this.resourcesByReference[reference] : undefined
   }
 
   /**
@@ -87,7 +87,7 @@ class FileResolver extends BaseResolver implements Resolver {
               if (cached == null) {
                 let version = elmValueset.version
 
-                const results = resourcesByResourceType['ValueSet']
+                const results = this.resourcesByResourceType['ValueSet']
                   .filter(is.ValueSet)
                   .filter(
                     (v) =>

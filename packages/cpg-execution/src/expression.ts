@@ -3,6 +3,7 @@ import cqlFhir from 'cql-exec-fhir'
 import fhirpath from 'fhirpath'
 import fhirpathR4Model from 'fhirpath/fhir-context/r4'
 import lodashSet from 'lodash/set'
+import FHIRHelpersLibrary from './support/Library-FHIRHelpers.json'
 
 import {
   handleError,
@@ -255,23 +256,36 @@ export const evaluateCqlExpression = async (
     ?.filter((l) =>
       l.content?.some((c) => c.contentType === 'application/elm+json')
     )
-  console.log("All libraries are", allLibraries)
-  const libraryManager = allLibraries?.reduce((acc, library) => {
-    const { content } = library
-    if (library.name) {
+  const libraryManager: Record<string, any> =
+    allLibraries?.reduce((acc, library) => {
+      const { content } = library
+      if (library.name) {
+        const elmEncoded = content?.find(
+          (c) => c.contentType === 'application/elm+json'
+        )
+        const elmJson = Buffer.from(elmEncoded?.data ?? '', 'base64').toString(
+          'utf-8'
+        )
+        const libraryObject = JSON.parse(elmJson)
+        terminologyResolver.preloadValueSets(libraryObject)
+        acc[library.name] = libraryObject
+      }
+      return acc
+    }, {} as Record<string, any>) ?? {}
+
+  if (libraryManager['FHIRHelpers'] == null) {
+    if (is.Library(FHIRHelpersLibrary)) {
+      const { content } = FHIRHelpersLibrary
       const elmEncoded = content?.find(
         (c) => c.contentType === 'application/elm+json'
       )
       const elmJson = Buffer.from(elmEncoded?.data ?? '', 'base64').toString(
         'utf-8'
       )
-      console.log("adding", library.name)
-      return acc[library.name] === JSON.parse(elmJson)
+      const fhirHelpersElm = JSON.parse(elmJson)
+      libraryManager['FHIRHelpers'] = fhirHelpersElm
     }
-    return acc
-  }, {} as any)
-
-  console.log("LM", libraryManager)
+  }
 
   const patientKey = patients?.[0]?.id
   if (patientKey == null) {
@@ -310,14 +324,10 @@ export const evaluateCqlExpression = async (
       })
     }
 
-    console.log(
-      'Raw results',
-      inspect(results[0].patientResults?.[patientKey]?.['Patient id'].value)
-    )
     // Find the value in the CQL results
     let value: any = null
     results.forEach((r) => {
-      Object.keys(r.patientResults?.[patientKey]).forEach((pr) => {
+      Object.keys(r?.patientResults?.[patientKey])?.forEach((pr) => {
         if (pr === expression.expression) {
           value = r.patientResults?.[patientKey]?.[pr]
         }
@@ -339,7 +349,7 @@ export const evaluateCqlExpression = async (
 export const evaluateCqlLibrary = (
   library: fhir4.Library,
   libraryManager: Record<string, any>,
-  terminologyResolver?: Resolver | undefined,
+  terminologyResolver: Resolver,
   dataContext?: fhir4.Bundle | undefined
 ): Results => {
   const elmEncoded = library.content?.find(
@@ -351,7 +361,9 @@ export const evaluateCqlLibrary = (
     const elmJson = Buffer.from(elmEncoded?.data ?? '', 'base64').toString(
       'utf-8'
     )
-    const lib = new cql.Library(JSON.parse(elmJson))
+    const repository = new cql.Repository(libraryManager)
+    const libraryElm = JSON.parse(elmJson)
+    const lib = new cql.Library(libraryElm, repository)
     const executor = new cql.Executor(lib, terminologyResolver)
     if (is.Bundle(dataContext)) {
       patientSource.loadBundles([dataContext])
