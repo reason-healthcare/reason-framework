@@ -1,5 +1,7 @@
 import { Code, ValueSet } from 'cql-execution'
-import Cache from '../cache'
+import Cache, { resetCache } from '../cache'
+
+resetCache()
 
 export class BaseResolver {
   endpoint: fhir4.Endpoint

@@ -16,7 +16,9 @@ class RestResolver extends BaseResolver implements Resolver {
     }
 
     if (!endpoint.address.startsWith('http')) {
-      throw new Error(`Endpoint address must start with 'http', got: '${endpoint.address}'`)
+      throw new Error(
+        `Endpoint address must start with 'http', got: '${endpoint.address}'`
+      )
     }
 
     // Build FHIR Rest client
@@ -62,10 +64,14 @@ class RestResolver extends BaseResolver implements Resolver {
   }
 
   // TODO: Deal with pagination
-  public async allByResourceType(resourceType: string) {
+  public async allByResourceType(resourceType: string, patient?: string | undefined) {
+    const searchParams: any = { _count: 1000 }
+    if (patient != null) {
+      searchParams.patient = patient
+    }
     const bundle = await this.client.search({
       resourceType,
-      searchParams: { _count: 1000 }
+      searchParams
     })
     if (is.Bundle(bundle)) {
       return bundle.entry
@@ -84,30 +90,51 @@ class RestResolver extends BaseResolver implements Resolver {
     }
 
     if (canonical != null) {
-
-      // Batch search
       let results
-      try {
-        results = await this.client.batch({
-        body: this.canonicalSearchBundle(
-          canonical,
-          resourceTypes
-        ) as unknown as fhir4.FhirResource & {
-          type: 'batch'
-        } // TODO: Update FKC type here `fhir4.Bundle & { type: 'batch' }`
-      })
-      } catch(e) {
-        throw new Error(`Problem with canonical search ${inspect(e)}`)
-      } 
+      if (process.env.CANONICAL_SEARCH_ROOT != null) {
+        console.log('Running canonical root search...')
+        try {
+          results = await this.client.request(`/?url=${canonical}`)
+        } catch (e) {
+          throw new Error(`Problem with canonical search ${inspect(e)}`)
+        }
+      } else {
+        // Batch search
+        try {
+          results = await this.client.batch({
+            body: this.canonicalSearchBundle(
+              canonical,
+              resourceTypes
+            ) as unknown as fhir4.FhirResource & {
+              type: 'batch'
+            } // TODO: Update FKC type here `fhir4.Bundle & { type: 'batch' }`
+          })
+        } catch (e) {
+          throw new Error(`Problem with canonical search ${inspect(e)}`)
+        }
+      }
 
       // Unwrap bundle of bundles
       if (is.Bundle(results)) {
-        const bundles = results.entry?.map((e) => e.resource).filter(is.Bundle)
-        const resources = bundles
-          ?.flatMap((bundle) => {
-            return bundle.entry?.map((b) => b.resource)
-          })
-          .filter(notEmpty)
+        let resources = []
+        if (process.env.CANONICAL_SEARCH_ROOT != null) {
+          resources =
+            results.entry
+              ?.map((e) => e.resource)
+              .filter(is.FhirResource)
+              .filter(notEmpty) ?? []
+        } else {
+          const bundles = results.entry
+            ?.map((e) => e.resource)
+            .filter(is.Bundle)
+          resources =
+            bundles
+              ?.flatMap((bundle) => {
+                return bundle.entry?.map((b) => b.resource)
+              })
+              .filter(notEmpty) ?? []
+        }
+
         if (resources?.length === 1) {
           const result = resources[0]
           Cache.setKey(`canonical-resource-${canonical}`, result)
@@ -146,7 +173,7 @@ class RestResolver extends BaseResolver implements Resolver {
    * @param libraries elm library to process
    */
   public async preloadValueSets(elm: any): Promise<void> {
-    if (Array.isArray(elm.library.valueSets.def)) {
+    if (Array.isArray(elm.library.valueSets?.def)) {
       await Promise.all(
         Object.values(elm.library.valueSets.def).map(
           async (elmValueset: any) => {

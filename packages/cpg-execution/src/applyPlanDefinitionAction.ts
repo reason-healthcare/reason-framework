@@ -23,6 +23,7 @@ import {
 } from './helpers'
 
 const isApplicable = async (
+  patientRef: string,
   planDefinintionAction: fhir4.PlanDefinitionAction,
   contentResolver: Resolver,
   terminologyResolver: Resolver,
@@ -53,6 +54,7 @@ const isApplicable = async (
         return evaluateFhirpath(expression?.expression)
       } else if (expression?.language === 'text/cql-identifier') {
         return await evaluateCqlExpression(
+          patientRef,
           expression,
           dataContext,
           contentResolver,
@@ -149,6 +151,7 @@ export const applyPlanDefinitionAction = async (
   )
   if (
     !(await isApplicable(
+      subject,
       action,
       contentResolver,
       terminologyResolver,

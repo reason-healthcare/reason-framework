@@ -120,6 +120,7 @@ export const processDynamicValue = async (
     }
 
     const value = await evaluateCqlExpression(
+      subject ?? '',
       expression,
       dataContext,
       contentResolver,
@@ -236,6 +237,7 @@ export const buildDataContext = async (
  * @returns Array of Results
  */
 export const evaluateCqlExpression = async (
+  patientRef: string,
   expression: fhir4.Expression,
   dataContext: fhir4.Bundle,
   contentResolver: Resolver,
@@ -306,9 +308,11 @@ export const evaluateCqlExpression = async (
       if (is.Library(libraryResource)) {
         results.push(
           await evaluateCqlLibrary(
+            patientRef,
             libraryResource,
             libraryManager,
             terminologyResolver,
+            contentResolver,
             dataResolver,
             dataContext
           )
@@ -316,20 +320,24 @@ export const evaluateCqlExpression = async (
       }
     } else {
       const libResults = await Promise.all(
-        libraries?.map(async (libraryResource) => {
-        if (is.Library(libraryResource)) {
-          return evaluateCqlLibrary(
-            libraryResource,
-            libraryManager,
-            terminologyResolver,
-            dataResolver,
-            dataContext
-          )
-        }
-        }).filter(notEmpty) ?? []
+        libraries
+          ?.map(async (libraryResource) => {
+            if (is.Library(libraryResource)) {
+              return evaluateCqlLibrary(
+                patientRef,
+                libraryResource,
+                libraryManager,
+                terminologyResolver,
+                contentResolver,
+                dataResolver,
+                dataContext
+              )
+            }
+          })
+          .filter(notEmpty) ?? []
       )
       if (libResults != null) {
-        libResults.forEach(r => {
+        libResults.forEach((r) => {
           if (r != null) {
             results.push(r)
           }
@@ -352,6 +360,40 @@ export const evaluateCqlExpression = async (
   }
 }
 
+const getDataRequirements = async (
+  elmLibrary: any,
+  contentResolver: Resolver
+): Promise<fhir4.DataRequirement[]> => {
+  // get includes, get FHIR library.dataRequirement
+  return await Promise.all(
+    elmLibrary.library?.includes?.def?.map(async (def: any) => {
+      const { path } = def
+      const fhirLibrary = await contentResolver.resolveCanonical(path.replace(/\/([^\/]*)$/, '/Library/$1'))
+      if (is.Library(fhirLibrary)) {
+        const childElmEncoded = fhirLibrary?.content?.find(
+          (c) => c.contentType === 'application/elm+json'
+        )
+
+        const childElmJson = Buffer.from(
+          childElmEncoded?.data ?? '',
+          'base64'
+        ).toString('utf-8')
+        
+        const { dataRequirement } = fhirLibrary
+
+        if (childElmJson != null) {
+          const childDataRequirements = await getDataRequirements(
+            childElmJson,
+            contentResolver
+          )
+          dataRequirement?.push(...childDataRequirements)
+        }
+        return dataRequirement
+      }
+    }) ?? []
+  )
+}
+
 /**
  * Evaluate a CQL Library with patient data
  *
@@ -360,43 +402,110 @@ export const evaluateCqlExpression = async (
  * @returns Results object from cql-execution
  */
 export const evaluateCqlLibrary = async (
+  patientRef: string,
   library: fhir4.Library,
   libraryManager: Record<string, any>,
   terminologyResolver: Resolver,
+  contentResolver: Resolver,
   dataResolver?: Resolver | undefined,
   dataContext?: fhir4.Bundle | undefined
 ): Promise<Results> => {
-  const { dataRequirement: dataRequirements } = library
+  dataContext ||= {
+    resourceType: 'Bundle',
+    type: 'collection'
+  }
 
   const elmEncoded = library.content?.find(
     (c) => c.contentType === 'application/elm+json'
   )
   const patientSource = cqlFhir.PatientSource.FHIRv401()
 
-  // Use data-requirement to fetch data
-  if (dataResolver != null && dataRequirements != null) {
-    const requiredResourceTypes = await Promise.all(
-      dataRequirements.map(async (dataRequirement) => {
-        const entries =
-          (await dataResolver.allByResourceType(dataRequirement.type))
-            ?.filter(is.FhirResource)
-            .map((resource) => {
-              return { resource }
-            })
-            .filter(notEmpty) ?? []
-        return entries
-      })
+  const isObject = (obj: any) => {
+    return Object.prototype.toString.call(obj) === '[object Object]'
+  }
+
+  const isArray = (obj: any) => {
+    return Object.prototype.toString.call(obj) === '[object Array]'
+  }
+
+  const isString = (obj: any): obj is string => {
+    return (
+      typeof obj === 'string' &&
+      Object.prototype.toString.call(obj) === '[object String]'
     )
-    // Add to dataContext
-    if (requiredResourceTypes != null) {
-      dataContext?.entry?.push(...requiredResourceTypes.flatMap((n) => n))
-    }
+  }
+
+  const replaceReferences = (obj: any) => {
+    return Object.keys(obj).reduce((acc, key) => {
+      let value = JSON.parse(JSON.stringify(obj[key]))
+
+      if (isObject(obj[key])) {
+        value = replaceReferences(obj[key])
+      }
+
+      if (isArray(obj[key])) {
+        value = obj[key].map((v: any) => replaceReferences(v))
+      }
+
+      if (key === 'reference' && isString(obj[key])) {
+        value = obj[key].match(/[^\/]*\/[^\/]*$/)?.[0]
+      }
+
+      if (value == null && obj[key] != null) {
+        console.warn('When modifying the reference, getting null', obj[key])
+      }
+
+      acc[key] = value
+      return acc
+    }, {} as Record<string, any>)
   }
 
   try {
     const elmJson = Buffer.from(elmEncoded?.data ?? '', 'base64').toString(
       'utf-8'
     )
+    const allDataRequirements = (await getDataRequirements(
+      JSON.parse(elmJson),
+      contentResolver
+    )).filter(notEmpty)
+
+    if (dataResolver != null) {
+      console.log("looking for required data...", inspect(allDataRequirements))
+      const requiredData = (
+        await Promise.all(
+          allDataRequirements.flat().map(async (dataRequirement) => {
+            const { type } = dataRequirement
+            console.log("TYPE", inspect(dataRequirement), dataRequirement.type, type)
+            if (type != null) {
+              console.log("Fetching for type", type)
+              return (await dataResolver.allByResourceType(type, patientRef)) ?? []
+            }
+          })
+        )
+      )
+        .flat()
+        .filter(notEmpty)
+
+      dataContext.entry?.push(
+        ...requiredData.map((d) => {
+          return { resource: d }
+        })
+      )
+    }
+
+    // clean data context, need to replace all properties where reference is to be just :resourceType/:id
+    const cleanedDataContext = dataContext?.entry
+      ?.map((entry) => entry.resource)
+      ?.map((resource) => replaceReferences(resource))
+      ?.filter(is.FhirResource)
+      ?.map((resource) => {
+        return { resource: resource }
+      })
+
+    dataContext.entry = cleanedDataContext
+
+    console.log("Final data context", inspect(dataContext))
+
     const repository = new cql.Repository(libraryManager)
     const libraryElm = JSON.parse(elmJson)
     const lib = new cql.Library(libraryElm, repository)

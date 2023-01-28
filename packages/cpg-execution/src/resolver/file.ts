@@ -50,7 +50,7 @@ class FileResolver extends BaseResolver implements Resolver {
       })
   }
 
-  public async allByResourceType(resourceType: string) {
+  public async allByResourceType(resourceType: string, patient?: string | undefined) {
     return this.resourcesByResourceType[resourceType]
   }
 

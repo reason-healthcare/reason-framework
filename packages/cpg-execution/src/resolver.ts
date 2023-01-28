@@ -15,7 +15,8 @@ export interface Resolver {
   ) => Promise<fhir4.FhirResource | undefined>
 
   allByResourceType: (
-    resourceType: string
+    resourceType: string,
+    patientRef?: string | undefined
   ) => Promise<fhir4.FhirResource[] | undefined>
 
   /**
