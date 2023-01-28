@@ -164,6 +164,11 @@ export default async (options?: FastifyServerOptions) => {
     methods: ['*'],
   })
 
+  app.get('/health', (_req, res)=> {
+    console.log("Called /health")
+    res.send({ health: 'ok'})
+  })
+
   app.get('/cds-services', async (req, res): Promise<void> => {
     const resolver = Resolver(defaultEndpoint)
 

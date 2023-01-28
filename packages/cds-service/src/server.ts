@@ -11,7 +11,7 @@ process.on('SIGINT', function () {
 
 app({ logger: true }).then((s) => {
   s.listen(
-    { port: Number.parseInt(process.env.PORT ?? '9001') },
+    { port: Number.parseInt(process.env.PORT ?? '9001'), host: '0.0.0.0' },
     (error, address: string) => {
       if (error) {
         console.error(error)
