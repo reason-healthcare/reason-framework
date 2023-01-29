@@ -64,7 +64,10 @@ class RestResolver extends BaseResolver implements Resolver {
   }
 
   // TODO: Deal with pagination
-  public async allByResourceType(resourceType: string, patient?: string | undefined) {
+  public async allByResourceType(
+    resourceType: string,
+    patient?: string | undefined
+  ) {
     const searchParams: any = { _count: 1000 }
     if (patient != null) {
       searchParams.patient = patient

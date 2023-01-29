@@ -368,7 +368,9 @@ const getDataRequirements = async (
   return await Promise.all(
     elmLibrary.library?.includes?.def?.map(async (def: any) => {
       const { path } = def
-      const fhirLibrary = await contentResolver.resolveCanonical(path.replace(/\/([^\/]*)$/, '/Library/$1'))
+      const fhirLibrary = await contentResolver.resolveCanonical(
+        path.replace(/\/([^\/]*)$/, '/Library/$1')
+      )
       if (is.Library(fhirLibrary)) {
         const childElmEncoded = fhirLibrary?.content?.find(
           (c) => c.contentType === 'application/elm+json'
@@ -378,7 +380,7 @@ const getDataRequirements = async (
           childElmEncoded?.data ?? '',
           'base64'
         ).toString('utf-8')
-        
+
         const { dataRequirement } = fhirLibrary
 
         if (childElmJson != null) {
@@ -464,21 +466,19 @@ export const evaluateCqlLibrary = async (
     const elmJson = Buffer.from(elmEncoded?.data ?? '', 'base64').toString(
       'utf-8'
     )
-    const allDataRequirements = (await getDataRequirements(
-      JSON.parse(elmJson),
-      contentResolver
-    )).filter(notEmpty)
+    const allDataRequirements = (
+      await getDataRequirements(JSON.parse(elmJson), contentResolver)
+    ).filter(notEmpty)
 
     if (dataResolver != null) {
-      console.log("looking for required data...", inspect(allDataRequirements))
       const requiredData = (
         await Promise.all(
           allDataRequirements.flat().map(async (dataRequirement) => {
             const { type } = dataRequirement
-            console.log("TYPE", inspect(dataRequirement), dataRequirement.type, type)
             if (type != null) {
-              console.log("Fetching for type", type)
-              return (await dataResolver.allByResourceType(type, patientRef)) ?? []
+              return (
+                (await dataResolver.allByResourceType(type, patientRef)) ?? []
+              )
             }
           })
         )
@@ -504,8 +504,6 @@ export const evaluateCqlLibrary = async (
 
     dataContext.entry = cleanedDataContext
 
-    console.log("Final data context", inspect(dataContext))
-
     const repository = new cql.Repository(libraryManager)
     const libraryElm = JSON.parse(elmJson)
     const lib = new cql.Library(libraryElm, repository)
@@ -514,7 +512,9 @@ export const evaluateCqlLibrary = async (
       patientSource.loadBundles([dataContext])
     }
     const cqlResults = executor.exec(patientSource)
-    console.info(cqlResults)
+    if (process.env.VERBOSE != null) {
+      console.info(cqlResults)
+    }
     return cqlResults
   } catch (error) {
     handleError(`Problem evaluating ${library.url ?? library.id ?? 'Unknown'}`)

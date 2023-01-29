@@ -29,7 +29,7 @@ export class BaseResolver {
       valueSets = [valuesetsByVersion[version] as ValueSet]
     }
     valueSets = Object.values(valuesetsByVersion) as ValueSet[]
-    
+
     return valueSets.map(
       (vs) =>
         new ValueSet(

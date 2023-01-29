@@ -50,8 +50,29 @@ class FileResolver extends BaseResolver implements Resolver {
       })
   }
 
-  public async allByResourceType(resourceType: string, patient?: string | undefined) {
-    return this.resourcesByResourceType[resourceType]
+  public async allByResourceType(
+    resourceType: string,
+    patient?: string | undefined
+  ) {
+    const resources = this.resourcesByResourceType[resourceType]
+    if (patient != null) {
+      return resources?.filter((resource) => {
+        const rawResource = JSON.parse(JSON.stringify(resource))
+        const { subject } = rawResource
+        if (subject != null) {
+          return subject.reference === patient
+        } else {
+          console.warn(
+            `Don't know how to scope ${inspect(
+              resource
+            )} for patient ${patient}`
+          )
+          return false
+        }
+      })
+    } else {
+      return resources
+    }
   }
 
   public async resolveCanonical(canonical: string | undefined) {

@@ -164,9 +164,9 @@ export default async (options?: FastifyServerOptions) => {
     methods: ['*'],
   })
 
-  app.get('/health', (_req, res)=> {
-    console.log("Called /health")
-    res.send({ health: 'ok'})
+  app.get('/health', (_req, res) => {
+    console.log('Called /health')
+    res.send({ health: 'ok' })
   })
 
   app.get('/cds-services', async (req, res): Promise<void> => {
@@ -355,14 +355,16 @@ export default async (options?: FastifyServerOptions) => {
           parameters,
           'dataEndpoint'
         ) as fhir4.Endpoint | undefined
-        const contentEndpoint = resourceFromParameters(
-          parameters,
-          'contentEndpoint'
-        ) as fhir4.Endpoint ?? defaultEndpoint
-        const terminologyEndpoint = resourceFromParameters(
-          parameters,
-          'terminologyEndpoint'
-        ) as fhir4.Endpoint ?? defaultEndpoint
+        const contentEndpoint =
+          (resourceFromParameters(
+            parameters,
+            'contentEndpoint'
+          ) as fhir4.Endpoint) ?? defaultEndpoint
+        const terminologyEndpoint =
+          (resourceFromParameters(
+            parameters,
+            'terminologyEndpoint'
+          ) as fhir4.Endpoint) ?? defaultEndpoint
 
         const args: ApplyActivityDefinitionArgs = {
           activityDefinition,
@@ -409,16 +411,17 @@ export default async (options?: FastifyServerOptions) => {
           parameters,
           'dataEndpoint'
         ) as fhir4.Endpoint | undefined
-        const contentEndpoint = resourceFromParameters(
-          parameters,
-          'contentEndpoint'
-        ) as fhir4.Endpoint ?? defaultEndpoint
-        const terminologyEndpoint = resourceFromParameters(
-          parameters,
-          'terminologyEndpoint'
-        ) as fhir4.Endpoint ?? defaultEndpoint
+        const contentEndpoint =
+          (resourceFromParameters(
+            parameters,
+            'contentEndpoint'
+          ) as fhir4.Endpoint) ?? defaultEndpoint
+        const terminologyEndpoint =
+          (resourceFromParameters(
+            parameters,
+            'terminologyEndpoint'
+          ) as fhir4.Endpoint) ?? defaultEndpoint
 
-        console.log(`Content endpoint`, inspect(contentEndpoint))
         const args: ApplyPlanDefinitionArgs = {
           planDefinition,
           subject: valueFromParameters(parameters, 'subject', 'valueReference'),
