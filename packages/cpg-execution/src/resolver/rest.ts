@@ -84,8 +84,15 @@ class RestResolver extends BaseResolver implements Resolver {
       // For simplifier...
       return resultResources?.filter(r => {
         const patientReference = (r as any)?.patient?.reference
+        console.log('patientReference', patientReference)
         if (patientReference) {
-          return patientReference === patient
+          return patientReference.endsWith(patient)
+        }
+        
+        const subjectReference = (r as any)?.subject?.reference
+        console.log('subjectReference', subjectReference)
+        if (subjectReference) {
+          return subjectReference.endsWith(patient)
         }
         return true
       })
