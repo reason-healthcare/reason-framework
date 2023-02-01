@@ -84,6 +84,7 @@ export type RequestResource =
   | fhir4.ImmunizationRecommendation
   | fhir4.MedicationRequest
   | fhir4.NutritionOrder
+  | fhir4.RequestGroup
   | fhir4.ServiceRequest
   | fhir4.SupplyRequest
   | fhir4.Task

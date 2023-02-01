@@ -84,13 +84,11 @@ class RestResolver extends BaseResolver implements Resolver {
       // For simplifier...
       return resultResources?.filter(r => {
         const patientReference = (r as any)?.patient?.reference
-        console.log('patientReference', patientReference)
         if (patientReference) {
           return patientReference.endsWith(patient)
         }
         
         const subjectReference = (r as any)?.subject?.reference
-        console.log('subjectReference', subjectReference)
         if (subjectReference) {
           return subjectReference.endsWith(patient)
         }
@@ -157,6 +155,7 @@ class RestResolver extends BaseResolver implements Resolver {
         if (resources?.length === 1) {
           const result = resources[0]
           Cache.setKey(`canonical-resource-${canonical}`, result)
+          Cache.save(true)
           return result
         } else {
           throw new Error(
@@ -241,6 +240,7 @@ class RestResolver extends BaseResolver implements Resolver {
                     return acc
                   }, {} as Record<string, ValueSet>)
                   Cache.setKey(key, cached)
+                  Cache.save(true)
                 } else {
                   console.info(`Could not find ValueSets for ${key}`)
                 }
@@ -251,7 +251,6 @@ class RestResolver extends BaseResolver implements Resolver {
           }
         )
       )
-      Cache.save()
     }
   }
 }

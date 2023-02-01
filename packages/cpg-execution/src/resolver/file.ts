@@ -78,12 +78,6 @@ class FileResolver extends BaseResolver implements Resolver {
   }
 
   public async resolveReference(reference: string | undefined) {
-    console.log("HERE", reference)
-    if (reference != null) {
-      console.log(Object.keys(this.resourcesByReference))
-      console.log("test", inspect((this.resourcesByReference as any)?.[reference]))
-    }
-
     return reference != null ? this.resourcesByReference[reference] : undefined
   }
 

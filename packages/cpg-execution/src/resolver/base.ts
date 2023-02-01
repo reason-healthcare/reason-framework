@@ -1,6 +1,7 @@
 import { Code, ValueSet } from 'cql-execution'
 import Cache, { resetCache } from '../cache'
 
+Cache.destroy()
 resetCache()
 
 export class BaseResolver {
@@ -24,6 +25,7 @@ export class BaseResolver {
 
   public findValueSets(oid: string, version?: string | undefined) {
     const valuesetsByVersion = Cache.getKey(oid)
+    
     let valueSets: ValueSet[] = []
     if (version != null) {
       valueSets = [valuesetsByVersion[version] as ValueSet]

@@ -218,6 +218,13 @@ export const applyPlanDefinition = async (
     resource: removeUndefinedProps(requestGroup)
   })
 
+  /*
+  const filtedEntry = entry.filter((bundleEntry, index) => {
+    console.log('aaaaaa index is', index, entry.indexOf(bundleEntry))
+    return index === entry.indexOf(bundleEntry)
+  })
+  */
+
   return {
     resourceType: 'Bundle',
     id: uuidv4(),

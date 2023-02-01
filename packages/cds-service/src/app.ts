@@ -184,7 +184,7 @@ export default async (options?: FastifyServerOptions) => {
           )
           if (planDefinition.url != null) {
             return {
-              id: encodeURIComponent(planDefinition.url),
+              id: planDefinition.id,
               title: planDefinition.title,
               description: planDefinition.description,
               hook: hookTrigger?.name,
@@ -198,13 +198,15 @@ export default async (options?: FastifyServerOptions) => {
   })
 
   app.post<{
-    Params: { serviceCanonical: string }
+    Params: { id: string }
     Body: CDSHooks.HookRequestWithFhir
-  }>('/cds-services/:serviceCanonical', async (req, res): Promise<void> => {
+  }>('/cds-services/:id', async (req, res): Promise<void> => {
     const resolver = Resolver(defaultEndpoint)
     const { hook, context, fhirServer } = req.body
-    const { serviceCanonical } = req.params
-    const planDefinition = await resolver.resolveCanonical(serviceCanonical)
+    const { id } = req.params
+    const planDefinition = await resolver.resolveReference(
+      `PlanDefinition/${id}`
+    )
 
     const dataEndpoint = JSON.parse(JSON.stringify(defaultEndpoint))
     if (fhirServer != null) {
@@ -221,7 +223,7 @@ export default async (options?: FastifyServerOptions) => {
       )
       if (trigger?.name !== hook) {
         throw new Error(
-          `called hook ${hook}, but not a trigger for planDefinition ${serviceCanonical}`
+          `called hook ${hook}, but not a trigger for planDefinition ${id}`
         )
       }
 
@@ -286,7 +288,7 @@ export default async (options?: FastifyServerOptions) => {
           if (is.RequestGroup(requestGroup)) {
             cards.push(
               ...(requestGroup.action
-                ?.map((action) => {
+                ?.map((action, index) => {
                   // Add indicator
                   const priority =
                     action.priority || requestGroup.priority || 'routine'
@@ -318,12 +320,47 @@ export default async (options?: FastifyServerOptions) => {
                     }
                   }
 
+                  let suggestions: CDSHooks.Suggestion[] = []
+
+                  if (action.action != null) {
+                    suggestions = action.action
+                      .map((subAction, subIndex) => {
+                        let actions: CDSHooks.SystemAction[] = []
+                        const resource = others.find(o => subAction?.resource?.reference?.endsWith(o.id ?? ''))
+                        if (is.RequestGroup(resource)) {
+                          actions = resource.action?.map(targetAction => {
+                            const targetResource = others.find(o => targetAction?.resource?.reference?.endsWith(o.id ?? ''))
+                            if (targetResource != null) {
+                              return {
+                                type: targetAction.type?.coding?.[0]?.code,
+                                description: targetAction.description,
+                                resource: targetResource
+                              } as CDSHooks.SystemAction 
+                            }
+                          }).filter(notEmpty) ?? []
+                        }
+
+                        if (actions.length > 0) {
+                          return {
+                            label: subAction.title ?? 'label',
+                            uuid: `${requestGroup.id}-${index}-${subIndex}`,
+                            actions,
+                          }
+                        }
+
+                      })
+                      .filter(notEmpty)
+                  }
+
                   // Return CDS Hook Card
-                  return {
-                    summary: action.title ?? 'Unknown Title',
-                    detail: action.description,
-                    indicator,
-                    source,
+                  if (suggestions.length > 0) {
+                    return {
+                      summary: action.title ?? 'Unknown Title',
+                      detail: action.description,
+                      indicator,
+                      source,
+                      suggestions,
+                    }
                   }
                 })
                 .filter(notEmpty) ?? [])

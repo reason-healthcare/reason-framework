@@ -1,4 +1,6 @@
 import { Resolver } from './resolver'
+import crypto from 'crypto'
+
 import {
   applyActivityDefinition,
   ApplyActivityDefinitionArgs
@@ -16,10 +18,10 @@ import {
 import {
   notEmpty,
   is,
-  safeBundleEntryPush,
   RequestResource,
   referenceFromResource,
-  inspect
+  inspect,
+  baseUrl
 } from './helpers'
 
 const isApplicable = async (
@@ -43,6 +45,7 @@ const isApplicable = async (
   ) {
     return true
   }
+
 
   const applicabilities = await Promise.all(
     applicabilityConditions.flatMap(async (condition) => {
@@ -72,7 +75,7 @@ const isApplicable = async (
       }
     })
   )
-
+  
   if (applicabilities.every((a) => typeof a === 'boolean')) {
     return applicabilities.every((a) => a === true)
   } else {
@@ -252,7 +255,18 @@ export const applyPlanDefinitionAction = async (
       }
 
       appliedResource = await applyActivityDefinition(activityDefinitionArgs)
-
+      
+      if (is.RequestResource(appliedResource)) {
+        requestGroupAction.type = {
+          coding: [
+            { 
+              system: 'http://terminology.hl7.org/CodeSystem/action-type',
+              code: 'create'
+            }
+          ]
+        }
+      }
+      
       // Apply any dynamicValues from the PD now
       if (
         is.RequestResource(appliedResource) ||
@@ -280,10 +294,21 @@ export const applyPlanDefinitionAction = async (
         ...args,
         planDefinition: definitionResource
       }
+
       appliedBundle = await applyPlanDefinition(
         planDefinitionArgs,
         resourceBundle
       )
+      
+      const subRequestGroup = appliedBundle?.entry?.shift()
+      if (is.RequestGroup(subRequestGroup?.resource)) {
+        if (subRequestGroup?.resource?.action?.every(a => a.resource != null)) {
+          appliedResource = subRequestGroup?.resource
+        }
+      } else {
+        throw new Error("Problem processing sub PlanDefinition, missing requestGroup." + inspect(subRequestGroup))
+      }
+      
     } else if (is.Questionnaire(definitionResource)) {
       appliedResource = definitionResource
     } else {
@@ -293,16 +318,12 @@ export const applyPlanDefinitionAction = async (
       )
     }
 
-    if (appliedBundle != null) {
-      const appliedBundleResource = appliedBundle.entry?.pop()?.resource
-      if (is.RequestResource(appliedBundleResource)) {
-        appliedResource = appliedBundleResource
-      }
-      resourceBundle = appliedBundle
-    }
-
     if (appliedResource != null) {
-      safeBundleEntryPush(resourceBundle, { resource: appliedResource })
+      ;(resourceBundle.entry ||= []).push({
+        fullUrl: `${baseUrl}/${appliedResource.resourceType}/${appliedResource.id}`,
+        resource: appliedResource
+      })
+
       requestGroupAction.resource = referenceFromResource(appliedResource)
     }
   }
@@ -335,19 +356,13 @@ export const applyPlanDefinitionAction = async (
     requestGroupAction.action = childActionBundles?.map(
       (childActionBundle) => childActionBundle.action
     )
-
-    const childBundleEntries = childActionBundles
-      ?.flatMap((childActionBundle) => childActionBundle.resourceBundle?.entry)
-      .filter(notEmpty)
-
-    if (childBundleEntries != null) {
-      resourceBundle.entry?.push(...childBundleEntries)
-    }
   }
 
   // Return the action and resourceBundle
-  return {
-    action: requestGroupAction,
-    resourceBundle
+  if (requestGroupAction.resource != null || requestGroupAction?.action != null) {
+    return {
+      action: requestGroupAction,
+      resourceBundle
+    }
   }
 }
