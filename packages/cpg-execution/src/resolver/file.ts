@@ -52,26 +52,24 @@ class FileResolver extends BaseResolver implements Resolver {
 
   public async allByResourceType(
     resourceType: string,
-    patient?: string | undefined
+    patientRef?: string | undefined
   ) {
     const resources = this.resourcesByResourceType[resourceType]
-    if (patient != null) {
+    if (patientRef != null) {
       return resources?.filter((resource) => {
+        console.log("filtering", resource)
         const rawResource = JSON.parse(JSON.stringify(resource))
-        const { subject } = rawResource
+        const { subject, patient } = rawResource
         if (subject != null) {
-          return subject.reference === patient
-        } else {
-          console.warn(
-            `Don't know how to scope ${inspect(
-              resource
-            )} for patient ${patient}`
-          )
-          return false
+          return subject.reference === patientRef
         }
+        if (patient != null) {
+          return patient.reference === patientRef
+        }
+        return true
       })
     } else {
-      return resources
+      return resources.filter(r => r != null)
     }
   }
 
@@ -80,6 +78,12 @@ class FileResolver extends BaseResolver implements Resolver {
   }
 
   public async resolveReference(reference: string | undefined) {
+    console.log("HERE", reference)
+    if (reference != null) {
+      console.log(Object.keys(this.resourcesByReference))
+      console.log("test", inspect((this.resourcesByReference as any)?.[reference]))
+    }
+
     return reference != null ? this.resourcesByReference[reference] : undefined
   }
 
