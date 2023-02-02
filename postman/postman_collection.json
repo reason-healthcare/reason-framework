@@ -190,104 +190,6 @@
 			"response": []
 		},
 		{
-			"name": "Get Bundles and save",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"var jsonData = JSON.parse(responseBody);",
-							"postman.setGlobalVariable(\"bundleContent\", JSON.stringify(jsonData.entry[1].resource));"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{contentEndpointAddress}}/Bundle",
-					"host": [
-						"{{contentEndpointAddress}}"
-					],
-					"path": [
-						"Bundle"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Post Bundle",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{{bundleContent}}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "https://server.fire.ly/r4/",
-					"protocol": "https",
-					"host": [
-						"server",
-						"fire",
-						"ly"
-					],
-					"path": [
-						"r4",
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Check Patients on server",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{contentEndpointAddress}}/Patient",
-					"host": [
-						"{{contentEndpointAddress}}"
-					],
-					"path": [
-						"Patient"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "CDS Services - Discovery",
 			"event": [
 				{
@@ -334,7 +236,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"hook\": \"patient-view\",\n    \"context\": {\n        \"userId\": \"Practitioner/{{practitioner}}\",\n        \"patientId\": \"Patient/{{patient}}\",\n        \"encounterId\": \"Encounter/{{encounter}}\"\n    }\n}",
+					"raw": "{\n  \"hookInstance\": \"49ad21af-55f0-40b6-b378-0327fb55cbeb\",\n  \"hook\": \"patient-view\",\n  \"fhirServer\": \"{{contentEndpointAddress}}\",\n  \"context\": {\n    \"patientId\": \"{{patient}}\",\n    \"userId\": \"{{practitioner}}\"\n  }\n}",
 					"options": {
 						"raw": {
 							"language": "json"
