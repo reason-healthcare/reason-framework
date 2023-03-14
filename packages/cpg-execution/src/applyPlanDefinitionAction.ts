@@ -117,7 +117,7 @@ const isAtomic = (
  *     as part of a user-entry workflow that enables user input to be provided as
  *     necessary.
  *
- * @param action PlanDefinintion Action
+ * @param action PlanDefinition Action
  * @param args arguments from $apply
  * @returns RequestGroup Action or null
  */
@@ -288,21 +288,21 @@ export const applyPlanDefinitionAction = async (
           )
         )
       }
-    } else if (is.PlanDefinition(definitionResource)) {   // if the PD action is a plan Definition
+    } else if (is.PlanDefinition(definitionResource)) {
       const planDefinitionArgs: ApplyPlanDefinitionArgs = {
         ...args,
         planDefinition: definitionResource
       }
 
-      appliedBundle = await applyPlanDefinition(     //the applied bundle = entry with followuplan RQ and entry CKDeducation RQ
+      appliedBundle = await applyPlanDefinition(
         planDefinitionArgs,
         resourceBundle
       )
 
-      const subRequestGroup = appliedBundle?.entry?.shift()  //subRQ = one entry from the bundle
+      const subRequestGroup = appliedBundle?.entry?.shift()
       if (is.RequestGroup(subRequestGroup?.resource)) {
         if (
-          subRequestGroup?.resource?.action?.every((a) => a.resource != null) //if the action has a resource -- PDs and ADs for subrequestgroups do not have nested resources so this evaluates false
+          subRequestGroup?.resource?.action?.every((a) => a.resource != null)
         ) {
           appliedResource = subRequestGroup?.resource
         }

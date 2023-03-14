@@ -218,6 +218,10 @@ export const applyPlanDefinition = async (
     resource: removeUndefinedProps(requestGroup)
   })
 
+  if (entry.length > 1) {
+    requestGroup.intent = "option"
+  }
+
   /*
   const filtedEntry = entry.filter((bundleEntry, index) => {
     console.log('aaaaaa index is', index, entry.indexOf(bundleEntry))
