@@ -256,6 +256,7 @@ export const applyPlanDefinitionAction = async (
       appliedResource = await applyActivityDefinition(activityDefinitionArgs)
 
       if (is.RequestResource(appliedResource)) {
+        //appliedResource.intent = 'option' //TS error 'property intent does not exist on request resource'
         requestGroupAction.type = {
           coding: [
             {
@@ -301,12 +302,16 @@ export const applyPlanDefinitionAction = async (
 
       const subRequestGroup = appliedBundle?.entry?.shift()
       if (is.RequestGroup(subRequestGroup?.resource)) {
-        if (
-          subRequestGroup?.resource?.action?.every((a) => a.resource != null)
-        ) {
-          appliedResource = subRequestGroup?.resource
+        // if (
+        //   subRequestGroup?.resource?.action?.every((a) => a.resource != null)  //do we need this? Not every subRequestGroups needs an action.resource because not all sub groups will have an action definition
+        // ) {
+        //   appliedResource = subRequestGroup?.resource
+        //   console.log("appliedR" + JSON.stringify(appliedResource))
+        // }
+        if (subRequestGroup?.resource) {
+          subRequestGroup.resource.intent = 'option'
+          appliedResource = subRequestGroup.resource
         }
-        appliedResource = subRequestGroup?.resource
       } else {
         throw new Error(
           'Problem processing sub PlanDefinition, missing requestGroup.' +
