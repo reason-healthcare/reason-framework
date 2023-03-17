@@ -256,7 +256,11 @@ export const applyPlanDefinitionAction = async (
       appliedResource = await applyActivityDefinition(activityDefinitionArgs)
 
       if (is.RequestResource(appliedResource)) {
-        //appliedResource.intent = 'option' //TS error 'property intent does not exist on request resource'
+
+        if (is.RequestResourceWithIntent(appliedResource)) {
+          appliedResource.intent = 'option'
+        }
+
         requestGroupAction.type = {
           coding: [
             {
@@ -272,7 +276,7 @@ export const applyPlanDefinitionAction = async (
         is.RequestResource(appliedResource) ||
         is.Questionnaire(appliedResource)
       ) {
-        dynamicValue?.forEach((dv) =>
+        dynamicValue?.forEach((dv) =>  // need to assign the return to applied resource? processDV returns new target resource with the evaluated expression
           processDynamicValue(
             dv,
             planDefinition,
