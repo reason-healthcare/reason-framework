@@ -276,7 +276,7 @@ export const applyPlanDefinitionAction = async (
         is.RequestResource(appliedResource) ||
         is.Questionnaire(appliedResource)
       ) {
-        dynamicValue?.forEach((dv) =>  // need to assign the return to applied resource? processDV returns new target resource with the evaluated expression
+        dynamicValue?.forEach((dv) =>  // need to assign the return to applied resource? processDV returns new target resource with the evaluated expression or does this need to be async?
           processDynamicValue(
             dv,
             planDefinition,
@@ -293,6 +293,8 @@ export const applyPlanDefinitionAction = async (
           )
         )
       }
+      console.log(JSON.stringify(appliedResource) + "appliedResource from applyPlanDefinitionAction")
+
     } else if (is.PlanDefinition(definitionResource)) {
       const planDefinitionArgs: ApplyPlanDefinitionArgs = {
         ...args,
@@ -323,7 +325,7 @@ export const applyPlanDefinitionAction = async (
         )
       }
     } else if (is.Questionnaire(definitionResource)) {
-      appliedResource = definitionResource
+      requestGroupAction.resource = referenceFromResource(definitionResource)
     } else {
       console.warn(
         'Support for only ActivityDefinition, PlanDefinition, and Questionnaire. No support for: %j',

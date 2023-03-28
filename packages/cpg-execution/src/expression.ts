@@ -90,6 +90,7 @@ export const processDynamicValue = async (
           expression
         )}`
       )
+      console.log(JSON.stringify(targetResource) + 'targetResource from processDynamicValue function')
       return targetResource
     }
 
@@ -135,6 +136,7 @@ export const processDynamicValue = async (
       }' not supported, only support for: text/fhirpath, text/cql-identifier`
     )
   }
+  console.log(JSON.stringify(JSON.stringify(targetResource) + 'targetResource from process'))
   return targetResource
 }
 
