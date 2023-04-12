@@ -225,8 +225,6 @@ export const applyPlanDefinition = async (
   })
   */
 
-  console.log(JSON.stringify(entry) + 'bundle entry from applyPlanDefinition')
-
   return {
     resourceType: 'Bundle',
     id: uuidv4(),

@@ -272,28 +272,40 @@ export const applyPlanDefinitionAction = async (
       }
 
       // Apply any dynamicValues from the PD now
+      let newAppliedResources: (
+        | RequestResource
+        | fhir4.Questionnaire
+        | undefined
+      )[] = []
+
       if (
-        is.RequestResource(appliedResource) ||
-        is.Questionnaire(appliedResource)
+        (is.RequestResource(appliedResource) ||
+        is.Questionnaire(appliedResource)) &&
+        dynamicValue
       ) {
-        dynamicValue?.forEach((dv) =>  // need to assign the return to applied resource? processDV returns new target resource with the evaluated expression or does this need to be async?
-          processDynamicValue(
-            dv,
-            planDefinition,
-            appliedResource as RequestResource | fhir4.Questionnaire, // XXX: Why is this needed?
-            contentResolver,
-            terminologyResolver,
-            dataResolver,
-            data,
-            libraries,
-            subject,
-            encounter,
-            practitioner,
-            organization
-          )
+        newAppliedResources = await Promise.all(
+          dynamicValue.map(async (dv) => {
+            return await processDynamicValue(
+              dv,
+              planDefinition,
+              appliedResource as RequestResource | fhir4.Questionnaire, // XXX: Why is this needed?
+              contentResolver,
+              terminologyResolver,
+              dataResolver,
+              data,
+              libraries,
+              subject,
+              encounter,
+              practitioner,
+              organization
+            )
+          })
         )
+
+        newAppliedResources
+        .filter((r) => is.RequestResource(r) || is.Questionnaire(r))
+        .forEach((resource) => Object.assign((appliedResource: RequestResource | fhir4.Questionnaire) => appliedResource, resource)) //callback fn to declare types? Otherwise erroring bc of type 'undefined'
       }
-      console.log(JSON.stringify(appliedResource) + "appliedResource from applyPlanDefinitionAction")
 
     } else if (is.PlanDefinition(definitionResource)) {
       const planDefinitionArgs: ApplyPlanDefinitionArgs = {
