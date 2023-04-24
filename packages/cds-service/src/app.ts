@@ -504,10 +504,11 @@ export default async (options?: FastifyServerOptions) => {
       const { parameter: parameters } = req.body as fhir4.Parameters
 
       if (parameters != null) {
-        const planDefinition = resourceFromParameters(
+        let planDefinition = resourceFromParameters(
           parameters,
           'planDefinition'
         ) as fhir4.PlanDefinition
+
         const data = resourceFromParameters(parameters, 'data') as
           | fhir4.Bundle
           | undefined
@@ -525,6 +526,16 @@ export default async (options?: FastifyServerOptions) => {
             parameters,
             'terminologyEndpoint'
           ) as fhir4.Endpoint) ?? defaultEndpoint
+        
+        if (planDefinition == null) {
+          let url = valueFromParameters(parameters, 'url', 'valueString') 
+          const contentResolver = Resolver(contentEndpoint)
+          const planDefinitionRaw = await contentResolver.resolveCanonical(url)
+          
+          if (is.PlanDefinition(planDefinitionRaw)) {
+            planDefinition = planDefinitionRaw
+          }
+        }
 
         const args: ApplyPlanDefinitionArgs = {
           planDefinition,
