@@ -17,6 +17,7 @@ import {
   is,
   notEmpty,
 } from '@reason-framework/cpg-execution/lib/helpers'
+import { removeUndefinedProps } from '@reason-framework/cpg-execution/lib/helpers'
 
 /**
  * The patient whose record was opened, including their encounter, if
@@ -197,6 +198,9 @@ export default async (options?: FastifyServerOptions) => {
     res.send({ services: cdsHooksServices })
   })
 
+  // As $apply builds a hierarchy of nested requeste groups, first flatten to a
+  // single action tree, then apply the rules on clinical-reasoning-on-fhir
+
   app.post<{
     Params: { id: string }
     Body: CDSHooks.HookRequestWithFhir
@@ -211,7 +215,11 @@ export default async (options?: FastifyServerOptions) => {
     const dataEndpoint = JSON.parse(JSON.stringify(defaultEndpoint))
     if (fhirServer != null) {
       dataEndpoint.address = fhirServer
-      dataEndpoint.connectionType.code = 'hl7-fhir-rest'
+      if (fhirServer.startsWith('http')) {
+        dataEndpoint.connectionType.code = 'hl7-fhir-rest'
+      } else {
+        dataEndpoint.connectionType.code = 'hl7-fhir-file'
+      }
     }
 
     const contentEndpoint = defaultEndpoint
@@ -276,9 +284,15 @@ export default async (options?: FastifyServerOptions) => {
         practitioner,
         data,
       }
+
+      if (process.env.DEBUG != null) {
+        console.info(args)
+      }
+
       let result
       try {
         result = await applyPlanDefinition(args)
+
         if (is.Bundle(result)) {
           const [requestGroup, ...others] =
             result.entry?.map((e) => e.resource).filter(is.FhirResource) ?? []
@@ -286,8 +300,56 @@ export default async (options?: FastifyServerOptions) => {
           let cards: CDSHooks.Card[] = []
 
           if (is.RequestGroup(requestGroup)) {
-            cards.push(
-              ...(requestGroup.action
+            const processAction = (
+              requestGroupAction: fhir4.RequestGroupAction,
+              bundle: fhir4.Bundle
+            ) => {
+              const processedAction = requestGroupAction
+              const { resource, action } = requestGroupAction
+              if (resource) {
+                const resolvedResource = bundle.entry?.find((e) => {
+                  if (e.fullUrl && resource.reference) {
+                    return e.fullUrl.endsWith(resource.reference)
+                  } else {
+                    return false
+                  }
+                })?.resource
+
+                if (is.RequestGroup(resolvedResource)) {
+                  delete requestGroupAction.resource
+                  const subRequestGroupAction = flatRequestGroup(
+                    resolvedResource,
+                    bundle
+                  )
+                  if (subRequestGroupAction != null) {
+                    processedAction.action = subRequestGroupAction
+                  }
+                }
+              } else if (action) {
+                const a = action.map((a) => processAction(a, bundle))
+                if (a != null) {
+                  requestGroupAction.action = a
+                }
+              }
+              return removeUndefinedProps(processedAction)
+            }
+
+            const flatRequestGroup = (
+              requestGroup: fhir4.RequestGroup,
+              bundle: fhir4.Bundle
+            ): fhir4.RequestGroupAction[] | undefined => {
+              const { action } = requestGroup
+              if (action) {
+                return action.map((a) => processAction(a, bundle))
+              }
+            }
+
+            const flattenedRequestGroup = flatRequestGroup(requestGroup, result)
+
+            console.log('flattened', inspect(flattenedRequestGroup))
+
+            const tmpCards =
+              flattenedRequestGroup
                 ?.map((action, index) => {
                   // Add indicator
                   const priority =
@@ -321,33 +383,33 @@ export default async (options?: FastifyServerOptions) => {
                   }
 
                   let suggestions: CDSHooks.Suggestion[] = []
-
                   if (action.action != null) {
                     suggestions = action.action
-                      .map((subAction, subIndex) => {
+                      .map((suggestionAction, subIndex) => {
                         let actions: CDSHooks.SystemAction[] = []
-                        const resource = others.find(o => subAction?.resource?.reference?.endsWith(o.id ?? ''))
-                        if (is.RequestGroup(resource)) {
-                          actions = resource.action?.map(targetAction => {
-                            const targetResource = others.find(o => targetAction?.resource?.reference?.endsWith(o.id ?? ''))
-                            if (targetResource != null) {
-                              return {
-                                type: targetAction.type?.coding?.[0]?.code,
-                                description: targetAction.description,
-                                resource: targetResource
-                              } as CDSHooks.SystemAction 
-                            }
-                          }).filter(notEmpty) ?? []
+                        if (suggestionAction.action != null) {
+                          actions =
+                            suggestionAction.action
+                              ?.map((targetAction) => {
+                                const targetResource = others.find((o) =>
+                                  targetAction?.resource?.reference?.endsWith(
+                                    o.id ?? ''
+                                  )
+                                )
+                                return {
+                                  type: targetAction.type?.coding?.[0]?.code,
+                                  description: targetAction.description,
+                                  resource: targetResource,
+                                } as CDSHooks.SystemAction
+                              })
+                              .filter(notEmpty) ?? []
                         }
 
-                        if (actions.length > 0) {
-                          return {
-                            label: subAction.title ?? 'label',
-                            uuid: `${requestGroup.id}-${index}-${subIndex}`,
-                            actions,
-                          }
+                        return {
+                          label: suggestionAction.title ?? 'label',
+                          uuid: `${requestGroup.id}-${index}-${subIndex}`,
+                          actions,
                         }
-
                       })
                       .filter(notEmpty)
                   }
@@ -363,8 +425,8 @@ export default async (options?: FastifyServerOptions) => {
                     }
                   }
                 })
-                .filter(notEmpty) ?? [])
-            )
+                .filter(notEmpty) ?? []
+            cards.push(...tmpCards.filter((c) => c != null))
           }
           const response: CDSHooks.HookResponse = { cards }
           res.send(response)
@@ -426,6 +488,11 @@ export default async (options?: FastifyServerOptions) => {
           contentEndpoint,
           terminologyEndpoint,
         }
+
+        if (process.env.DEBUG != null) {
+          console.info(args)
+        }
+
         res.send(await applyActivityDefinition(args))
       }
     }
@@ -461,27 +528,32 @@ export default async (options?: FastifyServerOptions) => {
 
         const args: ApplyPlanDefinitionArgs = {
           planDefinition,
-          subject: valueFromParameters(parameters, 'subject', 'valueReference'),
+          subject: valueFromParameters(parameters, 'subject', 'valueString'),
           practitioner: valueFromParameters(
             parameters,
             'practitioner',
-            'valueReference'
+            'valueString'
           ),
           encounter: valueFromParameters(
             parameters,
             'encounter',
-            'valueReference'
+            'valueString'
           ),
           organization: valueFromParameters(
             parameters,
             'organization',
-            'valueReference'
+            'valueString'
           ),
           data,
           dataEndpoint,
           contentEndpoint,
           terminologyEndpoint,
         }
+
+        if (process.env.DEBUG != null) {
+          console.info(args)
+        }
+
         res.send(await applyPlanDefinition(args))
       }
     }

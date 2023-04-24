@@ -80,14 +80,14 @@ class RestResolver extends BaseResolver implements Resolver {
       const resultResources = bundle.entry
         ?.map((entry) => entry.resource)
         .filter(is.FhirResource)
-      
+
       // For simplifier...
-      return resultResources?.filter(r => {
+      return resultResources?.filter((r) => {
         const patientReference = (r as any)?.patient?.reference
         if (patientReference) {
           return patientReference.endsWith(patient)
         }
-        
+
         const subjectReference = (r as any)?.subject?.reference
         if (subjectReference) {
           return subjectReference.endsWith(patient)
@@ -98,22 +98,32 @@ class RestResolver extends BaseResolver implements Resolver {
   }
 
   public async resolveCanonical(
-    canonical: string | undefined,
+    canonicalWithVersion: string | undefined,
     resourceTypes?: string[] | undefined
   ) {
-    const cached = Cache.getKey(`canonical-resource-${canonical}`)
+    const cached = Cache.getKey(`canonical-resource-${canonicalWithVersion}`)
     if (cached != null) {
       return cached
     }
+
+    const [canonical, version] = (canonicalWithVersion || '').split('|')
 
     if (canonical != null) {
       let results
       if (process.env.CANONICAL_SEARCH_ROOT != null) {
         console.log('Running canonical root search...')
         try {
-          results = await this.client.request(`/?url=${canonical}`)
+          if (version != null) {
+            results = await this.client.request(
+              `/?url=${canonical}&version=${version}`
+            )
+          } else {
+            results = await this.client.request(`/?url=${canonical}`)
+          }
         } catch (e) {
-          throw new Error(`Problem with canonical search ${inspect(e)}`)
+          throw new Error(
+            `Problem with canonical search ${inspect(e)} -- ${process.env}`
+          )
         }
       } else {
         // Batch search
@@ -121,7 +131,8 @@ class RestResolver extends BaseResolver implements Resolver {
           results = await this.client.batch({
             body: this.canonicalSearchBundle(
               canonical,
-              resourceTypes
+              resourceTypes,
+              version
             ) as unknown as fhir4.FhirResource & {
               type: 'batch'
             } // TODO: Update FKC type here `fhir4.Bundle & { type: 'batch' }`
@@ -154,12 +165,12 @@ class RestResolver extends BaseResolver implements Resolver {
 
         if (resources?.length === 1) {
           const result = resources[0]
-          Cache.setKey(`canonical-resource-${canonical}`, result)
+          Cache.setKey(`canonical-resource-${canonicalWithVersion}`, result)
           Cache.save(true)
           return result
         } else {
           throw new Error(
-            `Did not find one and only one resource for ${canonical}. Found: ` +
+            `Did not find one and only one resource for ${canonicalWithVersion}. Found: ` +
               `${JSON.stringify(resources)}`
           )
         }
@@ -222,6 +233,16 @@ class RestResolver extends BaseResolver implements Resolver {
                   cached = remoteValueSets.reduce((acc, vs) => {
                     const vsVersion = vs.version ?? version
                     if (vsVersion) {
+                      const codes =
+                        vs.expansion?.contains?.map((c) => {
+                          return {
+                            code: c.code,
+                            system: c.system,
+                            version: c.version
+                          }
+                        }) || []
+                      // Handle compose?
+                      /*
                       const codes = vs.compose?.include
                         ?.flatMap((include) => {
                           return include.concept
@@ -235,6 +256,7 @@ class RestResolver extends BaseResolver implements Resolver {
                             .filter(notEmpty)
                         })
                         .filter(notEmpty)
+                      */
                       acc[vsVersion] = new ValueSet(key, vsVersion, codes)
                     }
                     return acc

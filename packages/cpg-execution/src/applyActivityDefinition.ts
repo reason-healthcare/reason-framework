@@ -95,15 +95,20 @@ export const applyActivityDefinition = async (
     quantity,
     dosage,
     bodySite,
-    priority
+    priority,
+    profile
   } = activityDefinition
 
   if (resourceType != null && is.RequestResourceType(resourceType)) {
+    const meta: fhir4.Meta = {}
+    if (profile != null) {
+      meta.profile = [profile]
+    }
     const targetResource = {
       id: uuidv4(),
+      meta,
       resourceType,
-      status: 'draft',
-      doNotPerform
+      status: 'draft'
     }
 
     const canonicalActivityDefinition = canonicalize(activityDefinition)
@@ -183,8 +188,14 @@ export const applyActivityDefinition = async (
           'Practitioner'
         )
       }
+      if (encounter != null) {
+        targetResource.encounter = referenceFromString(encounter, 'Encounter')
+      }
       if (subject != null) {
         targetResource.subject = referenceFromString(subject, 'Patient')
+      }
+      if (doNotPerform != null) {
+        targetResource.doNotPerform = doNotPerform
       }
     } else if (is.Contract(targetResource)) {
       if (practitioner != null) {
@@ -240,6 +251,25 @@ export const applyActivityDefinition = async (
       if (subject != null) {
         targetResource.patient = referenceFromString(subject, 'Patient')
       }
+      if (productCodeableConcept != null) {
+        targetResource.recommendation = [
+          {
+            vaccineCode: [productCodeableConcept],
+            forecastStatus: {
+              coding: [
+                {
+                  system:
+                    'http://terminology.hl7.org/CodeSystem/immunization-recommendation-status',
+                  code: 'due',
+                  display: 'Due'
+                }
+              ]
+            }
+          }
+        ]
+      }
+      const date = new Date()
+      targetResource.date = date.toISOString()
     } else if (is.MedicationRequest(targetResource)) {
       if (canonicalActivityDefinition != null) {
         ;(targetResource.instantiatesCanonical ||= []).push(
@@ -254,6 +284,12 @@ export const applyActivityDefinition = async (
           practitioner,
           'Practitioner'
         )
+      }
+      if (encounter != null) {
+        targetResource.encounter = referenceFromString(encounter, 'Encounter')
+      }
+      if (doNotPerform != null) {
+        targetResource.doNotPerform = doNotPerform
       }
       if (productCodeableConcept != null) {
         targetResource.medicationCodeableConcept = productCodeableConcept
@@ -336,6 +372,12 @@ export const applyActivityDefinition = async (
           'Practitioner'
         )
       }
+      if (doNotPerform != null) {
+        targetResource.doNotPerform = doNotPerform
+      }
+      if (code != null) {
+        targetResource.code = code
+      }
       if (quantity != null) {
         targetResource.quantityQuantity = quantity
       }
@@ -414,6 +456,14 @@ export const applyActivityDefinition = async (
       }
       if (timingPeriod != null) {
         targetResource.executionPeriod = timingPeriod
+      }
+      if (doNotPerform != null && doNotPerform === true) {
+        targetResource.modifierExtension = [
+          {
+            url: 'http://hl7.org/fhir/StructureDefinition/request-doNotPerform',
+            valueBoolean: true
+          }
+        ]
       }
     } else if (is.VisionPrescription(targetResource)) {
       if (subject != null) {
