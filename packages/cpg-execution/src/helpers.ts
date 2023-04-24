@@ -280,7 +280,7 @@ export const is = {
     return resource?.resourceType === 'Practitioner'
   },
   Questionnaire: (resource: any): resource is fhir4.Questionnaire => {
-    return resource?.resourceType === 'Questionnare'
+    return resource?.resourceType === 'Questionnaire'
   },
   RequestGroup: (resource: any): resource is fhir4.RequestGroup => {
     return resource?.resourceType === 'RequestGroup'

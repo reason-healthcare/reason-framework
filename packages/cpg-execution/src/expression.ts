@@ -38,23 +38,26 @@ export const processDynamicValue = async (
   }
 
   if (expression.language === 'text/fhirpath') {
-    const subjectResource = resolveBundleOrEndpoint(subject, data, dataResolver)
-    const encounterResource = resolveBundleOrEndpoint(
+    const subjectResource = await resolveBundleOrEndpoint(
+      subject,
+      data,
+      dataResolver
+    )
+    const encounterResource = await resolveBundleOrEndpoint(
       encounter,
       data,
       dataResolver
     )
-    const practitionerResource = resolveBundleOrEndpoint(
+    const practitionerResource = await resolveBundleOrEndpoint(
       practitioner,
       data,
       dataResolver
     )
-    const organizationResource = resolveBundleOrEndpoint(
+    const organizationResource = await resolveBundleOrEndpoint(
       organization,
       data,
       dataResolver
     )
-
     const result = evaluateFhirpath(
       expression.expression ?? '',
       definitionalResource,
@@ -90,6 +93,10 @@ export const processDynamicValue = async (
         `Can not process CQL without dataContext, skipping ${inspect(
           expression
         )}`
+      )
+      console.log(
+        JSON.stringify(targetResource) +
+          'targetResource from processDynamicValue function'
       )
       return targetResource
     }
@@ -136,6 +143,11 @@ export const processDynamicValue = async (
       }' not supported, only support for: text/fhirpath, text/cql-identifier`
     )
   }
+  console.log(
+    JSON.stringify(
+      JSON.stringify(targetResource) + 'targetResource from process'
+    )
+  )
   return targetResource
 }
 
@@ -223,6 +235,13 @@ export const buildDataContext = async (
     )
     ;(context.entry ||= []).push({ resource: organizationResource })
   }
+  // De-dupe context...
+  const resources = context.entry?.map((e) => e.resource) ?? []
+  context.entry = resources
+    .filter((v, i) => resources.indexOf(v) === i)
+    .map((r) => {
+      return { resource: r }
+    })
   return context
 }
 
@@ -253,7 +272,7 @@ export const evaluateCqlExpression = async (
     throw new Error(
       `should be one and only one patient in dataContext, found ${
         patients?.length ?? 0
-      } -- ${inspect(dataContext)}`
+      } -- ${inspect(patients)}`
     )
   }
 
@@ -262,6 +281,10 @@ export const evaluateCqlExpression = async (
     ?.filter((l) =>
       l.content?.some((c) => c.contentType === 'application/elm+json')
     )
+  if (!allLibraries?.length || allLibraries?.length == 0) {
+    console.warn('Did not find any libraries with elm+json')
+  }
+
   const libraryManager: Record<string, any> =
     allLibraries?.reduce((acc, library) => {
       const { content } = library
@@ -280,6 +303,7 @@ export const evaluateCqlExpression = async (
     }, {} as Record<string, any>) ?? {}
 
   if (libraryManager['FHIRHelpers'] == null) {
+    /*
     if (is.Library(FHIRHelpersLibrary)) {
       const { content } = FHIRHelpersLibrary
       const elmEncoded = content?.find(
@@ -291,6 +315,7 @@ export const evaluateCqlExpression = async (
       const fhirHelpersElm = JSON.parse(elmJson)
       libraryManager['FHIRHelpers'] = fhirHelpersElm
     }
+    */
   }
 
   const patientKey = patients?.[0]?.id
@@ -364,36 +389,58 @@ const getDataRequirements = async (
   elmLibrary: any,
   contentResolver: Resolver
 ): Promise<fhir4.DataRequirement[]> => {
-  // get includes, get FHIR library.dataRequirement
-  return await Promise.all(
-    elmLibrary.library?.includes?.def?.map(async (def: any) => {
-      const { path } = def
-      const fhirLibrary = await contentResolver.resolveCanonical(
-        path.replace(/\/([^\/]*)$/, '/Library/$1')
-      )
-      if (is.Library(fhirLibrary)) {
-        const childElmEncoded = fhirLibrary?.content?.find(
-          (c) => c.contentType === 'application/elm+json'
+  const dataRequirements: fhir4.DataRequirement[] = []
+
+  // Add current requirements...
+  const currentFhirCanonical = `${elmLibrary.library?.identifier?.system}/Library/${elmLibrary.library?.identifier?.id}`
+  const currentFhirLibrary = await contentResolver.resolveCanonical(
+    currentFhirCanonical
+  )
+
+  if (is.Library(currentFhirLibrary)) {
+    const { dataRequirement: currentDataRequirement } = currentFhirLibrary
+    if (currentDataRequirement != null) {
+      dataRequirements.push(...currentDataRequirement)
+    }
+  }
+
+  const childCanonicals = elmLibrary.library?.includes?.def?.map(
+    (def: any) => def.path
+  )
+
+  if (childCanonicals != null) {
+    const childDataRequirements = await Promise.all<fhir4.DataRequirement[]>(
+      childCanonicals?.map(async (childCanonical: string) => {
+        const childFhirCanonical = childCanonical.replace(
+          /\/([^\/]*)$/,
+          '/Library/$1'
+        )
+        const childFhirLibrary = await contentResolver.resolveCanonical(
+          childFhirCanonical
         )
 
-        const childElmJson = Buffer.from(
-          childElmEncoded?.data ?? '',
-          'base64'
-        ).toString('utf-8')
+        if (is.Library(childFhirLibrary)) {
+          const childElmEncoded = childFhirLibrary?.content?.find(
+            (c) => c.contentType === 'application/elm+json'
+          )
+          const childElmJson = Buffer.from(
+            childElmEncoded?.data ?? '',
+            'base64'
+          ).toString('utf-8')
 
-        const { dataRequirement } = fhirLibrary
-
-        if (childElmJson != null) {
-          const childDataRequirements = await getDataRequirements(
-            childElmJson,
+          return await getDataRequirements(
+            JSON.parse(childElmJson),
             contentResolver
           )
-          dataRequirement?.push(...childDataRequirements)
         }
-        return dataRequirement
-      }
-    }) ?? []
-  )
+      })
+    )
+
+    if (childDataRequirements != null) {
+      dataRequirements.push(...childDataRequirements.flat().filter(notEmpty))
+    }
+  }
+  return dataRequirements
 }
 
 /**
@@ -438,8 +485,9 @@ export const evaluateCqlLibrary = async (
   }
 
   const replaceReferences = (obj: any) => {
-    if (obj == null) { return obj }
-    
+    if (obj == null) {
+      return obj
+    }
     return Object.keys(obj).reduce((acc, key) => {
       let value = JSON.parse(JSON.stringify(obj[key]))
 
@@ -468,6 +516,7 @@ export const evaluateCqlLibrary = async (
     const elmJson = Buffer.from(elmEncoded?.data ?? '', 'base64').toString(
       'utf-8'
     )
+
     const allDataRequirements = (
       await getDataRequirements(JSON.parse(elmJson), contentResolver)
     ).filter(notEmpty)
@@ -488,8 +537,10 @@ export const evaluateCqlLibrary = async (
         .flat()
         .filter(notEmpty)
 
+      // Have dedupe...
+      const deduped = [...new Map(requiredData.map((m) => [m.id, m])).values()]
       dataContext.entry?.push(
-        ...requiredData.map((d) => {
+        ...deduped.map((d) => {
           return { resource: d }
         })
       )
@@ -510,13 +561,15 @@ export const evaluateCqlLibrary = async (
     const libraryElm = JSON.parse(elmJson)
     const lib = new cql.Library(libraryElm, repository)
     const executor = new cql.Executor(lib, terminologyResolver)
+
     if (is.Bundle(dataContext)) {
       patientSource.loadBundles([dataContext])
     }
+
     const cqlResults = executor.exec(patientSource)
-    if (process.env.DEBUG != null) {
-      console.info(cqlResults)
-    }
+    //if (process.env.DEBUG != null) {
+    console.info('CQL Results', cqlResults.patientResults)
+    //}
     return cqlResults
   } catch (error) {
     handleError(`Problem evaluating ${library.url ?? library.id ?? 'Unknown'}`)

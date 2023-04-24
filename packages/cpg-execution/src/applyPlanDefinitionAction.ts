@@ -1,5 +1,4 @@
 import { Resolver } from './resolver'
-import crypto from 'crypto'
 
 import {
   applyActivityDefinition,
@@ -26,14 +25,14 @@ import {
 
 const isApplicable = async (
   patientRef: string,
-  planDefinintionAction: fhir4.PlanDefinitionAction,
+  planDefinitionAction: fhir4.PlanDefinitionAction,
   contentResolver: Resolver,
   terminologyResolver: Resolver,
   dataResolver: Resolver | undefined,
   dataContext: fhir4.Bundle,
   libraries?: fhir4.Library[] | undefined
 ): Promise<boolean> => {
-  const { condition } = planDefinintionAction
+  const { condition } = planDefinitionAction
   const applicabilityConditions = condition?.filter(
     (c) => c.kind === 'applicability'
   )
@@ -46,16 +45,25 @@ const isApplicable = async (
     return true
   }
 
-
   const applicabilities = await Promise.all(
     applicabilityConditions.flatMap(async (condition) => {
       const { expression } = condition
       if (expression?.expression == null) {
-        console.warn('Expression is blank')
+        console.warn('WARN: Expression is blank', expression)
         return null
       } else if (expression?.language === 'text/fhirpath') {
         return evaluateFhirpath(expression?.expression)
       } else if (expression?.language === 'text/cql-identifier') {
+        if (
+          (libraries == null || libraries.length == 0) &&
+          expression.reference == null
+        ) {
+          console.warn(
+            'WARN: There are no libraries defined and the expression does not have a reference to a library. ' +
+              'Therefore no logic to run -- Check content this seems like a problem, expression:',
+            expression
+          )
+        }
         return await evaluateCqlExpression(
           patientRef,
           expression,
@@ -67,7 +75,7 @@ const isApplicable = async (
         )
       } else {
         console.warn(
-          `Expression lanugage '${
+          `WARN: Expression lanugage '${
             expression?.language ?? '[none]'
           }' not supported, only support for: text/fhirpath, text/cql-identifier`
         )
@@ -75,19 +83,22 @@ const isApplicable = async (
       }
     })
   )
-  
+
   if (applicabilities.every((a) => typeof a === 'boolean')) {
     return applicabilities.every((a) => a === true)
   } else {
-    console.warn('not all results are boolean', applicabilities)
+    console.warn(
+      'WARN: Not all applicability results are boolean, this could be a content problem:',
+      applicabilities
+    )
     return false
   }
 }
 
 const isAtomic = (
-  planDefinintionAction: fhir4.PlanDefinitionAction
+  planDefinitionAction: fhir4.PlanDefinitionAction
 ): boolean => {
-  return planDefinintionAction?.action == null
+  return planDefinitionAction?.action == null
 }
 
 /**
@@ -118,7 +129,7 @@ const isAtomic = (
  *     as part of a user-entry workflow that enables user input to be provided as
  *     necessary.
  *
- * @param action PlanDefinintion Action
+ * @param action PlanDefinition Action
  * @param args arguments from $apply
  * @returns RequestGroup Action or null
  */
@@ -242,7 +253,7 @@ export const applyPlanDefinitionAction = async (
   if (definitionCanonical != null) {
     const definitionResource = await contentResolver.resolveCanonical(
       definitionCanonical,
-      ['ActivityDefinition', 'PlanDefinition', 'Questionnare']
+      ['ActivityDefinition', 'PlanDefinition', 'Questionnaire']
     )
 
     let appliedResource: RequestResource | fhir4.Questionnaire | undefined
@@ -255,39 +266,62 @@ export const applyPlanDefinitionAction = async (
       }
 
       appliedResource = await applyActivityDefinition(activityDefinitionArgs)
-      
+
       if (is.RequestResource(appliedResource)) {
+        if (is.RequestResourceWithIntent(appliedResource)) {
+          appliedResource.intent = 'option'
+        }
+
         requestGroupAction.type = {
           coding: [
-            { 
+            {
               system: 'http://terminology.hl7.org/CodeSystem/action-type',
               code: 'create'
             }
           ]
         }
       }
-      
+
       // Apply any dynamicValues from the PD now
+      let newAppliedResources: (
+        | RequestResource
+        | fhir4.Questionnaire
+        | undefined
+      )[] = []
+
       if (
-        is.RequestResource(appliedResource) ||
-        is.Questionnaire(appliedResource)
+        (is.RequestResource(appliedResource) ||
+          is.Questionnaire(appliedResource)) &&
+        dynamicValue
       ) {
-        dynamicValue?.forEach((dv) =>
-          processDynamicValue(
-            dv,
-            planDefinition,
-            appliedResource as RequestResource | fhir4.Questionnaire, // XXX: Why is this needed?
-            contentResolver,
-            terminologyResolver,
-            dataResolver,
-            data,
-            libraries,
-            subject,
-            encounter,
-            practitioner,
-            organization
-          )
+        newAppliedResources = await Promise.all(
+          dynamicValue.map(async (dv) => {
+            return await processDynamicValue(
+              dv,
+              planDefinition,
+              appliedResource as RequestResource | fhir4.Questionnaire, // XXX: Why is this needed?
+              contentResolver,
+              terminologyResolver,
+              dataResolver,
+              data,
+              libraries,
+              subject,
+              encounter,
+              practitioner,
+              organization
+            )
+          })
         )
+
+        newAppliedResources
+          .filter((r) => is.RequestResource(r) || is.Questionnaire(r))
+          .forEach((resource) =>
+            Object.assign(
+              (appliedResource: RequestResource | fhir4.Questionnaire) =>
+                appliedResource,
+              resource
+            )
+          ) //callback fn to declare types? Otherwise erroring bc of type 'undefined'
       }
     } else if (is.PlanDefinition(definitionResource)) {
       const planDefinitionArgs: ApplyPlanDefinitionArgs = {
@@ -299,18 +333,27 @@ export const applyPlanDefinitionAction = async (
         planDefinitionArgs,
         resourceBundle
       )
-      
+
       const subRequestGroup = appliedBundle?.entry?.shift()
       if (is.RequestGroup(subRequestGroup?.resource)) {
-        if (subRequestGroup?.resource?.action?.every(a => a.resource != null)) {
-          appliedResource = subRequestGroup?.resource
+        // if (
+        //   subRequestGroup?.resource?.action?.every((a) => a.resource != null)  //do we need this? Not every subRequestGroups needs an action.resource because not all sub groups will have an action definition
+        // ) {
+        //   appliedResource = subRequestGroup?.resource
+        //   console.log("appliedR" + JSON.stringify(appliedResource))
+        // }
+        if (subRequestGroup?.resource) {
+          subRequestGroup.resource.intent = 'option'
+          appliedResource = subRequestGroup.resource
         }
       } else {
-        throw new Error("Problem processing sub PlanDefinition, missing requestGroup." + inspect(subRequestGroup))
+        throw new Error(
+          'Problem processing sub PlanDefinition, missing requestGroup.' +
+            inspect(subRequestGroup)
+        )
       }
-      
     } else if (is.Questionnaire(definitionResource)) {
-      appliedResource = definitionResource
+      requestGroupAction.resource = referenceFromResource(definitionResource)
     } else {
       console.warn(
         'Support for only ActivityDefinition, PlanDefinition, and Questionnaire. No support for: %j',
@@ -359,7 +402,7 @@ export const applyPlanDefinitionAction = async (
   }
 
   // Return the action and resourceBundle
-  if (requestGroupAction.resource != null || requestGroupAction?.action != null) {
+  if (requestGroupAction != null) {
     return {
       action: requestGroupAction,
       resourceBundle

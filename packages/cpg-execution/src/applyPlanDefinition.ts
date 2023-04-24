@@ -90,7 +90,7 @@ export const applyPlanDefinition = async (
 
   if (!is.PlanDefinition(planDefinition)) {
     throw new Error(
-      `planDefinintion does not seem to be a FHIR PlanDefinition" ${inspect(
+      `planDefinition does not seem to be a FHIR PlanDefinition" ${inspect(
         planDefinition
       )}`
     )
@@ -217,13 +217,6 @@ export const applyPlanDefinition = async (
     fullUrl: `${baseUrl}/RequestGroup/${requestGroup?.id ?? '1'}`,
     resource: removeUndefinedProps(requestGroup)
   })
-
-  /*
-  const filtedEntry = entry.filter((bundleEntry, index) => {
-    console.log('aaaaaa index is', index, entry.indexOf(bundleEntry))
-    return index === entry.indexOf(bundleEntry)
-  })
-  */
 
   return {
     resourceType: 'Bundle',

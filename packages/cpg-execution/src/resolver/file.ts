@@ -4,7 +4,7 @@ import { ValueSet } from 'cql-execution'
 import { Resolver } from '../resolver'
 import BaseResolver from './base'
 import Cache from '../cache'
-import { inspect, is, notEmpty } from '../helpers'
+import { is } from '../helpers'
 
 /**
  * A simple FileResolver implementing Resolver interface.
@@ -48,6 +48,11 @@ class FileResolver extends BaseResolver implements Resolver {
           console.warn(error)
         }
       })
+
+    // Add in FHIRHelpers
+    //this.resourcesByCanonical['http://hl7.org/fhir/Library/FHIRHelpers'] = FHIRHelpersLibrary as fhir4.Library
+    //this.resourcesByReference['Library/FHIRHelpers'] = FHIRHelpersLibrary as fhir4.Library
+    //this.resourcesByResourceType['Library'].push(FHIRHelpersLibrary as fhir4.Library)
   }
 
   public async allByResourceType(
@@ -57,19 +62,19 @@ class FileResolver extends BaseResolver implements Resolver {
     const resources = this.resourcesByResourceType[resourceType]
     if (patientRef != null) {
       return resources?.filter((resource) => {
-        console.log("filtering", resource)
         const rawResource = JSON.parse(JSON.stringify(resource))
         const { subject, patient } = rawResource
+        let shouldUse = true
         if (subject != null) {
-          return subject.reference === patientRef
+          shouldUse = subject.reference === patientRef
         }
         if (patient != null) {
-          return patient.reference === patientRef
+          shouldUse = patient.reference === patientRef
         }
-        return true
+        return shouldUse
       })
     } else {
-      return resources.filter(r => r != null)
+      return resources.filter((r) => r != null)
     }
   }
 
@@ -102,16 +107,25 @@ class FileResolver extends BaseResolver implements Resolver {
                 let version = elmValueset.version
 
                 const results = this.resourcesByResourceType['ValueSet']
-                  .filter(is.ValueSet)
-                  .filter(
+                  ?.filter(is.ValueSet)
+                  ?.filter(
                     (v) =>
                       v.url === key &&
                       (version != null ? v.version === version : true)
                   )
 
-                cached = results.reduce((acc, vs) => {
+                cached = results?.reduce((acc, vs) => {
                   const vsVersion = vs.version ?? version
                   if (vsVersion) {
+                    const codes =
+                      vs.expansion?.contains?.map((c) => {
+                        return {
+                          code: c.code,
+                          system: c.system,
+                          version: c.version
+                        }
+                      }) || []
+                    /* Handle compose?
                     const codes = vs.compose?.include
                       ?.flatMap((include) => {
                         return include.concept
@@ -122,9 +136,10 @@ class FileResolver extends BaseResolver implements Resolver {
                               version: include.version
                             }
                           })
-                          .filter(notEmpty)
+                          ?.filter(notEmpty)
                       })
-                      .filter(notEmpty)
+                      ?.filter(notEmpty)
+                      */
                     acc[vsVersion] = new ValueSet(key, vsVersion, codes)
                   }
                   return acc
