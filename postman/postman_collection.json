@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "82cb449c-7979-4e84-b383-ad28d88e8540",
+		"_postman_id": "0a2a91dc-a034-4548-b06f-db5fa28089f4",
 		"name": "Reasoning Framework",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "8381182"
+		"_exporter_id": "317818"
 	},
 	"item": [
 		{
@@ -170,6 +170,53 @@
 				"body": {
 					"mode": "raw",
 					"raw": "{\n    \"resourceType\": \"Parameters\",\n    \"parameter\": [\n        {\n            \"name\": \"subject\",\n            \"valueReference\": \"Patient/{{patient}}\"\n        },\n        {\n            \"name\": \"practitioner\",\n            \"valueReference\": \"Practitioner/{{practitioner}}\"\n        },\n        {\n            \"name\": \"encounter\",\n            \"valueReference\": \"Encounter/{{encounter}}\"\n        },\n        {\n            \"name\": \"planDefinition\",\n            \"resource\": {{planDefinitionContent}}\n        },\n        {\n            \"name\": \"contentEndpoint\",\n            \"resource\": {\n                \"resourceType\": \"Endpoint\",\n                \"address\": \"{{contentEndpointAddress}}\",\n                \"status\": \"active\",\n                \"payloadType\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"code\": \"content\"\n                            }\n                        ]\n                    }\n                ],\n                \"connectionType\": {\n                    \"code\": \"{{contentEndpointType}}\"\n                }\n            }\n        },\n        {\n            \"name\": \"terminologyEndpoint\",\n            \"resource\": {\n                \"resourceType\": \"Endpoint\",\n                \"address\": \"{{terminologyEndpointAddress}}\",\n                \"status\": \"active\",\n                \"payloadType\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"code\": \"terminology\"\n                            }\n                        ]\n                    }\n                ],\n                \"connectionType\": {\n                    \"code\": \"{{terminologyEndpointType}}\"\n                }\n            }\n        },\n        {\n            \"name\": \"dataEndpoint\",\n            \"resource\": {\n                \"resourceType\": \"Endpoint\",\n                \"address\": \"{{dataEndpointAddress}}\",\n                \"status\": \"active\",\n                \"payloadType\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"code\": \"data\"\n                            }\n                        ]\n                    }\n                ],\n                \"connectionType\": {\n                    \"code\": \"{{dataEndpointType}}\"\n                }\n            }\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}/PlanDefinition/$apply",
+					"host": [
+						"{{server}}"
+					],
+					"path": [
+						"PlanDefinition",
+						"$apply"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CPG - PlanDefinition drink water $apply",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"resourceType\": \"Parameters\",\n    \"parameter\": [\n        {\n            \"name\": \"url\",\n            \"valueString\": \"http://example.org/PlanDefinition/DrinkWaterRecommendation\"\n        },\n        {\n            \"name\": \"data\",\n            \"resource\": {\n                \"resourceType\": \"Bundle\",\n                \"id\": \"ExampleBundle\",\n                \"type\": \"collection\",\n                \"entry\": [\n                    {\n                        \"resource\": {\n                            \"resourceType\": \"Patient\",\n                            \"id\": \"Patient1\",\n                            \"name\": [\n                                {\n                                    \"given\": [\n                                        \"Smith\"\n                                    ]\n                                }\n                            ]\n                        }\n                    },\n                    {\n                        \"resource\": {\n                            \"resourceType\": \"Observation\",\n                            \"id\": \"Observation1Patient1\",\n                            \"status\": \"final\",\n                            \"subject\": {\n                                \"reference\": \"Patient/Patient1\"\n                            },\n                            \"code\": {\n                                \"coding\": [\n                                    {\n                                        \"code\": \"34095006\",\n                                        \"system\": \"http://snomed.info/sct\"\n                                    }\n                                ]\n                            }\n                        }\n                    }\n                ]\n            }\n        }\n    ]\n}",
 					"options": {
 						"raw": {
 							"language": "json"
