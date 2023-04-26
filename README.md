@@ -43,6 +43,13 @@ cd packages/cpg-execution
 ./bin/prepare-ig
 ```
 
+## Supported features
+This technology focuses on imlementing [Workflow]([url](https://hl7.org/fhir/r5/workflow-module.html)) module of FHIR as well as the [Clinical Guidelines IG](https://hl7.org/fhir/uv/cpg/index.html). In particular, the following features are supported:
+
+* PlanDefinition/$apply from [FHIR R5](https://hl7.org/fhir/r5/plandefinition-operation-apply.html)
+* [CPGPlanDefinitionApply](https://hl7.org/fhir/uv/cpg/OperationDefinition-cpg-plandefinition-apply.html)'s profile for PlanDefinition/$apply - specifically `data`, `dataEndpoint`, `contentEndpoint`, and `terminologyEndpoint` parameters
+  * both `http(s)://` and `file://` URL schemes for endpoint parameters are supported
+
 ## Docker
 
 To run with docker, first build the project
