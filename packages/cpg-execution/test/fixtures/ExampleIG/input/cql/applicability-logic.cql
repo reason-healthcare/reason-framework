@@ -7,7 +7,7 @@ codesystem "SNOMED": 'http://snomed.info/sct'
 code "Dehydration Code": '34095006' from "SNOMED"
 
 // You can also make a valueset...
-// valueset "Dehydration Codes": 'http://cacnonical/ValueSet'
+// valueset "Dehydration Codes": 'http://canonical/ValueSet'
 
 context Patient
 
