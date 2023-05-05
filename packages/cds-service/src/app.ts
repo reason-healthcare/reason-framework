@@ -12,11 +12,7 @@ import {
   ApplyPlanDefinitionArgs,
 } from '@reason-framework/cpg-execution'
 import Resolver from '@reason-framework/cpg-execution/lib/resolver'
-import {
-  inspect,
-  is,
-  notEmpty,
-} from '@reason-framework/cpg-execution/lib/helpers'
+import { is, notEmpty } from '@reason-framework/cpg-execution/lib/helpers'
 import { removeUndefinedProps } from '@reason-framework/cpg-execution/lib/helpers'
 
 /**
@@ -343,10 +339,7 @@ export default async (options?: FastifyServerOptions) => {
                 return action.map((a) => processAction(a, bundle))
               }
             }
-
             const flattenedRequestGroup = flatRequestGroup(requestGroup, result)
-
-            console.log('flattened', inspect(flattenedRequestGroup))
 
             const tmpCards =
               flattenedRequestGroup
@@ -526,12 +519,12 @@ export default async (options?: FastifyServerOptions) => {
             parameters,
             'terminologyEndpoint'
           ) as fhir4.Endpoint) ?? defaultEndpoint
-        
+
         if (planDefinition == null) {
-          let url = valueFromParameters(parameters, 'url', 'valueString') 
+          let url = valueFromParameters(parameters, 'url', 'valueString')
           const contentResolver = Resolver(contentEndpoint)
           const planDefinitionRaw = await contentResolver.resolveCanonical(url)
-          
+
           if (is.PlanDefinition(planDefinitionRaw)) {
             planDefinition = planDefinitionRaw
           }
