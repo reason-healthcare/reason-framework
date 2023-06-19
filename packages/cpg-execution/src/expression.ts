@@ -3,11 +3,13 @@ import cqlFhir from 'cql-exec-fhir'
 import fhirpath from 'fhirpath'
 import fhirpathR4Model from 'fhirpath/fhir-context/r4'
 import lodashSet from 'lodash/set'
+import FHIRHelpersLibrary from './support/Library-FHIRHelpers.json'
 
 import {
   handleError,
   inspect,
   is,
+  notEmpty,
   removeUndefinedProps,
   RequestResource
 } from './helpers'
@@ -17,6 +19,7 @@ export const processDynamicValue = async (
   dynamicValue:
     | fhir4.ActivityDefinitionDynamicValue
     | fhir4.PlanDefinitionActionDynamicValue,
+  definitionalResource: fhir4.PlanDefinition | fhir4.ActivityDefinition,
   targetResource: RequestResource | fhir4.Questionnaire,
   contentResolver: Resolver,
   terminologyResolver: Resolver,
@@ -35,26 +38,29 @@ export const processDynamicValue = async (
   }
 
   if (expression.language === 'text/fhirpath') {
-    const subjectResource = resolveBundleOrEndpoint(subject, data, dataResolver)
-    const encounterResource = resolveBundleOrEndpoint(
+    const subjectResource = await resolveBundleOrEndpoint(
+      subject,
+      data,
+      dataResolver
+    )
+    const encounterResource = await resolveBundleOrEndpoint(
       encounter,
       data,
       dataResolver
     )
-    const practitionerResource = resolveBundleOrEndpoint(
+    const practitionerResource = await resolveBundleOrEndpoint(
       practitioner,
       data,
       dataResolver
     )
-    const organizationResource = resolveBundleOrEndpoint(
+    const organizationResource = await resolveBundleOrEndpoint(
       organization,
       data,
       dataResolver
     )
-
     const result = evaluateFhirpath(
       expression.expression ?? '',
-      targetResource,
+      definitionalResource,
       {
         subject: subjectResource,
         encounter: encounterResource,
@@ -88,14 +94,45 @@ export const processDynamicValue = async (
           expression
         )}`
       )
+      console.log(
+        JSON.stringify(targetResource) +
+          'targetResource from processDynamicValue function'
+      )
       return targetResource
     }
 
+    const inBundle = (
+      entry: fhir4.BundleEntry,
+      bundle: fhir4.Bundle
+    ): boolean => {
+      return (
+        bundle.entry?.some((be) => {
+          const { resource: entryResource } = entry
+          const { resource: bundleResource } = be
+          if (entryResource != null && bundleResource != null) {
+            return (
+              entryResource.id === bundleResource.id &&
+              entryResource.resourceType === bundleResource.resourceType
+            )
+          }
+          return false
+        }) ?? false
+      )
+    }
+
+    if (is.Bundle(dataContext) && is.Bundle(data) && data != null) {
+      ;(dataContext.entry ||= [])?.push(
+        ...(data.entry?.filter((e) => !inBundle(e, dataContext)) ?? [])
+      )
+    }
+
     const value = await evaluateCqlExpression(
+      subject ?? '',
       expression,
       dataContext,
       contentResolver,
       terminologyResolver,
+      dataResolver,
       libraries
     )
     set(targetResource, path, value)
@@ -106,6 +143,11 @@ export const processDynamicValue = async (
       }' not supported, only support for: text/fhirpath, text/cql-identifier`
     )
   }
+  console.log(
+    JSON.stringify(
+      JSON.stringify(targetResource) + 'targetResource from process'
+    )
+  )
   return targetResource
 }
 
@@ -157,7 +199,8 @@ export const buildDataContext = async (
 ): Promise<fhir4.Bundle> => {
   const context: fhir4.Bundle = {
     resourceType: 'Bundle',
-    type: 'collection'
+    type: 'collection',
+    entry: data != null ? data.entry : []
   }
 
   if (subject != null) {
@@ -192,6 +235,13 @@ export const buildDataContext = async (
     )
     ;(context.entry ||= []).push({ resource: organizationResource })
   }
+  // De-dupe context...
+  const resources = context.entry?.map((e) => e.resource) ?? []
+  context.entry = resources
+    .filter((v, i) => resources.indexOf(v) === i)
+    .map((r) => {
+      return { resource: r }
+    })
   return context
 }
 
@@ -206,10 +256,12 @@ export const buildDataContext = async (
  * @returns Array of Results
  */
 export const evaluateCqlExpression = async (
+  patientRef: string,
   expression: fhir4.Expression,
   dataContext: fhir4.Bundle,
   contentResolver: Resolver,
   terminologyResolver: Resolver,
+  dataResolver?: Resolver | undefined,
   libraries?: fhir4.Library[] | undefined
 ): Promise<any> => {
   const patients = dataContext?.entry
@@ -218,10 +270,52 @@ export const evaluateCqlExpression = async (
 
   if (patients?.length !== 1) {
     throw new Error(
-      `Should be one and only one patient in dataContext, found ${
+      `should be one and only one patient in dataContext, found ${
         patients?.length ?? 0
-      }`
+      } -- ${inspect(patients)}`
     )
+  }
+
+  const allLibraries = (await contentResolver.allByResourceType('Library'))
+    ?.filter(is.Library)
+    ?.filter((l) =>
+      l.content?.some((c) => c.contentType === 'application/elm+json')
+    )
+  if (!allLibraries?.length || allLibraries?.length == 0) {
+    console.warn('Did not find any libraries with elm+json')
+  }
+
+  const libraryManager: Record<string, any> =
+    allLibraries?.reduce((acc, library) => {
+      const { content } = library
+      if (library.name) {
+        const elmEncoded = content?.find(
+          (c) => c.contentType === 'application/elm+json'
+        )
+        const elmJson = Buffer.from(elmEncoded?.data ?? '', 'base64').toString(
+          'utf-8'
+        )
+        const libraryObject = JSON.parse(elmJson)
+        terminologyResolver.preloadValueSets(libraryObject)
+        acc[library.name] = libraryObject
+      }
+      return acc
+    }, {} as Record<string, any>) ?? {}
+
+  if (libraryManager['FHIRHelpers'] == null) {
+    /*
+    if (is.Library(FHIRHelpersLibrary)) {
+      const { content } = FHIRHelpersLibrary
+      const elmEncoded = content?.find(
+        (c) => c.contentType === 'application/elm+json'
+      )
+      const elmJson = Buffer.from(elmEncoded?.data ?? '', 'base64').toString(
+        'utf-8'
+      )
+      const fhirHelpersElm = JSON.parse(elmJson)
+      libraryManager['FHIRHelpers'] = fhirHelpersElm
+    }
+    */
   }
 
   const patientKey = patients?.[0]?.id
@@ -238,27 +332,48 @@ export const evaluateCqlExpression = async (
       )
       if (is.Library(libraryResource)) {
         results.push(
-          evaluateCqlLibrary(libraryResource, terminologyResolver, dataContext)
+          await evaluateCqlLibrary(
+            patientRef,
+            libraryResource,
+            libraryManager,
+            terminologyResolver,
+            contentResolver,
+            dataResolver,
+            dataContext
+          )
         )
       }
     } else {
-      libraries?.forEach((libraryResource) => {
-        if (is.Library(libraryResource)) {
-          results.push(
-            evaluateCqlLibrary(
-              libraryResource,
-              terminologyResolver,
-              dataContext
-            )
-          )
-        }
-      })
+      const libResults = await Promise.all(
+        libraries
+          ?.map(async (libraryResource) => {
+            if (is.Library(libraryResource)) {
+              return evaluateCqlLibrary(
+                patientRef,
+                libraryResource,
+                libraryManager,
+                terminologyResolver,
+                contentResolver,
+                dataResolver,
+                dataContext
+              )
+            }
+          })
+          .filter(notEmpty) ?? []
+      )
+      if (libResults != null) {
+        libResults.forEach((r) => {
+          if (r != null) {
+            results.push(r)
+          }
+        })
+      }
     }
 
     // Find the value in the CQL results
     let value: any = null
     results.forEach((r) => {
-      Object.keys(r.patientResults?.[patientKey]).forEach((pr) => {
+      Object.keys(r?.patientResults?.[patientKey])?.forEach((pr) => {
         if (pr === expression.expression) {
           value = r.patientResults?.[patientKey]?.[pr]
         }
@@ -270,6 +385,64 @@ export const evaluateCqlExpression = async (
   }
 }
 
+const getDataRequirements = async (
+  elmLibrary: any,
+  contentResolver: Resolver
+): Promise<fhir4.DataRequirement[]> => {
+  const dataRequirements: fhir4.DataRequirement[] = []
+
+  // Add current requirements...
+  const currentFhirCanonical = `${elmLibrary.library?.identifier?.system}/Library/${elmLibrary.library?.identifier?.id}`
+  const currentFhirLibrary = await contentResolver.resolveCanonical(
+    currentFhirCanonical
+  )
+
+  if (is.Library(currentFhirLibrary)) {
+    const { dataRequirement: currentDataRequirement } = currentFhirLibrary
+    if (currentDataRequirement != null) {
+      dataRequirements.push(...currentDataRequirement)
+    }
+  }
+
+  const childCanonicals = elmLibrary.library?.includes?.def?.map(
+    (def: any) => def.path
+  )
+
+  if (childCanonicals != null) {
+    const childDataRequirements = await Promise.all<fhir4.DataRequirement[]>(
+      childCanonicals?.map(async (childCanonical: string) => {
+        const childFhirCanonical = childCanonical.replace(
+          /\/([^\/]*)$/,
+          '/Library/$1'
+        )
+        const childFhirLibrary = await contentResolver.resolveCanonical(
+          childFhirCanonical
+        )
+
+        if (is.Library(childFhirLibrary)) {
+          const childElmEncoded = childFhirLibrary?.content?.find(
+            (c) => c.contentType === 'application/elm+json'
+          )
+          const childElmJson = Buffer.from(
+            childElmEncoded?.data ?? '',
+            'base64'
+          ).toString('utf-8')
+
+          return await getDataRequirements(
+            JSON.parse(childElmJson),
+            contentResolver
+          )
+        }
+      })
+    )
+
+    if (childDataRequirements != null) {
+      dataRequirements.push(...childDataRequirements.flat().filter(notEmpty))
+    }
+  }
+  return dataRequirements
+}
+
 /**
  * Evaluate a CQL Library with patient data
  *
@@ -277,31 +450,132 @@ export const evaluateCqlExpression = async (
  * @param dataContext Data context for evaluation
  * @returns Results object from cql-execution
  */
-export const evaluateCqlLibrary = (
+export const evaluateCqlLibrary = async (
+  patientRef: string,
   library: fhir4.Library,
-  terminologyResolver?: Resolver | undefined,
+  libraryManager: Record<string, any>,
+  terminologyResolver: Resolver,
+  contentResolver: Resolver,
+  dataResolver?: Resolver | undefined,
   dataContext?: fhir4.Bundle | undefined
-): Results => {
+): Promise<Results> => {
+  dataContext ||= {
+    resourceType: 'Bundle',
+    type: 'collection'
+  }
+
   const elmEncoded = library.content?.find(
     (c) => c.contentType === 'application/elm+json'
   )
   const patientSource = cqlFhir.PatientSource.FHIRv401()
 
+  const isObject = (obj: any) => {
+    return Object.prototype.toString.call(obj) === '[object Object]'
+  }
+
+  const isArray = (obj: any) => {
+    return Object.prototype.toString.call(obj) === '[object Array]'
+  }
+
+  const isString = (obj: any): obj is string => {
+    return (
+      typeof obj === 'string' &&
+      Object.prototype.toString.call(obj) === '[object String]'
+    )
+  }
+
+  const replaceReferences = (obj: any) => {
+    if (obj == null) {
+      return obj
+    }
+    return Object.keys(obj).reduce((acc, key) => {
+      let value = JSON.parse(JSON.stringify(obj[key]))
+
+      if (isObject(obj[key])) {
+        value = replaceReferences(obj[key])
+      }
+
+      if (isArray(obj[key])) {
+        value = obj[key].map((v: any) => replaceReferences(v))
+      }
+
+      if (key === 'reference' && isString(obj[key])) {
+        value = obj[key].match(/[^\/]*\/[^\/]*$/)?.[0]
+      }
+
+      if (value == null && obj[key] != null) {
+        console.warn('When modifying the reference, getting null', obj[key])
+      }
+
+      acc[key] = value
+      return acc
+    }, {} as Record<string, any>)
+  }
+
   try {
     const elmJson = Buffer.from(elmEncoded?.data ?? '', 'base64').toString(
       'utf-8'
     )
-    const lib = new cql.Library(JSON.parse(elmJson))
+
+    const allDataRequirements = (
+      await getDataRequirements(JSON.parse(elmJson), contentResolver)
+    ).filter(notEmpty)
+
+    if (dataResolver != null) {
+      const requiredData = (
+        await Promise.all(
+          allDataRequirements.flat().map(async (dataRequirement) => {
+            const { type } = dataRequirement
+            if (type != null) {
+              return (
+                (await dataResolver.allByResourceType(type, patientRef)) ?? []
+              )
+            }
+          })
+        )
+      )
+        .flat()
+        .filter(notEmpty)
+
+      // Have dedupe...
+      const deduped = [...new Map(requiredData.map((m) => [m.id, m])).values()]
+      dataContext.entry?.push(
+        ...deduped.map((d) => {
+          return { resource: d }
+        })
+      )
+    }
+
+    // clean data context, need to replace all properties where reference is to be just :resourceType/:id
+    const cleanedDataContext = dataContext?.entry
+      ?.map((entry) => entry.resource)
+      ?.map((resource) => replaceReferences(resource))
+      ?.filter(is.FhirResource)
+      ?.map((resource) => {
+        return { resource: resource }
+      })
+
+    dataContext.entry = cleanedDataContext
+
+    const repository = new cql.Repository(libraryManager)
+    const libraryElm = JSON.parse(elmJson)
+    const lib = new cql.Library(libraryElm, repository)
     const executor = new cql.Executor(lib, terminologyResolver)
-    if (dataContext != null) {
+
+    if (is.Bundle(dataContext)) {
       patientSource.loadBundles([dataContext])
     }
 
-    return executor.exec(patientSource)
+    const cqlResults = executor.exec(patientSource)
+    //if (process.env.DEBUG != null) {
+    console.info('CQL Results', cqlResults.patientResults)
+    //}
+    return cqlResults
   } catch (error) {
     handleError(`Problem evaluating ${library.url ?? library.id ?? 'Unknown'}`)
     handleError(error)
-    return new cql.Executor({}).exec(patientSource)
+    const patientSourceFallback = cqlFhir.PatientSource.FHIRv401()
+    return new cql.Executor({}).exec(patientSourceFallback)
   }
 }
 

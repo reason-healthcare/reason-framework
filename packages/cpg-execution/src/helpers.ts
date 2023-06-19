@@ -84,6 +84,7 @@ export type RequestResource =
   | fhir4.ImmunizationRecommendation
   | fhir4.MedicationRequest
   | fhir4.NutritionOrder
+  | fhir4.RequestGroup
   | fhir4.ServiceRequest
   | fhir4.SupplyRequest
   | fhir4.Task
@@ -162,7 +163,7 @@ export const removeUndefinedProps = (data: any): any => {
   }
 
   return Object.keys(data).reduce(function (accumulator, key) {
-    const isObject = typeof data[key] === 'object'
+    const isObject = typeof data[key] === 'object' && data[key] != null
     let value = isObject ? removeUndefinedProps(data[key]) : data[key]
 
     if (Array.isArray(data[key])) {
@@ -279,7 +280,7 @@ export const is = {
     return resource?.resourceType === 'Practitioner'
   },
   Questionnaire: (resource: any): resource is fhir4.Questionnaire => {
-    return resource?.resourceType === 'Questionnare'
+    return resource?.resourceType === 'Questionnaire'
   },
   RequestGroup: (resource: any): resource is fhir4.RequestGroup => {
     return resource?.resourceType === 'RequestGroup'

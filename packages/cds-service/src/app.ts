@@ -12,10 +12,8 @@ import {
   ApplyPlanDefinitionArgs,
 } from '@reason-framework/cpg-execution'
 import Resolver from '@reason-framework/cpg-execution/lib/resolver'
-import {
-  is,
-  notEmpty,
-} from '@reason-framework/cpg-execution/lib/helpers'
+import { is, notEmpty } from '@reason-framework/cpg-execution/lib/helpers'
+import { removeUndefinedProps } from '@reason-framework/cpg-execution/lib/helpers'
 
 /**
  * The patient whose record was opened, including their encounter, if
@@ -163,6 +161,11 @@ export default async (options?: FastifyServerOptions) => {
     methods: ['*'],
   })
 
+  app.get('/health', (_req, res) => {
+    console.log('Called /health')
+    res.send({ health: 'ok' })
+  })
+
   app.get('/cds-services', async (req, res): Promise<void> => {
     const resolver = Resolver(defaultEndpoint)
 
@@ -178,7 +181,7 @@ export default async (options?: FastifyServerOptions) => {
           )
           if (planDefinition.url != null) {
             return {
-              id: encodeURIComponent(planDefinition.url),
+              id: planDefinition.id,
               title: planDefinition.title,
               description: planDefinition.description,
               hook: hookTrigger?.name,
@@ -191,19 +194,28 @@ export default async (options?: FastifyServerOptions) => {
     res.send({ services: cdsHooksServices })
   })
 
+  // As $apply builds a hierarchy of nested requeste groups, first flatten to a
+  // single action tree, then apply the rules on clinical-reasoning-on-fhir
+
   app.post<{
-    Params: { serviceCanonical: string }
+    Params: { id: string }
     Body: CDSHooks.HookRequestWithFhir
-  }>('/cds-services/:serviceCanonical', async (req, res): Promise<void> => {
+  }>('/cds-services/:id', async (req, res): Promise<void> => {
     const resolver = Resolver(defaultEndpoint)
     const { hook, context, fhirServer } = req.body
-    const { serviceCanonical } = req.params
-    const planDefinition = await resolver.resolveCanonical(serviceCanonical)
+    const { id } = req.params
+    const planDefinition = await resolver.resolveReference(
+      `PlanDefinition/${id}`
+    )
 
     const dataEndpoint = JSON.parse(JSON.stringify(defaultEndpoint))
     if (fhirServer != null) {
       dataEndpoint.address = fhirServer
-      dataEndpoint.connectionType.code = 'hl7-fhir-rest'
+      if (fhirServer.startsWith('http')) {
+        dataEndpoint.connectionType.code = 'hl7-fhir-rest'
+      } else {
+        dataEndpoint.connectionType.code = 'hl7-fhir-file'
+      }
     }
 
     const contentEndpoint = defaultEndpoint
@@ -215,7 +227,7 @@ export default async (options?: FastifyServerOptions) => {
       )
       if (trigger?.name !== hook) {
         throw new Error(
-          `called hook ${hook}, but not a trigger for planDefinition ${serviceCanonical}`
+          `called hook ${hook}, but not a trigger for planDefinition ${id}`
         )
       }
 
@@ -268,9 +280,15 @@ export default async (options?: FastifyServerOptions) => {
         practitioner,
         data,
       }
+
+      if (process.env.DEBUG != null) {
+        console.info(args)
+      }
+
       let result
       try {
         result = await applyPlanDefinition(args)
+
         if (is.Bundle(result)) {
           const [requestGroup, ...others] =
             result.entry?.map((e) => e.resource).filter(is.FhirResource) ?? []
@@ -278,9 +296,54 @@ export default async (options?: FastifyServerOptions) => {
           let cards: CDSHooks.Card[] = []
 
           if (is.RequestGroup(requestGroup)) {
-            cards.push(
-              ...(requestGroup.action
-                ?.map((action) => {
+            const processAction = (
+              requestGroupAction: fhir4.RequestGroupAction,
+              bundle: fhir4.Bundle
+            ) => {
+              const processedAction = requestGroupAction
+              const { resource, action } = requestGroupAction
+              if (resource) {
+                const resolvedResource = bundle.entry?.find((e) => {
+                  if (e.fullUrl && resource.reference) {
+                    return e.fullUrl.endsWith(resource.reference)
+                  } else {
+                    return false
+                  }
+                })?.resource
+
+                if (is.RequestGroup(resolvedResource)) {
+                  delete requestGroupAction.resource
+                  const subRequestGroupAction = flatRequestGroup(
+                    resolvedResource,
+                    bundle
+                  )
+                  if (subRequestGroupAction != null) {
+                    processedAction.action = subRequestGroupAction
+                  }
+                }
+              } else if (action) {
+                const a = action.map((a) => processAction(a, bundle))
+                if (a != null) {
+                  requestGroupAction.action = a
+                }
+              }
+              return removeUndefinedProps(processedAction)
+            }
+
+            const flatRequestGroup = (
+              requestGroup: fhir4.RequestGroup,
+              bundle: fhir4.Bundle
+            ): fhir4.RequestGroupAction[] | undefined => {
+              const { action } = requestGroup
+              if (action) {
+                return action.map((a) => processAction(a, bundle))
+              }
+            }
+            const flattenedRequestGroup = flatRequestGroup(requestGroup, result)
+
+            const tmpCards =
+              flattenedRequestGroup
+                ?.map((action, index) => {
                   // Add indicator
                   const priority =
                     action.priority || requestGroup.priority || 'routine'
@@ -312,16 +375,51 @@ export default async (options?: FastifyServerOptions) => {
                     }
                   }
 
+                  let suggestions: CDSHooks.Suggestion[] = []
+                  if (action.action != null) {
+                    suggestions = action.action
+                      .map((suggestionAction, subIndex) => {
+                        let actions: CDSHooks.SystemAction[] = []
+                        if (suggestionAction.action != null) {
+                          actions =
+                            suggestionAction.action
+                              ?.map((targetAction) => {
+                                const targetResource = others.find((o) =>
+                                  targetAction?.resource?.reference?.endsWith(
+                                    o.id ?? ''
+                                  )
+                                )
+                                return {
+                                  type: targetAction.type?.coding?.[0]?.code,
+                                  description: targetAction.description,
+                                  resource: targetResource,
+                                } as CDSHooks.SystemAction
+                              })
+                              .filter(notEmpty) ?? []
+                        }
+
+                        return {
+                          label: suggestionAction.title ?? 'label',
+                          uuid: `${requestGroup.id}-${index}-${subIndex}`,
+                          actions,
+                        }
+                      })
+                      .filter(notEmpty)
+                  }
+
                   // Return CDS Hook Card
-                  return {
-                    summary: action.title ?? 'Unknown Title',
-                    detail: action.description,
-                    indicator,
-                    source,
+                  if (suggestions.length > 0) {
+                    return {
+                      summary: action.title ?? 'Unknown Title',
+                      detail: action.description,
+                      indicator,
+                      source,
+                      suggestions,
+                    }
                   }
                 })
-                .filter(notEmpty) ?? [])
-            )
+                .filter(notEmpty) ?? []
+            cards.push(...tmpCards.filter((c) => c != null))
           }
           const response: CDSHooks.HookResponse = { cards }
           res.send(response)
@@ -349,38 +447,45 @@ export default async (options?: FastifyServerOptions) => {
           parameters,
           'dataEndpoint'
         ) as fhir4.Endpoint | undefined
-        const contentEndpoint = resourceFromParameters(
-          parameters,
-          'contentEndpoint'
-        ) as fhir4.Endpoint ?? defaultEndpoint
-        const terminologyEndpoint = resourceFromParameters(
-          parameters,
-          'terminologyEndpoint'
-        ) as fhir4.Endpoint ?? defaultEndpoint
+        const contentEndpoint =
+          (resourceFromParameters(
+            parameters,
+            'contentEndpoint'
+          ) as fhir4.Endpoint) ?? defaultEndpoint
+        const terminologyEndpoint =
+          (resourceFromParameters(
+            parameters,
+            'terminologyEndpoint'
+          ) as fhir4.Endpoint) ?? defaultEndpoint
 
         const args: ApplyActivityDefinitionArgs = {
           activityDefinition,
-          subject: valueFromParameters(parameters, 'subject', 'valueReference'),
+          subject: valueFromParameters(parameters, 'subject', 'valueString'),
           practitioner: valueFromParameters(
             parameters,
             'practitioner',
-            'valueReference'
+            'valueString'
           ),
           encounter: valueFromParameters(
             parameters,
             'encounter',
-            'valueReference'
+            'valueString'
           ),
           organization: valueFromParameters(
             parameters,
             'organization',
-            'valueReference'
+            'valueString'
           ),
           data,
           dataEndpoint,
           contentEndpoint,
           terminologyEndpoint,
         }
+
+        if (process.env.DEBUG != null) {
+          console.info(args)
+        }
+
         res.send(await applyActivityDefinition(args))
       }
     }
@@ -392,10 +497,11 @@ export default async (options?: FastifyServerOptions) => {
       const { parameter: parameters } = req.body as fhir4.Parameters
 
       if (parameters != null) {
-        const planDefinition = resourceFromParameters(
+        let planDefinition = resourceFromParameters(
           parameters,
           'planDefinition'
         ) as fhir4.PlanDefinition
+
         const data = resourceFromParameters(parameters, 'data') as
           | fhir4.Bundle
           | undefined
@@ -403,38 +509,55 @@ export default async (options?: FastifyServerOptions) => {
           parameters,
           'dataEndpoint'
         ) as fhir4.Endpoint | undefined
-        const contentEndpoint = resourceFromParameters(
-          parameters,
-          'contentEndpoint'
-        ) as fhir4.Endpoint ?? defaultEndpoint
-        const terminologyEndpoint = resourceFromParameters(
-          parameters,
-          'terminologyEndpoint'
-        ) as fhir4.Endpoint ?? defaultEndpoint
+        const contentEndpoint =
+          (resourceFromParameters(
+            parameters,
+            'contentEndpoint'
+          ) as fhir4.Endpoint) ?? defaultEndpoint
+        const terminologyEndpoint =
+          (resourceFromParameters(
+            parameters,
+            'terminologyEndpoint'
+          ) as fhir4.Endpoint) ?? defaultEndpoint
+
+        if (planDefinition == null) {
+          let url = valueFromParameters(parameters, 'url', 'valueString')
+          const contentResolver = Resolver(contentEndpoint)
+          const planDefinitionRaw = await contentResolver.resolveCanonical(url)
+
+          if (is.PlanDefinition(planDefinitionRaw)) {
+            planDefinition = planDefinitionRaw
+          }
+        }
 
         const args: ApplyPlanDefinitionArgs = {
           planDefinition,
-          subject: valueFromParameters(parameters, 'subject', 'valueReference'),
+          subject: valueFromParameters(parameters, 'subject', 'valueString'),
           practitioner: valueFromParameters(
             parameters,
             'practitioner',
-            'valueReference'
+            'valueString'
           ),
           encounter: valueFromParameters(
             parameters,
             'encounter',
-            'valueReference'
+            'valueString'
           ),
           organization: valueFromParameters(
             parameters,
             'organization',
-            'valueReference'
+            'valueString'
           ),
           data,
           dataEndpoint,
           contentEndpoint,
           terminologyEndpoint,
         }
+
+        if (process.env.DEBUG != null) {
+          console.info(args)
+        }
+
         res.send(await applyPlanDefinition(args))
       }
     }

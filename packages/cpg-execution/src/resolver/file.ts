@@ -4,16 +4,16 @@ import { ValueSet } from 'cql-execution'
 import { Resolver } from '../resolver'
 import BaseResolver from './base'
 import Cache from '../cache'
-import { is, notEmpty } from '../helpers'
-
-const resourcesByCanonical: Record<string, fhir4.FhirResource> = {}
-const resourcesByReference: Record<string, fhir4.FhirResource> = {}
-const resourcesByResourceType: Record<string, fhir4.FhirResource[]> = {}
+import { is } from '../helpers'
 
 /**
  * A simple FileResolver implementing Resolver interface.
  */
 class FileResolver extends BaseResolver implements Resolver {
+  resourcesByCanonical: Record<string, fhir4.FhirResource> = {}
+  resourcesByReference: Record<string, fhir4.FhirResource> = {}
+  resourcesByResourceType: Record<string, fhir4.FhirResource[]> = {}
+
   constructor(endpoint: fhir4.Endpoint) {
     super(endpoint)
 
@@ -33,32 +33,57 @@ class FileResolver extends BaseResolver implements Resolver {
           const rawResource = JSON.parse(
             fs.readFileSync(filename, { encoding: 'utf8' }).toString()
           )
-          if (rawResource.url != null) {
-            resourcesByCanonical[rawResource.url] = rawResource
+          if (rawResource.url != null && rawResource.resourceType != null) {
+            this.resourcesByCanonical[rawResource.url] = rawResource
           }
-          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          const key: string = `${rawResource?.resourceType?.toString()}/${rawResource?.id?.toString()}`
-          resourcesByReference[key] = rawResource
-          ;(resourcesByResourceType[rawResource?.resourceType] ||= []).push(
-            rawResource
-          )
+          if (rawResource.resourceType != null) {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+            const key: string = `${rawResource?.resourceType?.toString()}/${rawResource?.id?.toString()}`
+            this.resourcesByReference[key] = rawResource
+            ;(this.resourcesByResourceType[rawResource?.resourceType] ||=
+              []).push(rawResource)
+          }
         } catch (error) {
           console.warn(`problem with ${filename}`)
           console.warn(error)
         }
       })
+
+    // Add in FHIRHelpers
+    //this.resourcesByCanonical['http://hl7.org/fhir/Library/FHIRHelpers'] = FHIRHelpersLibrary as fhir4.Library
+    //this.resourcesByReference['Library/FHIRHelpers'] = FHIRHelpersLibrary as fhir4.Library
+    //this.resourcesByResourceType['Library'].push(FHIRHelpersLibrary as fhir4.Library)
   }
 
-  public async allByResourceType(resourceType: string) {
-    return resourcesByResourceType[resourceType]
+  public async allByResourceType(
+    resourceType: string,
+    patientRef?: string | undefined
+  ) {
+    const resources = this.resourcesByResourceType[resourceType]
+    if (patientRef != null) {
+      return resources?.filter((resource) => {
+        const rawResource = JSON.parse(JSON.stringify(resource))
+        const { subject, patient } = rawResource
+        let shouldUse = true
+        if (subject != null) {
+          shouldUse = subject.reference === patientRef
+        }
+        if (patient != null) {
+          shouldUse = patient.reference === patientRef
+        }
+        return shouldUse
+      })
+    } else {
+      return resources.filter((r) => r != null)
+    }
   }
 
   public async resolveCanonical(canonical: string | undefined) {
-    return canonical != null ? resourcesByCanonical[canonical] : undefined
+    return canonical != null ? this.resourcesByCanonical[canonical] : undefined
   }
 
   public async resolveReference(reference: string | undefined) {
-    return reference != null ? resourcesByReference[reference] : undefined
+    return reference != null ? this.resourcesByReference[reference] : undefined
   }
 
   /**
@@ -81,17 +106,26 @@ class FileResolver extends BaseResolver implements Resolver {
               if (cached == null) {
                 let version = elmValueset.version
 
-                const results = resourcesByResourceType['ValueSet']
-                  .filter(is.ValueSet)
-                  .filter(
+                const results = this.resourcesByResourceType['ValueSet']
+                  ?.filter(is.ValueSet)
+                  ?.filter(
                     (v) =>
                       v.url === key &&
                       (version != null ? v.version === version : true)
                   )
 
-                cached = results.reduce((acc, vs) => {
+                cached = results?.reduce((acc, vs) => {
                   const vsVersion = vs.version ?? version
                   if (vsVersion) {
+                    const codes =
+                      vs.expansion?.contains?.map((c) => {
+                        return {
+                          code: c.code,
+                          system: c.system,
+                          version: c.version
+                        }
+                      }) || []
+                    /* Handle compose?
                     const codes = vs.compose?.include
                       ?.flatMap((include) => {
                         return include.concept
@@ -102,9 +136,10 @@ class FileResolver extends BaseResolver implements Resolver {
                               version: include.version
                             }
                           })
-                          .filter(notEmpty)
+                          ?.filter(notEmpty)
                       })
-                      .filter(notEmpty)
+                      ?.filter(notEmpty)
+                      */
                     acc[vsVersion] = new ValueSet(key, vsVersion, codes)
                   }
                   return acc

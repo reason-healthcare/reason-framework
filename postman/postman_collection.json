@@ -1,10 +1,74 @@
 {
 	"info": {
-		"_postman_id": "80ce25f9-a10e-4447-a592-91ed033f0eed",
+		"_postman_id": "82cb449c-7979-4e84-b383-ad28d88e8540",
 		"name": "Reasoning Framework",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "8381182"
 	},
 	"item": [
+		{
+			"name": "Get Patients",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{contentEndpointAddress}}/Patient",
+					"host": [
+						"{{contentEndpointAddress}}"
+					],
+					"path": [
+						"Patient"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get ActivityDefinition and save",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"activityDefinitionContent\", JSON.stringify(jsonData.entry[0].resource));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{contentEndpointAddress}}/ActivityDefinition?url=http://example.org/ActivityDefinition/OrderCBCActivity",
+					"host": [
+						"{{contentEndpointAddress}}"
+					],
+					"path": [
+						"ActivityDefinition"
+					],
+					"query": [
+						{
+							"key": "url",
+							"value": "http://example.org/ActivityDefinition/OrderCBCActivity"
+						}
+					]
+				}
+			},
+			"response": []
+		},
 		{
 			"name": "CPG - ActivityDefinition $apply",
 			"event": [
@@ -23,7 +87,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"resourceType\": \"Parameters\",\n    \"parameter\": [\n        {\n            \"name\": \"subject\",\n            \"valueReference\": \"Patient/Patient123\"\n        },\n        {\n            \"name\": \"practitioner\",\n            \"valueReference\": \"Practitioner/Practitioner123\"\n        },\n        {\n            \"name\": \"encounter\",\n            \"valueReference\": \"Encounter/Encounter123\"\n        },\n        {\n            \"name\": \"activityDefinition\",\n            \"resource\": {\n                \"resourceType\": \"ActivityDefinition\",\n                \"id\": \"CommunicationRequestActivity\",\n                \"url\": \"http://example.org/ActivityDefinition/CommunicationRequestActivity\",\n                \"version\": \"0.1.0\",\n                \"status\": \"draft\",\n                \"date\": \"2023-01-03T16:05:35-05:00\",\n                \"publisher\": \"Example Publisher\",\n                \"contact\": [\n                    {\n                        \"name\": \"Example Publisher\",\n                        \"telecom\": [\n                            {\n                                \"system\": \"url\",\n                                \"value\": \"http://example.org/example-publisher\"\n                            }\n                        ]\n                    }\n                ],\n                \"library\": [\n                    \"http://example.org/Library/ExampleLibrary\"\n                ],\n                \"kind\": \"CommunicationRequest\",\n                \"dynamicValue\": [\n                    {\n                        \"path\": \"payload[0].contentString\",\n                        \"expression\": {\n                            \"language\": \"text/cql-identifier\",\n                            \"expression\": \"example message\"\n                        }\n                    }\n                ]\n            }\n        },\n        {\n            \"name\": \"contentEndpoint\",\n            \"resource\": {\n                \"resourceType\": \"Endpoint\",\n                \"address\": \"{{contentEndpointAddress}}\",\n                \"status\": \"active\",\n                \"payloadType\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"code\": \"content\"\n                            }\n                        ]\n                    }\n                ],\n                \"connectionType\": {\n                    \"code\": \"{{contentEndpointType}}\"\n                }\n            }\n        },\n        {\n            \"name\": \"terminologyEndpoint\",\n            \"resource\": {\n                \"resourceType\": \"Endpoint\",\n                \"address\": \"{{terminologyEndpointAddress}}\",\n                \"status\": \"active\",\n                \"payloadType\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"code\": \"terminology\"\n                            }\n                        ]\n                    }\n                ],\n                \"connectionType\": {\n                    \"code\": \"{{terminologyEndpointType}}\"\n                }\n            }\n        },\n        {\n            \"name\": \"dataEndpoint\",\n            \"resource\": {\n                \"resourceType\": \"Endpoint\",\n                \"address\": \"{{dataEndpointAddress}}\",\n                \"status\": \"active\",\n                \"payloadType\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"code\": \"data\"\n                            }\n                        ]\n                    }\n                ],\n                \"connectionType\": {\n                    \"code\": \"{{dataEndpointType}}\"\n                }\n            }\n        }\n    ]\n}",
+					"raw": "{\n    \"resourceType\": \"Parameters\",\n    \"parameter\": [\n        {\n            \"name\": \"subject\",\n            \"valueReference\": \"Patient/{{patient}}\"\n        },\n        {\n            \"name\": \"practitioner\",\n            \"valueReference\": \"Practitioner/{{practitioner}}\"\n        },\n        {\n            \"name\": \"encounter\",\n            \"valueReference\": \"Encounter/{{encounter}}\"\n        },\n        {\n            \"name\": \"activityDefinition\",\n            \"resource\": {{activityDefinitionContent}}\n        },\n        {\n            \"name\": \"contentEndpoint\",\n            \"resource\": {\n                \"resourceType\": \"Endpoint\",\n                \"address\": \"{{contentEndpointAddress}}\",\n                \"status\": \"active\",\n                \"payloadType\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"code\": \"content\"\n                            }\n                        ]\n                    }\n                ],\n                \"connectionType\": {\n                    \"code\": \"{{contentEndpointType}}\"\n                }\n            }\n        },\n        {\n            \"name\": \"terminologyEndpoint\",\n            \"resource\": {\n                \"resourceType\": \"Endpoint\",\n                \"address\": \"{{terminologyEndpointAddress}}\",\n                \"status\": \"active\",\n                \"payloadType\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"code\": \"terminology\"\n                            }\n                        ]\n                    }\n                ],\n                \"connectionType\": {\n                    \"code\": \"{{terminologyEndpointType}}\"\n                }\n            }\n        },\n        {\n            \"name\": \"dataEndpoint\",\n            \"resource\": {\n                \"resourceType\": \"Endpoint\",\n                \"address\": \"{{dataEndpointAddress}}\",\n                \"status\": \"active\",\n                \"payloadType\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"code\": \"data\"\n                            }\n                        ]\n                    }\n                ],\n                \"connectionType\": {\n                    \"code\": \"{{dataEndpointType}}\"\n                }\n            }\n        }\n    ]\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -44,10 +108,54 @@
 			"response": []
 		},
 		{
+			"name": "Get PlanDefinition and save",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"planDefinitionContent\", JSON.stringify(jsonData.entry[0].resource));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{contentEndpointAddress}}/PlanDefinition?url=http://example.org/PlanDefinition/MonitoringTestsForAntirheumaticDrugTherapy",
+					"host": [
+						"{{contentEndpointAddress}}"
+					],
+					"path": [
+						"PlanDefinition"
+					],
+					"query": [
+						{
+							"key": "url",
+							"value": "http://example.org/PlanDefinition/MonitoringTestsForAntirheumaticDrugTherapy"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "CPG - PlanDefinition $apply",
 			"event": [
 				{
 					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
 					"script": {
 						"exec": [
 							""
@@ -61,7 +169,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"resourceType\": \"Parameters\",\n    \"parameter\": [\n        {\n            \"name\": \"subject\",\n            \"valueReference\": \"Patient/Patient123\"\n        },\n        {\n            \"name\": \"practitioner\",\n            \"valueReference\": \"Practitioner/Practitioner123\"\n        },\n        {\n            \"name\": \"encounter\",\n            \"valueReference\": \"Encounter/Encounter123\"\n        },\n        {\n            \"name\": \"planDefinition\",\n            \"resource\": {\n                \"resourceType\": \"PlanDefinition\",\n                \"id\": \"EcaWithApplicabilityMulti1\",\n                \"url\": \"http://example.org/PlanDefinition/EcaWithApplicabilityMulti1\",\n                \"version\": \"0.1.0\",\n                \"title\": \"Example ECA Rule\",\n                \"type\": {\n                    \"coding\": [\n                        {\n                            \"system\": \"http://terminology.hl7.org/CodeSystem/plan-definition-type\",\n                            \"code\": \"eca-rule\"\n                        }\n                    ]\n                },\n                \"status\": \"draft\",\n                \"date\": \"2023-01-03T16:05:35-05:00\",\n                \"publisher\": \"Example Publisher\",\n                \"contact\": [\n                    {\n                        \"name\": \"Example Publisher\",\n                        \"telecom\": [\n                            {\n                                \"system\": \"url\",\n                                \"value\": \"http://example.org/example-publisher\"\n                            }\n                        ]\n                    }\n                ],\n                \"description\": \"An example that will create a recommendation for a communication request.\",\n                \"library\": [\n                    \"http://example.org/Library/ExampleLibrary\"\n                ],\n                \"action\": [\n                    {\n                        \"id\": \"1\",\n                        \"trigger\": [\n                            {\n                                \"type\": \"named-event\",\n                                \"name\": \"patient-view\"\n                            }\n                        ],\n                        \"condition\": [\n                            {\n                                \"kind\": \"applicability\",\n                                \"expression\": {\n                                    \"language\": \"text/cql-identifier\",\n                                    \"expression\": \"is true\"\n                                }\n                            },\n                            {\n                                \"kind\": \"applicability\",\n                                \"expression\": {\n                                    \"language\": \"text/cql-identifier\",\n                                    \"expression\": \"is true\"\n                                }\n                            }\n                        ],\n                        \"definitionCanonical\": \"http://example.org/ActivityDefinition/CommunicationRequestActivity\"\n                    }\n                ]\n            }\n        },\n        {\n            \"name\": \"contentEndpoint\",\n            \"resource\": {\n                \"resourceType\": \"Endpoint\",\n                \"address\": \"{{contentEndpointAddress}}\",\n                \"status\": \"active\",\n                \"payloadType\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"code\": \"content\"\n                            }\n                        ]\n                    }\n                ],\n                \"connectionType\": {\n                    \"code\": \"{{contentEndpointType}}\"\n                }\n            }\n        },\n        {\n            \"name\": \"terminologyEndpoint\",\n            \"resource\": {\n                \"resourceType\": \"Endpoint\",\n                \"address\": \"{{terminologyEndpointAddress}}\",\n                \"status\": \"active\",\n                \"payloadType\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"code\": \"terminology\"\n                            }\n                        ]\n                    }\n                ],\n                \"connectionType\": {\n                    \"code\": \"{{terminologyEndpointType}}\"\n                }\n            }\n        },\n        {\n            \"name\": \"dataEndpoint\",\n            \"resource\": {\n                \"resourceType\": \"Endpoint\",\n                \"address\": \"{{dataEndpointAddress}}\",\n                \"status\": \"active\",\n                \"payloadType\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"code\": \"data\"\n                            }\n                        ]\n                    }\n                ],\n                \"connectionType\": {\n                    \"code\": \"{{dataEndpointType}}\"\n                }\n            }\n        }\n    ]\n}",
+					"raw": "{\n    \"resourceType\": \"Parameters\",\n    \"parameter\": [\n        {\n            \"name\": \"subject\",\n            \"valueReference\": \"Patient/{{patient}}\"\n        },\n        {\n            \"name\": \"practitioner\",\n            \"valueReference\": \"Practitioner/{{practitioner}}\"\n        },\n        {\n            \"name\": \"encounter\",\n            \"valueReference\": \"Encounter/{{encounter}}\"\n        },\n        {\n            \"name\": \"planDefinition\",\n            \"resource\": {{planDefinitionContent}}\n        },\n        {\n            \"name\": \"contentEndpoint\",\n            \"resource\": {\n                \"resourceType\": \"Endpoint\",\n                \"address\": \"{{contentEndpointAddress}}\",\n                \"status\": \"active\",\n                \"payloadType\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"code\": \"content\"\n                            }\n                        ]\n                    }\n                ],\n                \"connectionType\": {\n                    \"code\": \"{{contentEndpointType}}\"\n                }\n            }\n        },\n        {\n            \"name\": \"terminologyEndpoint\",\n            \"resource\": {\n                \"resourceType\": \"Endpoint\",\n                \"address\": \"{{terminologyEndpointAddress}}\",\n                \"status\": \"active\",\n                \"payloadType\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"code\": \"terminology\"\n                            }\n                        ]\n                    }\n                ],\n                \"connectionType\": {\n                    \"code\": \"{{terminologyEndpointType}}\"\n                }\n            }\n        },\n        {\n            \"name\": \"dataEndpoint\",\n            \"resource\": {\n                \"resourceType\": \"Endpoint\",\n                \"address\": \"{{dataEndpointAddress}}\",\n                \"status\": \"active\",\n                \"payloadType\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"code\": \"data\"\n                            }\n                        ]\n                    }\n                ],\n                \"connectionType\": {\n                    \"code\": \"{{dataEndpointType}}\"\n                }\n            }\n        }\n    ]\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -128,7 +236,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"hook\": \"patient-view\",\n    \"hook\"\n    \"context\": {\n        \"userId\": \"Practitioner/Practitioner123\",\n        \"patientId\": \"Patient/Patient123\",\n        \"encounterId\": \"Encounter/Encounter123\"\n    }\n}",
+					"raw": "{\n  \"hookInstance\": \"49ad21af-55f0-40b6-b378-0327fb55cbeb\",\n  \"hook\": \"patient-view\",\n  \"fhirServer\": \"{{contentEndpointAddress}}\",\n  \"context\": {\n    \"patientId\": \"{{patient}}\",\n    \"userId\": \"{{practitioner}}\"\n  }\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -136,14 +244,13 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:9001/cds-services/http%3A%2F%2Fexample.org%2FPlanDefinition%2FEcaWithApplicabilityMulti1",
+					"raw": "{{server}}/cds-services/MonitoringTestsForAntirheumaticDrugTherapy",
 					"host": [
-						"localhost"
+						"{{server}}"
 					],
-					"port": "9001",
 					"path": [
 						"cds-services",
-						"http%3A%2F%2Fexample.org%2FPlanDefinition%2FEcaWithApplicabilityMulti1"
+						"MonitoringTestsForAntirheumaticDrugTherapy"
 					]
 				}
 			},
@@ -177,7 +284,7 @@
 		},
 		{
 			"key": "contentEndpointAddress",
-			"value": "http://hapi.fhir.org/baseR4",
+			"value": "https://fhir.simplifier.net/CPG-workshop",
 			"type": "default"
 		},
 		{
@@ -187,7 +294,7 @@
 		},
 		{
 			"key": "terminologyEndpointAddress",
-			"value": "http://hapi.fhir.org/baseR4",
+			"value": "https://fhir.simplifier.net/CPG-workshop",
 			"type": "default"
 		},
 		{
@@ -197,7 +304,7 @@
 		},
 		{
 			"key": "dataEndpointAddress",
-			"value": "http://hapi.fhir.org/baseR4",
+			"value": "https://fhir.simplifier.net/CPG-workshop",
 			"type": "default"
 		},
 		{

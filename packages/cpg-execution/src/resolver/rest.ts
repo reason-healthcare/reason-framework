@@ -16,7 +16,9 @@ class RestResolver extends BaseResolver implements Resolver {
     }
 
     if (!endpoint.address.startsWith('http')) {
-      throw new Error(`Endpoint address must start with 'http', got: '${endpoint.address}'`)
+      throw new Error(
+        `Endpoint address must start with 'http', got: '${endpoint.address}'`
+      )
     }
 
     // Build FHIR Rest client
@@ -62,59 +64,113 @@ class RestResolver extends BaseResolver implements Resolver {
   }
 
   // TODO: Deal with pagination
-  public async allByResourceType(resourceType: string) {
+  public async allByResourceType(
+    resourceType: string,
+    patient?: string | undefined
+  ) {
+    const searchParams: any = { _count: 1000 }
+    if (patient != null) {
+      searchParams.patient = patient
+    }
     const bundle = await this.client.search({
       resourceType,
-      searchParams: { _count: 1000 }
+      searchParams
     })
     if (is.Bundle(bundle)) {
-      return bundle.entry
+      const resultResources = bundle.entry
         ?.map((entry) => entry.resource)
         .filter(is.FhirResource)
+
+      // For simplifier...
+      return resultResources?.filter((r) => {
+        const patientReference = (r as any)?.patient?.reference
+        if (patientReference) {
+          return patientReference.endsWith(patient)
+        }
+
+        const subjectReference = (r as any)?.subject?.reference
+        if (subjectReference) {
+          return subjectReference.endsWith(patient)
+        }
+        return true
+      })
     }
   }
 
   public async resolveCanonical(
-    canonical: string | undefined,
+    canonicalWithVersion: string | undefined,
     resourceTypes?: string[] | undefined
   ) {
-    const cached = Cache.getKey(`canonical-resource-${canonical}`)
+    const cached = Cache.getKey(`canonical-resource-${canonicalWithVersion}`)
     if (cached != null) {
       return cached
     }
 
-    if (canonical != null) {
+    const [canonical, version] = (canonicalWithVersion || '').split('|')
 
-      // Batch search
+    if (canonical != null) {
       let results
-      try {
-        results = await this.client.batch({
-        body: this.canonicalSearchBundle(
-          canonical,
-          resourceTypes
-        ) as unknown as fhir4.FhirResource & {
-          type: 'batch'
-        } // TODO: Update FKC type here `fhir4.Bundle & { type: 'batch' }`
-      })
-      } catch(e) {
-        throw new Error(`Problem with canonical search ${inspect(e)}`)
-      } 
+      if (process.env.CANONICAL_SEARCH_ROOT != null) {
+        console.log('Running canonical root search...')
+        try {
+          if (version != null) {
+            results = await this.client.request(
+              `/?url=${canonical}&version=${version}`
+            )
+          } else {
+            results = await this.client.request(`/?url=${canonical}`)
+          }
+        } catch (e) {
+          throw new Error(
+            `Problem with canonical search ${inspect(e)} -- ${process.env}`
+          )
+        }
+      } else {
+        // Batch search
+        try {
+          results = await this.client.batch({
+            body: this.canonicalSearchBundle(
+              canonical,
+              resourceTypes,
+              version
+            ) as unknown as fhir4.FhirResource & {
+              type: 'batch'
+            } // TODO: Update FKC type here `fhir4.Bundle & { type: 'batch' }`
+          })
+        } catch (e) {
+          throw new Error(`Problem with canonical search ${inspect(e)}`)
+        }
+      }
 
       // Unwrap bundle of bundles
       if (is.Bundle(results)) {
-        const bundles = results.entry?.map((e) => e.resource).filter(is.Bundle)
-        const resources = bundles
-          ?.flatMap((bundle) => {
-            return bundle.entry?.map((b) => b.resource)
-          })
-          .filter(notEmpty)
+        let resources = []
+        if (process.env.CANONICAL_SEARCH_ROOT != null) {
+          resources =
+            results.entry
+              ?.map((e) => e.resource)
+              .filter(is.FhirResource)
+              .filter(notEmpty) ?? []
+        } else {
+          const bundles = results.entry
+            ?.map((e) => e.resource)
+            .filter(is.Bundle)
+          resources =
+            bundles
+              ?.flatMap((bundle) => {
+                return bundle.entry?.map((b) => b.resource)
+              })
+              .filter(notEmpty) ?? []
+        }
+
         if (resources?.length === 1) {
           const result = resources[0]
-          Cache.setKey(`canonical-resource-${canonical}`, result)
+          Cache.setKey(`canonical-resource-${canonicalWithVersion}`, result)
+          Cache.save(true)
           return result
         } else {
           throw new Error(
-            `Did not find one and only one resource for ${canonical}. Found: ` +
+            `Did not find one and only one resource for ${canonicalWithVersion}. Found: ` +
               `${JSON.stringify(resources)}`
           )
         }
@@ -146,7 +202,7 @@ class RestResolver extends BaseResolver implements Resolver {
    * @param libraries elm library to process
    */
   public async preloadValueSets(elm: any): Promise<void> {
-    if (Array.isArray(elm.library.valueSets.def)) {
+    if (Array.isArray(elm.library.valueSets?.def)) {
       await Promise.all(
         Object.values(elm.library.valueSets.def).map(
           async (elmValueset: any) => {
@@ -177,6 +233,16 @@ class RestResolver extends BaseResolver implements Resolver {
                   cached = remoteValueSets.reduce((acc, vs) => {
                     const vsVersion = vs.version ?? version
                     if (vsVersion) {
+                      const codes =
+                        vs.expansion?.contains?.map((c) => {
+                          return {
+                            code: c.code,
+                            system: c.system,
+                            version: c.version
+                          }
+                        }) || []
+                      // Handle compose?
+                      /*
                       const codes = vs.compose?.include
                         ?.flatMap((include) => {
                           return include.concept
@@ -190,11 +256,13 @@ class RestResolver extends BaseResolver implements Resolver {
                             .filter(notEmpty)
                         })
                         .filter(notEmpty)
+                      */
                       acc[vsVersion] = new ValueSet(key, vsVersion, codes)
                     }
                     return acc
                   }, {} as Record<string, ValueSet>)
                   Cache.setKey(key, cached)
+                  Cache.save(true)
                 } else {
                   console.info(`Could not find ValueSets for ${key}`)
                 }
@@ -205,7 +273,6 @@ class RestResolver extends BaseResolver implements Resolver {
           }
         )
       )
-      Cache.save()
     }
   }
 }

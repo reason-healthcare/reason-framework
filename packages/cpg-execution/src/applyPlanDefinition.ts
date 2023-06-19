@@ -90,7 +90,7 @@ export const applyPlanDefinition = async (
 
   if (!is.PlanDefinition(planDefinition)) {
     throw new Error(
-      `planDefinintion does not seem to be a FHIR PlanDefinition" ${inspect(
+      `planDefinition does not seem to be a FHIR PlanDefinition" ${inspect(
         planDefinition
       )}`
     )
@@ -196,6 +196,7 @@ export const applyPlanDefinition = async (
         async (action) =>
           await applyPlanDefinitionAction(
             action,
+            planDefinition,
             args,
             contentResolver,
             terminologyResolver,
