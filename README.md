@@ -78,3 +78,5 @@ endpoints.
 
 See `./postman` for a Postman collection. There are a few variables to set for
 the collection, so take a minute to review.
+
+The stand-alone `CPG - PlanDefinition drink water $apply` example is recommended to get started with.
