@@ -163,7 +163,11 @@ class RestResolver extends BaseResolver implements Resolver {
               .filter(notEmpty) ?? []
         }
 
-        if (resources?.length === 1) {
+        console.log(resources.length + 'length')
+        console.log(JSON.stringify(resources[0].resourceType) + 'resource 1')
+        console.log(JSON.stringify(resources[1]) + 'resource 2') //this is the operation outcome
+
+        if (resources?.length === 2) {  //temp set to 2 to include operation outcome
           const result = resources[0]
           Cache.setKey(`canonical-resource-${canonicalWithVersion}`, result)
           Cache.save(true)
