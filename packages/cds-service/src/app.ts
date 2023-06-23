@@ -9,7 +9,9 @@ import {
   applyActivityDefinition,
   ApplyActivityDefinitionArgs,
   applyPlanDefinition,
-  ApplyPlanDefinitionArgs
+  ApplyPlanDefinitionArgs,
+  createQuestionnaire,
+  CreateQuestionnaireArgs,
 } from '@reason-framework/cpg-execution'
 import Resolver from '@reason-framework/cpg-execution/lib/resolver'
 import { is, notEmpty } from '@reason-framework/cpg-execution/lib/helpers'
@@ -568,12 +570,17 @@ export default async (options?: FastifyServerOptions) => {
     async (req: FastifyRequest, res: FastifyReply): Promise<void> => {
       const { parameter: parameters } = req.body as fhir4.Parameters
 
+      console.log(JSON.stringify(parameters) + 'params')
+
+      // use profile as SD if provided
       if (parameters != null) {
         let structureDefinition = resourceFromParameters(
           parameters,
-          'structureDefinition'
+          'profile'
         ) as fhir4.StructureDefinition
 
+        // if profile not provided, use Canonical
+        // TODO: support identifier parameter and slug
         if (structureDefinition == null) {
           let url = valueFromParameters(parameters, 'url', 'valueString')
           const contentResolver = Resolver(defaultEndpoint)
@@ -582,17 +589,15 @@ export default async (options?: FastifyServerOptions) => {
           structureDefinition = structureDefinitionRaw
         }
 
-        console.log(structureDefinition + 'structure Def')
-
-        const args = {
-          structureDefinition,
-          supportedOnly: valueFromParameters(
-            parameters,
-            'supportedOnly',
-            'boolean'
-          )
-        }
-        res.send({message: "ok"})
+        // const args: CreateQuestionnaireArgs = {
+        //   structureDefinition,
+        //   supportedOnly: valueFromParameters(
+        //     parameters,
+        //     'supportedOnly',
+        //     'boolean'
+        //   )
+        // }
+        // res.send(createQuestionnaire(args))
       }
     // 1. get structure definition from canonical or profile
     // 2. Pass parameters to createQuestionnaire function that maps elements from structure definition to the new questionnaire
