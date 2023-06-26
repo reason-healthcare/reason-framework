@@ -589,15 +589,17 @@ export default async (options?: FastifyServerOptions) => {
           structureDefinition = structureDefinitionRaw
         }
 
-        // const args: CreateQuestionnaireArgs = {
-        //   structureDefinition,
-        //   supportedOnly: valueFromParameters(
-        //     parameters,
-        //     'supportedOnly',
-        //     'boolean'
-        //   )
-        // }
-        // res.send(createQuestionnaire(args))
+        console.log(JSON.stringify(structureDefinition) + "SD from app")
+
+        const args: CreateQuestionnaireArgs = {
+          structureDefinition,
+          supportedOnly: valueFromParameters(
+            parameters,
+            'supportedOnly',
+            'boolean'
+          )
+        }
+        res.send(createQuestionnaire(args))
       }
     // 1. get structure definition from canonical or profile
     // 2. Pass parameters to createQuestionnaire function that maps elements from structure definition to the new questionnaire
