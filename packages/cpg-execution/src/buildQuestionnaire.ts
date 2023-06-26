@@ -1,13 +1,14 @@
-import { QuestionnaireItem } from "fhir/r4"
+import { v4 as uuidv4 } from 'uuid'
+import { is } from './helpers'
 
-export interface CreateQuestionnaireArgs {
+export interface BuildQuestionnaireArgs {
   structureDefinition: fhir4.StructureDefinition,
   supportedOnly?: boolean | undefined
 }
 
-export const createQuestionnaire = async (
-  args: CreateQuestionnaireArgs
-): Promise<fhir4.Questionnaire | undefined> => {
+export const buildQuestionnaire = (
+  args: BuildQuestionnaireArgs
+): fhir4.Questionnaire | undefined => {
 
   const {
     structureDefinition,
@@ -18,7 +19,6 @@ export const createQuestionnaire = async (
     id: uuidv4(),
     status: 'draft',
     resourceType: "Questionnaire",
-    // group of items
   }
 
   // get only differential elements and snapshot required elements
@@ -38,22 +38,37 @@ export const createQuestionnaire = async (
 
   if (elements) {
     questionnaire.item = elements.map((element) => {
-      let item: QuestionnaireItem = {
+      let item: fhir4.QuestionnaireItem = {
         linkId: uuidv4(),
         definition: `${structureDefinition.url}#${element.path}`,
-        type: 'string', // ts placeholder
+        type: "string"
       }
 
-      //QuestionItem.type (should always be primitive type) =>
-      // * If the element type is specified in the differential, map to Questionnaire.type
-      // * If the element type is not specified in the differential, use the snapshot type and map to Questionnaire.type
+      let elementType
+      // Check for type on element within list, if not present, the element might be from the differential and type should be used from snapshot
+      if (element.type) {
+        elementType = element.type
+      } else {
+        elementType = structureDefinition?.snapshot?.element?.find(e => e.path === element.path)?.type
+      }
 
-      // if (element.type) {
-      //   item.type = element.type[0].code
-      // } else {
-      //   // find SD snapshot element by path
-      //   item.type = structureDefinition?.snapshot?.element?.find(e => e.path === element.path)?.type?[0].code
-      // }
+      if (elementType && is.QuestionnaireItemType(elementType[0].code)) {
+        item.type = elementType[0].code
+      } else {
+        item.type = "string"
+      }
+
+      element.path = 'Observation.value[x]'
+      elementType = []
+      elementType.push({code:'string'})
+
+
+      // QuestionnaireItem.definition => "{structureDefinition.url}#{full element path}", where:
+      // * "full element path" is path with `[x]` replaced with the first (and only) type.code
+      if (element.path.includes('[x]') && elementType) {
+        const elementPath = element.path.replace('[x]', (elementType[0].code.charAt(0).toUpperCase() + elementType[0].code.slice(1)))
+        item.definition = `${structureDefinition.url}#${elementPath}`
+      }
 
       // Add "hidden" extension for fixed[x] and pattern[x]
       if (Object.keys(element).some(e => { return e.startsWith('fixed') || e.startsWith('pattern') }) ) {
@@ -76,6 +91,9 @@ export const createQuestionnaire = async (
       }
 
       // QuestionnaireItem.readOnly => Context from the corresponding data-requirement (???)
+      // if (element.type && element.type[0].code === 'DataRequirement') {
+      //   item.readOnly = true
+      // }
 
       if (element.maxLength && item.type === 'string') {
         item.maxLength = element.maxLength
@@ -89,5 +107,6 @@ export const createQuestionnaire = async (
     })
   }
 
+  console.log(JSON.stringify(questionnaire) + 'questionnaire')
   return questionnaire
 }

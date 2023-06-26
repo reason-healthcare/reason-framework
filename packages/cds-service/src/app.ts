@@ -10,8 +10,8 @@ import {
   ApplyActivityDefinitionArgs,
   applyPlanDefinition,
   ApplyPlanDefinitionArgs,
-  createQuestionnaire,
-  CreateQuestionnaireArgs,
+  buildQuestionnaire,
+  BuildQuestionnaireArgs,
 } from '@reason-framework/cpg-execution'
 import Resolver from '@reason-framework/cpg-execution/lib/resolver'
 import { is, notEmpty } from '@reason-framework/cpg-execution/lib/helpers'
@@ -591,7 +591,7 @@ export default async (options?: FastifyServerOptions) => {
 
         console.log(JSON.stringify(structureDefinition) + "SD from app")
 
-        const args: CreateQuestionnaireArgs = {
+        const args: BuildQuestionnaireArgs = {
           structureDefinition,
           supportedOnly: valueFromParameters(
             parameters,
@@ -599,7 +599,7 @@ export default async (options?: FastifyServerOptions) => {
             'boolean'
           )
         }
-        res.send(createQuestionnaire(args))
+        res.send(buildQuestionnaire(args))
       }
     // 1. get structure definition from canonical or profile
     // 2. Pass parameters to createQuestionnaire function that maps elements from structure definition to the new questionnaire
