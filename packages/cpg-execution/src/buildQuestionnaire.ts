@@ -17,9 +17,12 @@ export const buildQuestionnaire = (
 
   const questionnaire: fhir4.Questionnaire = {
     id: uuidv4(),
-    status: 'draft',
     resourceType: "Questionnaire",
+    description: `Questionnaire generated from ${structureDefinition.url}`,
+    status: 'draft'
   }
+
+  questionnaire.url = `http://build-questionnaire/Questionnaire/${questionnaire.id}`
 
   // get only differential elements and snapshot required elements
   let elements = structureDefinition?.differential?.element
