@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
-import { is } from './helpers'
+import { is, questionnaireBaseUrl } from './helpers'
 
 export interface BuildQuestionnaireArgs {
   structureDefinition: fhir4.StructureDefinition,
@@ -22,7 +22,7 @@ export const buildQuestionnaire = (
     status: 'draft',
   }
 
-  questionnaire.url = `http://build-questionnaire/Questionnaire/${questionnaire.id}`
+  questionnaire.url = `${questionnaireBaseUrl}/Questionnaire/${questionnaire.id}`
 
   // get only differential elements and snapshot required elements
   let elements = structureDefinition?.differential?.element
@@ -38,8 +38,16 @@ export const buildQuestionnaire = (
 
   console.log(JSON.stringify(elements) + 'elements')
 
+  // TODO: add item grouping for complex data structures?
+  // If element path is nested beyond element.x, group the element.x children together
+  // All other elements, should be grouped as one core group
   if (elements) {
-    questionnaire.item = elements.map((element) => {
+    questionnaire.item = [{
+      linkId: uuidv4(),
+      type: "group"
+    }]
+
+    questionnaire.item[0].item = elements.map((element) => {
       let item: fhir4.QuestionnaireItem = {
         linkId: uuidv4(),
         definition: `${structureDefinition.url}#${element.path}`,
@@ -70,15 +78,35 @@ export const buildQuestionnaire = (
       }
 
       // Add "hidden" extension for fixed[x] and pattern[x]
-      if (Object.keys(element).some(e => { return e.startsWith('fixed') || e.startsWith('pattern') }) ) {
-        item.extension = [{
-          url: "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
-          valueBoolean: true
-        }]
+      // Set initial[x] for fixed[x], pattern[x], defaultValue[x] - Can only be one?
+      let patternOrFixedElementKey = Object.keys(element).find(k => { return k.startsWith('fixed') || k.startsWith('pattern') || k.startsWith('defaultValue') })
+      console.log(patternOrFixedElementKey)
+      console.log(element)
+      if (patternOrFixedElementKey) {
+        let parsedDataType // = patternOrFixedElementKey
+        let value // = element[patternOrFixedElementKey]
+        let initialValueType = `value${parsedDataType}`
+        // item.initial = {
+          // initialValueType: value
+        // }
+
+        if (patternOrFixedElementKey.startsWith('pattern') || patternOrFixedElementKey.startsWith('fixed')) {
+          item.extension = [{
+            url: "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+            valueBoolean: true
+          }]
+        }
       }
 
+      // TODO: (may remove) Context from where the corresponding data-requirement is used with a special extension (e.g. PlanDefinition.action.input[extension]...)? or.....
       if (element.label) {
         item.text = element.label
+      } else {
+        let text
+        if (element.path.includes('[x]')) {
+          text = element.path.replace('[x]', '')
+        }
+        element.path.split('.').join(' ')
       }
 
       if (element.min && element.min > 0) {

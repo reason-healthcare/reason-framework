@@ -370,3 +370,9 @@ export let baseUrl =
 if (baseUrl.endsWith('/')) {
   baseUrl = baseUrl.slice(0, -1)
 }
+
+export let questionnaireBaseUrl =
+  process.env.BASE_URL != null ? process.env.BASE_URL : 'http://questionnaire-processor'
+if (baseUrl.endsWith('/')) {
+  baseUrl = baseUrl.slice(0, -1)
+}
