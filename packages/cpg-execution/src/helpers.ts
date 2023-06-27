@@ -307,6 +307,9 @@ export const is = {
       is.Task(resource)
     )
   },
+  StructureDefinition: (resource: any): resource is fhir4.StructureDefinition => {
+    return resource?.resourceType === 'StructureDefinition'
+  },
   SupplyRequest: (resource: any): resource is fhir4.SupplyRequest => {
     return resource?.resourceType === 'SupplyRequest'
   },

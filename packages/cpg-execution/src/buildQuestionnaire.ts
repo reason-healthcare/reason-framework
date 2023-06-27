@@ -24,17 +24,16 @@ export const buildQuestionnaire = (
   // get only differential elements and snapshot required elements
   let elements = structureDefinition?.differential?.element
   structureDefinition.snapshot?.element.forEach((element) => {
-    if (element.min !== undefined && element.min > 0) {
+    if (element.min !== undefined && element.min > 0 && !elements?.some(e => e.path === element.path)) {
       elements?.push(element)
     }
   })
 
-  console.log(JSON.stringify(elements) + 'elements')
+  if (supportedOnly === true) {
+    elements = elements?.filter(e => e.mustSupport === true)
+  }
 
-  // if (supportedOnly === true) {
-  //   // filter through differential elements to see which are must support: true
-  //   // use these elements to map to questions
-  // }
+  console.log(JSON.stringify(elements) + 'elements')
 
   if (elements) {
     questionnaire.item = elements.map((element) => {
@@ -54,14 +53,11 @@ export const buildQuestionnaire = (
 
       if (elementType && is.QuestionnaireItemType(elementType[0].code)) {
         item.type = elementType[0].code
+      } else if (element.binding) {
+        item.type = "choice"
       } else {
         item.type = "string"
       }
-
-      element.path = 'Observation.value[x]'
-      elementType = []
-      elementType.push({code:'string'})
-
 
       // QuestionnaireItem.definition => "{structureDefinition.url}#{full element path}", where:
       // * "full element path" is path with `[x]` replaced with the first (and only) type.code
@@ -91,7 +87,7 @@ export const buildQuestionnaire = (
       }
 
       // QuestionnaireItem.readOnly => Context from the corresponding data-requirement (???)
-      // if (element.type && element.type[0].code === 'DataRequirement') {
+      // if (element.type && element.type includes a code === 'DataRequirement') {
       //   item.readOnly = true
       // }
 
@@ -99,12 +95,32 @@ export const buildQuestionnaire = (
         item.maxLength = element.maxLength
       }
 
-      // QuestionnaireItem.initialValue => From featureExpression (if available)
-
       // QuestionnaireItem.answerOption => build if the element has a binding to a VS
+      // Should this actually be QuestionnaireItem.answerValueSet?
+      if (element.binding) {
+        item.answerValueSet = element.binding.valueSet
+      }
 
       return item
     })
+  }
+
+  // QuestionnaireItem.initialValue => From featureExpression (if available)
+  const featureExpressionExtension = structureDefinition.extension?.find(e => e.url === "https://hl7.org/fhir/uv/cpg/StructureDefinition-cpg-featureExpression")
+  if (featureExpressionExtension) {
+
+    // How de we resolve expressions without patient context, should be added to parameters for cpg?
+    // Which item will have this initial value?
+
+    // {
+    //   "url" : "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-featureExpression",
+    //   "valueExpression" : {
+    //     "language" : "text/cql-identifier",
+    //     "expression" : "Body Weight Change",
+    //     "reference" : "http://hl7.org/fhir/uv/cpg/Library/CHF"
+    //   }
+    // },
+
   }
 
   console.log(JSON.stringify(questionnaire) + 'questionnaire')

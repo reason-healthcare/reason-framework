@@ -579,14 +579,14 @@ export default async (options?: FastifyServerOptions) => {
           'profile'
         ) as fhir4.StructureDefinition
 
-        // if profile not provided, use Canonical
-        // TODO: support identifier parameter and slug
+        // if profile not provided, use Canonical -- should we also support identifier and slug (URL: [base]/StructureDefinition/[id]/$questionnaire)?
         if (structureDefinition == null) {
           let url = valueFromParameters(parameters, 'url', 'valueString')
           const contentResolver = Resolver(defaultEndpoint)
           const structureDefinitionRaw = await contentResolver.resolveCanonical(url)
-          // check that it is in fact a structure definition
-          structureDefinition = structureDefinitionRaw
+          if (is.StructureDefinition(structureDefinitionRaw)) {
+            structureDefinition = structureDefinitionRaw
+          }
         }
 
         console.log(JSON.stringify(structureDefinition) + "SD from app")
@@ -601,8 +601,6 @@ export default async (options?: FastifyServerOptions) => {
         }
         res.send(buildQuestionnaire(args))
       }
-    // 1. get structure definition from canonical or profile
-    // 2. Pass parameters to createQuestionnaire function that maps elements from structure definition to the new questionnaire
     }
   )
   return app
