@@ -19,7 +19,7 @@ export const buildQuestionnaire = (
     id: uuidv4(),
     resourceType: "Questionnaire",
     description: `Questionnaire generated from ${structureDefinition.url}`,
-    status: 'draft'
+    status: 'draft',
   }
 
   questionnaire.url = `http://build-questionnaire/Questionnaire/${questionnaire.id}`
@@ -43,7 +43,7 @@ export const buildQuestionnaire = (
       let item: fhir4.QuestionnaireItem = {
         linkId: uuidv4(),
         definition: `${structureDefinition.url}#${element.path}`,
-        type: "string"
+        type: "string",
       }
 
       let elementType
@@ -89,11 +89,6 @@ export const buildQuestionnaire = (
         item.repeats = true
       }
 
-      // QuestionnaireItem.readOnly => Context from the corresponding data-requirement (???)
-      // if (element.type && element.type includes a code === 'DataRequirement') {
-      //   item.readOnly = true
-      // }
-
       if (element.maxLength && item.type === 'string') {
         item.maxLength = element.maxLength
       }
@@ -113,9 +108,8 @@ export const buildQuestionnaire = (
   if (featureExpressionExtension) {
 
     // How de we resolve expressions without patient context, should be added to parameters for cpg?
-    // Which item will have this initial value?
 
-    // {
+    // featureExpressionExtension ==> {
     //   "url" : "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-featureExpression",
     //   "valueExpression" : {
     //     "language" : "text/cql-identifier",
@@ -124,6 +118,26 @@ export const buildQuestionnaire = (
     //   }
     // },
 
+    // 1. Create item with type = "display"
+    // 2. questionnaireItem.initialValue = evaluated from feature expression
+    // 3. questionnaireItem.readOnly = true
+
+    if (!questionnaire.item) {
+      questionnaire.item = []
+    }
+
+    questionnaire.item.push({
+      linkId: uuidv4(),
+      type: "display",
+      readOnly: true,
+      initial: [{
+        valueString: 'placeholder for feature expression'
+      }]
+    })
+
+    // QuestionnaireItem.readOnly => Context from the corresponding data-requirement (???)
+    // 1. Resolve library canonical
+    // 2. If library.DataRequirement, create new items for each data type with type = "display" and readOnly = true
   }
 
   console.log(JSON.stringify(questionnaire) + 'questionnaire')
