@@ -42,20 +42,16 @@ export const buildQuestionnaire = (
   // If element path is nested beyond element.x, group the element.x children together
   // All other elements, should be grouped as one core group
   if (elements) {
-    questionnaire.item = [{
-      linkId: uuidv4(),
-      type: "group"
-    }]
 
-    questionnaire.item[0].item = elements.map((element) => {
+    const questionnaireItemsSubGroup = elements.map((element) => {
       let item: fhir4.QuestionnaireItem = {
         linkId: uuidv4(),
         definition: `${structureDefinition.url}#${element.path}`,
         type: "string",
       }
 
-      let elementType
       // Check for type on element within list, if not present, the element might be from the differential and type should be used from snapshot
+      let elementType
       if (element.type) {
         elementType = element.type
       } else {
@@ -77,25 +73,49 @@ export const buildQuestionnaire = (
         item.definition = `${structureDefinition.url}#${elementPath}`
       }
 
-      // Add "hidden" extension for fixed[x] and pattern[x]
-      // Set initial[x] for fixed[x], pattern[x], defaultValue[x] - Can only be one?
-      let patternOrFixedElementKey = Object.keys(element).find(k => { return k.startsWith('fixed') || k.startsWith('pattern') || k.startsWith('defaultValue') })
-      console.log(patternOrFixedElementKey)
-      console.log(element)
-      if (patternOrFixedElementKey) {
-        let parsedDataType // = patternOrFixedElementKey
-        let value // = element[patternOrFixedElementKey]
-        let initialValueType = `value${parsedDataType}`
-        // item.initial = {
-          // initialValueType: value
-        // }
+      // Get key starting with fixed, pattern, or defaultValue
+      let patternOrFixedElementKey  = Object.keys(element).find(k => { return k.startsWith('fixed') || k.startsWith('pattern') || k.startsWith('defaultValue') })
 
-        if (patternOrFixedElementKey.startsWith('pattern') || patternOrFixedElementKey.startsWith('fixed')) {
+      if (patternOrFixedElementKey) {
+
+        // Add "hidden" extension for fixed[x] and pattern[x]
+        if (patternOrFixedElementKey.startsWith('fixed') || patternOrFixedElementKey.startsWith('pattern')) {
           item.extension = [{
             url: "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
             valueBoolean: true
           }]
         }
+
+        // Set initial[x] for fixed[x], pattern[x], defaultValue[x] - Can there only be one?
+        if (!item.initial) {
+          item.initial = []
+        }
+        // TODO: Is there a better way to get data type of the element?
+        let elementType
+        if (patternOrFixedElementKey.startsWith('fixed')) {
+          elementType = patternOrFixedElementKey.replace('fixed', '')
+        } else if (patternOrFixedElementKey.startsWith('pattern')) {
+          elementType = patternOrFixedElementKey.replace('pattern', '')
+        } else if (patternOrFixedElementKey.startsWith('defaultValue')) {
+          elementType = patternOrFixedElementKey.replace('defaultValue', '')
+        }
+
+        let initialValueKey = `value${elementType}`
+        let initialValue = element[patternOrFixedElementKey as keyof fhir4.ElementDefinition]
+        let initialValueObject: any = {}
+        // TODO: Is there a way to check elementType against allowed fhirR4.QuestionnaireItemInitial types instead of checking against this array?
+        const initialValueTypes = ["valueBoolean", "valueDecimal", "valueInteger", "valueDate", "valueDateTime", "valueTime", "valueString", "valueUri", "valueAttachment", "valueCoding","valueQuantity", "valueReference"]
+
+        if (elementType && initialValueTypes.includes(elementType)) {
+          initialValueObject[initialValueKey] = initialValue
+        } else {
+          // TODO: what do we want to do with the datatype here?
+          // initialValueObject = {
+          //   "valueString": initialValue.toString()
+          // }
+        }
+
+        item.initial.push(initialValueObject)
       }
 
       // TODO: (may remove) Context from where the corresponding data-requirement is used with a special extension (e.g. PlanDefinition.action.input[extension]...)? or.....
@@ -129,9 +149,15 @@ export const buildQuestionnaire = (
 
       return item
     })
+
+    questionnaire.item = [{
+      linkId: uuidv4(),
+      type: "group",
+      item: questionnaireItemsSubGroup
+    }]
   }
 
-  // QuestionnaireItem.initialValue => From featureExpression (if available)
+  // TODO: QuestionnaireItem.initialValue => From featureExpression (if available)
   const featureExpressionExtension = structureDefinition.extension?.find(e => e.url === "https://hl7.org/fhir/uv/cpg/StructureDefinition-cpg-featureExpression")
   if (featureExpressionExtension) {
 
@@ -146,10 +172,6 @@ export const buildQuestionnaire = (
     //   }
     // },
 
-    // 1. Create item with type = "display"
-    // 2. questionnaireItem.initialValue = evaluated from feature expression
-    // 3. questionnaireItem.readOnly = true
-
     if (!questionnaire.item) {
       questionnaire.item = []
     }
@@ -163,7 +185,7 @@ export const buildQuestionnaire = (
       }]
     })
 
-    // QuestionnaireItem.readOnly => Context from the corresponding data-requirement (???)
+    // TODO: QuestionnaireItem.readOnly => Context from the corresponding data-requirement (???)
     // 1. Resolve library canonical
     // 2. If library.DataRequirement, create new items for each data type with type = "display" and readOnly = true
   }

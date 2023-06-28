@@ -33,3 +33,14 @@ Process each element in the snapshot:
     * QuestionnaireItem.answerOption => build if the element has a binding to a VS
 
     For each case-feature definition/profile, create a group of questionnaire items. There must be at least one questionnaire item per item in the snapshot that have a cardinality of at least 1..*
+
+    ## TODO: Test Cases
+    Test the following:
+    * The resource returned should be a questionnaire
+    * At least one group of items should be returned
+    * All snapshot elements with a card of 1 should have corresponding item definition
+    * All differential elements should have corresponding item definition
+    * Basic item properties are correct: definition, type
+    * Simple item properties are correct: label, required, repeats, maxLength, answerValueSet
+    *  Element with pattern[x] or fixed[x] has hidden extension and an initial value?
+    * featureExpression testing
