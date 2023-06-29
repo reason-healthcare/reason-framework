@@ -26,6 +26,8 @@ export const buildQuestionnaire = (
 
   // get only differential elements and snapshot required elements
   let elements = structureDefinition?.differential?.element
+  // TODO: Look at core snapshot elements first and only look at nested elements if the core is required
+
   structureDefinition.snapshot?.element.forEach((element) => {
     if (element.min !== undefined && element.min > 0 && !elements?.some(e => e.path === element.path)) {
       elements?.push(element)
@@ -122,11 +124,12 @@ export const buildQuestionnaire = (
       if (element.label) {
         item.text = element.label
       } else {
-        let text
+        let text = element.path
         if (element.path.includes('[x]')) {
           text = element.path.replace('[x]', '')
         }
-        element.path.split('.').join(' ')
+        //TODO: parse around capital letters i.e. birthDate >> Birth Date and capitalize
+        item.text = text.split('.').join(' ')
       }
 
       if (element.min && element.min > 0) {
