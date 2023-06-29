@@ -58,10 +58,10 @@ export const buildQuestionnaire = (
         elementType = structureDefinition?.snapshot?.element?.find(e => e.path === element.path)?.type
       }
 
-      if (elementType && is.QuestionnaireItemType(elementType[0].code)) {
-        item.type = elementType[0].code
-      } else if (element.binding) {
+      if (element.binding) {
         item.type = "choice"
+      } else if (elementType && is.QuestionnaireItemType(elementType[0].code)) {
+        item.type = elementType[0].code
       } else {
         item.type = "string"
       }
