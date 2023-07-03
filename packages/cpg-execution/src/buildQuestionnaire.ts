@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 import { is, questionnaireBaseUrl } from './helpers'
+import { ElementDefinition } from 'fhir/r4'
 
 export interface BuildQuestionnaireArgs {
   structureDefinition: fhir4.StructureDefinition,
@@ -24,9 +25,9 @@ export const buildQuestionnaire = (
 
   questionnaire.url = `${questionnaireBaseUrl}/Questionnaire/${questionnaire.id}`
 
-  // get only differential elements and snapshot required elements
-  let elements = structureDefinition?.differential?.element
+  // Get only differential elements and snapshot required elements
   // TODO: Look at core snapshot elements first and only look at nested elements if the core is required
+  let elements = structureDefinition?.differential?.element
 
   structureDefinition.snapshot?.element.forEach((element) => {
     if (element.min !== undefined && element.min > 0 && !elements?.some(e => e.path === element.path)) {
@@ -40,9 +41,7 @@ export const buildQuestionnaire = (
 
   console.log(JSON.stringify(elements) + 'elements')
 
-  // TODO: add item grouping for complex data structures?
-  // If element path is nested beyond element.x, group the element.x children together
-  // All other elements, should be grouped as one core group
+  // TODO: add item grouping for complex data structures i.e. if element path is nested beyond element.x, group the element.x children together
   if (elements) {
 
     const questionnaireItemsSubGroup = elements.map((element) => {
@@ -52,7 +51,7 @@ export const buildQuestionnaire = (
         type: "string",
       }
 
-      // Check for type on element within list, if not present, the element might be from the differential and type should be used from snapshot
+      // Check for element type, if not present, the element might be from the differential and type should be used from snapshot
       let elementType
       if (element.type) {
         elementType = element.type
@@ -64,20 +63,13 @@ export const buildQuestionnaire = (
         item.type = "choice"
       } else if (elementType && is.QuestionnaireItemType(elementType[0].code)) {
         item.type = elementType[0].code
+      // TODO: how do we handle data types that don't match? ElementDefinition.type --> Item.type
       } else {
         item.type = "string"
       }
 
-      // QuestionnaireItem.definition => "{structureDefinition.url}#{full element path}", where:
-      // * "full element path" is path with `[x]` replaced with the first (and only) type.code
-      if (element.path.includes('[x]') && elementType) {
-        const elementPath = element.path.replace('[x]', (elementType[0].code.charAt(0).toUpperCase() + elementType[0].code.slice(1)))
-        item.definition = `${structureDefinition.url}#${elementPath}`
-      }
-
-      // Get key starting with fixed, pattern, or defaultValue
+      // Documentation on ElementDefinition states that default value "only exists so that default values may be defined in logical models", so do we need to support?
       let patternOrFixedElementKey  = Object.keys(element).find(k => { return k.startsWith('fixed') || k.startsWith('pattern') || k.startsWith('defaultValue') })
-
       if (patternOrFixedElementKey) {
 
         // Add "hidden" extension for fixed[x] and pattern[x]
@@ -88,39 +80,30 @@ export const buildQuestionnaire = (
           }]
         }
 
-        // Set initial[x] for fixed[x], pattern[x], defaultValue[x] - Can there only be one?
-        if (!item.initial) {
-          item.initial = []
-        }
-        // TODO: Is there a better way to get data type of the element?
-        let elementType
-        if (patternOrFixedElementKey.startsWith('fixed')) {
-          elementType = patternOrFixedElementKey.replace('fixed', '')
-        } else if (patternOrFixedElementKey.startsWith('pattern')) {
-          elementType = patternOrFixedElementKey.replace('pattern', '')
-        } else if (patternOrFixedElementKey.startsWith('defaultValue')) {
-          elementType = patternOrFixedElementKey.replace('defaultValue', '')
+        // Set initial[x] for fixed[x], pattern[x], defaultValue[x]
+        let initialValue = element[patternOrFixedElementKey as keyof ElementDefinition]
+        // TODO: How do we handle type coercion here? Is there a better way to check the fixed[x] and pattern[x] types?
+        if (elementType && !is.QuestionnaireItemType(elementType[0].code)) {
+          initialValue = initialValue?.toString()
         }
 
-        let initialValueKey = `value${elementType}`
-        let initialValue = element[patternOrFixedElementKey as keyof fhir4.ElementDefinition]
-        let initialValueObject: any = {}
-        // TODO: Is there a way to check elementType against allowed fhirR4.QuestionnaireItemInitial types instead of checking against this array?
-        const initialValueTypes = ["valueBoolean", "valueDecimal", "valueInteger", "valueDate", "valueDateTime", "valueTime", "valueString", "valueUri", "valueAttachment", "valueCoding","valueQuantity", "valueReference"]
-
-        if (elementType && initialValueTypes.includes(elementType)) {
-          initialValueObject[initialValueKey] = initialValue
+        let initialValueKey
+        if (item.type === "url") {
+          initialValueKey = "valueUri"
         } else {
-          // TODO: what do we want to do with the datatype here?
-          // initialValueObject = {
-          //   "valueString": initialValue.toString()
-          // }
+          initialValueKey = `value${item.type}`
         }
 
-        item.initial.push(initialValueObject)
+        item.initial = [{[initialValueKey]: initialValue}]
+
       }
 
-      // TODO: (may remove) Context from where the corresponding data-requirement is used with a special extension (e.g. PlanDefinition.action.input[extension]...)? or.....
+      // QuestionnaireItem.definition => "{structureDefinition.url}#{full element path}", where: * "full element path" is path with `[x]` replaced with the first (and only) type.code
+      if (element.path.includes('[x]') && elementType) {
+        const elementPath = element.path.replace('[x]', (elementType[0].code.charAt(0).toUpperCase() + elementType[0].code.slice(1)))
+        item.definition = `${structureDefinition.url}#${elementPath}`
+      }
+
       if (element.label) {
         item.text = element.label
       } else {
@@ -149,6 +132,8 @@ export const buildQuestionnaire = (
       if (element.binding) {
         item.answerValueSet = element.binding.valueSet
       }
+
+      // TODO: (may remove) Context from where the corresponding data-requirement is used with a special extension (e.g. PlanDefinition.action.input[extension]...)? or.....
 
       return item
     })

@@ -34,16 +34,16 @@ Process each element in the snapshot:
 
     For each case-feature definition/profile, create a group of questionnaire items. There must be at least one questionnaire item per item in the snapshot that have a cardinality of at least 1..*
 
-    ## TODO: Test Cases
+    ## Test Cases
     Test the following:
     * The resource returned should be a questionnaire [x]
     * At least one group of items should be returned [x]
     * Parameter supportedOnly = true builds questionnaire from only must support elements (WeightObservation) [x]
     * All snapshot elements with a card of 1 should have corresponding item definition accounting for element nesting cardinality [x]
     * All differential elements should have corresponding item definition [x]
-    * Element with pattern[x] or fixed[x] has hidden extension and an initial value. Multiple element types are processed appropriately to questionnaire item types. (WeightObservation, has fixed[x] coding)
-    * Element with defaultValue[x] does not have "hidden" extension but does have initial value.
-    * Item.type is choice for bound elements and answerValueSet that points to correct value set (HeartRateObservation) [x]
-    * Otherwise Item.type is appropriately processed from element type
-    * Simple item properties are correct: required, repeats, maxLength (VitalsPanelObservation)
-    * featureExpression testing
+    * Simple item properties are correct: required, repeats, maxLength (VitalsPanelObservation) [x]
+    * If element has binding, Item.type is choice and Item.answerValueSet points to corresponding value set (HeartRateObservation) [x]
+    * TODO: Item.type is appropriately processed from element type
+    * TODO: featureExpression testing
+    * TODO: read only from data-requirement
+    * TODO: Element with pattern[x] or fixed[x] has hidden extension and an initial value. Varying data types are processed appropriately to questionnaire Item.initialValue types. (WeightObservation, has fixed[x] coding)
