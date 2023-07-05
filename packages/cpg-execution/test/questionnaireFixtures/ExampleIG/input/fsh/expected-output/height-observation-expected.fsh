@@ -10,7 +10,7 @@ Usage: #example
     * linkId = "Observation.code"
     * definition = "http://example.org/StructureDefinition/HeightObservation#Observation.code"
     * text = "Code"
-    * type = #display
+    * type = #choice
     * initial
       * valueCoding = http://loinc.org#8302-2 "Body Height"
   * item[+]

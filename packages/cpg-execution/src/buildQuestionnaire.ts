@@ -39,8 +39,6 @@ export const buildQuestionnaire = (
     elements = elements?.filter(e => e.mustSupport === true)
   }
 
-  console.log(JSON.stringify(elements) + 'elements')
-
   // TODO: add item grouping for complex data structures i.e. if element path is nested beyond element.x, group the element.x children together
   if (elements) {
 
@@ -59,11 +57,15 @@ export const buildQuestionnaire = (
         elementType = structureDefinition?.snapshot?.element?.find(e => e.path === element.path)?.type
       }
 
-      if (element.binding) {
+      if (elementType) {
+        console.log(elementType[0].code)
+      }
+
+      if (elementType && elementType[0].code === 'code') {
         item.type = "choice"
       } else if (elementType && is.QuestionnaireItemType(elementType[0].code)) {
         item.type = elementType[0].code
-      // TODO: how do we handle data types that don't match? ElementDefinition.type --> Item.type
+      // TODO: Process complex with $questionnaire instead of using string as data type
       } else {
         item.type = "string"
       }
@@ -104,6 +106,7 @@ export const buildQuestionnaire = (
         item.definition = `${structureDefinition.url}#${elementPath}`
       }
 
+       // TODO: (may remove) Context from where the corresponding data-requirement is used with a special extension (e.g. PlanDefinition.action.input[extension]...)? or.....
       if (element.label) {
         item.text = element.label
       } else {
@@ -132,8 +135,6 @@ export const buildQuestionnaire = (
       if (element.binding) {
         item.answerValueSet = element.binding.valueSet
       }
-
-      // TODO: (may remove) Context from where the corresponding data-requirement is used with a special extension (e.g. PlanDefinition.action.input[extension]...)? or.....
 
       return item
     })
@@ -166,7 +167,7 @@ export const buildQuestionnaire = (
 
     questionnaire.item.push({
       linkId: uuidv4(),
-      type: "display",
+      type: "display", // use item.type here?
       readOnly: true,
       initial: [{
         valueString: 'placeholder for feature expression'
@@ -175,7 +176,7 @@ export const buildQuestionnaire = (
 
     // TODO: QuestionnaireItem.readOnly => Context from the corresponding data-requirement (???)
     // 1. Resolve library canonical
-    // 2. If library.DataRequirement, create new items for each data type with type = "display" and readOnly = true
+    // 2. If library.DataRequirement, create new items for each data type with readOnly = true
   }
 
   console.log(JSON.stringify(questionnaire) + 'questionnaire')
