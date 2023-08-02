@@ -57,6 +57,8 @@ export const buildQuestionnaire = (
   // TODO: add item grouping for complex data structures i.e. if element path is nested beyond element.x, group the element.x children together
   if (elements) {
 
+    const rootElement = elements.shift()
+
     const questionnaireItemsSubGroup = elements.map((element) => {
       let item: fhir4.QuestionnaireItem = {
         linkId: uuidv4(),
@@ -76,8 +78,9 @@ export const buildQuestionnaire = (
         console.log(elementType[0].code)
       }
 
-      if (elementType && elementType[0].code === 'code') {
+      if (elementType && (elementType[0].code === 'code' || elementType[0].code === 'CodeableConcept') ) {
         item.type = "choice"
+        console.log('here')
       } else if (elementType && is.QuestionnaireItemType(elementType[0].code)) {
         item.type = elementType[0].code
       // TODO: Process complex with $questionnaire instead of using string as data type
@@ -156,6 +159,8 @@ export const buildQuestionnaire = (
 
     questionnaire.item = [{
       linkId: uuidv4(),
+      definition: `${structureDefinition.url}#${rootElement?.path}`,
+      text: rootElement?.path,
       type: "group",
       item: questionnaireItemsSubGroup
     }]

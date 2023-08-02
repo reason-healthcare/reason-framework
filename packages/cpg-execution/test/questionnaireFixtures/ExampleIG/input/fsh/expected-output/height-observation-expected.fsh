@@ -1,10 +1,14 @@
 Instance: HeightObservationExpected
 InstanceOf: Questionnaire
 Usage: #example
+* description = "Questionnaire generated from http://example.org/StructureDefinition/HeightObservation"
+* url = "http://questionnaire-processor/Questionnaire/HeightObservationExpected"
 * status = #draft
 * item[+]
   * linkId = "HeightQuestionnaireGroup"
   * type = #group
+  * definition = "http://example.org/StructureDefinition/HeightObservation#Observation"
+  * text = "Observation"
   * item[+]
     * extension[questionnaire-hidden].valueBoolean = true
     * linkId = "Observation.code"
