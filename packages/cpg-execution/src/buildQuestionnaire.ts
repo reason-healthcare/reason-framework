@@ -25,12 +25,27 @@ export const buildQuestionnaire = (
 
   questionnaire.url = `${questionnaireBaseUrl}/Questionnaire/${questionnaire.id}`
 
-  // Get only differential elements and snapshot required elements
-  // TODO: Look at core snapshot elements first and only look at nested elements if the core is required
-  let elements = structureDefinition?.differential?.element
+  // Get only differential elements and snapshot elements with cardinality of 1
+  let elements: ElementDefinition[] | undefined = structureDefinition?.differential?.element
 
+  const elementIsOrHasParent = (element: ElementDefinition, elements: ElementDefinition[] | undefined) => {
+    const pathList = element.path.split('.')
+    if (pathList.length === 2) {
+      return true
+    }
+    pathList.pop()
+    const pathPrefix = pathList.join('.')
+    return elements?.some(e => pathPrefix === e.path)
+  }
+
+  // Only add snapshot elements if cardinality of 1
   structureDefinition.snapshot?.element.forEach((element) => {
-    if (element.min !== undefined && element.min > 0 && !elements?.some(e => e.path === element.path)) {
+    if (
+      element.min !== undefined &&
+      element.min > 0 &&
+      !elements?.some(e => e.path === element.path) &&
+      elementIsOrHasParent(element, elements)
+      ) {
       elements?.push(element)
     }
   })
@@ -179,6 +194,5 @@ export const buildQuestionnaire = (
     // 2. If library.DataRequirement, create new items for each data type with readOnly = true
   }
 
-  console.log(JSON.stringify(questionnaire) + 'questionnaire')
   return questionnaire
 }
