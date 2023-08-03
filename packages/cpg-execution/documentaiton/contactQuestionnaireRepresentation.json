@@ -1,0 +1,55 @@
+{
+  "item": [
+    {
+      "linkId": "ContactPoint",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "ContactPoint.system",
+          "type": "choice",
+          "answerValueSet": "http://hl7.org/fhir/ValueSet/contact-point-system"
+        },
+        {
+          "linkId": "ContactPoint.value",
+          "type": "string",
+          "initialValueString": "123-317-1234"
+        },
+        {
+          "linkId": "ContactPoint.use",
+          "type": "choice",
+          "answerValueSet": "http://hl7.org/fhir/ValueSet/contact-point-use"
+        },
+        {
+          "linkId": "ContactPoint.rank",
+          "type": "integer"
+        },
+        {
+          "linkId": "ContactPoint.period",
+          "type": "group",
+          "item": [
+            {
+              "linkId": "ContactPoint.period.start",
+              "type": "dateTime",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+                  "valueBoolean": true
+                }
+              ]
+            },
+            {
+              "linkId": "ContactPoint.period.end",
+              "type": "dateTime",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

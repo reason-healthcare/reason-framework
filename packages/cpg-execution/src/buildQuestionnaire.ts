@@ -57,7 +57,7 @@ export const buildQuestionnaire = (
   // TODO: add item grouping for complex data structures i.e. if element path is nested beyond element.x, group the element.x children together
   if (elements) {
 
-    const rootElement = elements.shift()
+    const rootElement = elements.shift() //change this to backbone element/ element? or parent for reusability
 
     const questionnaireItemsSubGroup = elements.map((element) => {
       let item: fhir4.QuestionnaireItem = {
