@@ -20,7 +20,7 @@ For each case-feature definition/profile, create a group of questionnaire items.
 | min > 0 | required | |
 | max > 1 | repeats | |
 | maxLength | maxLength | apply if type = string |
-| extension.cpg-featureExpression | sets initial[x] | see [ElementDefinition Mappings] |
+| extension.cpg-featureExpression | sets initial[x] | see [ElementDefinition Mappings](#mapping-elementdefinition-data-types-to-questionnaire-items) |
 | binding.valueSet | answerValueSet, set type as 'choice' | |
 | ??| readOnly | |
 | ??| answerOption | |
