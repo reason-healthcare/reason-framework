@@ -76,16 +76,35 @@ export const buildQuestionnaire = (
       }
 
       if (elementType) {
-        console.log(elementType[0].code)
+        elementType = elementType[0].code
       }
 
-      if (elementType && (elementType[0].code === 'code' || elementType[0].code === 'CodeableConcept') ) {
+      let valueType
+      if (elementType === 'code' || elementType === 'CodeableConcept' || elementType === 'coding') {
         item.type = "choice"
-      } else if (elementType && is.QuestionnaireItemType(elementType[0].code)) {
-        item.type = elementType[0].code
+        valueType = "coding"
+      } else if (elementType === 'uri' || elementType === 'canonical') {
+        item.type = "url"
+        valueType = "uri"
+      } else if (elementType === 'uuid' || elementType === 'oid' ) {
+        item.type = "string"
+        valueType = "uri"
+      } else if (elementType === 'unsignedInt' || elementType === 'positiveInt') {
+        item.type = "integer"
+        valueType = "integer"
+      } else if (elementType && elementType === 'instant') {
+        item.type = "dateTime"
+        valueType = "dateTime"
+      } else if (elementType === "base64Binary") {
+        item.type = "string"
+        valueType = "string"
+      } else if (elementType && is.QuestionnaireItemType(elementType)) {
+        item.type = elementType
+        valueType = elementType
       // TODO: Process complex with $questionnaire instead of using string as data type
       } else {
         item.type = "string"
+        valueType = "string"
       }
 
       // Documentation on ElementDefinition states that default value "only exists so that default values may be defined in logical models", so do we need to support?
@@ -103,29 +122,40 @@ export const buildQuestionnaire = (
         // Set initial[x] for fixed[x], pattern[x], defaultValue[x]
         let initialValue = element[patternOrFixedElementKey as keyof ElementDefinition]
         // TODO: How do we handle type coercion here? Is there a better way to check the fixed[x] and pattern[x] types?
-        if (elementType && !is.QuestionnaireItemType(elementType[0].code)) {
+        if (elementType && !is.QuestionnaireItemType(elementType)) {
           initialValue = initialValue?.toString()
         }
 
-        let initialValueKey
-        if (item.type === "url") {
-          initialValueKey = "valueUri"
-        } else {
-          initialValueKey = `value${item.type}`
-        }
+        //  let initialValueKey
+        // if (elementType === "code" || elementType === "codeableConcept") {
+        //   initialValueKey = "valueCoding"
+        // } else if (elementType === "instant") {
+        //   initialValueKey = "valueDateTime"
+        // } else if (elementType === "url" || elementType === "canonical" || elementType === "uuid" || elementType === "oid") {
+        //   initialValueKey = "uri"
+        // } else if (elementType === "unsignedInt" || elementType === "positiveInt") {
+        //   initialValueKey = "integer"
+        // } else if (elementType === "base64Binary") {
+        //   initialValueKey = "string"
+        // } else if (elementType && is.QuestionnaireItemType(elementType)) {
+        //   initialValueKey = `value${elementType}`
+        // } else {
+        //   initialValueKey = "valueString" //TODO handle complex types
+        // }
 
-        item.initial = [{[initialValueKey]: initialValue}]
-
+        const ucValueType = valueType.charAt(0).toUpperCase() + valueType.slice(1)
+        item.initial = [{[`value${ucValueType}`]: initialValue}]
       }
 
       // QuestionnaireItem.definition => "{structureDefinition.url}#{full element path}", where: * "full element path" is path with `[x]` replaced with the first (and only) type.code
       if (element.path.includes('[x]') && elementType) {
-        const elementPath = element.path.replace('[x]', (elementType[0].code.charAt(0).toUpperCase() + elementType[0].code.slice(1)))
+        const elementPath = element.path.replace('[x]', (elementType.charAt(0).toUpperCase() + elementType.slice(1)))
         item.definition = `${structureDefinition.url}#${elementPath}`
       }
 
-       // TODO: (may remove) Context from where the corresponding data-requirement is used with a special extension (e.g. PlanDefinition.action.input[extension]...)? or.....
-      if (element.short) {
+      // TODO: (may remove) Context from where the corresponding data-requirement is used with a special extension (e.g. PlanDefinition.action.input[extension]...)? or.....
+
+       if (element.short) {
         item.text = element.short
       } else if (element.label) {
         item.text = element.label
