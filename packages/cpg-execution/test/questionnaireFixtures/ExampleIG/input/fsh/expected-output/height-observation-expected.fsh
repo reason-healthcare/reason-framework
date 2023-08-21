@@ -8,6 +8,7 @@ Description: "Simple test case with fixed[x]"
   * linkId = "Observation"
   * type = #group
   * definition = "http://example.org/StructureDefinition/HeightObservation#Observation"
+  * text = "Observation"
   * item[+]
     * extension[questionnaire-hidden].valueBoolean = true
     * linkId = "Observation.code"

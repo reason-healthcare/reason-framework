@@ -15,7 +15,6 @@ For each case-feature definition/profile, create a group of questionnaire items.
 | fixed[x] |  sets initial[x], hidden true | Because questionnaireItem.initial[x] is a subset of fixed[x], we have rules to coerce |
 | defaultValue[x]| sets inital[x], hidden false| |
 | {structureDefinition.url}#{element.path} | definition | for choice type paths, replace [x] with element type.code[0] |
-| element.path | linkId| |
 | short description; element label; or stringified path | text | |
 | type | type | see [ElementDefinition Mappings](#mapping-elementdefinition-data-types-to-questionnaire-items) |
 | min > 0 | required | |

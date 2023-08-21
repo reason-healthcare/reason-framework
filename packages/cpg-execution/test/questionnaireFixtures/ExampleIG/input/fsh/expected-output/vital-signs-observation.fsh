@@ -7,6 +7,7 @@ Description: "Test case for bound elements"
   * linkId = "Observation"
   * type = #group
   * definition = "http://example.org/StructureDefinition/VitalSignsObservation#Observation"
+  * text = "Observation"
   * item[+]
     * linkId = "Observation.code"
     * definition = "http://example.org/StructureDefinition/VitalSignsObservation#Observation.code"

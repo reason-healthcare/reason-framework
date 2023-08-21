@@ -572,9 +572,10 @@ export default async (options?: FastifyServerOptions) => {
 
       console.log(JSON.stringify(parameters) + 'params')
 
+      let structureDefinition
       // use profile as SD if provided
       if (parameters != null) {
-        let structureDefinition = resourceFromParameters(
+        structureDefinition = resourceFromParameters(
           parameters,
           'profile'
         ) as fhir4.StructureDefinition
@@ -589,14 +590,14 @@ export default async (options?: FastifyServerOptions) => {
           }
         }
 
-        console.log(JSON.stringify(structureDefinition) + "SD from app")
+        // console.log(JSON.stringify(structureDefinition) + "SD from app")
 
         const args: BuildQuestionnaireArgs = {
           structureDefinition,
           supportedOnly: valueFromParameters(
             parameters,
             'supportedOnly',
-            'boolean'
+            'valueBoolean'
           )
         }
         res.send(buildQuestionnaire(args))

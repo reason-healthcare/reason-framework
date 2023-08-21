@@ -26,7 +26,7 @@ export const buildQuestionnaire = (
   questionnaire.url = `${questionnaireBaseUrl}/Questionnaire/${questionnaire.id}`
 
   // Get only differential elements and snapshot elements with cardinality of 1
-  // Todo: instead of using differential, use snapshot in build. Use differential only to determin if the element should be a questionnaire item.
+  // Todo: use snapshot as fallback when differential does not specify needed element property
   let elements: ElementDefinition[] | undefined = structureDefinition?.differential?.element
 
   const elementIsOrHasParent = (element: ElementDefinition, elements: ElementDefinition[] | undefined) => {
@@ -81,7 +81,6 @@ export const buildQuestionnaire = (
 
       if (elementType && (elementType[0].code === 'code' || elementType[0].code === 'CodeableConcept') ) {
         item.type = "choice"
-        console.log('here')
       } else if (elementType && is.QuestionnaireItemType(elementType[0].code)) {
         item.type = elementType[0].code
       // TODO: Process complex with $questionnaire instead of using string as data type
@@ -126,7 +125,9 @@ export const buildQuestionnaire = (
       }
 
        // TODO: (may remove) Context from where the corresponding data-requirement is used with a special extension (e.g. PlanDefinition.action.input[extension]...)? or.....
-      if (element.label) {
+      if (element.short) {
+        item.text = element.short
+      } else if (element.label) {
         item.text = element.label
       } else {
         let text = element.path
@@ -153,6 +154,7 @@ export const buildQuestionnaire = (
       // Should this actually be QuestionnaireItem.answerValueSet?
       if (element.binding) {
         item.answerValueSet = element.binding.valueSet
+        item.type = "choice"
       }
 
       return item

@@ -4,8 +4,10 @@ Usage: #example
 Description: "Test case for simple item properties such as required, repeats, and maxLength"
 * status = #draft
 * item[+]
-  * linkId = "WrittenAssessmentQuestionnaireGroup"
+  * linkId = "Observation"
+  * definition = "http://example.org/StructureDefinition/WrittenAssessmentObservation#Observation"
   * type = #group
+  * text = "Observation"
   * item[+]
     * linkId = "Observation.category"
     * definition = "http://example.org/StructureDefinition/WrittenAssessmentObservation#Observation.category"
