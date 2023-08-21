@@ -1,4 +1,4 @@
-Instance: HeartRateObservationParameters
+Instance: WrittenAssessmentObservationParameters
 InstanceOf: Parameters
 Usage: #example
 * parameter[+]
@@ -6,4 +6,4 @@ Usage: #example
   * valueBoolean = false
 * parameter[+]
   * name = "url"
-  * valueString = "http://example.org/StructureDefinition/HeartRateObservation"
+  * valueString = "http://example.org/StructureDefinition/WrittenAssessmentObservation"

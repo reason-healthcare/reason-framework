@@ -1,4 +1,4 @@
-Instance: VitalsPanelObservationParameters
+Instance: VitalSignsObservationParameters
 InstanceOf: Parameters
 Usage: #example
 * parameter[+]
@@ -6,4 +6,4 @@ Usage: #example
   * valueBoolean = false
 * parameter[+]
   * name = "url"
-  * valueString = "http://example.org/StructureDefinition/VitalsPanelObservation"
+  * valueString = "http://example.org/StructureDefinition/VitalSignsObservation"
