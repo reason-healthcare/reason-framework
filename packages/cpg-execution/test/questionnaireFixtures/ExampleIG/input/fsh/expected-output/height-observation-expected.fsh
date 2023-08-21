@@ -1,24 +1,26 @@
 Instance: HeightObservationExpected
 InstanceOf: Questionnaire
 Usage: #example
-* description = "Questionnaire generated from http://example.org/StructureDefinition/HeightObservation"
+Description: "Simple test case with fixed[x]"
 * url = "http://questionnaire-processor/Questionnaire/HeightObservationExpected"
 * status = #draft
 * item[+]
-  * linkId = "HeightQuestionnaireGroup"
+  * linkId = "Observation"
   * type = #group
   * definition = "http://example.org/StructureDefinition/HeightObservation#Observation"
-  * text = "Observation"
   * item[+]
     * extension[questionnaire-hidden].valueBoolean = true
     * linkId = "Observation.code"
     * definition = "http://example.org/StructureDefinition/HeightObservation#Observation.code"
-    * text = "Code"
-    * type = #choice
+    * text = "Body Height"
+    * type = #choice // or coding since fixed?
+    * required = true
     * initial
       * valueCoding = http://loinc.org#8302-2 "Body Height"
   * item[+]
     * linkId = "Observation.status"
     * definition = "http://example.org/StructureDefinition/HeightObservation#Observation.status"
-    * text = "Status"
+    * text = "registered | preliminary | final | amended +"
     * type = #choice
+    * required = true
+    * answerValueSet = "http://hl7.org/fhir/ValueSet/observation-status|4.0.1"

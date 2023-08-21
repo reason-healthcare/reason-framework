@@ -26,6 +26,7 @@ export const buildQuestionnaire = (
   questionnaire.url = `${questionnaireBaseUrl}/Questionnaire/${questionnaire.id}`
 
   // Get only differential elements and snapshot elements with cardinality of 1
+  // Todo: instead of using differential, use snapshot in build. Use differential only to determin if the element should be a questionnaire item.
   let elements: ElementDefinition[] | undefined = structureDefinition?.differential?.element
 
   const elementIsOrHasParent = (element: ElementDefinition, elements: ElementDefinition[] | undefined) => {

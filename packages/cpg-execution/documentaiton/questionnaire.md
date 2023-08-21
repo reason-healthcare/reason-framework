@@ -15,13 +15,14 @@ For each case-feature definition/profile, create a group of questionnaire items.
 | fixed[x] |  sets initial[x], hidden true | Because questionnaireItem.initial[x] is a subset of fixed[x], we have rules to coerce |
 | defaultValue[x]| sets inital[x], hidden false| |
 | {structureDefinition.url}#{element.path} | definition | for choice type paths, replace [x] with element type.code[0] |
+| element.path | linkId| |
 | short description; element label; or stringified path | text | |
 | type | type | see [ElementDefinition Mappings](#mapping-elementdefinition-data-types-to-questionnaire-items) |
 | min > 0 | required | |
 | max > 1 | repeats | |
 | maxLength | maxLength | apply if type = string |
 | extension.cpg-featureExpression | sets initial[x] | see [ElementDefinition Mappings](#mapping-elementdefinition-data-types-to-questionnaire-items) |
-| binding.valueSet | answerValueSet, set type as 'choice' | |
+| binding.valueSet & binding.strength = required or preferred | translates to answerValueSet, set type as 'choice' | |
 | ??| readOnly | |
 | ??| answerOption | |
 
@@ -44,6 +45,7 @@ Process each element from the structure definition:
         * If the element type is specified in the differential, map to Questionnaire.type
         * If the element type is not specified in the differential, use the snapshot type and map to Questionnaire.type
         * If pattern[x] or fixed[x] refers to a code, treat as a coding with type 'choice'(note: during $extract need to map this type back to code) -- or consider similar with data type string?
+        Should type actually be coding if the value is fixed?
         * If element has a binding to a VS, set type as 'choice'
         * For a more detailed mapping of primitive and complex data types, see [ElementDefinition Mappings](#mapping-elementdefinition-data-types-to-questionnaire-items)
     * QuestionnaireItem.required => if (element.min > 0)
@@ -54,7 +56,7 @@ Process each element from the structure definition:
       * From featureExpression (if available) -- Will this require a patient data bundle as a $questionnaire parameter?
       * Use pattern[x], fixed[x], or defaultValue[x]
       * If value is a complex data type, see [ElementDefinition Mappings](#mapping-elementdefinition-data-types-to-questionnaire-items) to process choice type
-    * QuestionnaireItem.answerValueSet => if the element has a binding to a VS
+    * QuestionnaireItem.answerValueSet => if the element has a binding to a VS that is required or preferred
 
     ### Mapping ElementDefinition data types to Questionnaire Items
     * To see a mapping of FHIR primitive types to QuestionnaireItem.initialValue[x] and QuestionnaireItem.type, visit https://docs.google.com/spreadsheets/d/1YmmW28fDX0VsSlQAVsK2p9bbkV3hxhxnUaUCiRKAL6M/edit?usp=sharing
