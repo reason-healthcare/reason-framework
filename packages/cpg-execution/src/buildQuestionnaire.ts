@@ -27,20 +27,25 @@ export const buildQuestionnaire = (
 
   // Get only differential elements and snapshot elements with cardinality of 1
   // Todo: use snapshot as fallback when differential does not specify needed element property
-  const backboneElement = structureDefinition?.snapshot?.element.shift()
+  let backboneElement
+  if (structureDefinition.differential) {
+    backboneElement = structureDefinition.differential.element.shift()
+  } else {
+    backboneElement = structureDefinition.snapshot?.element.shift()
+  }
 
-  let elements: ElementDefinition[] | undefined = structureDefinition?.differential?.element
+  let subGroupElements: ElementDefinition[] | undefined = structureDefinition?.differential?.element
 
-  const elementIsRootOrHasParent = (element: ElementDefinition, elements: ElementDefinition[] | undefined) => {
+  const elementIsRootOrHasParent = (element: ElementDefinition, subGroupElements: ElementDefinition[] | undefined) => {
     const pathList = element.path.split('.')
     // elements with length of 2 are root elements that should be included if min > 1
     if (pathList.length === 2) {
       return true
     }
-    // if the path prefix matches an item already in the array of elements, its cardinality should be checked for min > 1
+    // if the path prefix matches an item already in the array of subGroupElements, its cardinality should be checked for min > 1
     pathList.pop()
     const pathPrefix = pathList.join('.')
-    return elements?.some(e => pathPrefix === e.path)
+    return subGroupElements?.some(e => pathPrefix === e.path)
   }
 
   // Only add snapshot elements if cardinality of 1
@@ -48,26 +53,29 @@ export const buildQuestionnaire = (
     if (
       element.min &&
       element.min > 0 &&
-      !elements?.some(e => e.path === element.path) &&
-      elementIsRootOrHasParent(element, elements)
+      !subGroupElements?.some(e => e.path === element.path) &&
+      elementIsRootOrHasParent(element, subGroupElements)
       ) {
-      elements?.push(element)
+      subGroupElements?.push(element)
     }
   })
 
   if (supportedOnly === true) {
-    elements = elements?.filter(e => e.mustSupport === true)
+    subGroupElements = subGroupElements?.filter(e => e.mustSupport === true)
   }
 
   // TODO: add item grouping for complex data structures i.e. if element path is nested beyond element.x, group the element.x children together
-  console.log(JSON.stringify(elements) + 'elements')
-  if (elements) {
+  if (subGroupElements) {
 
-    const questionnaireItemsSubGroup = elements.map((element) => {
+    const questionnaireItemsSubGroup = subGroupElements.map((element) => {
       let item: fhir4.QuestionnaireItem = {
         linkId: uuidv4(),
         definition: `${structureDefinition.url}#${element.path}`,
         type: "string",
+      }
+
+      const getSnapshotElement = () => {
+        return structureDefinition.snapshot?.element.find(e => e.path === element.path)
       }
 
       // Check for element type, if not present, the element might be from the differential and type should be used from snapshot
@@ -75,7 +83,7 @@ export const buildQuestionnaire = (
       if (element.type) {
         elementType = element.type
       } else {
-        elementType = structureDefinition?.snapshot?.element?.find(e => e.path === element.path)?.type
+        elementType = getSnapshotElement()?.type
       }
 
       if (elementType) {
@@ -171,10 +179,20 @@ export const buildQuestionnaire = (
 
       if (element.min && element.min > 0) {
         item.required = true
+      } else {
+        let snapshotElement = getSnapshotElement()
+        if (snapshotElement?.min && snapshotElement.min > 0) {
+          item.required = true
+        }
       }
 
       if (element.max && parseInt(element.max) > 1) {
         item.repeats = true
+      } else {
+        let snapshotElement = getSnapshotElement()
+        if (snapshotElement?.max && parseInt(snapshotElement.max) > 0) {
+          item.required = true
+        }
       }
 
       if (element.maxLength && item.type === 'string') {
