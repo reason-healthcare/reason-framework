@@ -1,7 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
 import { is, questionnaireBaseUrl } from './helpers'
-import { ElementDefinition, QuestionnaireItemInitial } from 'fhir/r4'
-import { QuestionnaireItemOption } from 'fhir/r3'
 
 export interface BuildQuestionnaireArgs {
   structureDefinition: fhir4.StructureDefinition,
@@ -34,9 +32,9 @@ export const buildQuestionnaire = (
     backboneElement = structureDefinition.snapshot?.element.shift()
   }
 
-  let subGroupElements: ElementDefinition[] | undefined = structureDefinition?.differential?.element
+  let subGroupElements: fhir4.ElementDefinition[] | undefined = structureDefinition?.differential?.element
 
-  const elementIsRootOrHasParent = (element: ElementDefinition, subGroupElements: ElementDefinition[] | undefined) => {
+  const elementIsRootOrHasParent = (element: fhir4.ElementDefinition, subGroupElements: fhir4.ElementDefinition[] | undefined) => {
     const pathList = element.path.split('.')
     // elements with length of 2 are root elements that should be included if min > 1
     if (pathList.length === 2) {
@@ -130,30 +128,14 @@ export const buildQuestionnaire = (
         }
 
         // Set initial[x] for fixed[x], pattern[x], defaultValue[x]
-        let initialValue = element[patternOrFixedElementKey as keyof ElementDefinition]
+        let initialValue = element.fixedCodeableConcept?.coding //as keyof fhir4.ElementDefinition]
         // TODO: How do we handle type coercion here? Is there a better way to check the fixed[x] and pattern[x] types?
 
-        //  let initialValueKey
-        // if (elementType === "code" || elementType === "codeableConcept") {
-        //   initialValueKey = "valueCoding"
-        // } else if (elementType === "instant") {
-        //   initialValueKey = "valueDateTime"
-        // } else if (elementType === "url" || elementType === "canonical" || elementType === "uuid" || elementType === "oid") {
-        //   initialValueKey = "uri"
-        // } else if (elementType === "unsignedInt" || elementType === "positiveInt") {
-        //   initialValueKey = "integer"
-        // } else if (elementType === "base64Binary") {
-        //   initialValueKey = "string"
-        // } else if (elementType && is.QuestionnaireItemType(elementType)) {
-        //   initialValueKey = `value${elementType}`
-        // } else {
-        //   initialValueKey = "valueString" //TODO handle complex types
-        // }
-
         const ucValueType = valueType.charAt(0).toUpperCase() + valueType.slice(1)
-        console.log(typeof initialValue)
         // TO Do: depending on data type, initial Value may need to be handled differently - ie CodeableConcept
-        item.initial = [{[`value${ucValueType}`]: initialValue}]
+        if (initialValue) {
+          item.initial = [{[`value${ucValueType}`]: initialValue[0]}]
+        }
       }
 
       // QuestionnaireItem.definition => "{structureDefinition.url}#{full element path}", where: * "full element path" is path with `[x]` replaced with the first (and only) type.code
@@ -213,10 +195,10 @@ export const buildQuestionnaire = (
         binding = getSnapshotElement()?.binding
       }
 
-      if (binding && binding.strength === "example") {
+      if (binding && binding.strength === "example" && !patternOrFixedElementKey) {
         item.answerValueSet = binding.valueSet
         item.type = "open-choice"
-      } else if (binding) {
+      } else if (binding && !patternOrFixedElementKey) {
         item.answerValueSet = binding.valueSet
         item.type = "choice"
       }
