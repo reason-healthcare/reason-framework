@@ -21,7 +21,7 @@ For each case-feature definition/profile, create a group of questionnaire items.
 | max > 1 | repeats | |
 | maxLength | maxLength | apply if type = string |
 | extension.cpg-featureExpression | sets initial[x] | see [ElementDefinition Mappings](#mapping-elementdefinition-data-types-to-questionnaire-items) |
-| binding.valueSet & binding.strength = required or preferred | translates to answerValueSet, set type as 'choice' | |
+| binding.valueSet & binding.strength = required, preferred, or extensibile | translates to answerValueSet, set type as 'choice' | |
 | ??| readOnly | |
 | ??| answerOption | |
 
@@ -55,7 +55,7 @@ Process each element from the structure definition:
       * From featureExpression (if available) -- Will this require a patient data bundle as a $questionnaire parameter?
       * Use pattern[x], fixed[x], or defaultValue[x]
       * If value is a complex data type, see [ElementDefinition Mappings](#mapping-elementdefinition-data-types-to-questionnaire-items) to process choice type
-    * QuestionnaireItem.answerValueSet => if the element has a binding to a VS that is required or preferred
+    * QuestionnaireItem.answerValueSet => if the element has a binding to a VS that is required, preferred, or extensible - should the bound VS still be used for strength = example, but set to type = open-choice?
 
     ### Mapping ElementDefinition data types to Questionnaire Items
     * To see a mapping of FHIR primitive types to QuestionnaireItem.initialValue[x] and QuestionnaireItem.type, visit https://docs.google.com/spreadsheets/d/1YmmW28fDX0VsSlQAVsK2p9bbkV3hxhxnUaUCiRKAL6M/edit?usp=sharing

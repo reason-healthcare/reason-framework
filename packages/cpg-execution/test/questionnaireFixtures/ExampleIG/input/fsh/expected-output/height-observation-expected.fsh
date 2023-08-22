@@ -16,7 +16,7 @@ Description: "Simple test case with fixed[x]"
     * text = "Body Height"
     * type = #choice // or coding since fixed?
     * required = true
-    * initial.valueCoding.coding = http://loinc.org#8302-2 "Body Height"
+    * initial.valueCoding = http://loinc.org#8302-2 "Body Height"
   * item[+]
     * linkId = "Observation.status"
     * definition = "http://example.org/StructureDefinition/HeightObservation#Observation.status"

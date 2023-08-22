@@ -17,7 +17,7 @@ Description: "Test case for bound elements"
     * answerValueSet =  "http://hl7.org/fhir/ValueSet/observation-vitalsignresult"
   * item[+]
     * linkId = "Observation.status"
-    * definition = "http://example.org/StructureDefinition/HeightObservation#Observation.status"
+    * definition = "http://example.org/StructureDefinition/VitalSignsObservation#Observation.status"
     * text = "registered | preliminary | final | amended +"
     * type = #choice
     * required = true

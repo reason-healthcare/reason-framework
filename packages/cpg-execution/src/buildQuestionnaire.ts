@@ -26,7 +26,6 @@ export const buildQuestionnaire = (
   questionnaire.url = `${questionnaireBaseUrl}/Questionnaire/${questionnaire.id}`
 
   // Get only differential elements and snapshot elements with cardinality of 1
-  // Todo: use snapshot as fallback when differential does not specify needed element property
   let backboneElement
   if (structureDefinition.differential) {
     backboneElement = structureDefinition.differential.element.shift()
@@ -152,6 +151,7 @@ export const buildQuestionnaire = (
         // }
 
         const ucValueType = valueType.charAt(0).toUpperCase() + valueType.slice(1)
+        // if (initialValue && initialValue.coding)
         item.initial = [{[`value${ucValueType}`]: initialValue}]
       }
 
@@ -165,7 +165,6 @@ export const buildQuestionnaire = (
 
       if (element.short) {
         item.text = element.short
-        console.log('here')
       } else if (element.label) {
         item.text = element.label
       } else {
@@ -179,19 +178,19 @@ export const buildQuestionnaire = (
 
       if (element.min && element.min > 0) {
         item.required = true
-      } else {
+      } else if (!element.min) {
         let snapshotElement = getSnapshotElement()
         if (snapshotElement?.min && snapshotElement.min > 0) {
           item.required = true
         }
       }
 
-      if (element.max && parseInt(element.max) > 1) {
+      if (element.max && (parseInt(element.max) > 1 || element.max === "*")) {
         item.repeats = true
-      } else {
+      } else if (!element.max) {
         let snapshotElement = getSnapshotElement()
-        if (snapshotElement?.max && parseInt(snapshotElement.max) > 0) {
-          item.required = true
+        if (snapshotElement?.max && (parseInt(snapshotElement.max) > 1 || element.max === "*")) {
+          item.repeats = true
         }
       }
 
@@ -201,7 +200,10 @@ export const buildQuestionnaire = (
 
       // QuestionnaireItem.answerOption => build if the element has a binding to a VS
       // Should this actually be QuestionnaireItem.answerValueSet?
-      if (element.binding) {
+      if (element.binding && element.binding.strength === "example") {
+        item.answerValueSet = element.binding.valueSet
+        item.type = "open-choice"
+      } else if (element.binding) {
         item.answerValueSet = element.binding.valueSet
         item.type = "choice"
       }

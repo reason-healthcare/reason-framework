@@ -34,6 +34,7 @@ Description: "Test case for simple item properties such as required, repeats, an
     * linkId = "Observation.code"
     * definition = "http://example.org/StructureDefinition/WrittenAssessmentObservation#Observation.code"
     * text = "Type of observation (code / type)"
-    * type = #choice
+    * type = #open-choice
     * required = true
+    * answerValueSet = Canonical(observation-codes)
     // set to open choice with example VS for binding?
