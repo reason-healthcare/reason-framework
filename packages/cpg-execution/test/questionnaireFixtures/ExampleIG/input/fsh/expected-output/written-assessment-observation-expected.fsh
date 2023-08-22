@@ -19,9 +19,8 @@ Description: "Test case for simple item properties such as required, repeats, an
   * item[+]
     * linkId = "Observation.valueString"
     * definition = "http://example.org/StructureDefinition/WrittenAssessmentObservation#Observation.valueString"
-    * text = "Observation Value String"
+    * text = "Observation valueString"
     * type = #string
-    * required = true
     * maxLength = 20
   * item[+]
     * linkId = "Observation.status"

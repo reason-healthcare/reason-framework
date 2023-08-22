@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import { is, questionnaireBaseUrl } from './helpers'
-import { ElementDefinition } from 'fhir/r4'
+import { ElementDefinition, QuestionnaireItemInitial } from 'fhir/r4'
+import { QuestionnaireItemOption } from 'fhir/r3'
 
 export interface BuildQuestionnaireArgs {
   structureDefinition: fhir4.StructureDefinition,
@@ -120,7 +121,6 @@ export const buildQuestionnaire = (
       // Documentation on ElementDefinition states that default value "only exists so that default values may be defined in logical models", so do we need to support?
       let patternOrFixedElementKey  = Object.keys(element).find(k => { return k.startsWith('fixed') || k.startsWith('pattern') || k.startsWith('defaultValue') })
       if (patternOrFixedElementKey) {
-
         // Add "hidden" extension for fixed[x] and pattern[x]
         if (patternOrFixedElementKey.startsWith('fixed') || patternOrFixedElementKey.startsWith('pattern')) {
           item.extension = [{
@@ -151,7 +151,8 @@ export const buildQuestionnaire = (
         // }
 
         const ucValueType = valueType.charAt(0).toUpperCase() + valueType.slice(1)
-        // if (initialValue && initialValue.coding)
+        console.log(typeof initialValue)
+        // TO Do: depending on data type, initial Value may need to be handled differently - ie CodeableConcept
         item.initial = [{[`value${ucValueType}`]: initialValue}]
       }
 
@@ -165,8 +166,12 @@ export const buildQuestionnaire = (
 
       if (element.short) {
         item.text = element.short
+      } else if (getSnapshotElement()?.short) {
+        item.text = getSnapshotElement()?.short
       } else if (element.label) {
         item.text = element.label
+      } else if (getSnapshotElement()?.label) {
+        item.text = getSnapshotElement()?.label
       } else {
         let text = element.path
         if (element.path.includes('[x]')) {
@@ -185,11 +190,12 @@ export const buildQuestionnaire = (
         }
       }
 
-      if (element.max && (parseInt(element.max) > 1 || element.max === "*")) {
+      if (element.max && (element.max === "*" || parseInt(element.max) > 1)) {
         item.repeats = true
       } else if (!element.max) {
         let snapshotElement = getSnapshotElement()
-        if (snapshotElement?.max && (parseInt(snapshotElement.max) > 1 || element.max === "*")) {
+        if (snapshotElement?.max && (snapshotElement.max === "*" || parseInt(snapshotElement.max) > 1))
+        {
           item.repeats = true
         }
       }
@@ -200,11 +206,18 @@ export const buildQuestionnaire = (
 
       // QuestionnaireItem.answerOption => build if the element has a binding to a VS
       // Should this actually be QuestionnaireItem.answerValueSet?
-      if (element.binding && element.binding.strength === "example") {
-        item.answerValueSet = element.binding.valueSet
+      let binding
+      if (element.binding) {
+        binding = element.binding
+      } else if (getSnapshotElement()?.binding) {
+        binding = getSnapshotElement()?.binding
+      }
+
+      if (binding && binding.strength === "example") {
+        item.answerValueSet = binding.valueSet
         item.type = "open-choice"
-      } else if (element.binding) {
-        item.answerValueSet = element.binding.valueSet
+      } else if (binding) {
+        item.answerValueSet = binding.valueSet
         item.type = "choice"
       }
 
