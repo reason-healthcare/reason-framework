@@ -15,5 +15,5 @@ Description: "Test case for supportedOnly = true parameter and fixed[x] element"
     * text = "Body Weight"
     * type = #choice
     * required = true
-    * initial.valueCoding = http://loinc.org#29463-7 "Body Weight"
+    * initial.valueCoding.coding = http://loinc.org#29463-7 "Body Weight"
     // set to open choice with example VS for binding?

@@ -27,13 +27,17 @@ export const buildQuestionnaire = (
 
   // Get only differential elements and snapshot elements with cardinality of 1
   // Todo: use snapshot as fallback when differential does not specify needed element property
+  const backboneElement = structureDefinition?.snapshot?.element.shift()
+
   let elements: ElementDefinition[] | undefined = structureDefinition?.differential?.element
 
-  const elementIsOrHasParent = (element: ElementDefinition, elements: ElementDefinition[] | undefined) => {
+  const elementIsRootOrHasParent = (element: ElementDefinition, elements: ElementDefinition[] | undefined) => {
     const pathList = element.path.split('.')
+    // elements with length of 2 are root elements that should be included if min > 1
     if (pathList.length === 2) {
       return true
     }
+    // if the path prefix matches an item already in the array of elements, its cardinality should be checked for min > 1
     pathList.pop()
     const pathPrefix = pathList.join('.')
     return elements?.some(e => pathPrefix === e.path)
@@ -42,10 +46,10 @@ export const buildQuestionnaire = (
   // Only add snapshot elements if cardinality of 1
   structureDefinition.snapshot?.element.forEach((element) => {
     if (
-      element.min !== undefined &&
+      element.min &&
       element.min > 0 &&
       !elements?.some(e => e.path === element.path) &&
-      elementIsOrHasParent(element, elements)
+      elementIsRootOrHasParent(element, elements)
       ) {
       elements?.push(element)
     }
@@ -56,9 +60,8 @@ export const buildQuestionnaire = (
   }
 
   // TODO: add item grouping for complex data structures i.e. if element path is nested beyond element.x, group the element.x children together
+  console.log(JSON.stringify(elements) + 'elements')
   if (elements) {
-
-    const rootElement = elements.shift() //change this to backbone element/ element? or parent for reusability
 
     const questionnaireItemsSubGroup = elements.map((element) => {
       let item: fhir4.QuestionnaireItem = {
@@ -122,9 +125,6 @@ export const buildQuestionnaire = (
         // Set initial[x] for fixed[x], pattern[x], defaultValue[x]
         let initialValue = element[patternOrFixedElementKey as keyof ElementDefinition]
         // TODO: How do we handle type coercion here? Is there a better way to check the fixed[x] and pattern[x] types?
-        if (elementType && !is.QuestionnaireItemType(elementType)) {
-          initialValue = initialValue?.toString()
-        }
 
         //  let initialValueKey
         // if (elementType === "code" || elementType === "codeableConcept") {
@@ -155,8 +155,9 @@ export const buildQuestionnaire = (
 
       // TODO: (may remove) Context from where the corresponding data-requirement is used with a special extension (e.g. PlanDefinition.action.input[extension]...)? or.....
 
-       if (element.short) {
+      if (element.short) {
         item.text = element.short
+        console.log('here')
       } else if (element.label) {
         item.text = element.label
       } else {
@@ -192,8 +193,8 @@ export const buildQuestionnaire = (
 
     questionnaire.item = [{
       linkId: uuidv4(),
-      definition: `${structureDefinition.url}#${rootElement?.path}`,
-      text: rootElement?.path,
+      definition: `${structureDefinition.url}#${backboneElement?.path}`,
+      text: backboneElement?.path,
       type: "group",
       item: questionnaireItemsSubGroup
     }]

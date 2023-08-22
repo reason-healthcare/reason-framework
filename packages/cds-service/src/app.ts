@@ -570,7 +570,7 @@ export default async (options?: FastifyServerOptions) => {
     async (req: FastifyRequest, res: FastifyReply): Promise<void> => {
       const { parameter: parameters } = req.body as fhir4.Parameters
 
-      console.log(JSON.stringify(parameters) + 'params')
+      // console.log(JSON.stringify(parameters) + 'params')
 
       let structureDefinition
       // use profile as SD if provided
