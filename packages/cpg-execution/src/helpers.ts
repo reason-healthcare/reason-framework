@@ -283,7 +283,7 @@ export const is = {
     return resource?.resourceType === 'Questionnaire'
   },
   QuestionnaireItemType(dataType: string): dataType is fhir4.QuestionnaireItem["type"] {
-    return dataType === "string" || dataType === "boolean" || dataType === "group" || dataType === "display" || dataType === "question" || dataType === "decimal" || dataType === "integer" || dataType === "date" || dataType === "dateTime" || dataType === "time" || dataType === "text" || dataType === "url" || dataType === "choice" || dataType === "open-choice" || dataType === "attachment" || dataType === "reference" || dataType === "quantity"
+    return dataType === "string" || dataType === "boolean" || dataType === "group" || dataType === "display" || dataType === "question" || dataType === "decimal" || dataType === "integer" || dataType === "date" || dataType === "dateTime" || dataType === "time" || dataType === "text" || dataType === "url" || dataType === "choice" || dataType === "open-choice" || dataType === "attachment" || dataType.toLowerCase() === "reference" || dataType.toLowerCase() === "quantity"
   },
   RequestGroup: (resource: any): resource is fhir4.RequestGroup => {
     return resource?.resourceType === 'RequestGroup'

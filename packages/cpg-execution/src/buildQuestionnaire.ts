@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 import { is, questionnaireBaseUrl } from './helpers'
+import { ElementDefinition } from 'fhir/r4'
 
 export interface BuildQuestionnaireArgs {
   structureDefinition: fhir4.StructureDefinition,
@@ -86,10 +87,11 @@ export const buildQuestionnaire = (
 
       if (elementType) {
         elementType = elementType[0].code
+        console.log(is.QuestionnaireItemType(elementType) + elementType)
       }
 
       let valueType
-      if (elementType === 'code' || elementType === 'CodeableConcept' || elementType === 'coding') {
+      if (elementType === 'code' || elementType === 'CodeableConcept' || elementType === 'Coding') {
         item.type = "choice"
         valueType = "coding"
       } else if (elementType === 'uri' || elementType === 'canonical') {
@@ -117,7 +119,7 @@ export const buildQuestionnaire = (
       }
 
       // Documentation on ElementDefinition states that default value "only exists so that default values may be defined in logical models", so do we need to support?
-      let patternOrFixedElementKey  = Object.keys(element).find(k => { return k.startsWith('fixed') || k.startsWith('pattern') || k.startsWith('defaultValue') })
+      let patternOrFixedElementKey = Object.keys(element).find(k => { return k.startsWith('fixed') || k.startsWith('pattern') || k.startsWith('defaultValue') })
       if (patternOrFixedElementKey) {
         // Add "hidden" extension for fixed[x] and pattern[x]
         if (patternOrFixedElementKey.startsWith('fixed') || patternOrFixedElementKey.startsWith('pattern')) {
@@ -128,13 +130,24 @@ export const buildQuestionnaire = (
         }
 
         // Set initial[x] for fixed[x], pattern[x], defaultValue[x]
-        let initialValue = element.fixedCodeableConcept?.coding //as keyof fhir4.ElementDefinition]
+        let initialValue
+        if (elementType === "CodeableConcept") {
+          initialValue = element[patternOrFixedElementKey as keyof fhir4.ElementDefinition] as fhir4.CodeableConcept | undefined  //element.fixedCodeableConcept?.coding
+          console.log(initialValue?.coding)
+          if (initialValue && initialValue.coding) {
+            initialValue = initialValue?.coding[0]
+          } else if (initialValue && initialValue.text) {
+            initialValue = initialValue.text
+          }
+        } else {
+          initialValue = element[patternOrFixedElementKey as keyof fhir4.ElementDefinition]
+        }
         // TODO: How do we handle type coercion here? Is there a better way to check the fixed[x] and pattern[x] types?
 
         const ucValueType = valueType.charAt(0).toUpperCase() + valueType.slice(1)
         // TO Do: depending on data type, initial Value may need to be handled differently - ie CodeableConcept
         if (initialValue) {
-          item.initial = [{[`value${ucValueType}`]: initialValue[0]}]
+          item.initial = [{[`value${ucValueType}`]: initialValue}]
         }
       }
 
