@@ -6,5 +6,5 @@ Parent: Observation
 * valueInteger = 5
 * valueDateTime = "2023-08-23"
 * status = #final
-* subject = Reference(patient1)
+* subject = Reference(patient-1)
 * category = http://terminology.hl7.org/CodeSystem/observation-category#vital-signs "Vital Signs"
