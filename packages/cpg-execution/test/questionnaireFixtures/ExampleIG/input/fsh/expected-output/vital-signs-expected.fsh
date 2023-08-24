@@ -21,4 +21,4 @@ Description: "Test case for bound elements"
     * text = "registered | preliminary | final | amended +"
     * type = #choice
     * required = true
-    * answerValueSet = Canonical(observation-status|4.0.1)
+    * answerValueSet = Canonical(observation-status)

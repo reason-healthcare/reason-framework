@@ -28,7 +28,7 @@ Description: "Test case for simple item properties such as required, repeats, an
     * text = "registered | preliminary | final | amended +"
     * type = #choice
     * required = true
-    * answerValueSet = Canonical(observation-status|4.0.1)
+    * answerValueSet = Canonical(observation-status)
   * item[+]
     * linkId = "Observation.code"
     * definition = "http://example.org/StructureDefinition/WrittenAssessmentObservation#Observation.code"

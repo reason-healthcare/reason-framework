@@ -16,7 +16,6 @@ Description: "Simple test case with fixed[x]"
     * type = #choice
     * required = true
     * initial.valueCoding = http://loinc.org#8302-2 "Body Height"
-    * answerValueSet = Canonical(observation-codes)
   * item[+]
     * linkId = "Observation.status"
     * definition = "http://example.org/StructureDefinition/HeightObservation#Observation.status"

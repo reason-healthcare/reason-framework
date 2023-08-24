@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid"
-import { is, questionnaireBaseUrl } from "./helpers"
+import { is, questionnaireBaseUrl, omitCanonicalVersion } from "./helpers"
 import { Coding } from "fhir/r4"
 
 export interface BuildQuestionnaireArgs {
@@ -114,17 +114,17 @@ export const buildQuestionnaire = (
         valueType = "string"
       }
 
+      // Documentation on ElementDefinition states that default value "only exists so that default values may be defined in logical models", so do we need to support?
       let binding = element.binding || getSnapshotElement(element)?.binding
-      if (binding && binding.strength === "example") {
-        item.answerValueSet = binding.valueSet
+      let fixedElementKey = Object.keys(element).find(k => { return k.startsWith("fixed") || k.startsWith("pattern") || k.startsWith("defaultValue") })
+
+      if (binding && binding.strength === "example" && !fixedElementKey) {
+        item.answerValueSet = omitCanonicalVersion(binding.valueSet)
         item.type = "open-choice"
-      } else if (binding) {
-        item.answerValueSet = binding.valueSet
-        item.type = "choice"
+      } else if (binding && !fixedElementKey) {
+        item.answerValueSet = omitCanonicalVersion(binding.valueSet)
       }
 
-      // Documentation on ElementDefinition states that default value "only exists so that default values may be defined in logical models", so do we need to support?
-      let fixedElementKey = Object.keys(element).find(k => { return k.startsWith("fixed") || k.startsWith("pattern") || k.startsWith("defaultValue") })
       if (fixedElementKey) {
         // Add "hidden" extension for fixed[x] and pattern[x]
         if (fixedElementKey.startsWith("fixed") || fixedElementKey.startsWith("pattern")) {
@@ -144,13 +144,14 @@ export const buildQuestionnaire = (
             initialValue = initialValue.text
             valueType = "string"
           }
-        } else if (elementType === "code" && item.answerValueSet) {
+        } else if (elementType === "code" && binding?.valueSet) {
           initialValue = {} as Coding
-          initialValue.system = item.answerValueSet
+          initialValue.system = omitCanonicalVersion(binding.valueSet)
           initialValue.code = element[fixedElementKey as keyof fhir4.ElementDefinition] as string
         } else {
           initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition]
         }
+
         // TODO: How do we handle type coercion here? Is there a better way to check the fixed[x] and pattern[x] types?
 
         const ucValueType = valueType.charAt(0).toUpperCase() + valueType.slice(1)
@@ -159,6 +160,7 @@ export const buildQuestionnaire = (
           item.initial = [{[`value${ucValueType}`]: initialValue}]
         }
       }
+
 
       // TODO: (may remove) Context from where the corresponding data-requirement is used with a special extension (e.g. PlanDefinition.action.input[extension]...)? or.....
 

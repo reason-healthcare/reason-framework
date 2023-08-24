@@ -376,3 +376,7 @@ export let questionnaireBaseUrl =
 if (baseUrl.endsWith('/')) {
   baseUrl = baseUrl.slice(0, -1)
 }
+
+export const omitCanonicalVersion = (canonical: string | undefined): string | undefined => {
+  return canonical?.split("|").shift()
+}

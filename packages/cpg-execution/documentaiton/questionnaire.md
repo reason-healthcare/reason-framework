@@ -55,7 +55,7 @@ Process each element from the structure definition:
       * From featureExpression (if available) -- Will this require a patient data bundle as a $questionnaire parameter?
       * Use pattern[x], fixed[x], or defaultValue[x]
       * If value is a complex data type, see [ElementDefinition Mappings](#mapping-elementdefinition-data-types-to-questionnaire-items) to process choice type
-    * QuestionnaireItem.answerValueSet => if the element has a binding to a VS that is required, preferred, or extensible - should the bound VS still be used for strength = example, but set to type = open-choice?
+    * QuestionnaireItem.answerValueSet => if the element has a binding to a VS that is required, preferred, or extensible  (bound VS still used when strength = example, but set to type = open-choice? if initial value is set, omit answerValueSet?)
 
     ### Mapping ElementDefinition data types to Questionnaire Items
     * To see a mapping of FHIR primitive types to QuestionnaireItem.initialValue[x] and QuestionnaireItem.type, visit https://docs.google.com/spreadsheets/d/1YmmW28fDX0VsSlQAVsK2p9bbkV3hxhxnUaUCiRKAL6M/edit?usp=sharing

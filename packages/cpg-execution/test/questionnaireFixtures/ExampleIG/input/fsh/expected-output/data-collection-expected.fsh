@@ -25,7 +25,6 @@ Description: "Simple test case with fixed[x]"
       * url = Canonical(questionnaire-hidden)
       * valueBoolean = true
     * initial.valueCoding = http://hl7.org/fhir/observation-status#final "Final"
-    * answerValueSet = Canonical(observation-status)
   * item[+]
     * linkId = "Observation.valueString"
     * definition = "http://example.org/StructureDefinition/Observation#Observation.initial.valueString"
@@ -88,9 +87,7 @@ Description: "Simple test case with fixed[x]"
     * definition = "http://example.org/StructureDefinition/Observation#Observation.category"
     * type = #choice
     * text = "Classification of  type of observation"
-    * text = "Observation valueCoding"
     * extension
       * url = Canonical(questionnaire-hidden)
       * valueBoolean = true
     * initial.valueCoding = $observation-category#vital-signs "Vital Signs"
-    * answerValueSet = Canonical(observation-category)

@@ -16,4 +16,3 @@ Description: "Test case for supportedOnly = true parameter and fixed[x] element"
     * type = #choice
     * required = true
     * initial.valueCoding = $loinc#29463-7 "Body Weight"
-    * answerValueSet = $loinc
