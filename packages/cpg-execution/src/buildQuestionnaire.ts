@@ -26,6 +26,7 @@ export const buildQuestionnaire = (
   questionnaire.url = `${questionnaireBaseUrl}/Questionnaire/${questionnaire.id}`
 
   // Get only differential elements and snapshot elements with cardinality of 1
+  // TODO: if type = backbone element or type = a complex/not primitive type, a group should be created - include name of type as a part of the text?
   let backboneElement
   if (structureDefinition.differential) {
     backboneElement = structureDefinition.differential.element.shift()
@@ -62,6 +63,8 @@ export const buildQuestionnaire = (
   const getSnapshotElement = (element: fhir4.ElementDefinition) => {
     return structureDefinition.snapshot?.element.find(e => e.path === element.path)
   }
+
+  console.log(JSON.stringify(subGroupElements))
 
   if (supportedOnly === true) {
     subGroupElements = subGroupElements?.filter(e => e.mustSupport === true || getSnapshotElement(e)?.mustSupport === true)
@@ -102,7 +105,7 @@ export const buildQuestionnaire = (
       } else if (elementType && elementType === "instant") {
         item.type = "dateTime"
         valueType = "dateTime"
-      } else if (elementType === "base64Binary") {
+      } else if (elementType === "base64Binary" || elementType === "markdown") {
         item.type = "string"
         valueType = "string"
       } else if (elementType && is.QuestionnaireItemType(elementType)) {
@@ -110,7 +113,8 @@ export const buildQuestionnaire = (
         valueType = elementType
         // TODO: Process complex with $questionnaire instead of using string as data type
       } else {
-        item.type = "string"
+        item.type = "group"
+        // the type should be flattened and the same logic applied, then this is added as a subgroup
         valueType = "string"
       }
 
@@ -152,15 +156,11 @@ export const buildQuestionnaire = (
           initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition]
         }
 
-        // TODO: How do we handle type coercion here? Is there a better way to check the fixed[x] and pattern[x] types?
-
         const ucValueType = valueType.charAt(0).toUpperCase() + valueType.slice(1)
-        // TO Do: depending on data type, initial Value may need to be handled differently - ie CodeableConcept
         if (initialValue) {
           item.initial = [{[`value${ucValueType}`]: initialValue}]
         }
       }
-
 
       // TODO: (may remove) Context from where the corresponding data-requirement is used with a special extension (e.g. PlanDefinition.action.input[extension]...)? or.....
 

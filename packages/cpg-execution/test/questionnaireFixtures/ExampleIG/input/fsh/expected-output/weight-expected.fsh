@@ -4,14 +4,12 @@ Usage: #example
 Description: "Test case for supportedOnly = true parameter and fixed[x] element"
 * insert QuestionnaireMetaData(WeightObservationExpected)
 * item[+]
-  * linkId = "Observation"
+  * insert QuestionnaireItemMeta(WeightObservationExpected, Observation)
   * type = #group
-  * definition = "http://example.org/StructureDefinition/WeightObservation#Observation"
   * text = "Observation"
   * item[+]
-    * linkId = "Observation.code"
+    * insert QuestionnaireItemMeta(WeightObservationExpected, Observation.code)
     * extension[questionnaire-hidden].valueBoolean = true
-    * definition = "http://example.org/StructureDefinition/WeightObservation#Observation.code"
     * text = "Body Weight"
     * type = #choice
     * required = true
