@@ -1,5 +1,6 @@
-import { v4 as uuidv4 } from 'uuid'
-import { is, questionnaireBaseUrl } from './helpers'
+import { v4 as uuidv4 } from "uuid"
+import { is, questionnaireBaseUrl } from "./helpers"
+import { Coding } from "fhir/r4"
 
 export interface BuildQuestionnaireArgs {
   structureDefinition: fhir4.StructureDefinition,
@@ -19,7 +20,7 @@ export const buildQuestionnaire = (
     id: uuidv4(),
     resourceType: "Questionnaire",
     description: `Questionnaire generated from ${structureDefinition.url}`,
-    status: 'draft',
+    status: "draft",
   }
 
   questionnaire.url = `${questionnaireBaseUrl}/Questionnaire/${questionnaire.id}`
@@ -35,14 +36,14 @@ export const buildQuestionnaire = (
   let subGroupElements: fhir4.ElementDefinition[] | undefined = structureDefinition?.differential?.element
 
   const elementIsRootOrHasParent = (element: fhir4.ElementDefinition, subGroupElements: fhir4.ElementDefinition[] | undefined) => {
-    const pathList = element.path.split('.')
+    const pathList = element.path.split(".")
     // elements with length of 2 are root elements that should be included if min > 1 i.e. Observation.status
     if (pathList.length === 2) {
       return true
     }
     // if the path prefix matches an item already in the array of subGroupElements, its parent has a cardinality of 1 and the element should be considered for processing
     pathList.pop()
-    const pathPrefix = pathList.join('.')
+    const pathPrefix = pathList.join(".")
     return subGroupElements?.some(e => pathPrefix === e.path)
   }
 
@@ -86,19 +87,19 @@ export const buildQuestionnaire = (
 
       // map element definition types to item types and initial value types
       let valueType
-      if (elementType === 'code' || elementType === 'CodeableConcept' || elementType === 'Coding') {
+      if (elementType === "code" || elementType === "CodeableConcept" || elementType === "Coding") {
         item.type = "choice"
         valueType = "coding"
-      } else if (elementType === 'uri' || elementType === 'canonical') {
+      } else if (elementType === "canonical") {
         item.type = "url"
         valueType = "uri"
-      } else if (elementType === 'uuid' || elementType === 'oid' ) {
+      } else if (elementType === "uuid" || elementType === "oid" || elementType === "uri" ) {
         item.type = "string"
         valueType = "uri"
-      } else if (elementType === 'unsignedInt' || elementType === 'positiveInt') {
+      } else if (elementType === "unsignedInt" || elementType === "positiveInt") {
         item.type = "integer"
         valueType = "integer"
-      } else if (elementType && elementType === 'instant') {
+      } else if (elementType && elementType === "instant") {
         item.type = "dateTime"
         valueType = "dateTime"
       } else if (elementType === "base64Binary") {
@@ -113,11 +114,20 @@ export const buildQuestionnaire = (
         valueType = "string"
       }
 
+      let binding = element.binding || getSnapshotElement(element)?.binding
+      if (binding && binding.strength === "example") {
+        item.answerValueSet = binding.valueSet
+        item.type = "open-choice"
+      } else if (binding) {
+        item.answerValueSet = binding.valueSet
+        item.type = "choice"
+      }
+
       // Documentation on ElementDefinition states that default value "only exists so that default values may be defined in logical models", so do we need to support?
-      let fixedElementKey = Object.keys(element).find(k => { return k.startsWith('fixed') || k.startsWith('pattern') || k.startsWith('defaultValue') })
+      let fixedElementKey = Object.keys(element).find(k => { return k.startsWith("fixed") || k.startsWith("pattern") || k.startsWith("defaultValue") })
       if (fixedElementKey) {
         // Add "hidden" extension for fixed[x] and pattern[x]
-        if (fixedElementKey.startsWith('fixed') || fixedElementKey.startsWith('pattern')) {
+        if (fixedElementKey.startsWith("fixed") || fixedElementKey.startsWith("pattern")) {
           item.extension = [{
             url: "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
             valueBoolean: true
@@ -127,13 +137,17 @@ export const buildQuestionnaire = (
         // Set initial[x] for fixed[x], pattern[x], defaultValue[x]
         let initialValue
         if (elementType === "CodeableConcept") {
-          initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition] as fhir4.CodeableConcept | undefined  //element.fixedCodeableConcept?.coding
-          console.log(initialValue?.coding)
+          initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition] as fhir4.CodeableConcept | undefined
           if (initialValue && initialValue.coding) {
             initialValue = initialValue?.coding[0]
           } else if (initialValue && initialValue.text) {
             initialValue = initialValue.text
+            valueType = "string"
           }
+        } else if (elementType === "code" && item.answerValueSet) {
+          initialValue = {} as Coding
+          initialValue.system = item.answerValueSet
+          initialValue.code = element[fixedElementKey as keyof fhir4.ElementDefinition] as string
         } else {
           initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition]
         }
@@ -149,8 +163,8 @@ export const buildQuestionnaire = (
       // TODO: (may remove) Context from where the corresponding data-requirement is used with a special extension (e.g. PlanDefinition.action.input[extension]...)? or.....
 
       const getElementPath = (element: fhir4.ElementDefinition, elementType?: fhir4.ElementDefinitionType["code"]) => {
-        if (element.path.includes('[x]') && elementType) {
-          element.path.replace('[x]', (elementType.charAt(0).toUpperCase() + elementType.slice(1)))
+        if (element.path.includes("[x]") && elementType) {
+          element.path.replace("[x]", (elementType.charAt(0).toUpperCase() + elementType.slice(1)))
         } else {
           return element.path
         }
@@ -189,19 +203,8 @@ export const buildQuestionnaire = (
         }
       }
 
-      if (element.maxLength && item.type === 'string') {
+      if (element.maxLength && item.type === "string") {
         item.maxLength = element.maxLength
-      }
-
-      // QuestionnaireItem.answerOption => build if the element has a binding to a VS
-      // Should this actually be QuestionnaireItem.answerValueSet?
-      let binding = element.binding || getSnapshotElement(element)?.binding
-      if (binding && binding.strength === "example") {
-        item.answerValueSet = binding.valueSet
-        item.type = "open-choice"
-      } else if (binding) {
-        item.answerValueSet = binding.valueSet
-        item.type = "choice"
       }
 
       return item
@@ -240,7 +243,7 @@ export const buildQuestionnaire = (
       type: "string", // use item.type here?
       readOnly: true,
       initial: [{
-        valueString: 'placeholder for feature expression'
+        valueString: "placeholder for feature expression"
       }]
     })
 

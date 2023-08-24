@@ -62,7 +62,7 @@ Description: "Simple test case with fixed[x]"
       * url = "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden"
       * valueBoolean = true
     * initial.valueDateTime = "2023-08-23"
-  // * item[+]
+  // * item[+]  //sushi error : type Coding was expected in place of reference and quantity
   //   * linkId = "Observation.valueQuantity"
   //   * definition = "http://example.org/StructureDefinition/Observation#Observation.initial.valueQuantity"
   //   * type = #quantity
@@ -73,16 +73,16 @@ Description: "Simple test case with fixed[x]"
   //   * initial.valueQuantity
   //     * value = 55
   //     * system = "http://unitsofmeasure.org"
-  //     * code = "mm"
+  //     * code = #mm
   // * item[+]
   //   * linkId = "Observation.subject"
   //   * definition = "http://example.org/StructureDefinition/Observation#Observation.subject"
   //   * type = #reference
-    //  * text = "Who and/or what the observation is about"
-      // extension
-      // * url = "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden"
-      // * valueBoolean = true
-  //   * initial.valueReference = Reference(Patient/patient-1) // reference = "patient1"
+  //   * text = "Who and/or what the observation is about"
+  //   * extension
+  //     * url = "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden"
+  //     * valueBoolean = true
+  //   * initial.valueReference = Reference(Patient/patient-1)
   * item[+]
     * linkId = "Observation.category"
     * definition = "http://example.org/StructureDefinition/Observation#Observation.category"
