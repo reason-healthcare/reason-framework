@@ -90,10 +90,10 @@ export const buildQuestionnaire = (
       if (elementType === "code" || elementType === "CodeableConcept" || elementType === "Coding") {
         item.type = "choice"
         valueType = "coding"
-      } else if (elementType === "canonical") {
+      } else if (elementType === "canonical" || elementType === "uri") {
         item.type = "url"
         valueType = "uri"
-      } else if (elementType === "uuid" || elementType === "oid" || elementType === "uri" ) {
+      } else if (elementType === "uuid" || elementType === "oid") {
         item.type = "string"
         valueType = "uri"
       } else if (elementType === "unsignedInt" || elementType === "positiveInt") {
