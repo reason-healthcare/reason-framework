@@ -2,8 +2,7 @@ Instance: HeightObservationExpected
 InstanceOf: Questionnaire
 Usage: #example
 Description: "Simple test case with fixed[x]"
-* url = "http://questionnaire-processor/Questionnaire/HeightObservationExpected"
-* status = #draft
+* insert QuestionnaireMetaData(HeightObservationExpected)
 * item[+]
   * linkId = "Observation"
   * type = #group
@@ -14,13 +13,14 @@ Description: "Simple test case with fixed[x]"
     * linkId = "Observation.code"
     * definition = "http://example.org/StructureDefinition/HeightObservation#Observation.code"
     * text = "Body Height"
-    * type = #choice // or coding since fixed?
+    * type = #choice
     * required = true
     * initial.valueCoding = http://loinc.org#8302-2 "Body Height"
+    * answerValueSet = Canonical(observation-codes)
   * item[+]
     * linkId = "Observation.status"
     * definition = "http://example.org/StructureDefinition/HeightObservation#Observation.status"
     * text = "registered | preliminary | final | amended +"
     * type = #choice
     * required = true
-    * answerValueSet = "http://hl7.org/fhir/ValueSet/observation-status|4.0.1"
+    * answerValueSet = Canonical(observation-status)

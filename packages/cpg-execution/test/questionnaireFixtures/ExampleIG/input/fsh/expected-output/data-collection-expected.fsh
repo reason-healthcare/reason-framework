@@ -2,12 +2,11 @@ Instance: DataCollectionObservationExpected
 InstanceOf: Questionnaire
 Usage: #example
 Description: "Simple test case with fixed[x]"
-* url = "http://questionnaire-processor/Questionnaire/DataCollectionObservationExpected"
-* status = #draft
+* insert QuestionnaireMetaData(DataCollectionObservationExpected)
 * item[+]
   * linkId = "Observation"
   * type = #group
-  * definition = "http://example.org/StructureDefinition/Observation#Observation"
+  * definition = "http://example.org/StructureDefinition/DataCollectionObservation#Observation"
   * text = "Observation"
   * item[+]
     * linkId = "Observation.code"
@@ -23,16 +22,17 @@ Description: "Simple test case with fixed[x]"
     * type = #choice
     * required = true
     * extension
-      * url = "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden"
+      * url = Canonical(questionnaire-hidden)
       * valueBoolean = true
     * initial.valueCoding = http://hl7.org/fhir/observation-status#final "Final"
+    * answerValueSet = Canonical(observation-status)
   * item[+]
     * linkId = "Observation.valueString"
     * definition = "http://example.org/StructureDefinition/Observation#Observation.initial.valueString"
     * type = #string
     * text = "Observation valueString"
     * extension
-      * url = "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden"
+      * url = Canonical(questionnaire-hidden)
       * valueBoolean = true
     * initial.valueString = "hello"
   * item[+]
@@ -41,7 +41,7 @@ Description: "Simple test case with fixed[x]"
     * type = #boolean
     * text = "Observation valueBoolean"
     * extension
-      * url = "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden"
+      * url = Canonical(questionnaire-hidden)
       * valueBoolean = true
     * initial.valueBoolean = true
   * item[+]
@@ -50,7 +50,7 @@ Description: "Simple test case with fixed[x]"
     * type = #integer
     * text = "Observation valueInteger"
     * extension
-      * url = "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden"
+      * url = Canonical(questionnaire-hidden)
       * valueBoolean = true
     * initial.valueInteger = 5
   * item[+]
@@ -59,7 +59,7 @@ Description: "Simple test case with fixed[x]"
     * type = #dateTime
     * text = "Observation valueDateTime"
     * extension
-      * url = "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden"
+      * url = Canonical(questionnaire-hidden)
       * valueBoolean = true
     * initial.valueDateTime = "2023-08-23"
   // * item[+]  //sushi error : type Coding was expected in place of reference and quantity
@@ -68,7 +68,7 @@ Description: "Simple test case with fixed[x]"
   //   * type = #quantity
   //   * text = "Observation valueQuntity"
   //   * extension
-  //     * url = "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden"
+  //     * url = Canonical(questionnaire-hidden)
   //     * valueBoolean = true
   //   * initial.valueQuantity
   //     * value = 55
@@ -80,7 +80,7 @@ Description: "Simple test case with fixed[x]"
   //   * type = #reference
   //   * text = "Who and/or what the observation is about"
   //   * extension
-  //     * url = "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden"
+  //     * url = Canonical(questionnaire-hidden)
   //     * valueBoolean = true
   //   * initial.valueReference = Reference(Patient/patient-1)
   * item[+]
@@ -90,6 +90,7 @@ Description: "Simple test case with fixed[x]"
     * text = "Classification of  type of observation"
     * text = "Observation valueCoding"
     * extension
-      * url = "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden"
+      * url = Canonical(questionnaire-hidden)
       * valueBoolean = true
-    * initial.valueCoding = http://terminology.hl7.org/CodeSystem/observation-category#vital-signs "Vital Signs"
+    * initial.valueCoding = $observation-category#vital-signs "Vital Signs"
+    * answerValueSet = Canonical(observation-category)

@@ -2,7 +2,7 @@ Instance: WrittenAssessmentObservationExpected
 InstanceOf: Questionnaire
 Usage: #example
 Description: "Test case for simple item properties such as required, repeats, and maxLength"
-* status = #draft
+* insert QuestionnaireMetaData(WrittenAssessmentObservationExpected)
 * item[+]
   * linkId = "Observation"
   * definition = "http://example.org/StructureDefinition/WrittenAssessmentObservation#Observation"
@@ -15,7 +15,7 @@ Description: "Test case for simple item properties such as required, repeats, an
     * required = true
     * repeats = true
     * type = #choice
-    * answerValueSet = "http://hl7.org/fhir/ValueSet/observation-category"
+    * answerValueSet = Canonical(observation-category)
   * item[+]
     * linkId = "Observation.valueString"
     * definition = "http://example.org/StructureDefinition/WrittenAssessmentObservation#Observation.valueString"
@@ -28,7 +28,7 @@ Description: "Test case for simple item properties such as required, repeats, an
     * text = "registered | preliminary | final | amended +"
     * type = #choice
     * required = true
-    * answerValueSet = "http://hl7.org/fhir/ValueSet/observation-status|4.0.1"
+    * answerValueSet = Canonical(observation-status|4.0.1)
   * item[+]
     * linkId = "Observation.code"
     * definition = "http://example.org/StructureDefinition/WrittenAssessmentObservation#Observation.code"

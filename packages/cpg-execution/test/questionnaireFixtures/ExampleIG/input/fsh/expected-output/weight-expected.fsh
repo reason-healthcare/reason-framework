@@ -2,7 +2,7 @@ Instance: WeightObservationExpected
 InstanceOf: Questionnaire
 Usage: #example
 Description: "Test case for supportedOnly = true parameter and fixed[x] element"
-* status = #draft
+* insert QuestionnaireMetaData(WeightObservationExpected)
 * item[+]
   * linkId = "Observation"
   * type = #group
@@ -15,5 +15,5 @@ Description: "Test case for supportedOnly = true parameter and fixed[x] element"
     * text = "Body Weight"
     * type = #choice
     * required = true
-    * initial.valueCoding = http://loinc.org#29463-7 "Body Weight"
-    // set to open choice with example VS for binding?
+    * initial.valueCoding = $loinc#29463-7 "Body Weight"
+    * answerValueSet = $loinc
