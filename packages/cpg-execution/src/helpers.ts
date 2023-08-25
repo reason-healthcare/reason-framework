@@ -380,3 +380,7 @@ if (baseUrl.endsWith('/')) {
 export const omitCanonicalVersion = (canonical: string | undefined): string | undefined => {
   return canonical?.split("|").shift()
 }
+
+export const getSnapshotElement = (structureDefinition: fhir4.StructureDefinition, element: fhir4.ElementDefinition) => {
+  return structureDefinition.snapshot?.element.find(e => e.path === element.path)
+}
