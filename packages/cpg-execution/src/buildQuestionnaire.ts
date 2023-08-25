@@ -30,6 +30,7 @@ export const buildQuestionnaire = (
 
   let subGroupElements: fhir4.ElementDefinition[] | undefined = structureDefinition?.differential?.element
 
+  // TODO: this logic is currently dependent on the subGroupElements being in order - refactor in case a parent element does not preceed a child element
   const elementIsRootOrHasParent = (element: fhir4.ElementDefinition, subGroupElements: fhir4.ElementDefinition[] | undefined) => {
     if (getPathPrefix(element.path) === backboneElement?.path) {
       return true

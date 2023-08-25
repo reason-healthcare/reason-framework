@@ -31,6 +31,7 @@ export const buildQuestionnaireItemsSubGroups = (structureDefinition: fhir4.Stru
 
     item.definition = `${structureDefinition.url}#${getElementPath(element, elementType)}`
 
+    // TODO: this should be an else clause to catch all data types that are not primitive
     if (elementType === "BackboneElement") {
       item.type = "group"
       item.text = `${element.path} Group`
@@ -39,8 +40,6 @@ export const buildQuestionnaireItemsSubGroups = (structureDefinition: fhir4.Stru
         item.item = buildQuestionnaireItemsSubGroups(structureDefinition, subItems, subGroupElements)
       }
     } else {
-
-
       let valueType
       if (elementType === "code" || elementType === "CodeableConcept" || elementType === "Coding") {
         item.type = "choice"
@@ -63,7 +62,6 @@ export const buildQuestionnaireItemsSubGroups = (structureDefinition: fhir4.Stru
       } else if (elementType && is.QuestionnaireItemType(elementType)) {
         item.type = elementType
         valueType = elementType
-        // TODO: Process complex with $questionnaire instead of using string as data type
       }
 
       // Documentation on ElementDefinition states that default value "only exists so that default values may be defined in logical models", so do we need to support?
