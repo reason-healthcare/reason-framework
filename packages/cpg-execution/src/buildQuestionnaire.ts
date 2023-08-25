@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid"
-import { questionnaireBaseUrl, getSnapshotElement } from "./helpers"
+import { questionnaireBaseUrl, getSnapshotElement, getPathPrefix } from "./helpers"
 import {buildQuestionnaireItemsSubGroups} from "./buildQuestionnaireSubGroups"
 
 export interface BuildQuestionnaireArgs {
@@ -41,9 +41,7 @@ export const buildQuestionnaire = (
       return true
     }
     // if the path prefix matches an item already in the array of subGroupElements, its parent has a cardinality of 1 and the element should be considered for processing
-    pathList.pop()
-    const pathPrefix = pathList.join(".")
-    return subGroupElements?.some(e => pathPrefix === e.path)
+    return subGroupElements?.some(e => getPathPrefix(element.path) === e.path)
   }
 
   // Only add snapshot elements if cardinality of 1 and not in differential

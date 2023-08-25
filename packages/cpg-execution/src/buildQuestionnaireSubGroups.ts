@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid"
-import { is, omitCanonicalVersion, getSnapshotElement } from "./helpers"
+import { is, omitCanonicalVersion, getSnapshotElement, getPathPrefix } from "./helpers"
 
 export const buildQuestionnaireItemsSubGroups = (structureDefinition: fhir4.StructureDefinition, rootElements: fhir4.ElementDefinition[], subGroupElements: fhir4.ElementDefinition[]): fhir4.QuestionnaireItem[] => {
 
@@ -30,12 +30,6 @@ export const buildQuestionnaireItemsSubGroups = (structureDefinition: fhir4.Stru
     }
 
     item.definition = `${structureDefinition.url}#${getElementPath(element, elementType)}`
-
-    const getPathPrefix = (path: fhir4.ElementDefinition["path"]): fhir4.ElementDefinition["path"] => {
-      const prefix = path.split(".")
-      prefix.pop()
-      return prefix.join(".")
-    }
 
     if (elementType === "BackboneElement") {
       item.type = "group"
