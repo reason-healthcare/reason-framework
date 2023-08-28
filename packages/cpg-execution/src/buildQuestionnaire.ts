@@ -1,6 +1,11 @@
 import { v4 as uuidv4 } from "uuid"
 import { questionnaireBaseUrl, getSnapshotElement, getPathPrefix } from "./helpers"
 import {buildQuestionnaireItemsSubGroups} from "./buildQuestionnaireSubGroups"
+import Fastify, {
+  FastifyReply,
+  FastifyRequest,
+  FastifyServerOptions,
+} from 'fastify'
 
 export interface BuildQuestionnaireArgs {
   structureDefinition: fhir4.StructureDefinition,

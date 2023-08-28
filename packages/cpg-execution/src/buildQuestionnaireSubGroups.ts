@@ -3,6 +3,113 @@ import { is, omitCanonicalVersion, getSnapshotElement, getPathPrefix } from "./h
 
 export const buildQuestionnaireItemsSubGroups = (structureDefinition: fhir4.StructureDefinition, rootElements: fhir4.ElementDefinition[], subGroupElements: fhir4.ElementDefinition[]): fhir4.QuestionnaireItem[] => {
 
+    //TODO
+    // 1. support case feature expressions
+    // 2. determine how readOnly will be used
+    // 3. process complex data types
+
+  const complexDifferentialTest = {
+    "differential": {
+      "element": [
+        {
+          "id": "Period",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/structuredefinition-standards-status",
+              "valueCode": "normative"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/structuredefinition-normative-version",
+              "valueCode": "4.0.0"
+            }
+          ],
+          "path": "Period",
+          "short": "Time range defined by start and end date/time",
+          "definition": "A time period defined by a start and end date and optionally time.",
+          "comment": "A Period specifies a range of time; the context of use will specify whether the entire range applies (e.g. \"the patient was an inpatient of the hospital for this time range\") or one value from the range applies (e.g. \"give to the patient between these two times\").\n\nPeriod is not used for a duration (a measure of elapsed time). See [Duration](datatypes.html#Duration).",
+          "min": 0,
+          "max": "*",
+          "constraint": [
+            {
+              "key": "per-1",
+              "severity": "error",
+              "human": "If present, start SHALL have a lower value than end",
+              "expression": "start.hasValue().not() or end.hasValue().not() or (start <= end)",
+              "xpath": "not(exists(f:start/@value)) or not(exists(f:end/@value)) or (xs:dateTime(f:start/@value) <= xs:dateTime(f:end/@value))"
+            }
+          ],
+          "mapping": [
+            {
+              "identity": "v2",
+              "map": "DR"
+            },
+            {
+              "identity": "rim",
+              "map": "IVL<TS>[lowClosed=\"true\" and highClosed=\"true\"] or URG<TS>[lowClosed=\"true\" and highClosed=\"true\"]"
+            }
+          ]
+        },
+        {
+          "id": "Period.start",
+          "path": "Period.start",
+          "short": "Starting time with inclusive boundary",
+          "definition": "The start of the period. The boundary is inclusive.",
+          "comment": "If the low element is missing, the meaning is that the low boundary is not known.",
+          "min": 0,
+          "max": "1",
+          "type": [
+            {
+              "code": "dateTime"
+            }
+          ],
+          "condition": [
+            "per-1"
+          ],
+          "isSummary": true,
+          "mapping": [
+            {
+              "identity": "v2",
+              "map": "DR.1"
+            },
+            {
+              "identity": "rim",
+              "map": "./low"
+            }
+          ]
+        },
+        {
+          "id": "Period.end",
+          "path": "Period.end",
+          "short": "End time with inclusive boundary, if not ongoing",
+          "definition": "The end of the period. If the end of the period is missing, it means no end was known or planned at the time the instance was created. The start may be in the past, and the end date in the future, which means that period is expected/planned to end at that time.",
+          "comment": "The high value includes any matching date/time. i.e. 2012-02-03T10:00:00 is in a period that has an end value of 2012-02-03.",
+          "min": 0,
+          "max": "1",
+          "type": [
+            {
+              "code": "dateTime"
+            }
+          ],
+          "meaningWhenMissing": "If the end of the period is missing, it means that the period is ongoing",
+          "condition": [
+            "per-1"
+          ],
+          "isSummary": true,
+          "mapping": [
+            {
+              "identity": "v2",
+              "map": "DR.2"
+            },
+            {
+              "identity": "rim",
+              "map": "./high"
+            }
+          ]
+        }
+      ]
+    }
+  }
+
   const subGroup = rootElements.map((element) => {
     let item = {
       linkId: uuidv4(),
@@ -65,6 +172,7 @@ export const buildQuestionnaireItemsSubGroups = (structureDefinition: fhir4.Stru
 
       // Documentation on ElementDefinition states that default value "only exists so that default values may be defined in logical models", so do we need to support?
       let binding = element.binding || snapshotElement?.binding
+      // TODO: there might be a case where the snapshot element has a fixed value when the differential does not?
       let fixedElementKey = Object.keys(element).find(k => { return k.startsWith("fixed") || k.startsWith("pattern") || k.startsWith("defaultValue") })
 
       if (binding && binding.strength === "example" && !fixedElementKey) {
@@ -135,14 +243,17 @@ export const buildQuestionnaireItemsSubGroups = (structureDefinition: fhir4.Stru
         item.repeats = true
       }
 
-      if (element.maxLength && item.type === "string") {
+      if (element.maxLength && elementType === "string") {
         item.maxLength = element.maxLength
+      } else if (!element.maxLength && snapshotElement?.maxLength && elementType === "string") {
+        item.maxLength = snapshotElement.maxLength
       }
 
     }
+
     // console.log(JSON.stringify(item) +'item')
     return item
-    })
+  })
     // console.log(JSON.stringify(subGroup) + "subgroup")
-    return subGroup
-  }
+  return subGroup
+}
