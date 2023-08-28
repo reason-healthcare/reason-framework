@@ -7,7 +7,7 @@ export interface BuildQuestionnaireArgs {
   supportedOnly?: boolean | undefined
 }
 
-export const buildQuestionnaire = (
+export const buildQuestionnaire = async (
   args: BuildQuestionnaireArgs
 ) => {
 
@@ -68,7 +68,7 @@ export const buildQuestionnaire = (
     let rootElements = subGroupElements.filter(e => e.path.split(".").length === 2)
     // console.log(JSON.stringify(rootElements) + "re")
 
-    const subGroupItems = buildQuestionnaireItemsSubGroups(structureDefinition, rootElements, subGroupElements!)
+    const subGroupItems = await buildQuestionnaireItemsSubGroups(structureDefinition, rootElements, subGroupElements!)
 
     // console.log(JSON.stringify(subGroupElements) + "sg")
 

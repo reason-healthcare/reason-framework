@@ -600,7 +600,7 @@ export default async (options?: FastifyServerOptions) => {
             'valueBoolean'
           )
         }
-        res.send(buildQuestionnaire(args))
+        res.send(await buildQuestionnaire(args))
       }
     }
   )

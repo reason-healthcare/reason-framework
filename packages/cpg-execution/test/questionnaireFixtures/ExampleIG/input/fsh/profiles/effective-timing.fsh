@@ -1,4 +1,4 @@
 Profile: EffectiveTimingObservation
 Parent: Observation
 * effectiveTiming MS
-  * event MS
+  * event 1..1 // will test that differential is preffered over SD of the data type
