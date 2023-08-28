@@ -36,6 +36,7 @@ export const buildQuestionnaireItemsSubGroups = async (structureDefinition: fhir
 
     let processAsGroup = false
     let valueType
+    // TODO: data types that are questionnaire types with only additional constraints can be coerced -> example duration is a quantity with additional constraints
     if (elementType === "code" || elementType === "CodeableConcept" || elementType === "Coding") {
       item.type = "choice"
       valueType = "coding"
@@ -87,6 +88,7 @@ export const buildQuestionnaireItemsSubGroups = async (structureDefinition: fhir
           }
         })
         let dataTypeRootElements = subGroupElements.filter(e => e.path.split(".").length === 2)
+        console.log(JSON.stringify(dataTypeElements))
         item.item = await buildQuestionnaireItemsSubGroups(dataTypeDefinition, dataTypeRootElements, dataTypeElements)
       }
     } else {
