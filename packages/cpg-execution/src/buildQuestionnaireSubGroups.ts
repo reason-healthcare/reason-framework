@@ -8,15 +8,14 @@ export const buildQuestionnaireItemsSubGroups = (structureDefinition: fhir4.Stru
       linkId: uuidv4(),
     } as fhir4.QuestionnaireItem
 
+    let snapshotElement = getSnapshotElement(structureDefinition, element)
+
     let elementType: fhir4.ElementDefinitionType["code"] | undefined
     // console.log(JSON.stringify(rootElements) + "rootElements")
     if (element.type) {
       elementType = element.type[0].code
-    } else {
-      let snapshotElement = getSnapshotElement(structureDefinition, element)
-      if (snapshotElement?.type) {
-        elementType = snapshotElement.type[0].code
-      }
+    } else if (snapshotElement?.type) {
+      elementType = snapshotElement.type[0].code
     }
 
     // QuestionnaireItem.definition => "{structureDefinition.url}#{full element path}", where: * "full element path" is path with `[x]` replaced with the first (and only) type.code
@@ -65,7 +64,7 @@ export const buildQuestionnaireItemsSubGroups = (structureDefinition: fhir4.Stru
       }
 
       // Documentation on ElementDefinition states that default value "only exists so that default values may be defined in logical models", so do we need to support?
-      let binding = element.binding || getSnapshotElement(structureDefinition, element)?.binding
+      let binding = element.binding || snapshotElement?.binding
       let fixedElementKey = Object.keys(element).find(k => { return k.startsWith("fixed") || k.startsWith("pattern") || k.startsWith("defaultValue") })
 
       if (binding && binding.strength === "example" && !fixedElementKey) {
@@ -114,32 +113,26 @@ export const buildQuestionnaireItemsSubGroups = (structureDefinition: fhir4.Stru
 
       if (element.short) {
         item.text = element.short
-      } else if (getSnapshotElement(structureDefinition, element)?.short) {
-        item.text = getSnapshotElement(structureDefinition, element)?.short
+      } else if (snapshotElement?.short) {
+        item.text = snapshotElement?.short
       } else if (element.label) {
         item.text = element.label
-      } else if (getSnapshotElement(structureDefinition, element)?.label) {
-        item.text = getSnapshotElement(structureDefinition, element)?.label
+      } else if (snapshotElement?.label) {
+        item.text = snapshotElement?.label
       } else {
         item.text = getElementPath(element, elementType)?.split('.').join(' ')
       }
 
       if (element.min && element.min > 0) {
         item.required = true
-      } else if (!element.min) {
-        let snapshotElement = getSnapshotElement(structureDefinition, element)
-        if (snapshotElement?.min && snapshotElement.min > 0) {
-          item.required = true
-        }
+      } else if (!element.min && snapshotElement?.min && snapshotElement.min > 0) {
+        item.required = true
       }
 
       if (element.max && (element.max === "*" || parseInt(element.max) > 1)) {
         item.repeats = true
-      } else if (!element.max) {
-        let snapshotElement = getSnapshotElement(structureDefinition, element)
-        if (snapshotElement?.max && (snapshotElement.max === "*" || parseInt(snapshotElement.max) > 1)) {
-          item.repeats = true
-        }
+      } else if (!element.max && snapshotElement?.max && (snapshotElement.max === "*" || parseInt(snapshotElement.max) > 1)) {
+        item.repeats = true
       }
 
       if (element.maxLength && item.type === "string") {
