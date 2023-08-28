@@ -1,11 +1,6 @@
 import { v4 as uuidv4 } from "uuid"
 import { questionnaireBaseUrl, getSnapshotElement, getPathPrefix } from "./helpers"
 import {buildQuestionnaireItemsSubGroups} from "./buildQuestionnaireSubGroups"
-import Fastify, {
-  FastifyReply,
-  FastifyRequest,
-  FastifyServerOptions,
-} from 'fastify'
 
 export interface BuildQuestionnaireArgs {
   structureDefinition: fhir4.StructureDefinition,
@@ -80,7 +75,7 @@ export const buildQuestionnaire = (
     questionnaire.item = [{
       linkId: uuidv4(),
       definition: `${structureDefinition.url}#${backboneElement?.path}`,
-      text: backboneElement?.path,
+      text: `${backboneElement?.path} Group`,
       type: "group",
       item: subGroupItems
     }]

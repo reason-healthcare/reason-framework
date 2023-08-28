@@ -127,49 +127,52 @@ export const buildQuestionnaireItemsSubGroups = (structureDefinition: fhir4.Stru
 
     // QuestionnaireItem.definition => "{structureDefinition.url}#{full element path}", where: * "full element path" is path with `[x]` replaced with the first (and only) type.code
 
-    const getElementPath = (element: fhir4.ElementDefinition, elementType?: fhir4.ElementDefinitionType["code"]) => {
-      if (element.path.includes("[x]") && elementType) {
-        element.path.replace("[x]", (elementType.charAt(0).toUpperCase() + elementType.slice(1)))
-      } else {
-        return element.path
-      }
+    let elementPath: fhir4.ElementDefinition["path"]
+    if (element.path.includes("[x]") && elementType) {
+      elementPath = element.path.replace("[x]", (elementType.charAt(0).toUpperCase() + elementType.slice(1)))
+    } else {
+      elementPath = element.path
     }
 
-    item.definition = `${structureDefinition.url}#${getElementPath(element, elementType)}`
+    item.definition = `${structureDefinition.url}#${elementPath}`
+
+    let processAsGroup = false
+    let valueType
+    if (elementType === "code" || elementType === "CodeableConcept" || elementType === "Coding") {
+      item.type = "choice"
+      valueType = "coding"
+    } else if (elementType === "canonical" || elementType === "uri") {
+      item.type = "url"
+      valueType = "uri"
+    } else if (elementType === "uuid" || elementType === "oid") {
+      item.type = "string"
+      valueType = "uri"
+    } else if (elementType === "unsignedInt" || elementType === "positiveInt") {
+      item.type = "integer"
+      valueType = "integer"
+    } else if (elementType && elementType === "instant") {
+      item.type = "dateTime"
+      valueType = "dateTime"
+    } else if (elementType === "base64Binary") {
+      item.type = "string"
+      valueType = "string"
+    } else if (elementType && is.QuestionnaireItemType(elementType)) {
+      item.type = elementType
+      valueType = elementType
+    } else {
+      processAsGroup = true
+      //
+    }
 
     // TODO: this should be an else clause to catch all data types that are not primitive
-    if (elementType === "BackboneElement") {
+    if (processAsGroup) {
       item.type = "group"
       item.text = `${element.path} Group`
-      let subItems = subGroupElements.filter(e => getPathPrefix(e.path) === element.path)
+      let subItems = subGroupElements.filter(e => getPathPrefix(e.path) === elementPath)
       if (subItems !== undefined) {
         item.item = buildQuestionnaireItemsSubGroups(structureDefinition, subItems, subGroupElements)
       }
     } else {
-      let valueType
-      if (elementType === "code" || elementType === "CodeableConcept" || elementType === "Coding") {
-        item.type = "choice"
-        valueType = "coding"
-      } else if (elementType === "canonical" || elementType === "uri") {
-        item.type = "url"
-        valueType = "uri"
-      } else if (elementType === "uuid" || elementType === "oid") {
-        item.type = "string"
-        valueType = "uri"
-      } else if (elementType === "unsignedInt" || elementType === "positiveInt") {
-        item.type = "integer"
-        valueType = "integer"
-      } else if (elementType && elementType === "instant") {
-        item.type = "dateTime"
-        valueType = "dateTime"
-      } else if (elementType === "base64Binary") {
-        item.type = "string"
-        valueType = "string"
-      } else if (elementType && is.QuestionnaireItemType(elementType)) {
-        item.type = elementType
-        valueType = elementType
-      }
-
       // Documentation on ElementDefinition states that default value "only exists so that default values may be defined in logical models", so do we need to support?
       let binding = element.binding || snapshotElement?.binding
       // TODO: there might be a case where the snapshot element has a fixed value when the differential does not?
@@ -228,7 +231,7 @@ export const buildQuestionnaireItemsSubGroups = (structureDefinition: fhir4.Stru
       } else if (snapshotElement?.label) {
         item.text = snapshotElement?.label
       } else {
-        item.text = getElementPath(element, elementType)?.split('.').join(' ')
+        item.text = elementPath?.split('.').join(' ')
       }
 
       if (element.min && element.min > 0) {
