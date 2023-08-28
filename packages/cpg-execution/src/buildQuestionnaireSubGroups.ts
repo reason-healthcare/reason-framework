@@ -164,14 +164,21 @@ export const buildQuestionnaireItemsSubGroups = (structureDefinition: fhir4.Stru
       //
     }
 
-    // TODO: this should be an else clause to catch all data types that are not primitive
-    if (processAsGroup) {
+    // TODO: this supports backbone element groups but not complex data types
+    if (processAsGroup && elementType === "backboneElement" || elementType === "element") {
       item.type = "group"
       item.text = `${element.path} Group`
       let subItems = subGroupElements.filter(e => getPathPrefix(e.path) === elementPath)
       if (subItems !== undefined) {
         item.item = buildQuestionnaireItemsSubGroups(structureDefinition, subItems, subGroupElements)
       }
+    } else if (processAsGroup) {
+      // Get differential for the SD differential of the complex data type
+      // Get subItems from subGroupElements as above (these will be differential elements, there will not be a snapshot fallback)
+      // subItems should be iterated first, then SD differential
+      // Make list with subItems, add SD elements that are not already there = subItems
+      // What if one sub type is complex?
+      // buildQuestionnaireItemsSubGroups(complex type SD diff (fallback), subItems, )
     } else {
       // Documentation on ElementDefinition states that default value "only exists so that default values may be defined in logical models", so do we need to support?
       let binding = element.binding || snapshotElement?.binding
