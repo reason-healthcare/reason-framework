@@ -59,19 +59,17 @@ export const buildQuestionnaireItemsSubGroups = async (structureDefinition: fhir
       valueType = elementType
     } else {
       processAsGroup = true
-      //
     }
 
     // TODO: this supports backbone element groups but not complex data types
     if (processAsGroup) {
       item.type = "group"
       item.text = `${element.path} Group`
-      let subItems = subGroupElements.filter(e => getPathPrefix(e.path) === elementPath)
+      let childElements = subGroupElements.filter(e => getPathPrefix(e.path) === elementPath)
 
-      if (subItems !== undefined && elementType === "BackboneElement" || elementType === "Element") {
-        item.item = await buildQuestionnaireItemsSubGroups(structureDefinition, subItems, subGroupElements)
-      } else if (subItems !== undefined && elementType) {
-
+      if (childElements && elementType === "BackboneElement" || elementType === "Element") {
+        item.item = await buildQuestionnaireItemsSubGroups(structureDefinition, childElements, subGroupElements)
+      } else if (childElements && elementType) {
         const getDataTypeDefinition = async (elementType: fhir4.ElementDefinitionType["code"]) => {
           try{
             const response = await axios.get(`http://hapi.fhir.org/baseR4/StructureDefinition/${elementType}`)
@@ -81,17 +79,15 @@ export const buildQuestionnaireItemsSubGroups = async (structureDefinition: fhir
           }
         }
 
-        const dataTypeDefinition = await getDataTypeDefinition(elementType)
-        let subGroupElements: fhir4.ElementDefinition[] = subItems
-        let complexElements: fhir4.ElementDefinition[] = dataTypeDefinition.differential.element
-        complexElements.forEach(element => {
-          if (!subGroupElements.some(e => e.path === element.path)) {
-            subGroupElements.push(element)
+        const dataTypeDefinition: fhir4.StructureDefinition = await getDataTypeDefinition(elementType)
+        let dataTypeElements: fhir4.ElementDefinition[] = childElements
+        dataTypeDefinition?.differential?.element.forEach(element => {
+          if (!dataTypeElements.some(e => e.path === element.path)) {
+            dataTypeElements.push(element)
           }
         })
-
-        let rootElements = subGroupElements.filter(e => e.path.split(".").length === 2)
-        item.item = await buildQuestionnaireItemsSubGroups(dataTypeDefinition, rootElements, subGroupElements)
+        let dataTypeRootElements = subGroupElements.filter(e => e.path.split(".").length === 2)
+        item.item = await buildQuestionnaireItemsSubGroups(dataTypeDefinition, dataTypeRootElements, dataTypeElements)
       }
     } else {
       // Documentation on ElementDefinition states that default value "only exists so that default values may be defined in logical models", so do we need to support?
@@ -175,9 +171,8 @@ export const buildQuestionnaireItemsSubGroups = async (structureDefinition: fhir
 
     }
 
-    // console.log(JSON.stringify(item) +'item')
     return item
   }))
-    // console.log(JSON.stringify(subGroup) + "subgroup")
+
   return subGroup
 }
