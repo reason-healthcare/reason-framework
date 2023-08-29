@@ -107,18 +107,9 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
             childElements.push(dataTypeElement)
           }
         })
-        console.log(element.path + 'element path')
 
-        //Logic here needs to change because root length may differ
         let dataTypeRootElements = childElements.filter(e => getPathPrefix(e.path) === element.path)
         item.item = await buildQuestionnaireItemsSubGroups(definitionUrl, dataTypeDefinition, dataTypeRootElements, childElements)
-
-        if (elementType === "Period") {
-          console.log(JSON.stringify(dataTypeDefinition) + "dataTypeDef")
-          console.log(JSON.stringify(dataTypeRootElements) + "root")
-          console.log(JSON.stringify(childElements) + "children")
-        }
-
       }
     } else {
       // Documentation on ElementDefinition states that default value "only exists so that default values may be defined in logical models", so do we need to support?
