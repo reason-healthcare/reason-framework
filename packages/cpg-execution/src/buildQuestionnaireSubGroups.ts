@@ -33,7 +33,7 @@ export const buildQuestionnaireItemsSubGroups = async (structureDefinition: fhir
 
     item.definition = `${structureDefinition.url}#${elementPath}`
 
-    let processAsGroup = false
+    let processAsComplexType = false
     let valueType
     // TODO: data types that are questionnaire types with only additional constraints can be coerced -> example duration is a quantity with additional constraints
     if (elementType === "code" || elementType === "CodeableConcept" || elementType === "Coding") {
@@ -54,22 +54,25 @@ export const buildQuestionnaireItemsSubGroups = async (structureDefinition: fhir
     } else if (elementType === "base64Binary" || elementType === "markdown" || elementType === "id") {
       item.type = "string"
       valueType = "string"
+    } else if (elementType === "Age" || elementType === "Distance" || elementType === "Duration" ||elementType === "Count" || elementType === "MoneyQuantity" || elementType === "SimpleQuantity") { //TODO: write test for this with fixedDuration and handle bindings
+      item.type = "quantity"
+      valueType = "quantity"
     } else if (elementType && is.QuestionnaireItemType(elementType)) {
       item.type = elementType
       valueType = elementType
     } else {
-      processAsGroup = true
+      processAsComplexType = true
     }
 
-    if (processAsGroup) {
+    if (processAsComplexType) {
       item.type = "group"
       item.text = `${element.path} Group`
 
       let childElements = subGroupElements.filter(e => getPathPrefix(e.path) === elementPath)
-      // manipulate child element path to match complex type path
       if (childElements && elementType === "BackboneElement" || elementType === "Element") {
         item.item = await buildQuestionnaireItemsSubGroups(structureDefinition, childElements, subGroupElements)
       } else if (childElements && elementType) {
+
         const getDataTypeDefinition = async (elementType: fhir4.ElementDefinitionType["code"]) => {
           try{
             const response = await axios.get(`http://hapi.fhir.org/baseR4/StructureDefinition/${elementType}`)
@@ -84,12 +87,11 @@ export const buildQuestionnaireItemsSubGroups = async (structureDefinition: fhir
         let dataTypeElements: fhir4.ElementDefinition[] = childElements.map(e => {
           if (elementType) {
             e = {...e, path:  e.path.replace(element.path, elementType)}
-            console.log(JSON.stringify(e))
           }
           return e
         })
 
-        // Bug: data types with constraints should translate to an item with a binding or to type that it was derived from Duration -- > Quantity with binding?
+        // Bug: if there is a type specified on differential, that should replace type from SD
 
         dataTypeDefinition?.differential?.element.forEach(dataTypeElement => {
           if (!dataTypeElements.some(e => e.path === dataTypeElement.path)) {
