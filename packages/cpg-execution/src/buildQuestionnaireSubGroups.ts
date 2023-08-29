@@ -70,37 +70,55 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
       let childElements = subGroupElements.filter(e => getPathPrefix(e.path) === elementPath)
       if (childElements && elementType === "BackboneElement" || elementType === "Element") {
         item.item = await buildQuestionnaireItemsSubGroups(definitionUrl, baseStructure, childElements, subGroupElements)
+
       } else if (childElements && elementType) {
 
         const getDataTypeDefinition = async (elementType: fhir4.ElementDefinitionType["code"]) => {
           try{
             const response = await axios.get(`http://hapi.fhir.org/baseR4/StructureDefinition/${elementType}`)
+            console.log(elementType + 'from fetch')
             return response.data
           } catch (error) {
-            // console.error(error)
+            console.error(error)
           }
         }
 
         let dataTypeDefinition = await getDataTypeDefinition(elementType)
+        dataTypeDefinition = dataTypeDefinition.differential
 
         // Bug: if there is a type specified on differential, that should replace type from SD
-
-        dataTypeDefinition = dataTypeDefinition.differential
 
         //TODO handle type narrowing
         dataTypeDefinition = dataTypeDefinition.element.map((e: fhir4.ElementDefinition) => {
           return e = {...e, path: e.path.replace(elementType!, element.path)}
         })
 
-        let dataTypeElements = childElements
-
+        let subGroupElement: fhir4.ElementDefinition | undefined
         dataTypeDefinition.forEach((dataTypeElement: fhir4.ElementDefinition) => {
-          if (!dataTypeElements.some(e => e.path === dataTypeElement.path)) {
-            dataTypeElements.push(dataTypeElement)
+          let prefix: string
+          if (dataTypeElement.path.includes("[x]")) {
+            prefix = dataTypeElement.path.replace("[x]", "")
+          }
+          subGroupElement = subGroupElements.find(el => el.path.startsWith(prefix) || el.path === dataTypeElement.path)
+          // if subgroup has the element from the differential, the differential element should be replaced with the subgroup item
+          if (subGroupElement && !childElements.some(e => e.path === dataTypeElement.path)) {
+            childElements.push(subGroupElement)
+          } else if (!childElements.some(e => e.path === dataTypeElement.path)) {
+            childElements.push(dataTypeElement)
           }
         })
-        let dataTypeRootElements = dataTypeElements.filter(e => e.path.split(".").length === 3)
-        item.item = await buildQuestionnaireItemsSubGroups(definitionUrl, dataTypeDefinition, dataTypeRootElements, dataTypeElements)
+        console.log(element.path + 'element path')
+
+        //Logic here needs to change because root length may differ
+        let dataTypeRootElements = childElements.filter(e => getPathPrefix(e.path) === element.path)
+        item.item = await buildQuestionnaireItemsSubGroups(definitionUrl, dataTypeDefinition, dataTypeRootElements, childElements)
+
+        if (elementType === "Period") {
+          console.log(JSON.stringify(dataTypeDefinition) + "dataTypeDef")
+          console.log(JSON.stringify(dataTypeRootElements) + "root")
+          console.log(JSON.stringify(childElements) + "children")
+        }
+
       }
     } else {
       // Documentation on ElementDefinition states that default value "only exists so that default values may be defined in logical models", so do we need to support?
