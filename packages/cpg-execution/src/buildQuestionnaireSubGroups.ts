@@ -16,7 +16,7 @@ export const buildQuestionnaireItemsSubGroups = async (structureDefinition: fhir
     let snapshotElement = getSnapshotElement(structureDefinition, element)
 
     let elementType: fhir4.ElementDefinitionType["code"] | undefined
-    // console.log(JSON.stringify(rootElements) + "rootElements")
+    // console.log(JSON.stringify(element.path) + 'ep')
     if (element.type) {
       elementType = element.type[0].code
     } else if (snapshotElement?.type) {
@@ -52,7 +52,7 @@ export const buildQuestionnaireItemsSubGroups = async (structureDefinition: fhir
     } else if (elementType && elementType === "instant") {
       item.type = "dateTime"
       valueType = "dateTime"
-    } else if (elementType === "base64Binary") {
+    } else if (elementType === "base64Binary" || elementType === "markdown" || elementType === "id") {
       item.type = "string"
       valueType = "string"
     } else if (elementType && is.QuestionnaireItemType(elementType)) {
@@ -66,8 +66,8 @@ export const buildQuestionnaireItemsSubGroups = async (structureDefinition: fhir
     if (processAsGroup) {
       item.type = "group"
       item.text = `${element.path} Group`
-      let childElements = subGroupElements.filter(e => getPathPrefix(e.path) === elementPath)
 
+      let childElements = subGroupElements.filter(e => getPathPrefix(e.path) === elementPath)
       if (childElements && elementType === "BackboneElement" || elementType === "Element") {
         item.item = await buildQuestionnaireItemsSubGroups(structureDefinition, childElements, subGroupElements)
       } else if (childElements && elementType) {
@@ -76,19 +76,33 @@ export const buildQuestionnaireItemsSubGroups = async (structureDefinition: fhir
             const response = await axios.get(`http://hapi.fhir.org/baseR4/StructureDefinition/${elementType}`)
             return response.data
           } catch (error) {
-            console.error(error)
+            // console.error(error)
           }
         }
 
         const dataTypeDefinition: fhir4.StructureDefinition = await getDataTypeDefinition(elementType)
         let dataTypeElements: fhir4.ElementDefinition[] = childElements
-        dataTypeDefinition?.differential?.element.forEach(element => {
-          if (!dataTypeElements.some(e => e.path === element.path)) {
-            dataTypeElements.push(element)
+
+
+        // Bug: child element path of Observation.effectiveTiming.event != Timing.event
+        // Observation.duration.event != Timing.event
+        // parse element name from path
+        // Bug: data types with constraints should translate to an item with a binding or to type that it was derived from Duration -- > Quantity with binding?
+
+        dataTypeDefinition?.differential?.element.forEach(dataTypeElement => {
+          if (elementType) {
+            // console.log(dataTypeElement.path + " " + element.path)
+            dataTypeElement.path = dataTypeElement.path.replace(elementType, element.path)
+          }
+          if (!dataTypeElements.some(e => e.path === dataTypeElement.path)) {
+            dataTypeElements.push(dataTypeElement)
           }
         })
-        let dataTypeRootElements = subGroupElements.filter(e => e.path.split(".").length === 2)
-        console.log(JSON.stringify(dataTypeElements))
+        // console.log(JSON.stringify(dataTypeElements) + " children")
+        let dataTypeRootElements = dataTypeElements.filter(e => e.path.split(".").length === 3)
+        // dataTypeElements.forEach(e => console.log(e.path + " " + elementType + " " + structureDefinition.url))
+        // console.log(JSON.stringify(dataTypeRootElements) + " rootEs")
+        console.log(JSON.stringify(dataTypeDefinition?.differential?.element) + "differential")
         item.item = await buildQuestionnaireItemsSubGroups(dataTypeDefinition, dataTypeRootElements, dataTypeElements)
       }
     } else {
