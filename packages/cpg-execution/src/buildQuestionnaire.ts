@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid"
-import { questionnaireBaseUrl, getSnapshotElement, getPathPrefix } from "./helpers"
+import { questionnaireBaseUrl, getBaseDefinition, getPathPrefix } from "./helpers"
 import {buildQuestionnaireItemsSubGroups} from "./buildQuestionnaireSubGroups"
 
 export interface BuildQuestionnaireArgs {
@@ -51,8 +51,9 @@ export const buildQuestionnaire = async (
     }
   })
 
+  // TODO fix type narrowing here to avoid "!"
   if (supportedOnly === true) {
-    subGroupElements = subGroupElements?.filter(e => e.mustSupport === true || getSnapshotElement(structureDefinition, e)?.mustSupport === true)
+    subGroupElements = subGroupElements?.filter(e => e.mustSupport === true || getBaseDefinition(structureDefinition.snapshot!, e)?.mustSupport === true)
   }
 
   questionnaire.item = [{
@@ -68,7 +69,10 @@ export const buildQuestionnaire = async (
     let rootElements = subGroupElements.filter(e => e.path.split(".").length === 2)
     // console.log(JSON.stringify(rootElements) + "re")
 
-    const subGroupItems = await buildQuestionnaireItemsSubGroups(structureDefinition, rootElements, subGroupElements!)
+    let subGroupItems
+    if (structureDefinition.snapshot) {
+      subGroupItems = await buildQuestionnaireItemsSubGroups(structureDefinition.url, structureDefinition.snapshot, rootElements, subGroupElements)
+    }
 
     // console.log(JSON.stringify(subGroupElements) + "sg")
 

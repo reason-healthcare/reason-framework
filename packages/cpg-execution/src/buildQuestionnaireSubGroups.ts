@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from "uuid"
-import { is, omitCanonicalVersion, getSnapshotElement, getPathPrefix } from "./helpers"
+import { is, omitCanonicalVersion, getBaseDefinition, getPathPrefix } from "./helpers"
 import axios from 'axios'
 
-export const buildQuestionnaireItemsSubGroups = async (structureDefinition: fhir4.StructureDefinition, rootElements: fhir4.ElementDefinition[], subGroupElements: fhir4.ElementDefinition[]): Promise<fhir4.QuestionnaireItem[]> => {
+export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, baseStructure: fhir4.StructureDefinitionDifferential | fhir4.StructureDefinitionSnapshot, rootElements: fhir4.ElementDefinition[], subGroupElements: fhir4.ElementDefinition[]): Promise<fhir4.QuestionnaireItem[]> => {
 
     //TODO
     // 1. support case feature expressions
@@ -13,16 +13,16 @@ export const buildQuestionnaireItemsSubGroups = async (structureDefinition: fhir
       linkId: uuidv4(),
     } as fhir4.QuestionnaireItem
 
-    let snapshotElement = getSnapshotElement(structureDefinition, element)
+    let fallbackElement = getBaseDefinition(baseStructure, element)
 
     let elementType: fhir4.ElementDefinitionType["code"] | undefined
     if (element.type) {
       elementType = element.type[0].code
-    } else if (snapshotElement?.type) {
-      elementType = snapshotElement.type[0].code
+    } else if (fallbackElement?.type) {
+      elementType = fallbackElement.type[0].code
     }
 
-    // QuestionnaireItem.definition => "{structureDefinition.url}#{full element path}", where: * "full element path" is path with `[x]` replaced with the first (and only) type.code
+    // QuestionnaireItem.definition => "{definitionUrl}#{full element path}", where: * "full element path" is path with `[x]` replaced with the first (and only) type.code
 
     let elementPath: fhir4.ElementDefinition["path"]
     if (element.path.includes("[x]") && elementType) {
@@ -31,7 +31,7 @@ export const buildQuestionnaireItemsSubGroups = async (structureDefinition: fhir
       elementPath = element.path
     }
 
-    item.definition = `${structureDefinition.url}#${elementPath}`
+    item.definition = `${definitionUrl}#${elementPath}`
 
     let processAsComplexType = false
     let valueType
@@ -69,7 +69,7 @@ export const buildQuestionnaireItemsSubGroups = async (structureDefinition: fhir
 
       let childElements = subGroupElements.filter(e => getPathPrefix(e.path) === elementPath)
       if (childElements && elementType === "BackboneElement" || elementType === "Element") {
-        item.item = await buildQuestionnaireItemsSubGroups(structureDefinition, childElements, subGroupElements)
+        item.item = await buildQuestionnaireItemsSubGroups(definitionUrl, baseStructure, childElements, subGroupElements)
       } else if (childElements && elementType) {
 
         const getDataTypeDefinition = async (elementType: fhir4.ElementDefinitionType["code"]) => {
@@ -81,7 +81,7 @@ export const buildQuestionnaireItemsSubGroups = async (structureDefinition: fhir
           }
         }
 
-        const dataTypeDefinition: fhir4.StructureDefinition = await getDataTypeDefinition(elementType)
+        let dataTypeDefinition = await getDataTypeDefinition(elementType)
 
         // let dataTypeElements: fhir4.ElementDefinition[] = childElements.map(e => {
         //   if (elementType) {
@@ -94,20 +94,23 @@ export const buildQuestionnaireItemsSubGroups = async (structureDefinition: fhir
 
         // change path on each snapshot and differential element to match
 
+        dataTypeDefinition = dataTypeDefinition.differential
+
         let dataTypeElements = childElements
 
-        dataTypeDefinition?.differential?.element.forEach(dataTypeElement => {
+        dataTypeDefinition.element.forEach((dataTypeElement: fhir4.ElementDefinition) => {
           if (!dataTypeElements.some(e => e.path === dataTypeElement.path)) {
             dataTypeElements.push(dataTypeElement)
           }
         })
         console.log(JSON.stringify(dataTypeElements))
         let dataTypeRootElements = dataTypeElements.filter(e => e.path.split(".").length === 2)
-        item.item = await buildQuestionnaireItemsSubGroups(dataTypeDefinition, dataTypeRootElements, dataTypeElements)
+        console.log(JSON.stringify(dataTypeRootElements) + 're')
+        item.item = await buildQuestionnaireItemsSubGroups(definitionUrl, dataTypeDefinition, dataTypeRootElements, dataTypeElements)
       }
     } else {
       // Documentation on ElementDefinition states that default value "only exists so that default values may be defined in logical models", so do we need to support?
-      let binding = element.binding || snapshotElement?.binding
+      let binding = element.binding || fallbackElement?.binding
       // TODO: there might be a case where the snapshot element has a fixed value when the differential does not?
       let fixedElementKey = Object.keys(element).find(k => { return k.startsWith("fixed") || k.startsWith("pattern") || k.startsWith("defaultValue") })
 
@@ -157,32 +160,32 @@ export const buildQuestionnaireItemsSubGroups = async (structureDefinition: fhir
 
       if (element.short) {
         item.text = element.short
-      } else if (snapshotElement?.short) {
-        item.text = snapshotElement?.short
+      } else if (fallbackElement?.short) {
+        item.text = fallbackElement?.short
       } else if (element.label) {
         item.text = element.label
-      } else if (snapshotElement?.label) {
-        item.text = snapshotElement?.label
+      } else if (fallbackElement?.label) {
+        item.text = fallbackElement?.label
       } else {
         item.text = elementPath?.split('.').join(' ')
       }
 
       if (element.min && element.min > 0) {
         item.required = true
-      } else if (!element.min && snapshotElement?.min && snapshotElement.min > 0) {
+      } else if (!element.min && fallbackElement?.min && fallbackElement.min > 0) {
         item.required = true
       }
 
       if (element.max && (element.max === "*" || parseInt(element.max) > 1)) {
         item.repeats = true
-      } else if (!element.max && snapshotElement?.max && (snapshotElement.max === "*" || parseInt(snapshotElement.max) > 1)) {
+      } else if (!element.max && fallbackElement?.max && (fallbackElement.max === "*" || parseInt(fallbackElement.max) > 1)) {
         item.repeats = true
       }
 
       if (element.maxLength && elementType === "string") {
         item.maxLength = element.maxLength
-      } else if (!element.maxLength && snapshotElement?.maxLength && elementType === "string") {
-        item.maxLength = snapshotElement.maxLength
+      } else if (!element.maxLength && fallbackElement?.maxLength && elementType === "string") {
+        item.maxLength = fallbackElement.maxLength
       }
 
     }

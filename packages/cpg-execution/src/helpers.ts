@@ -381,8 +381,8 @@ export const omitCanonicalVersion = (canonical: string | undefined): string | un
   return canonical?.split("|").shift()
 }
 
-export const getSnapshotElement = (structureDefinition: fhir4.StructureDefinition, element: fhir4.ElementDefinition) => {
-  return structureDefinition.snapshot?.element.find(e => e.path === element.path)
+export const getBaseDefinition = (baseStructure: fhir4.StructureDefinitionSnapshot | fhir4.StructureDefinitionDifferential, element: fhir4.ElementDefinition) => {
+  return baseStructure.element.find(e => e.path === element.path)
 }
 
 export const getPathPrefix = (path: fhir4.ElementDefinition["path"]): fhir4.ElementDefinition["path"] => {
