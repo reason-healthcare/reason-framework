@@ -53,7 +53,7 @@ export const buildQuestionnaire = async (
 
   // TODO fix type narrowing here to avoid "!"
   if (supportedOnly === true) {
-    subGroupElements = subGroupElements?.filter(e => e.mustSupport === true || getBaseDefinition(structureDefinition.snapshot!, e)?.mustSupport === true)
+    subGroupElements = subGroupElements?.filter(e => e.mustSupport === true || getBaseDefinition(structureDefinition.snapshot!.element!, e)?.mustSupport === true)
   }
 
   questionnaire.item = [{
@@ -71,7 +71,7 @@ export const buildQuestionnaire = async (
 
     let subGroupItems
     if (structureDefinition.snapshot) {
-      subGroupItems = await buildQuestionnaireItemsSubGroups(structureDefinition.url, structureDefinition.snapshot, rootElements, subGroupElements)
+      subGroupItems = await buildQuestionnaireItemsSubGroups(structureDefinition.url, structureDefinition.snapshot.element, rootElements, subGroupElements)
     }
 
     // console.log(JSON.stringify(subGroupElements) + "sg")

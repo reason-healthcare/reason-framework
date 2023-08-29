@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid"
 import { is, omitCanonicalVersion, getBaseDefinition, getPathPrefix } from "./helpers"
 import axios from 'axios'
 
-export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, baseStructure: fhir4.StructureDefinitionDifferential | fhir4.StructureDefinitionSnapshot, rootElements: fhir4.ElementDefinition[], subGroupElements: fhir4.ElementDefinition[]): Promise<fhir4.QuestionnaireItem[]> => {
+export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, baseStructure: fhir4.StructureDefinitionDifferential["element"] | fhir4.StructureDefinitionSnapshot["element"], rootElements: fhir4.ElementDefinition[], subGroupElements: fhir4.ElementDefinition[]): Promise<fhir4.QuestionnaireItem[]> => {
 
     //TODO
     // 1. support case feature expressions
@@ -13,13 +13,13 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
       linkId: uuidv4(),
     } as fhir4.QuestionnaireItem
 
-    let fallbackElement = getBaseDefinition(baseStructure, element)
+    let baseDefinition = getBaseDefinition(baseStructure, element)
 
     let elementType: fhir4.ElementDefinitionType["code"] | undefined
     if (element.type) {
       elementType = element.type[0].code
-    } else if (fallbackElement?.type) {
-      elementType = fallbackElement.type[0].code
+    } else if (baseDefinition?.type) {
+      elementType = baseDefinition.type[0].code
     }
 
     // QuestionnaireItem.definition => "{definitionUrl}#{full element path}", where: * "full element path" is path with `[x]` replaced with the first (and only) type.code
@@ -93,24 +93,27 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
         // Bug: if there is a type specified on differential, that should replace type from SD
 
         // change path on each snapshot and differential element to match
-
         dataTypeDefinition = dataTypeDefinition.differential
+
+        dataTypeDefinition = dataTypeDefinition.element.map((e: fhir4.ElementDefinition) => {
+          return e = {...e, path: e.path.replace(getPathPrefix(e.path), element.path)}
+        })
+
+        // console.log(JSON.stringify(dataTypeDefinition) + 'definition')
 
         let dataTypeElements = childElements
 
-        dataTypeDefinition.element.forEach((dataTypeElement: fhir4.ElementDefinition) => {
+        dataTypeDefinition.forEach((dataTypeElement: fhir4.ElementDefinition) => {
           if (!dataTypeElements.some(e => e.path === dataTypeElement.path)) {
             dataTypeElements.push(dataTypeElement)
           }
         })
-        console.log(JSON.stringify(dataTypeElements))
-        let dataTypeRootElements = dataTypeElements.filter(e => e.path.split(".").length === 2)
-        console.log(JSON.stringify(dataTypeRootElements) + 're')
+        let dataTypeRootElements = dataTypeElements.filter(e => e.path.split(".").length === 3)
         item.item = await buildQuestionnaireItemsSubGroups(definitionUrl, dataTypeDefinition, dataTypeRootElements, dataTypeElements)
       }
     } else {
       // Documentation on ElementDefinition states that default value "only exists so that default values may be defined in logical models", so do we need to support?
-      let binding = element.binding || fallbackElement?.binding
+      let binding = element.binding || baseDefinition?.binding
       // TODO: there might be a case where the snapshot element has a fixed value when the differential does not?
       let fixedElementKey = Object.keys(element).find(k => { return k.startsWith("fixed") || k.startsWith("pattern") || k.startsWith("defaultValue") })
 
@@ -160,32 +163,32 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
 
       if (element.short) {
         item.text = element.short
-      } else if (fallbackElement?.short) {
-        item.text = fallbackElement?.short
+      } else if (baseDefinition?.short) {
+        item.text = baseDefinition?.short
       } else if (element.label) {
         item.text = element.label
-      } else if (fallbackElement?.label) {
-        item.text = fallbackElement?.label
+      } else if (baseDefinition?.label) {
+        item.text = baseDefinition?.label
       } else {
         item.text = elementPath?.split('.').join(' ')
       }
 
       if (element.min && element.min > 0) {
         item.required = true
-      } else if (!element.min && fallbackElement?.min && fallbackElement.min > 0) {
+      } else if (!element.min && baseDefinition?.min && baseDefinition.min > 0) {
         item.required = true
       }
 
       if (element.max && (element.max === "*" || parseInt(element.max) > 1)) {
         item.repeats = true
-      } else if (!element.max && fallbackElement?.max && (fallbackElement.max === "*" || parseInt(fallbackElement.max) > 1)) {
+      } else if (!element.max && baseDefinition?.max && (baseDefinition.max === "*" || parseInt(baseDefinition.max) > 1)) {
         item.repeats = true
       }
 
       if (element.maxLength && elementType === "string") {
         item.maxLength = element.maxLength
-      } else if (!element.maxLength && fallbackElement?.maxLength && elementType === "string") {
-        item.maxLength = fallbackElement.maxLength
+      } else if (!element.maxLength && baseDefinition?.maxLength && elementType === "string") {
+        item.maxLength = baseDefinition.maxLength
       }
 
     }
