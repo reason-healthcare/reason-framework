@@ -83,23 +83,14 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
 
         let dataTypeDefinition = await getDataTypeDefinition(elementType)
 
-        // let dataTypeElements: fhir4.ElementDefinition[] = childElements.map(e => {
-        //   if (elementType) {
-        //     e = {...e, path:  e.path.replace(element.path, elementType)}
-        //   }
-        //   return e
-        // })
-
         // Bug: if there is a type specified on differential, that should replace type from SD
 
-        // change path on each snapshot and differential element to match
         dataTypeDefinition = dataTypeDefinition.differential
 
+        //TODO handle type narrowing
         dataTypeDefinition = dataTypeDefinition.element.map((e: fhir4.ElementDefinition) => {
-          return e = {...e, path: e.path.replace(getPathPrefix(e.path), element.path)}
+          return e = {...e, path: e.path.replace(elementType!, element.path)}
         })
-
-        // console.log(JSON.stringify(dataTypeDefinition) + 'definition')
 
         let dataTypeElements = childElements
 
