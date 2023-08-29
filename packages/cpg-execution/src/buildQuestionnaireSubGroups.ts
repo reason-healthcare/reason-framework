@@ -16,7 +16,6 @@ export const buildQuestionnaireItemsSubGroups = async (structureDefinition: fhir
     let snapshotElement = getSnapshotElement(structureDefinition, element)
 
     let elementType: fhir4.ElementDefinitionType["code"] | undefined
-    // console.log(JSON.stringify(element.path) + 'ep')
     if (element.type) {
       elementType = element.type[0].code
     } else if (snapshotElement?.type) {
@@ -62,12 +61,12 @@ export const buildQuestionnaireItemsSubGroups = async (structureDefinition: fhir
       processAsGroup = true
     }
 
-    // TODO: this supports backbone element groups but not complex data types
     if (processAsGroup) {
       item.type = "group"
       item.text = `${element.path} Group`
 
       let childElements = subGroupElements.filter(e => getPathPrefix(e.path) === elementPath)
+      // manipulate child element path to match complex type path
       if (childElements && elementType === "BackboneElement" || elementType === "Element") {
         item.item = await buildQuestionnaireItemsSubGroups(structureDefinition, childElements, subGroupElements)
       } else if (childElements && elementType) {
@@ -81,28 +80,23 @@ export const buildQuestionnaireItemsSubGroups = async (structureDefinition: fhir
         }
 
         const dataTypeDefinition: fhir4.StructureDefinition = await getDataTypeDefinition(elementType)
-        let dataTypeElements: fhir4.ElementDefinition[] = childElements
 
+        let dataTypeElements: fhir4.ElementDefinition[] = childElements.map(e => {
+          if (elementType) {
+            e = {...e, path:  e.path.replace(element.path, elementType)}
+            console.log(JSON.stringify(e))
+          }
+          return e
+        })
 
-        // Bug: child element path of Observation.effectiveTiming.event != Timing.event
-        // Observation.duration.event != Timing.event
-        // parse element name from path
         // Bug: data types with constraints should translate to an item with a binding or to type that it was derived from Duration -- > Quantity with binding?
 
         dataTypeDefinition?.differential?.element.forEach(dataTypeElement => {
-          if (elementType) {
-            // console.log(dataTypeElement.path + " " + element.path)
-            dataTypeElement.path = dataTypeElement.path.replace(elementType, element.path)
-          }
           if (!dataTypeElements.some(e => e.path === dataTypeElement.path)) {
             dataTypeElements.push(dataTypeElement)
           }
         })
-        // console.log(JSON.stringify(dataTypeElements) + " children")
-        let dataTypeRootElements = dataTypeElements.filter(e => e.path.split(".").length === 3)
-        // dataTypeElements.forEach(e => console.log(e.path + " " + elementType + " " + structureDefinition.url))
-        // console.log(JSON.stringify(dataTypeRootElements) + " rootEs")
-        console.log(JSON.stringify(dataTypeDefinition?.differential?.element) + "differential")
+        let dataTypeRootElements = dataTypeElements.filter(e => e.path.split(".").length === 2)
         item.item = await buildQuestionnaireItemsSubGroups(dataTypeDefinition, dataTypeRootElements, dataTypeElements)
       }
     } else {
