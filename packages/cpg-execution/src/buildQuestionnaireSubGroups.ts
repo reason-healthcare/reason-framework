@@ -35,7 +35,6 @@ export const buildQuestionnaireItemsSubGroups = async (structureDefinition: fhir
 
     let processAsComplexType = false
     let valueType
-    // TODO: data types that are questionnaire types with only additional constraints can be coerced -> example duration is a quantity with additional constraints
     if (elementType === "code" || elementType === "CodeableConcept" || elementType === "Coding") {
       item.type = "choice"
       valueType = "coding"
@@ -84,20 +83,25 @@ export const buildQuestionnaireItemsSubGroups = async (structureDefinition: fhir
 
         const dataTypeDefinition: fhir4.StructureDefinition = await getDataTypeDefinition(elementType)
 
-        let dataTypeElements: fhir4.ElementDefinition[] = childElements.map(e => {
-          if (elementType) {
-            e = {...e, path:  e.path.replace(element.path, elementType)}
-          }
-          return e
-        })
+        // let dataTypeElements: fhir4.ElementDefinition[] = childElements.map(e => {
+        //   if (elementType) {
+        //     e = {...e, path:  e.path.replace(element.path, elementType)}
+        //   }
+        //   return e
+        // })
 
         // Bug: if there is a type specified on differential, that should replace type from SD
+
+        // change path on each snapshot and differential element to match
+
+        let dataTypeElements = childElements
 
         dataTypeDefinition?.differential?.element.forEach(dataTypeElement => {
           if (!dataTypeElements.some(e => e.path === dataTypeElement.path)) {
             dataTypeElements.push(dataTypeElement)
           }
         })
+        console.log(JSON.stringify(dataTypeElements))
         let dataTypeRootElements = dataTypeElements.filter(e => e.path.split(".").length === 2)
         item.item = await buildQuestionnaireItemsSubGroups(dataTypeDefinition, dataTypeRootElements, dataTypeElements)
       }
