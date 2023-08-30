@@ -1,4 +1,4 @@
-Instance: EffectiveTimingParameters
+Instance: EffectiveDateObservationTimeParameters
 InstanceOf: Parameters
 Usage: #example
 * parameter[+]
@@ -6,4 +6,4 @@ Usage: #example
   * valueBoolean = false
 * parameter[+]
   * name = "url"
-  * valueString = "http://example.org/StructureDefinition/EffectiveTimingObservation"
+  * valueString = "http://example.org/StructureDefinition/EffectiveDateTimeObservation"

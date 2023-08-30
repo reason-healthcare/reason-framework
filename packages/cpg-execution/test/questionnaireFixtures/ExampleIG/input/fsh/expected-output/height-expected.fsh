@@ -1,10 +1,10 @@
-Instance: HeightObservationExpected
+Instance: HeightExpected
 InstanceOf: Questionnaire
 Usage: #example
 Description: "Simple test case with fixed[x]"
-* insert QuestionnaireMetaData(HeightObservationExpected)
+* insert QuestionnaireMetaData(HeightExpected)
 * item[+]
-  * insert QuestionnaireItemMeta(HeightObservationExpected, Observation)
+  * insert QuestionnaireItemMeta(HeightObservation, Observation)
   * type = #group
   * text = "Measurements and simple assertions"
   * item[+]

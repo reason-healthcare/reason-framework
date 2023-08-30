@@ -1,8 +1,8 @@
-Instance: DataCollectionObservationExpected
+Instance: DataCollectionExpected
 InstanceOf: Questionnaire
 Usage: #example
 Description: "Simple test case with fixed[x]"
-* insert QuestionnaireMetaData(DataCollectionObservationExpected)
+* insert QuestionnaireMetaData(DataCollectionExpected)
 * item[+]
   * insert QuestionnaireItemMeta(DataCollectionObservation, Observation)
   * type = #group

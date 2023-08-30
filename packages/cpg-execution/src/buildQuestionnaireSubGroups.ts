@@ -73,6 +73,7 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
       item.type = "quantity"
       valueType = "quantity"
     } else if (elementType && is.QuestionnaireItemType(elementType)) {
+      //Bug: dateTime should not be all lower case
       item.type = elementType.toLowerCase() as fhir4.QuestionnaireItem["type"]
       valueType = elementType
     } else {

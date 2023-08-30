@@ -1,10 +1,10 @@
-Instance: VitalSignsObservationExpected
+Instance: VitalSignsExpected
 InstanceOf: Questionnaire
 Usage: #example
 Description: "Test case for bound elements"
-* insert QuestionnaireMetaData(VitalSignsObservationExpected)
+* insert QuestionnaireMetaData(VitalSignsExpected)
 * item[+]
-  * insert QuestionnaireItemMeta(VitalSignsObservationExpected, Observation)
+  * insert QuestionnaireItemMeta(VitalSignsObservation, Observation)
   * type = #group
   * text = "Measurements and simple assertions"
   * item[+]

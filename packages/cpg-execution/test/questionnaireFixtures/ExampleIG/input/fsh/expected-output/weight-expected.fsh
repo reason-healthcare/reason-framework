@@ -1,14 +1,14 @@
-Instance: WeightObservationExpected
+Instance: WeightExpected
 InstanceOf: Questionnaire
 Usage: #example
 Description: "Test case for supportedOnly = true parameter and fixed[x] element"
-* insert QuestionnaireMetaData(WeightObservationExpected)
+* insert QuestionnaireMetaData(WeightExpected)
 * item[+]
-  * insert QuestionnaireItemMeta(WeightObservationExpected, Observation)
+  * insert QuestionnaireItemMeta(WeightObservation, Observation)
   * type = #group
   * text = "Measurements and simple assertions"
   * item[+]
-    * insert QuestionnaireItemMeta(WeightObservationExpected, Observation.code)
+    * insert QuestionnaireItemMeta(WeightObservation, Observation.code)
     * extension[questionnaire-hidden].valueBoolean = true
     * text = "Body Weight"
     * type = #choice

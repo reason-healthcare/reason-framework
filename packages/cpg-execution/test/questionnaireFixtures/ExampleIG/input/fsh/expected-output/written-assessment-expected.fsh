@@ -1,8 +1,8 @@
-Instance: WrittenAssessmentObservationExpected
+Instance: WrittenAssessmentExpected
 InstanceOf: Questionnaire
 Usage: #example
 Description: "Test case for simple item properties such as required, repeats, and maxLength"
-* insert QuestionnaireMetaData(WrittenAssessmentObservationExpected)
+* insert QuestionnaireMetaData(WrittenAssessmentExpected)
 * item[+]
   * insert QuestionnaireItemMeta(WrittenAssessmentObservation, Observation)
   * type = #group

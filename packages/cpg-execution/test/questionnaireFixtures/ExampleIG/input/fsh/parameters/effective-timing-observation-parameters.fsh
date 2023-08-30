@@ -1,4 +1,4 @@
-Instance: ReferenceRangeParameters
+Instance: EffectiveTimingObservationParameters
 InstanceOf: Parameters
 Usage: #example
 * parameter[+]
@@ -6,4 +6,4 @@ Usage: #example
   * valueBoolean = false
 * parameter[+]
   * name = "url"
-  * valueString = "http://example.org/StructureDefinition/ReferenceRangeObservation"
+  * valueString = "http://example.org/StructureDefinition/EffectiveTimingObservation"
