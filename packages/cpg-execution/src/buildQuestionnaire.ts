@@ -25,12 +25,11 @@ export const buildQuestionnaire = async (
 
   questionnaire.url = `${questionnaireBaseUrl}/Questionnaire/${questionnaire.id}`
 
-  // TODO: change logic here in case elements are not in order - look for path length of 1?
-  const backboneElement: fhir4.ElementDefinition | undefined = structureDefinition.snapshot?.element.shift()
+  const backboneElement = structureDefinition.snapshot?.element.find(e => e.path === structureDefinition.type)
 
+  // Add differential elements to process first
   let subGroupElements: fhir4.ElementDefinition[] | undefined = structureDefinition?.differential?.element
 
-  // TODO: this logic is currently dependent on the subGroupElements being in order - refactor in case a parent element does not preceed a child element
   const elementIsRootOrHasParent = (element: fhir4.ElementDefinition, subGroupElements: fhir4.ElementDefinition[] | undefined) => {
     if (getPathPrefix(element.path) === backboneElement?.path) {
       return true
@@ -42,18 +41,17 @@ export const buildQuestionnaire = async (
   // Only add snapshot elements if cardinality of 1 and not in differential
   structureDefinition.snapshot?.element.forEach((element) => {
     if (
-      element.min &&
-      element.min > 0 &&
-      !subGroupElements?.some(e => e.path === element.path) &&
-      elementIsRootOrHasParent(element, subGroupElements)
+        element.min &&
+        element.min > 0 &&
+        !subGroupElements?.some(e => e.path === element.path) &&
+        elementIsRootOrHasParent(element, subGroupElements)
       ) {
       subGroupElements?.push(element)
     }
   })
 
-  // TODO fix type narrowing here to avoid "!"
   if (supportedOnly === true) {
-    subGroupElements = subGroupElements?.filter(e => e.mustSupport === true || getBaseDefinition(structureDefinition.snapshot!.element!, e)?.mustSupport === true)
+    subGroupElements = subGroupElements?.filter(e => e.mustSupport === true || getBaseDefinition(structureDefinition?.snapshot?.element, e)?.mustSupport === true)
   }
 
   questionnaire.item = [{
@@ -67,14 +65,11 @@ export const buildQuestionnaire = async (
   if (subGroupElements) {
 
     let rootElements = subGroupElements.filter(e => e.path.split(".").length === 2)
-    // console.log(JSON.stringify(rootElements) + "re")
 
     let subGroupItems
     if (structureDefinition.snapshot) {
       subGroupItems = await buildQuestionnaireItemsSubGroups(structureDefinition.url, structureDefinition.snapshot.element, rootElements, subGroupElements)
     }
-
-    // console.log(JSON.stringify(subGroupElements) + "sg")
 
     questionnaire.item = [{
       linkId: uuidv4(),

@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid"
 import { is, omitCanonicalVersion, getBaseDefinition, getPathPrefix } from "./helpers"
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 
 export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, baseStructure: fhir4.StructureDefinitionDifferential["element"] | fhir4.StructureDefinitionSnapshot["element"], rootElements: fhir4.ElementDefinition[], subGroupElements: fhir4.ElementDefinition[]): Promise<fhir4.QuestionnaireItem[]> => {
 
@@ -47,31 +47,31 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
     let valueType
     if (elementType === "code" || elementType === "CodeableConcept" || elementType === "Coding") {
       item.type = "choice"
-      valueType = "coding"
+      valueType = "Coding"
     } else if (elementType === "canonical" || elementType === "uri") {
       item.type = "url"
-      valueType = "uri"
+      valueType = "Uri"
     } else if (elementType === "uuid" || elementType === "oid") {
       item.type = "string"
-      valueType = "uri"
+      valueType = "Uri"
     } else if (elementType === "unsignedInt" || elementType === "positiveInt") {
       item.type = "integer"
-      valueType = "integer"
+      valueType = "Integer"
     } else if (elementType && elementType === "instant") {
       item.type = "dateTime"
-      valueType = "dateTime"
+      valueType = "DateTime"
     } else if (elementType === "base64Binary" || elementType === "markdown" || elementType === "id") {
       item.type = "string"
-      valueType = "string"
-    } else if (elementType === "Quantity" || elementType === "Age" || elementType === "Distance" || elementType === "Duration" ||elementType === "Count" || elementType === "MoneyQuantity" || elementType === "SimpleQuantity") { //TODO: write test for this with fixedDuration and handle bindings
+      valueType = "String"
+    } else if (elementType === "Quantity" || elementType === "Age" || elementType === "Distance" || elementType === "Duration" ||elementType === "Count" || elementType === "MoneyQuantity" || elementType === "SimpleQuantity") { // TODO: write test for this with fixedDuration and handle bindings
       item.type = "quantity"
-      valueType = "quantity"
+      valueType = "Quantity"
     } else if (elementType === "Reference") {
       item.type = "reference"
-      valueType = "reference"
+      valueType = "Reference"
     } else if (elementType && is.QuestionnaireItemType(elementType)) {
       item.type = elementType
-      valueType = elementType
+      valueType = elementType.charAt(0).toUpperCase() + elementType.slice(1)
     } else {
       item.type = "group"
       processAsComplexType = true
@@ -88,19 +88,23 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
         const getDataTypeDefinition = async (elementType: fhir4.ElementDefinitionType["code"]) => {
           try{
             const response = await axios.get(`http://hapi.fhir.org/baseR4/StructureDefinition/${elementType}`)
-            console.log(elementType + 'from fetch')
             return response.data
           } catch (error) {
-            console.error(error)
+            if (axios.isAxiosError(error)) {
+              console.error(error.message)
+            } else {
+              console.error(error)
+            }
           }
         }
 
+        // TODO: improve variable names for this block
         let dataTypeDefinition = await getDataTypeDefinition(elementType)
         dataTypeDefinition = dataTypeDefinition.differential
-
-        //TODO handle type narrowing
         dataTypeDefinition = dataTypeDefinition.element.map((e: fhir4.ElementDefinition) => {
-          return e = {...e, path: e.path.replace(elementType!, element.path)}
+          if (elementType) {
+            return e = {...e, path: e.path.replace(elementType, element.path)}
+          }
         })
 
         let subGroupElement: fhir4.ElementDefinition | undefined
@@ -151,7 +155,7 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
             initialValue = initialValue?.coding[0]
           } else if (initialValue && initialValue.text) {
             initialValue = initialValue.text
-            valueType = "string"
+            valueType = "String"
           }
         } else if (elementType === "code" && binding?.valueSet) {
           initialValue = {} as fhir4.Coding
@@ -162,9 +166,8 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
         }
 
         if (valueType) {
-          const ucValueType = valueType.charAt(0).toUpperCase() + valueType.slice(1)
           if (initialValue) {
-            item.initial = [{[`value${ucValueType}`]: initialValue}]
+            item.initial = [{[`value${valueType}`]: initialValue}]
           }
         }
       }
