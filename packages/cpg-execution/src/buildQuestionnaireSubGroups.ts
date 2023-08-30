@@ -33,6 +33,18 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
 
     item.definition = `${definitionUrl}#${elementPath}`
 
+    if (element.short) {
+      item.text = element.short
+    } else if (baseDefinition?.short) {
+      item.text = baseDefinition?.short
+    } else if (element.label) {
+      item.text = element.label
+    } else if (baseDefinition?.label) {
+      item.text = baseDefinition?.label
+    } else {
+      item.text = elementPath?.split('.').join(' ')
+    }
+
     let processAsComplexType = false
     let valueType
     if (elementType === "code" || elementType === "CodeableConcept" || elementType === "Coding") {
@@ -60,12 +72,11 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
       item.type = elementType
       valueType = elementType
     } else {
+      item.type = "group"
       processAsComplexType = true
     }
 
     if (processAsComplexType) {
-      item.type = "group"
-      item.text = `${element.path} Group`
 
       let childElements = subGroupElements.filter(e => getPathPrefix(e.path) === elementPath)
       if (childElements && elementType === "BackboneElement" || elementType === "Element") {
@@ -160,18 +171,6 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
       }
 
       // TODO: (may remove) Context from where the corresponding data-requirement is used with a special extension (e.g. PlanDefinition.action.input[extension]...)? or.....
-
-      if (element.short) {
-        item.text = element.short
-      } else if (baseDefinition?.short) {
-        item.text = baseDefinition?.short
-      } else if (element.label) {
-        item.text = element.label
-      } else if (baseDefinition?.label) {
-        item.text = baseDefinition?.label
-      } else {
-        item.text = elementPath?.split('.').join(' ')
-      }
 
       if (element.min && element.min > 0) {
         item.required = true

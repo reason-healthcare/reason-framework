@@ -26,7 +26,7 @@ export const buildQuestionnaire = async (
   questionnaire.url = `${questionnaireBaseUrl}/Questionnaire/${questionnaire.id}`
 
   // TODO: change logic here in case elements are not in order - look for path length of 1?
-  const backboneElement: fhir4.ElementDefinition | undefined = structureDefinition.differential?.element.shift() || structureDefinition.snapshot?.element.shift()
+  const backboneElement: fhir4.ElementDefinition | undefined = structureDefinition.snapshot?.element.shift()
 
   let subGroupElements: fhir4.ElementDefinition[] | undefined = structureDefinition?.differential?.element
 
@@ -79,7 +79,7 @@ export const buildQuestionnaire = async (
     questionnaire.item = [{
       linkId: uuidv4(),
       definition: `${structureDefinition.url}#${backboneElement?.path}`,
-      text: `${backboneElement?.path} Group`,
+      text: backboneElement?.short? backboneElement?.short : backboneElement?.path,
       type: "group",
       item: subGroupItems
     }]
