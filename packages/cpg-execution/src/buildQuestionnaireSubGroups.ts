@@ -7,6 +7,10 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
     //TODO
     // 1. support case feature expressions
     // 2. determine how readOnly will be used
+    // 3. Bug: fallback snapshot element for choice types in incorrect: ie written assessment observation fixed valueString, snapshot fallback should be:
+    //   "id" : "Observation.value[x]:valueString",
+    //  "path" : "Observation.value[x]",
+    //  "sliceName" : "valueString"
 
   const subGroup = await Promise.all(rootElements.map(async (element) => {
     let item = {
@@ -69,7 +73,7 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
       item.type = "quantity"
       valueType = "quantity"
     } else if (elementType && is.QuestionnaireItemType(elementType)) {
-      item.type = elementType
+      item.type = elementType.toLowerCase() as fhir4.QuestionnaireItem["type"]
       valueType = elementType
     } else {
       item.type = "group"

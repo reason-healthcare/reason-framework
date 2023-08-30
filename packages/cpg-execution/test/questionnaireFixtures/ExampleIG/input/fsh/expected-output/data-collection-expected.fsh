@@ -21,11 +21,11 @@ Description: "Simple test case with fixed[x]"
     * extension
       * url = Canonical(questionnaire-hidden)
       * valueBoolean = true
-    * initial.valueCoding = http://hl7.org/fhir/observation-status#final "Final"
+    * initial.valueCoding = http://hl7.org/fhir/observation-status#final
   * item[+]
     * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.initial.valueString)
     * type = #string
-    * text = "Measurements and simple assertions valueString"
+    * text = "Observation valueString"
     * extension
       * url = Canonical(questionnaire-hidden)
       * valueBoolean = true
@@ -33,7 +33,7 @@ Description: "Simple test case with fixed[x]"
   * item[+]
     * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.initial.valueBoolean)
     * type = #boolean
-    * text = "Measurements and simple assertions valueBoolean"
+    * text = "Observation valueBoolean"
     * extension
       * url = Canonical(questionnaire-hidden)
       * valueBoolean = true
@@ -41,7 +41,7 @@ Description: "Simple test case with fixed[x]"
   * item[+]
     * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.initial.valueInteger)
     * type = #integer
-    * text = "Measurements and simple assertions valueInteger"
+    * text = "Observation valueInteger"
     * extension
       * url = Canonical(questionnaire-hidden)
       * valueBoolean = true
@@ -49,7 +49,7 @@ Description: "Simple test case with fixed[x]"
   * item[+]
     * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.initial.valueDateTime)
     * type = #dateTime
-    * text = "Measurements and simple assertions valueDateTime"
+    * text = "Observation valueDateTime"
     * extension
       * url = Canonical(questionnaire-hidden)
       * valueBoolean = true
@@ -62,10 +62,11 @@ Description: "Simple test case with fixed[x]"
       * url = Canonical(questionnaire-hidden)
       * valueBoolean = true
     * initial.valueCoding = $observation-category#vital-signs "Vital Signs"
+    * repeats = true
   // * item[+]  //sushi error : type Coding was expected in place of reference and quantity
   //   * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.initial.valueQuantity)
   //   * type = #quantity
-  //   * text = "Measurements and simple assertions valueQuntity"
+  //   * text = "Observation valueQuntity"
   //   * extension
   //     * url = Canonical(questionnaire-hidden)
   //     * valueBoolean = true

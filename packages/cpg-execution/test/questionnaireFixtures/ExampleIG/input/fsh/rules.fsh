@@ -4,4 +4,4 @@ RuleSet: QuestionnaireMetaData(id)
 
 RuleSet: QuestionnaireItemMeta(id, path)
 * linkId = "{path}"
-* definition = "http//example.org/StructureDefinition/{id}#{path}"
+* definition = "http://example.org/StructureDefinition/{id}#{path}"
