@@ -7,10 +7,6 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
     //TODO
     // 1. support case feature expressions
     // 2. determine how readOnly will be used
-    // 3. Bug: fallback snapshot element for choice types in incorrect: ie written assessment observation fixed valueString, snapshot fallback should be:
-    //   "id" : "Observation.value[x]:valueString",
-    //  "path" : "Observation.value[x]",
-    //  "sliceName" : "valueString"
 
   const subGroup = await Promise.all(rootElements.map(async (element) => {
     let item = {
@@ -25,8 +21,6 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
     } else if (baseDefinition?.type) {
       elementType = baseDefinition.type[0].code
     }
-
-    // QuestionnaireItem.definition => "{definitionUrl}#{full element path}", where: * "full element path" is path with `[x]` replaced with the first (and only) type.code
 
     let elementPath: fhir4.ElementDefinition["path"]
     if (element.path.includes("[x]") && elementType) {
@@ -69,12 +63,14 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
     } else if (elementType === "base64Binary" || elementType === "markdown" || elementType === "id") {
       item.type = "string"
       valueType = "string"
-    } else if (elementType === "Age" || elementType === "Distance" || elementType === "Duration" ||elementType === "Count" || elementType === "MoneyQuantity" || elementType === "SimpleQuantity") { //TODO: write test for this with fixedDuration and handle bindings
+    } else if (elementType === "Quantity" || elementType === "Age" || elementType === "Distance" || elementType === "Duration" ||elementType === "Count" || elementType === "MoneyQuantity" || elementType === "SimpleQuantity") { //TODO: write test for this with fixedDuration and handle bindings
       item.type = "quantity"
       valueType = "quantity"
+    } else if (elementType === "Reference") {
+      item.type = "reference"
+      valueType = "reference"
     } else if (elementType && is.QuestionnaireItemType(elementType)) {
-      //Bug: dateTime should not be all lower case
-      item.type = elementType.toLowerCase() as fhir4.QuestionnaireItem["type"]
+      item.type = elementType
       valueType = elementType
     } else {
       item.type = "group"
@@ -101,8 +97,6 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
 
         let dataTypeDefinition = await getDataTypeDefinition(elementType)
         dataTypeDefinition = dataTypeDefinition.differential
-
-        // Bug: if there is a type specified on differential, that should replace type from SD
 
         //TODO handle type narrowing
         dataTypeDefinition = dataTypeDefinition.element.map((e: fhir4.ElementDefinition) => {

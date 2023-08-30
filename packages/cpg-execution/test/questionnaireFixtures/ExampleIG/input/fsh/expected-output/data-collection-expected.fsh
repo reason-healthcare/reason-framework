@@ -25,7 +25,7 @@ Description: "Simple test case with fixed[x]"
   * item[+]
     * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.initial.valueString)
     * type = #string
-    * text = "Observation valueString"
+    * text = "Actual Result"
     * extension
       * url = Canonical(questionnaire-hidden)
       * valueBoolean = true
@@ -33,7 +33,7 @@ Description: "Simple test case with fixed[x]"
   * item[+]
     * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.initial.valueBoolean)
     * type = #boolean
-    * text = "Observation valueBoolean"
+    * text = "Actual result"
     * extension
       * url = Canonical(questionnaire-hidden)
       * valueBoolean = true
@@ -41,7 +41,7 @@ Description: "Simple test case with fixed[x]"
   * item[+]
     * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.initial.valueInteger)
     * type = #integer
-    * text = "Observation valueInteger"
+    * text = "Actual result"
     * extension
       * url = Canonical(questionnaire-hidden)
       * valueBoolean = true
@@ -49,7 +49,7 @@ Description: "Simple test case with fixed[x]"
   * item[+]
     * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.initial.valueDateTime)
     * type = #dateTime
-    * text = "Observation valueDateTime"
+    * text = "Actual result"
     * extension
       * url = Canonical(questionnaire-hidden)
       * valueBoolean = true
@@ -66,7 +66,7 @@ Description: "Simple test case with fixed[x]"
   // * item[+]  //sushi error : type Coding was expected in place of reference and quantity
   //   * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.initial.valueQuantity)
   //   * type = #quantity
-  //   * text = "Observation valueQuntity"
+  //   * text = "Actual result"
   //   * extension
   //     * url = Canonical(questionnaire-hidden)
   //     * valueBoolean = true
