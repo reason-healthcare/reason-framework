@@ -6,7 +6,7 @@ Description: "Simple test case with fixed[x]"
 * item[+]
   * insert QuestionnaireItemMeta(HeightObservationExpected, Observation)
   * type = #group
-  * text = "Observation"
+  * text = "Measurements and simple assertions"
   * item[+]
     * extension[questionnaire-hidden].valueBoolean = true
     * insert QuestionnaireItemMeta(HeightObservation, Observation.code)

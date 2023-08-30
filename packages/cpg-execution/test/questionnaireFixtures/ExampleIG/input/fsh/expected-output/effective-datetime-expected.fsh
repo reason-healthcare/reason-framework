@@ -6,7 +6,7 @@ Description: "Test case for processing of complex data types"
 * item[+]
   * insert QuestionnaireItemMeta(EffectiveDateTimeObservation, Observation)
   * type = #group
-  * text = "Observation"
+  * text = "Measurements and simple assertions"
   * item[+]
     * insert QuestionnaireItemMeta(EffectiveDateTimeObservation, Observation.status)
     * text = "registered | preliminary | final | amended +"
@@ -23,7 +23,7 @@ Description: "Test case for processing of complex data types"
     * insert QuestionnaireItemMeta(EffectiveDateTimeObservation, Observation.effectivePeriod)
     * type = #group
     * text = "Clinically relevant time/time-period for observation"
-    * item[+] //start and end were already flattened as a part of the differential because of pattern[x], but note's data structure was not flatted b/c of lack of fixed values
+    * item[+]
       * insert QuestionnaireItemMeta(EffectiveDateTimeObservation, Observation.effectivePeriod.start)
       * type = #dateTime
       * extension[questionnaire-hidden].valueBoolean = true
@@ -36,13 +36,17 @@ Description: "Test case for processing of complex data types"
   * item[+]
     * insert QuestionnaireItemMeta(EffectiveDateTimeObservation, Observation.note)
     * type = #group
+    * text = "Comments about the observation"
     * item[+]
       * insert QuestionnaireItemMeta(EffectiveDateTimeObservation, Observation.note.authorString)
-      * type = #string
+      * type = #reference
+      * text = "Individual responsible for the annotation"
     * item[+]
       * insert QuestionnaireItemMeta(EffectiveDateTimeObservation, Observation.note.time)
       * type = #dateTime
+      * text = "When the annotation was made"
     * item[+]
       * insert QuestionnaireItemMeta(EffectiveDateTimeObservation, Observation.note.text)
       * type = #string
       * required = true
+      * text = "The annotation  - text content (as markdown)"

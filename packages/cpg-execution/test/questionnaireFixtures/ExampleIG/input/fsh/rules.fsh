@@ -3,5 +3,5 @@ RuleSet: QuestionnaireMetaData(id)
 * status = #draft
 
 RuleSet: QuestionnaireItemMeta(id, path)
-* linkId = "Observation.{path}"
+* linkId = "{path}"
 * definition = "http//example.org/StructureDefinition/{id}#{path}"

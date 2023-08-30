@@ -6,7 +6,7 @@ Description: "Test case for simple item properties such as required, repeats, an
 * item[+]
   * insert QuestionnaireItemMeta(WrittenAssessmentObservation, Observation)
   * type = #group
-  * text = "Observation"
+  * text = "Measurements and simple assertions"
   * item[+]
     * insert QuestionnaireItemMeta(WrittenAssessmentObservation, Observation.category)
     * text = "Classification of  type of observation"
@@ -16,7 +16,7 @@ Description: "Test case for simple item properties such as required, repeats, an
     * answerValueSet = Canonical(observation-category)
   * item[+]
     * insert QuestionnaireItemMeta(WrittenAssessmentObservation, Observation.valueString)
-    * text = "Observation valueString"
+    * text = "Measurements and simple assertions valueString"
     * type = #string
     * maxLength = 20
   * item[+]

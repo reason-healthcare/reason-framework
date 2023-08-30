@@ -6,7 +6,7 @@ Description: "Simple test case with fixed[x]"
 * item[+]
   * insert QuestionnaireItemMeta(DataCollectionObservation, Observation)
   * type = #group
-  * text = "Observation"
+  * text = "Measurements and simple assertions"
   * item[+]
     * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.code)
     * text = "Type of observation (code / type)"
@@ -25,7 +25,7 @@ Description: "Simple test case with fixed[x]"
   * item[+]
     * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.initial.valueString)
     * type = #string
-    * text = "Observation valueString"
+    * text = "Measurements and simple assertions valueString"
     * extension
       * url = Canonical(questionnaire-hidden)
       * valueBoolean = true
@@ -33,7 +33,7 @@ Description: "Simple test case with fixed[x]"
   * item[+]
     * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.initial.valueBoolean)
     * type = #boolean
-    * text = "Observation valueBoolean"
+    * text = "Measurements and simple assertions valueBoolean"
     * extension
       * url = Canonical(questionnaire-hidden)
       * valueBoolean = true
@@ -41,7 +41,7 @@ Description: "Simple test case with fixed[x]"
   * item[+]
     * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.initial.valueInteger)
     * type = #integer
-    * text = "Observation valueInteger"
+    * text = "Measurements and simple assertions valueInteger"
     * extension
       * url = Canonical(questionnaire-hidden)
       * valueBoolean = true
@@ -49,7 +49,7 @@ Description: "Simple test case with fixed[x]"
   * item[+]
     * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.initial.valueDateTime)
     * type = #dateTime
-    * text = "Observation valueDateTime"
+    * text = "Measurements and simple assertions valueDateTime"
     * extension
       * url = Canonical(questionnaire-hidden)
       * valueBoolean = true
@@ -65,7 +65,7 @@ Description: "Simple test case with fixed[x]"
   // * item[+]  //sushi error : type Coding was expected in place of reference and quantity
   //   * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.initial.valueQuantity)
   //   * type = #quantity
-  //   * text = "Observation valueQuntity"
+  //   * text = "Measurements and simple assertions valueQuntity"
   //   * extension
   //     * url = Canonical(questionnaire-hidden)
   //     * valueBoolean = true

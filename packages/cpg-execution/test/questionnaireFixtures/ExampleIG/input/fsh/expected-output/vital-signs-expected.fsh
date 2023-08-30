@@ -6,7 +6,7 @@ Description: "Test case for bound elements"
 * item[+]
   * insert QuestionnaireItemMeta(VitalSignsObservationExpected, Observation)
   * type = #group
-  * text = "Observation"
+  * text = "Measurements and simple assertions"
   * item[+]
     * insert QuestionnaireItemMeta(VitalSignsObservation, Observation.code)
     * text = "Respiratory rate | Heart rate | Body temperature | Body height +"

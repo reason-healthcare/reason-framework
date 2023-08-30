@@ -6,7 +6,7 @@ Description: "Test case for nested elements"
 * item[+]
   * insert QuestionnaireItemMeta(ReferenceRangeObservation, Observation)
   * type = #group
-  * text = "Observation"
+  * text = "Measurements and simple assertions"
   * item[+]
     * insert QuestionnaireItemMeta(ReferenceRangeObservation, Observation.status)
     * text = "registered | preliminary | final | amended +"
@@ -22,6 +22,7 @@ Description: "Test case for nested elements"
   * item[+]
     * insert QuestionnaireItemMeta(ReferenceRangeExpected, Observation.referenceRange)
     * type = #group
+    * text = "Provides guide for interpretation"
     * required = true
     * item[+]
       * insert QuestionnaireItemMeta(ReferenceRangeExpected, Observation.referenceRange.text)

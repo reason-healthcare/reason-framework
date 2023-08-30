@@ -6,7 +6,7 @@ Description: "Test case for supportedOnly = true parameter and fixed[x] element"
 * item[+]
   * insert QuestionnaireItemMeta(WeightObservationExpected, Observation)
   * type = #group
-  * text = "Observation"
+  * text = "Measurements and simple assertions"
   * item[+]
     * insert QuestionnaireItemMeta(WeightObservationExpected, Observation.code)
     * extension[questionnaire-hidden].valueBoolean = true
