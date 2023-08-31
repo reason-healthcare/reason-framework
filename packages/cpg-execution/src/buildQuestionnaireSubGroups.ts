@@ -7,6 +7,8 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
     //TODO
     // 1. support case feature expressions
     // 2. determine how readOnly will be used
+    // 3. bug: Quantity, Code, Reference children in subgroup elements are ignored
+
 
   const subGroup = await Promise.all(rootElements.map(async (element) => {
     let item = {
@@ -57,7 +59,7 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
 
     let processAsComplexType = false
     let valueType
-    if (elementType === "code" || elementType === "CodeableConcept" || elementType === "Coding") {
+    if (elementType === "code" || elementType === "Coding" || elementType === "CodeableConcept") {
       item.type = "choice"
       valueType = "Coding"
     } else if (elementType === "canonical" || elementType === "uri") {
@@ -89,23 +91,53 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
       processAsComplexType = true
     }
 
+    // Documentation on ElementDefinition states that default value "only exists so that default values may be defined in logical models", so do we need to support?
+    let binding = element.binding || baseDefinition?.binding
+    // TODO: there might be a case where the snapshot element has a fixed value when the differential does not?
+    let fixedElementKey = Object.keys(element).find(k => { return k.startsWith("fixed") || k.startsWith("pattern") || k.startsWith("defaultValue") })
+
+    if (binding && binding.strength === "example" && !fixedElementKey) {
+      item.answerValueSet = omitCanonicalVersion(binding.valueSet)
+      item.type = "open-choice"
+    } else if (binding && !fixedElementKey) {
+      item.answerValueSet = omitCanonicalVersion(binding.valueSet)
+    }
+
+    if (fixedElementKey) {
+      // Add "hidden" extension for fixed[x] and pattern[x]
+      if (fixedElementKey.startsWith("fixed") || fixedElementKey.startsWith("pattern")) {
+        item.extension = [{
+          url: "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+          valueBoolean: true
+        }]
+      }
+
+      // Set initial[x] for fixed[x], pattern[x], defaultValue[x]
+      let initialValue
+      if (elementType === "CodeableConcept") {
+        initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition] as fhir4.CodeableConcept | undefined
+        item.initial = initialValue?.coding?.map(coding => {
+          return {"valueCoding": coding}
+        })
+      } else if (elementType === "code" && binding?.valueSet) {
+        initialValue = {} as fhir4.Coding
+        initialValue.system = omitCanonicalVersion(binding.valueSet)
+        initialValue.code = element[fixedElementKey as keyof fhir4.ElementDefinition] as string
+      } else {
+        initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition]
+      }
+
+      if (valueType && initialValue && elementType !== "CodeableConcept") {
+        item.initial = [{[`value${valueType}`]: initialValue}]
+      }
+    }
     if (processAsComplexType) {
 
-      // if (element.min && element.min > 0) {
-      //   item.required = true
-      // } else if (!element.min && baseDefinition?.min && baseDefinition.min > 0) {
-      //   item.required = true
-      // }
-
-      // if (element.max && (element.max === "*" || parseInt(element.max) > 1)) {
-      //   item.repeats = true
-      // } else if (!element.max && baseDefinition?.max && (baseDefinition.max === "*" || parseInt(baseDefinition.max) > 1)) {
-      //   item.repeats = true
-      // }
-
       let childElements = subGroupElements.filter(e => getPathPrefix(e.path) === elementPath)
+
       if (childElements && elementType === "BackboneElement" || elementType === "Element") {
-        item.item = await buildQuestionnaireItemsSubGroups(definitionUrl, baseStructure, childElements, subGroupElements)
+
+        item.item? item.item.concat(await buildQuestionnaireItemsSubGroups(definitionUrl, baseStructure, childElements, subGroupElements)) : item.item = await buildQuestionnaireItemsSubGroups(definitionUrl, baseStructure, childElements, subGroupElements)
 
       } else if (childElements && elementType) {
 
@@ -151,51 +183,6 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
         item.item = await buildQuestionnaireItemsSubGroups(definitionUrl, baseStructure, dataTypeRootElements, childElements)
       }
     } else {
-      // Documentation on ElementDefinition states that default value "only exists so that default values may be defined in logical models", so do we need to support?
-      let binding = element.binding || baseDefinition?.binding
-      // TODO: there might be a case where the snapshot element has a fixed value when the differential does not?
-      let fixedElementKey = Object.keys(element).find(k => { return k.startsWith("fixed") || k.startsWith("pattern") || k.startsWith("defaultValue") })
-
-      if (binding && binding.strength === "example" && !fixedElementKey) {
-        item.answerValueSet = omitCanonicalVersion(binding.valueSet)
-        item.type = "open-choice"
-      } else if (binding && !fixedElementKey) {
-        item.answerValueSet = omitCanonicalVersion(binding.valueSet)
-      }
-
-      if (fixedElementKey) {
-        // Add "hidden" extension for fixed[x] and pattern[x]
-        if (fixedElementKey.startsWith("fixed") || fixedElementKey.startsWith("pattern")) {
-          item.extension = [{
-            url: "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
-            valueBoolean: true
-          }]
-        }
-
-        // Set initial[x] for fixed[x], pattern[x], defaultValue[x]
-        let initialValue
-        if (elementType === "CodeableConcept") {
-          initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition] as fhir4.CodeableConcept | undefined
-          if (initialValue && initialValue.coding) {
-            initialValue = initialValue?.coding[0]
-          } else if (initialValue && initialValue.text) {
-            initialValue = initialValue.text
-            valueType = "String"
-          }
-        } else if (elementType === "code" && binding?.valueSet) {
-          initialValue = {} as fhir4.Coding
-          initialValue.system = omitCanonicalVersion(binding.valueSet)
-          initialValue.code = element[fixedElementKey as keyof fhir4.ElementDefinition] as string
-        } else {
-          initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition]
-        }
-
-        if (valueType) {
-          if (initialValue) {
-            item.initial = [{[`value${valueType}`]: initialValue}]
-          }
-        }
-      }
 
       // TODO: (may remove) Context from where the corresponding data-requirement is used with a special extension (e.g. PlanDefinition.action.input[extension]...)? or.....
 
