@@ -1,0 +1,1098 @@
+{
+	"info": {
+		"_postman_id": "3b83681b-b6e2-48ae-b1ce-b73955ffd593",
+		"name": "$questionnaire",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "25403373"
+	},
+	"item": [
+		{
+			"name": "Observation - Height",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const expected = {",
+							"  \"resourceType\": \"Questionnaire\",",
+							"  \"id\": \"HeightExpected\",",
+							"  \"item\": [",
+							"    {",
+							"      \"item\": [",
+							"        {",
+							"          \"extension\": [",
+							"            {",
+							"              \"url\": \"http://hl7.org/fhir/StructureDefinition/questionnaire-hidden\",",
+							"              \"valueBoolean\": true",
+							"            }",
+							"          ],",
+							"          \"linkId\": \"Observation.code\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/HeightObservation#Observation.code\",",
+							"          \"text\": \"Body Height\",",
+							"          \"type\": \"choice\",",
+							"          \"required\": true,",
+							"          \"initial\": [",
+							"            {",
+							"              \"valueCoding\": {",
+							"                \"code\": \"8302-2\",",
+							"                \"system\": \"http://loinc.org\",",
+							"                \"display\": \"Body Height\"",
+							"              }",
+							"            }",
+							"          ]",
+							"        },",
+							"        {",
+							"          \"linkId\": \"Observation.status\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/HeightObservation#Observation.status\",",
+							"          \"text\": \"registered | preliminary | final | amended +\",",
+							"          \"type\": \"choice\",",
+							"          \"required\": true,",
+							"          \"answerValueSet\": \"http://hl7.org/fhir/ValueSet/observation-status\"",
+							"        }",
+							"      ],",
+							"      \"linkId\": \"Observation\",",
+							"      \"definition\": \"http://example.org/StructureDefinition/HeightObservation#Observation\",",
+							"      \"type\": \"group\",",
+							"      \"text\": \"Measurements and simple assertions\"",
+							"    }",
+							"  ],",
+							"  \"url\": \"http://questionnaire-processor/Questionnaire/HeightExpected\",",
+							"  \"status\": \"draft\"",
+							"}",
+							"",
+							"pm.test(\"Height Observation $questionnaire\", function() {",
+							"    pm.response.to.have.status(200)",
+							"    _.expectToDeepEqual(pm.response.json(), expected, console)",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json+fhir",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"resourceType\": \"Parameters\",\n  \"id\": \"HeightObservationParameters\",\n  \"parameter\": [\n    {\n      \"name\": \"supportedOnly\",\n      \"boolean\": \"false\"\n    },\n    {\n      \"name\": \"url\",\n      \"valueString\": \"http://example.org/StructureDefinition/HeightObservation\"\n    }\n  ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{cpgServer}}/StructureDefinition/$questionnaire",
+					"host": [
+						"{{cpgServer}}"
+					],
+					"path": [
+						"StructureDefinition",
+						"$questionnaire"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Observation - Weight",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const expected = {",
+							"  \"resourceType\": \"Questionnaire\",",
+							"  \"id\": \"WeightExpected\",",
+							"  \"item\": [",
+							"    {",
+							"      \"item\": [",
+							"        {",
+							"          \"extension\": [",
+							"            {",
+							"              \"url\": \"http://hl7.org/fhir/StructureDefinition/questionnaire-hidden\",",
+							"              \"valueBoolean\": true",
+							"            }",
+							"          ],",
+							"          \"linkId\": \"Observation.code\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/WeightObservation#Observation.code\",",
+							"          \"text\": \"Body Weight\",",
+							"          \"type\": \"choice\",",
+							"          \"required\": true,",
+							"          \"initial\": [",
+							"            {",
+							"              \"valueCoding\": {",
+							"                \"code\": \"29463-7\",",
+							"                \"system\": \"http://loinc.org\",",
+							"                \"display\": \"Body Weight\"",
+							"              }",
+							"            }",
+							"          ]",
+							"        }",
+							"      ],",
+							"      \"linkId\": \"Observation\",",
+							"      \"definition\": \"http://example.org/StructureDefinition/WeightObservation#Observation\",",
+							"      \"type\": \"group\",",
+							"      \"text\": \"Measurements and simple assertions\"",
+							"    }",
+							"  ],",
+							"  \"url\": \"http://questionnaire-processor/Questionnaire/WeightExpected\",",
+							"  \"status\": \"draft\"",
+							"}",
+							"",
+							"",
+							"",
+							"pm.test(\"Weight Observation $questionnaire\", function() {",
+							"    pm.response.to.have.status(200)",
+							"    _.expectToDeepEqual(pm.response.json(), expected, console)",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json+fhir",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"resourceType\": \"Parameters\",\n  \"id\": \"WeightObservationParameters\",\n  \"parameter\": [\n    {\n      \"name\": \"supportedOnly\",\n      \"valueBoolean\": true\n    },\n    {\n      \"name\": \"url\",\n      \"valueString\": \"http://example.org/StructureDefinition/WeightObservation\"\n    }\n  ]\n}\n"
+				},
+				"url": {
+					"raw": "{{cpgServer}}/StructureDefinition/$questionnaire",
+					"host": [
+						"{{cpgServer}}"
+					],
+					"path": [
+						"StructureDefinition",
+						"$questionnaire"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Observation - Vital Signs",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const expected = {",
+							"  \"resourceType\": \"Questionnaire\",",
+							"  \"id\": \"VitalSignsExpected\",",
+							"  \"url\": \"http://questionnaire-processor/Questionnaire/VitalSignsExpected\",",
+							"  \"status\": \"draft\",",
+							"  \"item\": [",
+							"    {",
+							"      \"linkId\": \"Observation\",",
+							"      \"definition\": \"http://example.org/StructureDefinition/VitalSignsObservation#Observation\",",
+							"      \"type\": \"group\",",
+							"      \"text\": \"Measurements and simple assertions\",",
+							"      \"item\": [",
+							"        {",
+							"          \"linkId\": \"Observation.code\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/VitalSignsObservation#Observation.code\",",
+							"          \"text\": \"Respiratory rate | Heart rate | Body temperature | Body height +\",",
+							"          \"type\": \"choice\",",
+							"          \"required\": true,",
+							"          \"answerValueSet\": \"http://hl7.org/fhir/ValueSet/observation-vitalsignresult\"",
+							"        },",
+							"        {",
+							"          \"linkId\": \"Observation.status\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/VitalSignsObservation#Observation.status\",",
+							"          \"text\": \"registered | preliminary | final | amended +\",",
+							"          \"type\": \"choice\",",
+							"          \"required\": true,",
+							"          \"answerValueSet\": \"http://hl7.org/fhir/ValueSet/observation-status\"",
+							"        }",
+							"      ]",
+							"    }",
+							"  ]",
+							"}",
+							"",
+							"",
+							"pm.test(\"Vital Signs Observation $questionnaire\", function() {",
+							"    pm.response.to.have.status(200)",
+							"    _.expectToDeepEqual(pm.response.json(), expected, console)",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json+fhir",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"resourceType\": \"Parameters\",\n  \"id\": \"VitalSignsObservationParameters\",\n  \"parameter\": [\n    {\n      \"name\": \"supportedOnly\",\n      \"valueBoolean\": false\n    },\n    {\n      \"name\": \"url\",\n      \"valueString\": \"http://example.org/StructureDefinition/VitalSignsObservation\"\n    }\n  ]\n}\n"
+				},
+				"url": {
+					"raw": "{{cpgServer}}/StructureDefinition/$questionnaire",
+					"host": [
+						"{{cpgServer}}"
+					],
+					"path": [
+						"StructureDefinition",
+						"$questionnaire"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Observation - Written Assessment",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const expected = {",
+							"  \"resourceType\": \"Questionnaire\",",
+							"  \"id\": \"WrittenAssessmentExpected\",",
+							"  \"url\": \"http://questionnaire-processor/Questionnaire/WrittenAssessmentExpected\",",
+							"  \"status\": \"draft\",",
+							"  \"item\": [",
+							"    {",
+							"      \"linkId\": \"Observation\",",
+							"      \"definition\": \"http://example.org/StructureDefinition/WrittenAssessmentObservation#Observation\",",
+							"      \"type\": \"group\",",
+							"      \"text\": \"Measurements and simple assertions\",",
+							"      \"item\": [",
+							"        {",
+							"          \"linkId\": \"Observation.category\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/WrittenAssessmentObservation#Observation.category\",",
+							"          \"text\": \"Classification of  type of observation\",",
+							"          \"required\": true,",
+							"          \"repeats\": true,",
+							"          \"type\": \"choice\",",
+							"          \"answerValueSet\": \"http://hl7.org/fhir/ValueSet/observation-category\"",
+							"        },",
+							"        {",
+							"          \"linkId\": \"Observation.valueString\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/WrittenAssessmentObservation#Observation.valueString\",",
+							"          \"text\": \"Actual result\",",
+							"          \"type\": \"string\",",
+							"          \"maxLength\": 20",
+							"        },",
+							"        {",
+							"          \"linkId\": \"Observation.status\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/WrittenAssessmentObservation#Observation.status\",",
+							"          \"text\": \"registered | preliminary | final | amended +\",",
+							"          \"type\": \"choice\",",
+							"          \"required\": true,",
+							"          \"answerValueSet\": \"http://hl7.org/fhir/ValueSet/observation-status\"",
+							"        },",
+							"        {",
+							"          \"linkId\": \"Observation.code\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/WrittenAssessmentObservation#Observation.code\",",
+							"          \"text\": \"Type of observation (code / type)\",",
+							"          \"type\": \"open-choice\",",
+							"          \"required\": true,",
+							"          \"answerValueSet\": \"http://hl7.org/fhir/ValueSet/observation-codes\"",
+							"        }",
+							"      ]",
+							"    }",
+							"  ]",
+							"}",
+							"",
+							"pm.test(\"Written Assessment Observation $questionnaire\", function() {",
+							"    pm.response.to.have.status(200)",
+							"    _.expectToDeepEqual(pm.response.json(), expected, console)",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json+fhir",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"resourceType\": \"Parameters\",\n  \"id\": \"WrittenAssessmentObservationParameters\",\n  \"parameter\": [\n    {\n      \"name\": \"supportedOnly\",\n      \"valueBoolean\": false\n    },\n    {\n      \"name\": \"url\",\n      \"valueString\": \"http://example.org/StructureDefinition/WrittenAssessmentObservation\"\n    }\n  ]\n}\n"
+				},
+				"url": {
+					"raw": "{{cpgServer}}/StructureDefinition/$questionnaire",
+					"host": [
+						"{{cpgServer}}"
+					],
+					"path": [
+						"StructureDefinition",
+						"$questionnaire"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Observation - DataCollection",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const expected = {",
+							"  \"resourceType\": \"Questionnaire\",",
+							"  \"id\": \"DataCollectionExpected\",",
+							"  \"url\": \"http://questionnaire-processor/Questionnaire/DataCollectionExpected\",",
+							"  \"status\": \"draft\",",
+							"  \"item\": [",
+							"    {",
+							"      \"linkId\": \"Observation\",",
+							"      \"definition\": \"http://example.org/StructureDefinition/DataCollectionObservation#Observation\",",
+							"      \"type\": \"group\",",
+							"      \"text\": \"Measurements and simple assertions\",",
+							"      \"item\": [",
+							"        {",
+							"          \"linkId\": \"Observation.code\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/DataCollectionObservation#Observation.code\",",
+							"          \"text\": \"Type of observation (code / type)\",",
+							"          \"type\": \"open-choice\",",
+							"          \"required\": true,",
+							"          \"answerValueSet\": \"http://hl7.org/fhir/ValueSet/observation-codes\"",
+							"        },",
+							"        {",
+							"          \"linkId\": \"Observation.status\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/DataCollectionObservation#Observation.status\",",
+							"          \"text\": \"registered | preliminary | final | amended +\",",
+							"          \"type\": \"choice\",",
+							"          \"required\": true,",
+							"          \"extension\": [",
+							"            {",
+							"              \"url\": \"http://hl7.org/fhir/StructureDefinition/questionnaire-hidden\",",
+							"              \"valueBoolean\": true",
+							"            }",
+							"          ],",
+							"          \"initial\": [",
+							"            {",
+							"              \"valueCoding\": {",
+							"                \"code\": \"final\",",
+							"                \"system\": \"http://hl7.org/fhir/observation-status\"",
+							"              }",
+							"            }",
+							"          ]",
+							"        },",
+							"        {",
+							"          \"linkId\": \"Observation.initial.valueString\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/DataCollectionObservation#Observation.initial.valueString\",",
+							"          \"type\": \"string\",",
+							"          \"text\": \"Actual Result\",",
+							"          \"extension\": [",
+							"            {",
+							"              \"url\": \"http://hl7.org/fhir/StructureDefinition/questionnaire-hidden\",",
+							"              \"valueBoolean\": true",
+							"            }",
+							"          ],",
+							"          \"initial\": [",
+							"            {",
+							"              \"valueString\": \"hello\"",
+							"            }",
+							"          ]",
+							"        },",
+							"        {",
+							"          \"linkId\": \"Observation.initial.valueBoolean\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/DataCollectionObservation#Observation.initial.valueBoolean\",",
+							"          \"type\": \"boolean\",",
+							"          \"text\": \"Actual result\",",
+							"          \"extension\": [",
+							"            {",
+							"              \"url\": \"http://hl7.org/fhir/StructureDefinition/questionnaire-hidden\",",
+							"              \"valueBoolean\": true",
+							"            }",
+							"          ],",
+							"          \"initial\": [",
+							"            {",
+							"              \"valueBoolean\": true",
+							"            }",
+							"          ]",
+							"        },",
+							"        {",
+							"          \"linkId\": \"Observation.initial.valueInteger\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/DataCollectionObservation#Observation.initial.valueInteger\",",
+							"          \"type\": \"integer\",",
+							"          \"text\": \"Actual result\",",
+							"          \"extension\": [",
+							"            {",
+							"              \"url\": \"http://hl7.org/fhir/StructureDefinition/questionnaire-hidden\",",
+							"              \"valueBoolean\": true",
+							"            }",
+							"          ],",
+							"          \"initial\": [",
+							"            {",
+							"              \"valueInteger\": 5",
+							"            }",
+							"          ]",
+							"        },",
+							"        {",
+							"          \"linkId\": \"Observation.initial.valueDateTime\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/DataCollectionObservation#Observation.initial.valueDateTime\",",
+							"          \"type\": \"dateTime\",",
+							"          \"text\": \"Actual result\",",
+							"          \"extension\": [",
+							"            {",
+							"              \"url\": \"http://hl7.org/fhir/StructureDefinition/questionnaire-hidden\",",
+							"              \"valueBoolean\": true",
+							"            }",
+							"          ],",
+							"          \"initial\": [",
+							"            {",
+							"              \"valueDateTime\": \"2023-08-23\"",
+							"            }",
+							"          ]",
+							"        },",
+							"        {",
+							"          \"linkId\": \"Observation.category\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/DataCollectionObservation#Observation.category\",",
+							"          \"type\": \"choice\",",
+							"          \"text\": \"Classification of  type of observation\",",
+							"          \"extension\": [",
+							"            {",
+							"              \"url\": \"http://hl7.org/fhir/StructureDefinition/questionnaire-hidden\",",
+							"              \"valueBoolean\": true",
+							"            }",
+							"          ],",
+							"          \"initial\": [",
+							"            {",
+							"              \"valueCoding\": {",
+							"                \"code\": \"vital-signs\",",
+							"                \"system\": \"http://terminology.hl7.org/CodeSystem/observation-category\",",
+							"                \"display\": \"Vital Signs\"",
+							"              }",
+							"            }",
+							"          ],",
+							"          \"repeats\": true",
+							"        }",
+							"      ]",
+							"    }",
+							"  ]",
+							"}",
+							"",
+							"",
+							"",
+							"pm.test(\"Data Collection $questionnaire\", function() {",
+							"    pm.response.to.have.status(200)",
+							"    _.expectToDeepEqual(pm.response.json(), expected, console)",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"resourceType\": \"Parameters\",\n  \"id\": \"DataCollectionObservationParameters\",\n  \"parameter\": [\n    {\n      \"name\": \"supportedOnly\",\n      \"valueBoolean\": false\n    },\n    {\n      \"name\": \"url\",\n      \"valueString\": \"http://example.org/StructureDefinition/DataCollectionObservation\"\n    }\n  ]\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{cpgServer}}/StructureDefinition/$questionnaire",
+					"host": [
+						"{{cpgServer}}"
+					],
+					"path": [
+						"StructureDefinition",
+						"$questionnaire"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Observation - Effective DateTime",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const expected = {",
+							"  \"resourceType\": \"Questionnaire\",",
+							"  \"id\": \"EffectiveDateTimeExpected\",",
+							"  \"item\": [",
+							"    {",
+							"      \"item\": [",
+							"        {",
+							"          \"item\": [",
+							"            {",
+							"              \"extension\": [",
+							"                {",
+							"                  \"url\": \"http://hl7.org/fhir/StructureDefinition/questionnaire-hidden\",",
+							"                  \"valueBoolean\": true",
+							"                }",
+							"              ],",
+							"              \"linkId\": \"Observation.effectivePeriod.start\",",
+							"              \"definition\": \"http://example.org/StructureDefinition/EffectiveDateTimeObservation#Observation.effectivePeriod.start\",",
+							"              \"type\": \"dateTime\",",
+							"              \"text\": \"Starting time with inclusive boundary\",",
+							"              \"initial\": [",
+							"                {",
+							"                  \"valueDateTime\": \"2023-08-01\"",
+							"                }",
+							"              ]",
+							"            },",
+							"            {",
+							"              \"extension\": [",
+							"                {",
+							"                  \"url\": \"http://hl7.org/fhir/StructureDefinition/questionnaire-hidden\",",
+							"                  \"valueBoolean\": true",
+							"                }",
+							"              ],",
+							"              \"linkId\": \"Observation.effectivePeriod.end\",",
+							"              \"definition\": \"http://example.org/StructureDefinition/EffectiveDateTimeObservation#Observation.effectivePeriod.end\",",
+							"              \"type\": \"dateTime\",",
+							"              \"text\": \"End time with inclusive boundary, if not ongoing\",",
+							"              \"initial\": [",
+							"                {",
+							"                  \"valueDateTime\": \"2023-08-23\"",
+							"                }",
+							"              ]",
+							"            }",
+							"          ],",
+							"          \"linkId\": \"Observation.effectivePeriod\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/EffectiveDateTimeObservation#Observation.effectivePeriod\",",
+							"          \"type\": \"group\",",
+							"          \"text\": \"Clinically relevant time/time-period for observation\"",
+							"        },",
+							"        {",
+							"          \"linkId\": \"Observation.note\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/EffectiveDateTimeObservation#Observation.note\",",
+							"          \"type\": \"group\",",
+							"          \"text\": \"Comments about the observation\",",
+							"          \"item\": [",
+							"            {",
+							"              \"linkId\": \"Observation.note.authorReference\",",
+							"              \"definition\": \"http://example.org/StructureDefinition/EffectiveDateTimeObservation#Observation.note.authorReference\",",
+							"              \"type\": \"reference\",",
+							"              \"text\": \"Individual responsible for the annotation\"",
+							"            },",
+							"            {",
+							"              \"linkId\": \"Observation.note.time\",",
+							"              \"definition\": \"http://example.org/StructureDefinition/EffectiveDateTimeObservation#Observation.note.time\",",
+							"              \"type\": \"dateTime\",",
+							"              \"text\": \"When the annotation was made\"",
+							"            },",
+							"            {",
+							"              \"linkId\": \"Observation.note.text\",",
+							"              \"definition\": \"http://example.org/StructureDefinition/EffectiveDateTimeObservation#Observation.note.text\",",
+							"              \"type\": \"string\",",
+							"              \"required\": true,",
+							"              \"text\": \"The annotation  - text content (as markdown)\"",
+							"            }",
+							"          ]",
+							"        },",
+							"        {",
+							"          \"linkId\": \"Observation.status\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/EffectiveDateTimeObservation#Observation.status\",",
+							"          \"text\": \"registered | preliminary | final | amended +\",",
+							"          \"type\": \"choice\",",
+							"          \"required\": true,",
+							"          \"answerValueSet\": \"http://hl7.org/fhir/ValueSet/observation-status\"",
+							"        },",
+							"        {",
+							"          \"linkId\": \"Observation.code\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/EffectiveDateTimeObservation#Observation.code\",",
+							"          \"text\": \"Type of observation (code / type)\",",
+							"          \"type\": \"open-choice\",",
+							"          \"required\": true,",
+							"          \"answerValueSet\": \"http://hl7.org/fhir/ValueSet/observation-codes\"",
+							"        }",
+							"      ],",
+							"      \"linkId\": \"Observation\",",
+							"      \"definition\": \"http://example.org/StructureDefinition/EffectiveDateTimeObservation#Observation\",",
+							"      \"type\": \"group\",",
+							"      \"text\": \"Measurements and simple assertions\"",
+							"    }",
+							"  ],",
+							"  \"url\": \"http://questionnaire-processor/Questionnaire/EffectiveDateTimeExpected\",",
+							"  \"status\": \"draft\"",
+							"}",
+							"",
+							"",
+							"pm.test(\"Effective DateTime $questionnaire\", function() {",
+							"    pm.response.to.have.status(200)",
+							"    _.expectToDeepEqual(pm.response.json(), expected, console)",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"resourceType\": \"Parameters\",\n  \"id\": \"EffectiveDateTimeParameters\",\n  \"parameter\": [\n    {\n      \"name\": \"supportedOnly\",\n      \"valueBoolean\": false\n    },\n    {\n      \"name\": \"url\",\n      \"valueString\": \"http://example.org/StructureDefinition/EffectiveDateTimeObservation\"\n    }\n  ]\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{cpgServer}}/StructureDefinition/$questionnaire",
+					"host": [
+						"{{cpgServer}}"
+					],
+					"path": [
+						"StructureDefinition",
+						"$questionnaire"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Observation - Effective Timing",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const expected = {",
+							"  \"resourceType\": \"Questionnaire\",",
+							"  \"id\": \"EffectiveTimingExpected\",",
+							"  \"description\": \"Test case for processing complex data type with nested structure\",",
+							"  \"url\": \"http://questionnaire-processor/Questionnaire/EffectiveTimingExpected\",",
+							"  \"status\": \"draft\",",
+							"  \"item\": [",
+							"    {",
+							"      \"linkId\": \"Observation\",",
+							"      \"definition\": \"http://example.org/StructureDefinition/EffectiveTimingObservation#Observation\",",
+							"      \"text\": \"Measurements and simple assertions\",",
+							"      \"type\": \"group\",",
+							"      \"item\": [",
+							"        {",
+							"          \"linkId\": \"Observation.effectiveTiming\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/EffectiveTimingObservation#Observation.effectiveTiming\",",
+							"          \"type\": \"group\",",
+							"          \"text\": \"Clinically relevant time/time-period for observation\",",
+							"          \"item\": [",
+							"            {",
+							"              \"linkId\": \"Observation.effectiveTiming.event\",",
+							"              \"definition\": \"http://example.org/StructureDefinition/EffectiveTimingObservation#Observation.effectiveTiming.event\",",
+							"              \"type\": \"dateTime\",",
+							"              \"text\": \"When the event occurs\",",
+							"              \"required\": true",
+							"            },",
+							"            {",
+							"              \"linkId\": \"Observation.effectiveTiming.repeat\",",
+							"              \"definition\": \"http://example.org/StructureDefinition/EffectiveTimingObservation#Observation.effectiveTiming.repeat\",",
+							"              \"type\": \"group\",",
+							"              \"text\": \"When the event is to occur\",",
+							"              \"item\": [",
+							"                {",
+							"                  \"linkId\": \"Observation.effectiveTiming.repeat.boundsPeriod\",",
+							"                  \"definition\": \"http://example.org/StructureDefinition/EffectiveTimingObservation#Observation.effectiveTiming.repeat.boundsPeriod\",",
+							"                  \"type\": \"group\",",
+							"                  \"text\": \"Length/Range of lengths, or (Start and/or end) limits\",",
+							"                  \"item\": [",
+							"                    {",
+							"                      \"linkId\": \"Observation.effectiveTiming.repeat.boundsPeriod.start\",",
+							"                      \"definition\": \"http://example.org/StructureDefinition/EffectiveTimingObservation#Observation.effectiveTiming.repeat.boundsPeriod.start\",",
+							"                      \"type\": \"dateTime\",",
+							"                      \"text\": \"Starting time with inclusive boundary\"",
+							"                    },",
+							"                    {",
+							"                      \"linkId\": \"Observation.effectiveTiming.repeat.boundsPeriod.end\",",
+							"                      \"definition\": \"http://example.org/StructureDefinition/EffectiveTimingObservation#Observation.effectiveTiming.repeat.boundsPeriod.end\",",
+							"                      \"type\": \"dateTime\",",
+							"                      \"text\": \"End time with inclusive boundary, if not ongoing\"",
+							"                    }",
+							"                  ]",
+							"                },",
+							"                {",
+							"                  \"linkId\": \"Observation.effectiveTiming.repeat.count\",",
+							"                  \"definition\": \"http://example.org/StructureDefinition/EffectiveTimingObservation#Observation.effectiveTiming.repeat.count\",",
+							"                  \"type\": \"integer\",",
+							"                  \"text\": \"Number of times to repeat\"",
+							"                },",
+							"                {",
+							"                  \"linkId\": \"Observation.effectiveTiming.repeat.countMax\",",
+							"                  \"definition\": \"http://example.org/StructureDefinition/EffectiveTimingObservation#Observation.effectiveTiming.repeat.countMax\",",
+							"                  \"type\": \"integer\",",
+							"                  \"text\": \"Maximum number of times to repeat\"",
+							"                },",
+							"                {",
+							"                  \"linkId\": \"Observation.effectiveTiming.repeat.duration\",",
+							"                  \"definition\": \"http://example.org/StructureDefinition/EffectiveTimingObservation#Observation.effectiveTiming.repeat.duration\",",
+							"                  \"type\": \"decimal\",",
+							"                  \"text\": \"How long when it happens\"",
+							"                },",
+							"                {",
+							"                  \"linkId\": \"Observation.effectiveTiming.repeat.durationMax\",",
+							"                  \"definition\": \"http://example.org/StructureDefinition/EffectiveTimingObservation#Observation.effectiveTiming.repeat.durationMax\",",
+							"                  \"type\": \"decimal\",",
+							"                  \"text\": \"How long when it happens (Max)\"",
+							"                },",
+							"                {",
+							"                  \"linkId\": \"Observation.effectiveTiming.repeat.durationUnit\",",
+							"                  \"definition\": \"http://example.org/StructureDefinition/EffectiveTimingObservation#Observation.effectiveTiming.repeat.durationUnit\",",
+							"                  \"type\": \"choice\",",
+							"                  \"answerValueSet\": \"http://hl7.org/fhir/ValueSet/units-of-time\",",
+							"                  \"text\": \"s | min | h | d | wk | mo | a - unit of time (UCUM)\"",
+							"                },",
+							"                {",
+							"                  \"linkId\": \"Observation.effectiveTiming.repeat.frequency\",",
+							"                  \"definition\": \"http://example.org/StructureDefinition/EffectiveTimingObservation#Observation.effectiveTiming.repeat.frequency\",",
+							"                  \"type\": \"integer\",",
+							"                  \"text\": \"Event occurs frequency times per period\"",
+							"                },",
+							"                {",
+							"                  \"linkId\": \"Observation.effectiveTiming.repeat.frequencyMax\",",
+							"                  \"definition\": \"http://example.org/StructureDefinition/EffectiveTimingObservation#Observation.effectiveTiming.repeat.frequencyMax\",",
+							"                  \"type\": \"integer\",",
+							"                  \"text\": \"Event occurs up to frequencyMax times per period\"",
+							"                },",
+							"                {",
+							"                  \"linkId\": \"Observation.effectiveTiming.repeat.period\",",
+							"                  \"definition\": \"http://example.org/StructureDefinition/EffectiveTimingObservation#Observation.effectiveTiming.repeat.period\",",
+							"                  \"type\": \"decimal\",",
+							"                  \"text\": \"Event occurs frequency times per period\"",
+							"                },",
+							"                {",
+							"                  \"linkId\": \"Observation.effectiveTiming.repeat.periodMax\",",
+							"                  \"definition\": \"http://example.org/StructureDefinition/EffectiveTimingObservation#Observation.effectiveTiming.repeat.periodMax\",",
+							"                  \"type\": \"decimal\",",
+							"                  \"text\": \"Upper limit of period (3-4 hours)\"",
+							"                },",
+							"                {",
+							"                  \"linkId\": \"Observation.effectiveTiming.repeat.periodUnit\",",
+							"                  \"definition\": \"http://example.org/StructureDefinition/EffectiveTimingObservation#Observation.effectiveTiming.repeat.periodUnit\",",
+							"                  \"type\": \"choice\",",
+							"                  \"answerValueSet\": \"http://hl7.org/fhir/ValueSet/units-of-time\",",
+							"                  \"text\": \"s | min | h | d | wk | mo | a - unit of time (UCUM)\"",
+							"                },",
+							"                {",
+							"                  \"linkId\": \"Observation.effectiveTiming.repeat.dayOfWeek\",",
+							"                  \"definition\": \"http://example.org/StructureDefinition/EffectiveTimingObservation#Observation.effectiveTiming.repeat.dayOfWeek\",",
+							"                  \"type\": \"choice\",",
+							"                  \"answerValueSet\": \"http://hl7.org/fhir/ValueSet/days-of-week\",",
+							"                  \"text\": \"mon | tue | wed | thu | fri | sat | sun\",",
+							"                  \"repeats\": true",
+							"                },",
+							"                {",
+							"                  \"linkId\": \"Observation.effectiveTiming.repeat.timeOfDay\",",
+							"                  \"definition\": \"http://example.org/StructureDefinition/EffectiveTimingObservation#Observation.effectiveTiming.repeat.timeOfDay\",",
+							"                  \"type\": \"time\",",
+							"                  \"text\": \"Time of day for action\",",
+							"                  \"repeats\": true",
+							"                },",
+							"                {",
+							"                  \"linkId\": \"Observation.effectiveTiming.repeat.when\",",
+							"                  \"definition\": \"http://example.org/StructureDefinition/EffectiveTimingObservation#Observation.effectiveTiming.repeat.when\",",
+							"                  \"type\": \"choice\",",
+							"                  \"answerValueSet\": \"http://hl7.org/fhir/ValueSet/event-timing\",",
+							"                  \"text\": \"Code for time period of occurrence\",",
+							"                  \"repeats\": true",
+							"                },",
+							"                {",
+							"                  \"linkId\": \"Observation.effectiveTiming.repeat.offset\",",
+							"                  \"definition\": \"http://example.org/StructureDefinition/EffectiveTimingObservation#Observation.effectiveTiming.repeat.offset\",",
+							"                  \"type\": \"integer\",",
+							"                  \"text\": \"Minutes from event (before or after)\"",
+							"                }",
+							"              ]",
+							"            },",
+							"            {",
+							"              \"linkId\": \"Observation.effectiveTiming.code\",",
+							"              \"definition\": \"http://example.org/StructureDefinition/EffectiveTimingObservation#Observation.effectiveTiming.code\",",
+							"              \"type\": \"choice\",",
+							"              \"answerValueSet\": \"http://hl7.org/fhir/ValueSet/timing-abbreviation\",",
+							"              \"text\": \"BID | TID | QID | AM | PM | QD | QOD | +\"",
+							"            }",
+							"          ]",
+							"        },",
+							"        {",
+							"          \"linkId\": \"Observation.status\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/EffectiveTimingObservation#Observation.status\",",
+							"          \"type\": \"choice\",",
+							"          \"answerValueSet\": \"http://hl7.org/fhir/ValueSet/observation-status\",",
+							"          \"text\": \"registered | preliminary | final | amended +\",",
+							"          \"required\": true",
+							"        },",
+							"        {",
+							"          \"linkId\": \"Observation.code\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/EffectiveTimingObservation#Observation.code\",",
+							"          \"type\": \"open-choice\",",
+							"          \"answerValueSet\": \"http://hl7.org/fhir/ValueSet/observation-codes\",",
+							"          \"text\": \"Type of observation (code / type)\",",
+							"          \"required\": true",
+							"        }",
+							"      ]",
+							"    }",
+							"  ]",
+							"}",
+							"",
+							"",
+							"pm.test(\"Effective Timing $questionnaire\", function() {",
+							"    pm.response.to.have.status(200)",
+							"    _.expectToDeepEqual(pm.response.json(), expected, console)",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"resourceType\": \"Parameters\",\n  \"id\": \"EffectiveTimingParameters\",\n  \"parameter\": [\n    {\n      \"name\": \"supportedOnly\",\n      \"valueBoolean\": false\n    },\n    {\n      \"name\": \"url\",\n      \"valueString\": \"http://example.org/StructureDefinition/EffectiveTimingObservation\"\n    }\n  ]\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{cpgServer}}/StructureDefinition/$questionnaire",
+					"host": [
+						"{{cpgServer}}"
+					],
+					"path": [
+						"StructureDefinition",
+						"$questionnaire"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Observation - Reference Range",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const expected = {",
+							"  \"resourceType\": \"Questionnaire\",",
+							"  \"id\": \"ReferenceRangeExpected\",",
+							"  \"url\": \"http://questionnaire-processor/Questionnaire/ReferenceRangeExpected\",",
+							"  \"status\": \"draft\",",
+							"  \"item\": [",
+							"    {",
+							"      \"linkId\": \"Observation\",",
+							"      \"definition\": \"http://example.org/StructureDefinition/ReferenceRangeObservation#Observation\",",
+							"      \"type\": \"group\",",
+							"      \"text\": \"Measurements and simple assertions\",",
+							"      \"item\": [",
+							"        {",
+							"          \"linkId\": \"Observation.referenceRange\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/ReferenceRangeObservation#Observation.referenceRange\",",
+							"          \"type\": \"group\",",
+							"          \"text\": \"Provides guide for interpretation\",",
+							"          \"item\": [",
+							"            {",
+							"              \"linkId\": \"Observation.referenceRange.text\",",
+							"              \"definition\": \"http://example.org/StructureDefinition/ReferenceRangeObservation#Observation.referenceRange.text\",",
+							"              \"type\": \"string\",",
+							"              \"required\": true,",
+							"              \"text\": \"Text based reference range in an observation\"",
+							"            }",
+							"          ]",
+							"        },",
+							"        {",
+							"          \"linkId\": \"Observation.component\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/ReferenceRangeObservation#Observation.component\",",
+							"          \"text\": \"Component results\",",
+							"          \"type\": \"group\",",
+							"          \"item\": [",
+							"            {",
+							"              \"linkId\": \"Observation.component.code\",",
+							"              \"definition\": \"http://example.org/StructureDefinition/ReferenceRangeObservation#Observation.component.code\",",
+							"              \"text\": \"Type of component observation (code / type)\",",
+							"              \"required\": true,",
+							"              \"type\": \"open-choice\",",
+							"              \"answerValueSet\": \"http://hl7.org/fhir/ValueSet/observation-codes\"",
+							"            }",
+							"          ]",
+							"        },",
+							"        {",
+							"          \"linkId\": \"Observation.status\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/ReferenceRangeObservation#Observation.status\",",
+							"          \"text\": \"registered | preliminary | final | amended +\",",
+							"          \"type\": \"choice\",",
+							"          \"required\": true,",
+							"          \"answerValueSet\": \"http://hl7.org/fhir/ValueSet/observation-status\"",
+							"        },",
+							"        {",
+							"          \"linkId\": \"Observation.code\",",
+							"          \"definition\": \"http://example.org/StructureDefinition/ReferenceRangeObservation#Observation.code\",",
+							"          \"text\": \"Type of observation (code / type)\",",
+							"          \"type\": \"open-choice\",",
+							"          \"required\": true,",
+							"          \"answerValueSet\": \"http://hl7.org/fhir/ValueSet/observation-codes\"",
+							"        }",
+							"      ]",
+							"    }",
+							"  ]",
+							"}",
+							"",
+							"",
+							"pm.test(\"Reference Range $questionnaire\", function() {",
+							"    pm.response.to.have.status(200)",
+							"    _.expectToDeepEqual(pm.response.json(), expected, console)",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"resourceType\": \"Parameters\",\n  \"id\": \"ReferenceRangeParameters\",\n  \"parameter\": [\n    {\n      \"name\": \"supportedOnly\",\n      \"valueBoolean\": false\n    },\n    {\n      \"name\": \"url\",\n      \"valueString\": \"http://example.org/StructureDefinition/ReferenceRangeObservation\"\n    }\n  ]\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{cpgServer}}/StructureDefinition/$questionnaire",
+					"host": [
+						"{{cpgServer}}"
+					],
+					"path": [
+						"StructureDefinition",
+						"$questionnaire"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"/**",
+					" * Delete the id and text as this can vary per request",
+					" */",
+					"",
+					"const deleteLinkId = (i) => {",
+					"  if (i.item) {",
+					"    i.item.forEach(subI => {",
+					"      delete subI.linkId",
+					"      deleteLinkId(subI)",
+					"    })",
+					"  }",
+					"}",
+					"",
+					"Object.prototype.testPrepare = function testPrepare(resource) {",
+					"    delete resource.id;",
+					"    delete resource.meta;",
+					"    delete resource.url;",
+					"    delete resource.description;",
+					"    resource.item.forEach(item => {",
+					"      delete item.linkId",
+					"      deleteLinkId(item)",
+					"    })",
+					"    return resource;",
+					"}",
+					"",
+					"",
+					"/**",
+					" * Find difference between two objects",
+					" * @param  {object} origObj - Source object to compare newObj against",
+					" * @param  {object} newObj  - New object with potential changes",
+					" * @return {object} differences",
+					" */",
+					"function difference(origObj, newObj) {",
+					"  function changes(newObj, origObj) {",
+					"    let arrayIndexCounter = 0",
+					"    return _.transform(newObj, function (result, value, key) {",
+					"      if (!_.isEqual(value, origObj[key])) {",
+					"        let resultKey = _.isArray(origObj) ? arrayIndexCounter++ : key",
+					"        result[resultKey] = (_.isObject(value) && _.isObject(origObj[key])) ? changes(value, origObj[key]) : value",
+					"      }",
+					"    })",
+					"  }",
+					"  return changes(newObj, origObj)",
+					"}",
+					"",
+					"/**",
+					" * Does a deep equal comparison, uses console.log to show diffs if fails.",
+					" * ",
+					" * @example",
+					" * pm.test(\"My test\", function() {",
+					" *   _.expectToDeepEqual(pm.response.json(), expected, console);",
+					" * });",
+					" */",
+					"Object.prototype.expectToDeepEqual = (actual, expected, console = console) => {",
+					"    try {",
+					"        pm.expect(_.testPrepare(actual)).to.deep.equal(_.testPrepare(expected));        ",
+					"    } catch (e) {",
+					"        const diff = difference(e.expected, e.actual);",
+					"        console.log('difference expected to actual', diff);",
+					"        console.log({ actual: e.actual, expected: e.expected});",
+					"        e.message = `*** See Console *** ${e.message}`;",
+					"        throw new Error(e);",
+					"    }",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "cpgServer",
+			"value": "http://localhost:9001",
+			"type": "string"
+		}
+	]
+}

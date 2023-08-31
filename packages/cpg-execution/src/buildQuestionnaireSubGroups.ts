@@ -5,8 +5,9 @@ import axios from 'axios'
 export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, baseStructure: fhir4.StructureDefinitionDifferential["element"] | fhir4.StructureDefinitionSnapshot["element"], rootElements: fhir4.ElementDefinition[], subGroupElements: fhir4.ElementDefinition[]): Promise<fhir4.QuestionnaireItem[]> => {
 
     //TODO
-    // 1. support case feature expressions
-    // 2. determine how readOnly will be used
+    // 1. group type elements are not handling min, max, fixed, etc
+    // 2. support case feature expressions
+    // 3. determine how readOnly will be used
 
   const subGroup = await Promise.all(rootElements.map(async (element) => {
     let item = {

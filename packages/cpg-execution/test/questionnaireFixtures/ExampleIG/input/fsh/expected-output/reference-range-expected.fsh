@@ -8,18 +8,6 @@ Description: "Test case for nested elements"
   * type = #group
   * text = "Measurements and simple assertions"
   * item[+]
-    * insert QuestionnaireItemMeta(ReferenceRangeObservation, Observation.status)
-    * text = "registered | preliminary | final | amended +"
-    * type = #choice
-    * required = true
-    * answerValueSet = Canonical(observation-status)
-  * item[+]
-    * insert QuestionnaireItemMeta(ReferenceRangeObservation, Observation.code)
-    * text = "Type of observation (code / type)"
-    * type = #open-choice
-    * required = true
-    * answerValueSet = Canonical(observation-codes)
-  * item[+]
     * insert QuestionnaireItemMeta(ReferenceRangeObservation, Observation.referenceRange)
     * type = #group
     * text = "Provides guide for interpretation"
@@ -39,3 +27,15 @@ Description: "Test case for nested elements"
       * required = true
       * type = #open-choice
       * answerValueSet = Canonical(observation-codes)
+  * item[+]
+    * insert QuestionnaireItemMeta(ReferenceRangeObservation, Observation.status)
+    * text = "registered | preliminary | final | amended +"
+    * type = #choice
+    * required = true
+    * answerValueSet = Canonical(observation-status)
+  * item[+]
+    * insert QuestionnaireItemMeta(ReferenceRangeObservation, Observation.code)
+    * text = "Type of observation (code / type)"
+    * type = #open-choice
+    * required = true
+    * answerValueSet = Canonical(observation-codes)
