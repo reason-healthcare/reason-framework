@@ -5,9 +5,8 @@ import axios from 'axios'
 export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, baseStructure: fhir4.StructureDefinitionDifferential["element"] | fhir4.StructureDefinitionSnapshot["element"], rootElements: fhir4.ElementDefinition[], subGroupElements: fhir4.ElementDefinition[]): Promise<fhir4.QuestionnaireItem[]> => {
 
     //TODO
-    // 1. group type elements are not handling min, max, fixed, etc
-    // 2. support case feature expressions
-    // 3. determine how readOnly will be used
+    // 1. support case feature expressions
+    // 2. determine how readOnly will be used
 
   const subGroup = await Promise.all(rootElements.map(async (element) => {
     let item = {
@@ -42,6 +41,18 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
       item.text = baseDefinition?.label
     } else {
       item.text = elementPath?.split('.').join(' ')
+    }
+
+    if (element.min && element.min > 0) {
+      item.required = true
+    } else if (!element.min && baseDefinition?.min && baseDefinition.min > 0) {
+      item.required = true
+    }
+
+    if (element.max && (element.max === "*" || parseInt(element.max) > 1)) {
+      item.repeats = true
+    } else if (!element.max && baseDefinition?.max && (baseDefinition.max === "*" || parseInt(baseDefinition.max) > 1)) {
+      item.repeats = true
     }
 
     let processAsComplexType = false
@@ -79,6 +90,18 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
     }
 
     if (processAsComplexType) {
+
+      // if (element.min && element.min > 0) {
+      //   item.required = true
+      // } else if (!element.min && baseDefinition?.min && baseDefinition.min > 0) {
+      //   item.required = true
+      // }
+
+      // if (element.max && (element.max === "*" || parseInt(element.max) > 1)) {
+      //   item.repeats = true
+      // } else if (!element.max && baseDefinition?.max && (baseDefinition.max === "*" || parseInt(baseDefinition.max) > 1)) {
+      //   item.repeats = true
+      // }
 
       let childElements = subGroupElements.filter(e => getPathPrefix(e.path) === elementPath)
       if (childElements && elementType === "BackboneElement" || elementType === "Element") {
@@ -176,17 +199,6 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
 
       // TODO: (may remove) Context from where the corresponding data-requirement is used with a special extension (e.g. PlanDefinition.action.input[extension]...)? or.....
 
-      if (element.min && element.min > 0) {
-        item.required = true
-      } else if (!element.min && baseDefinition?.min && baseDefinition.min > 0) {
-        item.required = true
-      }
-
-      if (element.max && (element.max === "*" || parseInt(element.max) > 1)) {
-        item.repeats = true
-      } else if (!element.max && baseDefinition?.max && (baseDefinition.max === "*" || parseInt(baseDefinition.max) > 1)) {
-        item.repeats = true
-      }
 
       if (element.maxLength && elementType === "string") {
         item.maxLength = element.maxLength

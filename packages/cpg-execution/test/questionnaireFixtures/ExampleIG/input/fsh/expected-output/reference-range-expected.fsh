@@ -21,6 +21,7 @@ Description: "Test case for nested elements"
     * insert QuestionnaireItemMeta(ReferenceRangeObservation, Observation.component)
     * text = "Component results"
     * type = #group
+    * repeats = true
     * item[+]
       * insert QuestionnaireItemMeta(ReferenceRangeObservation, Observation.component.code)
       * text = "Type of component observation (code / type)"

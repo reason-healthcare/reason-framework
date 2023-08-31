@@ -27,6 +27,7 @@ Description: "Test case for processing of complex data types"
     * insert QuestionnaireItemMeta(EffectiveDateTimeObservation, Observation.note)
     * type = #group
     * text = "Comments about the observation"
+    * repeats = true
     * item[+]
       * insert QuestionnaireItemMeta(EffectiveDateTimeObservation, Observation.note.authorReference)
       * type = #reference
@@ -44,7 +45,7 @@ Description: "Test case for processing of complex data types"
     * insert QuestionnaireItemMeta(EffectiveDateTimeObservation, Observation.status)
     * text = "registered | preliminary | final | amended +"
     * type = #choice
-    // * required = true
+    * required = true
     * answerValueSet = Canonical(observation-status)
   * item[+]
     * insert QuestionnaireItemMeta(EffectiveDateTimeObservation, Observation.code)

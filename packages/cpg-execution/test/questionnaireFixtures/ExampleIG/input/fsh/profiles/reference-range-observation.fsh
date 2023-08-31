@@ -1,5 +1,5 @@
 Profile: ReferenceRangeObservation
 Parent: Observation
-* referenceRange MS // 1..1
+* referenceRange 1..1 MS
   * text 1..1
-* component 1..1
+* component MS
