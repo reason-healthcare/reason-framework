@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid"
 import { is, omitCanonicalVersion, getBaseDefinition, getPathPrefix } from "./helpers"
-import axios, { AxiosError } from 'axios'
+import axios from 'axios'
 
 export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, baseStructure: fhir4.StructureDefinitionDifferential["element"] | fhir4.StructureDefinitionSnapshot["element"], rootElements: fhir4.ElementDefinition[], subGroupElements: fhir4.ElementDefinition[]): Promise<fhir4.QuestionnaireItem[]> => {
 
@@ -98,12 +98,13 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
           }
         }
 
-        // TODO: improve variable names for this block
+        // TODO: refactor this block because intent is unclear
+
         let dataTypeDefinition = await getDataTypeDefinition(elementType)
-        dataTypeDefinition = dataTypeDefinition.differential
-        dataTypeDefinition = dataTypeDefinition.element.map((e: fhir4.ElementDefinition) => {
+        dataTypeDefinition = dataTypeDefinition.differential.element.map((e: fhir4.ElementDefinition) => {
           if (elementType) {
             return e = {...e, path: e.path.replace(elementType, element.path)}
+            // now observation.effectiveTiming.repeat instead of Timing.repeat
           }
         })
 
@@ -123,7 +124,7 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
         })
 
         let dataTypeRootElements = childElements.filter(e => getPathPrefix(e.path) === element.path)
-        item.item = await buildQuestionnaireItemsSubGroups(definitionUrl, dataTypeDefinition, dataTypeRootElements, childElements)
+        item.item = await buildQuestionnaireItemsSubGroups(definitionUrl, baseStructure, dataTypeRootElements, childElements)
       }
     } else {
       // Documentation on ElementDefinition states that default value "only exists so that default values may be defined in logical models", so do we need to support?

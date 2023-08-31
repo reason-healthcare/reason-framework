@@ -23,7 +23,7 @@ Usage: #example
       * item[+]
         * insert QuestionnaireItemMeta(EffectiveTimingObservation, Observation.effectiveTiming.repeat.boundsPeriod)
         * type = #group
-        * text = "Length/Range of lengths, or (Start and/or end) limits"
+        * text = "Length/Range of lengths, or (Start and/or end) limits" //currently getting "text: "Observation effectiveTiming repeat boundsPeriod""
         * item[+]
           * insert QuestionnaireItemMeta(EffectiveTimingObservation, Observation.effectiveTiming.repeat.boundsPeriod.start)
           * type = #dateTime

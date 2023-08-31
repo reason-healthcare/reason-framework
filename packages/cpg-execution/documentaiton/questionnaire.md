@@ -9,6 +9,8 @@ For each case-feature definition/profile, create a group of questionnaire items.
   1. Parent elements with one or more nested children elements i.e. if element path is nested beyond element.x, group the element.x children together
   2. Complex data types see [ElementDefinition Mappings](#mapping-elementdefinition-data-types-to-questionnaire-items)
 
+   <!-- How should we handle backbone elements and complex type elements where child elements do not meet criteria - we shouldn't return an empty group -->
+
 | elementDefinition | questionnaireItem | notes |
 | -----------------| -----------------| -------|
 | pattern[x] | sets initial[x], hidden true | Because questionnaireItem.initial[x] is a subset of pattern[x], we have rules to coerce |
