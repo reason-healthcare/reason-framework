@@ -6,19 +6,21 @@ import axios from 'axios'
 * @param SDUrl the structure definition URL
 * @param structureDefinitionSnapshot elements from the strucutre definition passed to $questionnaire
 * @param subGroupElements a list of element definitions to be processed as an questionnaire item grouping
-* @param rootElements a list of elements from subGroupElements that will be iterated over
-* @returns RequestGroup Action or null
+* @param parentElementPath the primary element path for the group
+* @returns Questionnaire Item List
 */
 
-export const buildQuestionnaireItemGroup = async (SDUrl: string, structureDefinitionSnapshot: fhir4.StructureDefinitionSnapshot["element"], rootElements: fhir4.ElementDefinition[], subGroupElements: fhir4.ElementDefinition[]): Promise<fhir4.QuestionnaireItem[]> => {
+export const buildQuestionnaireItemGroup = async (SDUrl: string, structureDefinitionSnapshot: fhir4.StructureDefinitionSnapshot["element"], parentElementPath: fhir4.ElementDefinition["path"], subGroupElements: fhir4.ElementDefinition[]): Promise<fhir4.QuestionnaireItem[]> => {
 
     //TODO
     // 1. support case feature expressions
     // 2. determine how readOnly will be used
     // 3. Reference, Quantity and Coding are currently returned as a group type if there are constraints on child elements. If there are only contraints on the backbone, returned as reference, quanitity, coding types - is this how we should handle this?
-    // 4. refactor parameters of buildQuestionnaireItemsSub to childSubGroupElements in place of subGroupElements -- add params
+    // 4. boundsDuration and boundsPeriod are returned for Timing example
 
-  const subGroup = await Promise.all(rootElements.map(async (element) => {
+  const childElements = subGroupElements.filter(e => getPathPrefix(e.path) === parentElementPath)
+
+  const subGroup = await Promise.all(childElements.map(async (element) => {
     let item = {
       linkId: uuidv4(),
     } as fhir4.QuestionnaireItem
@@ -156,9 +158,7 @@ export const buildQuestionnaireItemGroup = async (SDUrl: string, structureDefini
 
     if (processAsGroup && (elementType === "BackboneElement" || elementType === "Element" || elementType === "CodeableConcept" || elementType === "Coding" || elementType === "Reference" || elementType === "Quantity")) {
 
-      let childRootElements = childSubGroupElements.filter(e => getPathPrefix(e.path) === element.path)
-
-      item.item = await buildQuestionnaireItemGroup(SDUrl, structureDefinitionSnapshot, childRootElements, childSubGroupElements)
+      item.item = await buildQuestionnaireItemGroup(SDUrl, structureDefinitionSnapshot, element.path, childSubGroupElements)
 
     } else if (processAsGroup && elementType) {
 
@@ -194,9 +194,7 @@ export const buildQuestionnaireItemGroup = async (SDUrl: string, structureDefini
         childSubGroupElements.push(dataTypeElement)
       })
 
-      let childRootElements = childSubGroupElements.filter(e => getPathPrefix(e.path) === element.path)
-
-      item.item = await buildQuestionnaireItemGroup(SDUrl, structureDefinitionSnapshot, childRootElements, childSubGroupElements)
+      item.item = await buildQuestionnaireItemGroup(SDUrl, structureDefinitionSnapshot, element.path, childSubGroupElements)
 
     }
 

@@ -64,11 +64,9 @@ export const buildQuestionnaire = async (
 
   if (subGroupElements) {
 
-    let rootElements = subGroupElements.filter(e => e.path.split(".").length === 2)
-
     let subGroupItems
-    if (structureDefinition.snapshot) {
-      subGroupItems = await buildQuestionnaireItemGroup(structureDefinition.url, structureDefinition.snapshot.element, rootElements, subGroupElements)
+    if (structureDefinition.snapshot && backboneElement) {
+      subGroupItems = await buildQuestionnaireItemGroup(structureDefinition.url, structureDefinition.snapshot.element, backboneElement.path, subGroupElements)
     }
 
     questionnaire.item = [{
