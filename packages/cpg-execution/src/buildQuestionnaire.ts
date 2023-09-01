@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid"
 import { questionnaireBaseUrl, getSnapshotDefinition, getPathPrefix } from "./helpers"
-import {buildQuestionnaireItemsSubGroups} from "./buildQuestionnaireSubGroups"
+import {buildQuestionnaireItemGroup} from "./buildQuestionnaireItemGroup"
 
 export interface BuildQuestionnaireArgs {
   structureDefinition: fhir4.StructureDefinition,
@@ -68,7 +68,7 @@ export const buildQuestionnaire = async (
 
     let subGroupItems
     if (structureDefinition.snapshot) {
-      subGroupItems = await buildQuestionnaireItemsSubGroups(structureDefinition.url, structureDefinition.snapshot.element, rootElements, subGroupElements)
+      subGroupItems = await buildQuestionnaireItemGroup(structureDefinition.url, structureDefinition.snapshot.element, rootElements, subGroupElements)
     }
 
     questionnaire.item = [{

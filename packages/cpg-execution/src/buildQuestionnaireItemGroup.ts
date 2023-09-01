@@ -2,13 +2,21 @@ import { v4 as uuidv4 } from "uuid"
 import { is, omitCanonicalVersion, getSnapshotDefinition, getPathPrefix } from "./helpers"
 import axios from 'axios'
 
-export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, structureDefinitionSnapshot: fhir4.StructureDefinitionSnapshot["element"], rootElements: fhir4.ElementDefinition[], subGroupElements: fhir4.ElementDefinition[]): Promise<fhir4.QuestionnaireItem[]> => {
+/**
+* @param SDUrl the structure definition URL
+* @param structureDefinitionSnapshot elements from the strucutre definition passed to $questionnaire
+* @param subGroupElements a list of element definitions to be processed as an questionnaire item grouping
+* @param rootElements a list of elements from subGroupElements that will be iterated over
+* @returns RequestGroup Action or null
+*/
+
+export const buildQuestionnaireItemGroup = async (SDUrl: string, structureDefinitionSnapshot: fhir4.StructureDefinitionSnapshot["element"], rootElements: fhir4.ElementDefinition[], subGroupElements: fhir4.ElementDefinition[]): Promise<fhir4.QuestionnaireItem[]> => {
 
     //TODO
     // 1. support case feature expressions
     // 2. determine how readOnly will be used
     // 3. Reference, Quantity and Coding are currently returned as a group type if there are constraints on child elements. If there are only contraints on the backbone, returned as reference, quanitity, coding types - is this how we should handle this?
-    // 4. refactor parameters of buildQuestionnaireItemsSub to childElements in place of subGroupElements -- add params
+    // 4. refactor parameters of buildQuestionnaireItemsSub to childSubGroupElements in place of subGroupElements -- add params
 
   const subGroup = await Promise.all(rootElements.map(async (element) => {
     let item = {
@@ -31,7 +39,7 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, st
       elementPath = element.path
     }
 
-    item.definition = `${definitionUrl}#${elementPath}`
+    item.definition = `${SDUrl}#${elementPath}`
 
     if (element.short) {
       item.text = element.short
@@ -63,7 +71,7 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, st
       item.maxLength = snapshotDefinition.maxLength
     }
 
-    let processAsComplexType = false
+    let processAsGroup = false
     let valueType
     if (elementType === "code" || elementType === "Coding" || elementType === "CodeableConcept") {
       item.type = "choice"
@@ -94,7 +102,7 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, st
       valueType = elementType.charAt(0).toUpperCase() + elementType.slice(1)
     } else {
       item.type = "group"
-      processAsComplexType = true
+      processAsGroup = true
     }
 
     // Documentation on ElementDefinition states that default value "only exists so that default values may be defined in logical models", so do we need to support?
@@ -140,17 +148,19 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, st
 
     // TODO: (may remove) Context from where the corresponding data-requirement is used with a special extension (e.g. PlanDefinition.action.input[extension]...)? or.....
 
-    const childElements = subGroupElements.filter(e => getPathPrefix(e.path) === element.path)
-    if (childElements.length !== 0) {
+    const childSubGroupElements = subGroupElements.filter(e => e.path.startsWith(`${element.path}.`) && element.path !== e.path)
+    if (childSubGroupElements.length !== 0) {
       item.type = "group"
-      processAsComplexType = true
+      processAsGroup = true
     }
 
-    if (processAsComplexType && (elementType === "BackboneElement" || elementType === "Element" || elementType === "CodeableConcept" || elementType === "Coding" || elementType === "Reference" || elementType === "Quantity")) {
+    if (processAsGroup && (elementType === "BackboneElement" || elementType === "Element" || elementType === "CodeableConcept" || elementType === "Coding" || elementType === "Reference" || elementType === "Quantity")) {
 
-      item.item = await buildQuestionnaireItemsSubGroups(definitionUrl, structureDefinitionSnapshot, childElements, subGroupElements)
+      let childRootElements = childSubGroupElements.filter(e => getPathPrefix(e.path) === element.path)
 
-    } else if (processAsComplexType && elementType) {
+      item.item = await buildQuestionnaireItemGroup(SDUrl, structureDefinitionSnapshot, childRootElements, childSubGroupElements)
+
+    } else if (processAsGroup && elementType) {
 
       const getDataTypeSD = async (elementType: fhir4.ElementDefinitionType["code"]) => {
         try{
@@ -175,25 +185,19 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, st
         }
       })
 
-      let subGroupElement: fhir4.ElementDefinition | undefined
       dataTypeSD.forEach((dataTypeElement: fhir4.ElementDefinition) => {
         let prefix: string
         if (dataTypeElement.path.includes("[x]")) {
           prefix = dataTypeElement.path.replace("[x]", "")
         }
-        subGroupElement = subGroupElements.find(el => el.path.startsWith(prefix) || el.path === dataTypeElement.path)
-        // if subgroup has the element from the differential, the differential element should be replaced with the subgroup item
-        // childElement is child of element from subgroupelement
-        //subgroup element is
-        if (subGroupElement && !childElements.some(e => e.path === dataTypeElement.path)) {
-          childElements.push(subGroupElement)
-        } else if (!childElements.some(e => e.path === dataTypeElement.path)) {
-          childElements.push(dataTypeElement)
-        }
+        if (!childSubGroupElements.some(e => e.path === dataTypeElement.path))
+        childSubGroupElements.push(dataTypeElement)
       })
 
-      let dataTypeRootElements = childElements.filter(e => getPathPrefix(e.path) === element.path)
-      item.item = await buildQuestionnaireItemsSubGroups(definitionUrl, structureDefinitionSnapshot, dataTypeRootElements, childElements)
+      let childRootElements = childSubGroupElements.filter(e => getPathPrefix(e.path) === element.path)
+
+      item.item = await buildQuestionnaireItemGroup(SDUrl, structureDefinitionSnapshot, childRootElements, childSubGroupElements)
+
     }
 
     return item
