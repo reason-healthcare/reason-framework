@@ -7,8 +7,7 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
     //TODO
     // 1. support case feature expressions
     // 2. determine how readOnly will be used
-    // 3. bug: Quantity, Code, Reference children in subgroup elements are ignored
-
+    // 3. bug: Quantity, Coding, Reference children in subgroup elements are ignored
 
   const subGroup = await Promise.all(rootElements.map(async (element) => {
     let item = {
@@ -131,15 +130,20 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
         item.initial = [{[`value${valueType}`]: initialValue}]
       }
     }
-    if (processAsComplexType) {
 
-      let childElements = subGroupElements.filter(e => getPathPrefix(e.path) === elementPath)
+    const childElements = subGroupElements.filter(e => getPathPrefix(e.path) === element.path)
+    if (childElements.length !== 0) {
+      item.type = "group"
+      processAsComplexType = true
+    }
 
-      if (childElements && elementType === "BackboneElement" || elementType === "Element") {
+    if (processAsComplexType && elementType) {
+
+      if (elementType === "BackboneElement" || elementType === "Element") {
 
         item.item? item.item.concat(await buildQuestionnaireItemsSubGroups(definitionUrl, baseStructure, childElements, subGroupElements)) : item.item = await buildQuestionnaireItemsSubGroups(definitionUrl, baseStructure, childElements, subGroupElements)
 
-      } else if (childElements && elementType) {
+      } else {
 
         const getDataTypeDefinition = async (elementType: fhir4.ElementDefinitionType["code"]) => {
           try{
