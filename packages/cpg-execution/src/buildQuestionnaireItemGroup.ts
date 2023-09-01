@@ -16,6 +16,7 @@ export const buildQuestionnaireItemGroup = async (SDUrl: string, structureDefini
     // 1. support case feature expressions
     // 2. determine how readOnly will be used
     // 3. Reference, Quantity and Coding are currently returned as a group type if there are constraints on child elements. If there are only contraints on the backbone, returned as reference, quanitity, coding types - is this how we should handle this?
+    // 4. Support Slicing
 
   const childElements = subGroupElements.filter(e => getPathPrefix(e.path) === parentElementPath)
 
@@ -92,7 +93,7 @@ export const buildQuestionnaireItemGroup = async (SDUrl: string, structureDefini
     } else if (elementType === "base64Binary" || elementType === "markdown" || elementType === "id") {
       item.type = "string"
       valueType = "String"
-    } else if (elementType === "Quantity" || elementType === "Age" || elementType === "Distance" || elementType === "Duration" ||elementType === "Count" || elementType === "MoneyQuantity" || elementType === "SimpleQuantity") { // TODO: write test for this with fixedDuration and handle bindings
+    } else if (elementType === "Quantity" || elementType === "Age" || elementType === "Distance" || elementType === "Duration" ||elementType === "Count" || elementType === "MoneyQuantity" || elementType === "SimpleQuantity") {
       item.type = "quantity"
       valueType = "Quantity"
     } else if (elementType === "Reference") {
@@ -106,16 +107,15 @@ export const buildQuestionnaireItemGroup = async (SDUrl: string, structureDefini
       processAsGroup = true
     }
 
-    // Documentation on ElementDefinition states that default value "only exists so that default values may be defined in logical models", so do we need to support?
     let binding = element.binding || snapshotDefinition?.binding
     // TODO: there might be a case where the snapshot element has a fixed value when the differential does not?
     let fixedElementKey = Object.keys(element).find(k => { return k.startsWith("fixed") || k.startsWith("pattern") || k.startsWith("defaultValue") })
 
-    if (binding && binding.strength === "example" && !fixedElementKey) {
+    if (binding && !fixedElementKey) {
       item.answerValueSet = omitCanonicalVersion(binding.valueSet)
-      item.type = "open-choice"
-    } else if (binding && !fixedElementKey) {
-      item.answerValueSet = omitCanonicalVersion(binding.valueSet)
+      if (binding.strength === "example") {
+        item.type = "open-choice"
+      }
     }
 
     if (fixedElementKey) {
