@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid"
-import { questionnaireBaseUrl, getBaseDefinition, getPathPrefix } from "./helpers"
+import { questionnaireBaseUrl, getSnapshotDefinition, getPathPrefix } from "./helpers"
 import {buildQuestionnaireItemsSubGroups} from "./buildQuestionnaireSubGroups"
 
 export interface BuildQuestionnaireArgs {
@@ -51,7 +51,7 @@ export const buildQuestionnaire = async (
   })
 
   if (supportedOnly === true) {
-    subGroupElements = subGroupElements?.filter(e => e.mustSupport === true || getBaseDefinition(structureDefinition?.snapshot?.element, e)?.mustSupport === true)
+    subGroupElements = subGroupElements?.filter(e => e.mustSupport === true || getSnapshotDefinition(structureDefinition?.snapshot?.element, e)?.mustSupport === true)
   }
 
   questionnaire.item = [{

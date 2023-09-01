@@ -381,9 +381,9 @@ export const omitCanonicalVersion = (canonical: string | undefined): string | un
   return canonical?.split("|").shift()
 }
 
-export const getBaseDefinition = (baseStructure: fhir4.StructureDefinitionSnapshot["element"] | fhir4.StructureDefinitionDifferential["element"] | undefined, element: fhir4.ElementDefinition) => {
-  if (baseStructure) {
-    return baseStructure.find(e => e.path === element.path || e?.id?.replace(/\.[a-z]+\[\x\]\:/g, ".") === element.path)
+export const getSnapshotDefinition = (snapshotDefinition: fhir4.StructureDefinitionSnapshot["element"] | undefined, element: fhir4.ElementDefinition) => {
+  if (snapshotDefinition) {
+    return snapshotDefinition.find(e => e.path === element.path || e?.id?.replace(/\.[a-z]+\[\x\]\:/g, ".") === element.path)
   }
 }
 

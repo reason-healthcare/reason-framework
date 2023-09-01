@@ -1,26 +1,27 @@
 import { v4 as uuidv4 } from "uuid"
-import { is, omitCanonicalVersion, getBaseDefinition, getPathPrefix } from "./helpers"
+import { is, omitCanonicalVersion, getSnapshotDefinition, getPathPrefix } from "./helpers"
 import axios from 'axios'
 
-export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, baseStructure: fhir4.StructureDefinitionDifferential["element"] | fhir4.StructureDefinitionSnapshot["element"], rootElements: fhir4.ElementDefinition[], subGroupElements: fhir4.ElementDefinition[]): Promise<fhir4.QuestionnaireItem[]> => {
+export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, structureDefinitionSnapshot: fhir4.StructureDefinitionSnapshot["element"], rootElements: fhir4.ElementDefinition[], subGroupElements: fhir4.ElementDefinition[]): Promise<fhir4.QuestionnaireItem[]> => {
 
     //TODO
     // 1. support case feature expressions
     // 2. determine how readOnly will be used
-    // 3. bug: Quantity, Coding, Reference children in subgroup elements are ignored
+    // 3. Reference, Quantity and Coding are currently returned as a group type if there are constraints on child elements. If there are only contraints on the backbone, returned as reference, quanitity, coding types - is this how we should handle this?
+    // 4. refactor parameters of buildQuestionnaireItemsSub to childElements in place of subGroupElements -- add params
 
   const subGroup = await Promise.all(rootElements.map(async (element) => {
     let item = {
       linkId: uuidv4(),
     } as fhir4.QuestionnaireItem
 
-    let baseDefinition = getBaseDefinition(baseStructure, element)
+    let snapshotDefinition = getSnapshotDefinition(structureDefinitionSnapshot, element)
 
     let elementType: fhir4.ElementDefinitionType["code"] | undefined
     if (element.type) {
       elementType = element.type[0].code
-    } else if (baseDefinition?.type) {
-      elementType = baseDefinition.type[0].code
+    } else if (snapshotDefinition?.type) {
+      elementType = snapshotDefinition.type[0].code
     }
 
     let elementPath: fhir4.ElementDefinition["path"]
@@ -34,26 +35,32 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
 
     if (element.short) {
       item.text = element.short
-    } else if (baseDefinition?.short) {
-      item.text = baseDefinition?.short
+    } else if (snapshotDefinition?.short) {
+      item.text = snapshotDefinition?.short
     } else if (element.label) {
       item.text = element.label
-    } else if (baseDefinition?.label) {
-      item.text = baseDefinition?.label
+    } else if (snapshotDefinition?.label) {
+      item.text = snapshotDefinition?.label
     } else {
       item.text = elementPath?.split('.').join(' ')
     }
 
     if (element.min && element.min > 0) {
       item.required = true
-    } else if (!element.min && baseDefinition?.min && baseDefinition.min > 0) {
+    } else if (!element.min && snapshotDefinition?.min && snapshotDefinition.min > 0) {
       item.required = true
     }
 
     if (element.max && (element.max === "*" || parseInt(element.max) > 1)) {
       item.repeats = true
-    } else if (!element.max && baseDefinition?.max && (baseDefinition.max === "*" || parseInt(baseDefinition.max) > 1)) {
+    } else if (!element.max && snapshotDefinition?.max && (snapshotDefinition.max === "*" || parseInt(snapshotDefinition.max) > 1)) {
       item.repeats = true
+    }
+
+    if (element.maxLength && elementType === "string") {
+      item.maxLength = element.maxLength
+    } else if (!element.maxLength && snapshotDefinition?.maxLength && elementType === "string") {
+      item.maxLength = snapshotDefinition.maxLength
     }
 
     let processAsComplexType = false
@@ -91,7 +98,7 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
     }
 
     // Documentation on ElementDefinition states that default value "only exists so that default values may be defined in logical models", so do we need to support?
-    let binding = element.binding || baseDefinition?.binding
+    let binding = element.binding || snapshotDefinition?.binding
     // TODO: there might be a case where the snapshot element has a fixed value when the differential does not?
     let fixedElementKey = Object.keys(element).find(k => { return k.startsWith("fixed") || k.startsWith("pattern") || k.startsWith("defaultValue") })
 
@@ -131,75 +138,66 @@ export const buildQuestionnaireItemsSubGroups = async (definitionUrl: string, ba
       }
     }
 
+    // TODO: (may remove) Context from where the corresponding data-requirement is used with a special extension (e.g. PlanDefinition.action.input[extension]...)? or.....
+
     const childElements = subGroupElements.filter(e => getPathPrefix(e.path) === element.path)
     if (childElements.length !== 0) {
       item.type = "group"
       processAsComplexType = true
     }
 
-    if (processAsComplexType && elementType) {
+    if (processAsComplexType && (elementType === "BackboneElement" || elementType === "Element" || elementType === "CodeableConcept" || elementType === "Coding" || elementType === "Reference" || elementType === "Quantity")) {
 
-      if (elementType === "BackboneElement" || elementType === "Element") {
+      item.item = await buildQuestionnaireItemsSubGroups(definitionUrl, structureDefinitionSnapshot, childElements, subGroupElements)
 
-        item.item? item.item.concat(await buildQuestionnaireItemsSubGroups(definitionUrl, baseStructure, childElements, subGroupElements)) : item.item = await buildQuestionnaireItemsSubGroups(definitionUrl, baseStructure, childElements, subGroupElements)
+    } else if (processAsComplexType && elementType) {
 
-      } else {
-
-        const getDataTypeDefinition = async (elementType: fhir4.ElementDefinitionType["code"]) => {
-          try{
-            const response = await axios.get(`http://hapi.fhir.org/baseR4/StructureDefinition/${elementType}`)
-            return response.data
-          } catch (error) {
-            if (axios.isAxiosError(error)) {
-              console.error(error.message)
-            } else {
-              console.error(error)
-            }
+      const getDataTypeSD = async (elementType: fhir4.ElementDefinitionType["code"]) => {
+        try{
+          const response = await axios.get(`http://hapi.fhir.org/baseR4/StructureDefinition/${elementType}`)
+          return response.data
+        } catch (error) {
+          if (axios.isAxiosError(error)) {
+            console.error(error.message)
+          } else {
+            console.error(error)
           }
         }
-
-        // TODO: refactor this block because intent is unclear
-
-        let dataTypeDefinition = await getDataTypeDefinition(elementType)
-        dataTypeDefinition = dataTypeDefinition.differential.element.map((e: fhir4.ElementDefinition) => {
-          if (elementType) {
-            return e = {...e, path: e.path.replace(elementType, element.path)}
-            // now observation.effectiveTiming.repeat instead of Timing.repeat
-          }
-        })
-
-        let subGroupElement: fhir4.ElementDefinition | undefined
-        dataTypeDefinition.forEach((dataTypeElement: fhir4.ElementDefinition) => {
-          let prefix: string
-          if (dataTypeElement.path.includes("[x]")) {
-            prefix = dataTypeElement.path.replace("[x]", "")
-          }
-          subGroupElement = subGroupElements.find(el => el.path.startsWith(prefix) || el.path === dataTypeElement.path)
-          // if subgroup has the element from the differential, the differential element should be replaced with the subgroup item
-          if (subGroupElement && !childElements.some(e => e.path === dataTypeElement.path)) {
-            childElements.push(subGroupElement)
-          } else if (!childElements.some(e => e.path === dataTypeElement.path)) {
-            childElements.push(dataTypeElement)
-          }
-        })
-
-        let dataTypeRootElements = childElements.filter(e => getPathPrefix(e.path) === element.path)
-        item.item = await buildQuestionnaireItemsSubGroups(definitionUrl, baseStructure, dataTypeRootElements, childElements)
-      }
-    } else {
-
-      // TODO: (may remove) Context from where the corresponding data-requirement is used with a special extension (e.g. PlanDefinition.action.input[extension]...)? or.....
-
-
-      if (element.maxLength && elementType === "string") {
-        item.maxLength = element.maxLength
-      } else if (!element.maxLength && baseDefinition?.maxLength && elementType === "string") {
-        item.maxLength = baseDefinition.maxLength
       }
 
+      // TODO: refactor this block because intent is unclear
+
+      let dataTypeSD = await getDataTypeSD(elementType)
+      dataTypeSD = dataTypeSD.differential.element.map((e: fhir4.ElementDefinition) => {
+        if (elementType) {
+          return e = {...e, path: e.path.replace(elementType, element.path)}
+          // now observation.effectiveTiming.repeat instead of Timing.repeat
+        }
+      })
+
+      let subGroupElement: fhir4.ElementDefinition | undefined
+      dataTypeSD.forEach((dataTypeElement: fhir4.ElementDefinition) => {
+        let prefix: string
+        if (dataTypeElement.path.includes("[x]")) {
+          prefix = dataTypeElement.path.replace("[x]", "")
+        }
+        subGroupElement = subGroupElements.find(el => el.path.startsWith(prefix) || el.path === dataTypeElement.path)
+        // if subgroup has the element from the differential, the differential element should be replaced with the subgroup item
+        // childElement is child of element from subgroupelement
+        //subgroup element is
+        if (subGroupElement && !childElements.some(e => e.path === dataTypeElement.path)) {
+          childElements.push(subGroupElement)
+        } else if (!childElements.some(e => e.path === dataTypeElement.path)) {
+          childElements.push(dataTypeElement)
+        }
+      })
+
+      let dataTypeRootElements = childElements.filter(e => getPathPrefix(e.path) === element.path)
+      item.item = await buildQuestionnaireItemsSubGroups(definitionUrl, structureDefinitionSnapshot, dataTypeRootElements, childElements)
     }
 
     return item
+
   }))
 
   return subGroup
