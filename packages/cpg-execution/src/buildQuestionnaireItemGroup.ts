@@ -16,7 +16,6 @@ export const buildQuestionnaireItemGroup = async (SDUrl: string, structureDefini
     // 1. support case feature expressions
     // 2. determine how readOnly will be used
     // 3. Reference, Quantity and Coding are currently returned as a group type if there are constraints on child elements. If there are only contraints on the backbone, returned as reference, quanitity, coding types - is this how we should handle this?
-    // 4. boundsDuration and boundsPeriod are returned for Timing example
 
   const childElements = subGroupElements.filter(e => getPathPrefix(e.path) === parentElementPath)
 
@@ -87,7 +86,7 @@ export const buildQuestionnaireItemGroup = async (SDUrl: string, structureDefini
     } else if (elementType === "unsignedInt" || elementType === "positiveInt") {
       item.type = "integer"
       valueType = "Integer"
-    } else if (elementType && elementType === "instant") {
+    } else if (elementType === "instant") {
       item.type = "dateTime"
       valueType = "DateTime"
     } else if (elementType === "base64Binary" || elementType === "markdown" || elementType === "id") {
@@ -190,7 +189,7 @@ export const buildQuestionnaireItemGroup = async (SDUrl: string, structureDefini
         if (dataTypeElement.path.includes("[x]")) {
           prefix = dataTypeElement.path.replace("[x]", "")
         }
-        if (!childSubGroupElements.some(e => e.path === dataTypeElement.path))
+        if (!childSubGroupElements.some(e => e.path.startsWith(prefix) || e.path === dataTypeElement.path))
         childSubGroupElements.push(dataTypeElement)
       })
 
