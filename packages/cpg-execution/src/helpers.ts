@@ -382,12 +382,22 @@ export const omitCanonicalVersion = (canonical: string | undefined): string | un
 }
 
 export const getSnapshotDefinition = (snapshotElements: fhir4.StructureDefinitionSnapshot["element"] | undefined, element: fhir4.ElementDefinition) => {
-  if (snapshotElements) {
-    if (element.sliceName) {
-      return snapshotElements.find(e => element.path === e.path && element.sliceName === e.sliceName)
+
+  let snapshotElement: fhir4.ElementDefinition | undefined
+  snapshotElements?.forEach(e => {
+    if (element.sliceName && element.path === e.path && element.sliceName === e.sliceName) {
+      snapshotElement = e
+    } else if (e.path.endsWith('[x]') && e.sliceName && element.path === `${getPathPrefix(e.path)}.${e.sliceName}`) {
+      snapshotElement = e
+    } else if (e.path.includes('[x]') && e.base?.path && element.path === e.path.replace(/\[x\].+/, e.base.path)) {
+      snapshotElement = e
+    } else if (e.path === element.path) {
+      snapshotElement = e
     }
-    return snapshotElements.find(e => e.path === element.path || e?.id?.replace(/\.[a-z]+\[\x\]\:/g, ".") === element.id)
-  }
+  })
+
+  return snapshotElement
+
 }
 
 export const getPathPrefix = (path: fhir4.ElementDefinition["path"]): fhir4.ElementDefinition["path"] => {

@@ -16,7 +16,7 @@ export const buildQuestionnaireItemGroup = async (SDUrl: string, structureDefini
     // 1. support case feature expressions
     // 2. determine how readOnly will be used
     // 3. Reference, Quantity and Coding are currently returned as a group type if there are constraints on child elements. If there are only contraints on the backbone, returned as reference, quanitity, coding types with no children - is this how we should handle this?
-    // 4. Support Slicing
+    // 4. Support Slicing - Bug: returns duplicate items
 
   const childElements = subGroupElements.filter(e => getPathPrefix(e.path) === parentElementPath)
 
