@@ -393,9 +393,7 @@ export const getSnapshotDefinition = (snapshotElements: fhir4.StructureDefinitio
       snapshotElement = e
     }
   })
-
   return snapshotElement
-
 }
 
 export const getPathPrefix = (path: fhir4.ElementDefinition["path"]): fhir4.ElementDefinition["path"] => {
