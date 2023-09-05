@@ -383,7 +383,10 @@ export const omitCanonicalVersion = (canonical: string | undefined): string | un
 
 export const getSnapshotDefinition = (snapshotElements: fhir4.StructureDefinitionSnapshot["element"] | undefined, element: fhir4.ElementDefinition) => {
   if (snapshotElements) {
-    return snapshotElements.find(e => e.path === element.path || e?.id?.replace(/\.[a-z]+\[\x\]\:/g, ".") === element.path)
+    if (element.sliceName) {
+      return snapshotElements.find(e => element.path === e.path && element.sliceName === e.sliceName)
+    }
+    return snapshotElements.find(e => e.path === element.path || e?.id?.replace(/\.[a-z]+\[\x\]\:/g, ".") === element.id)
   }
 }
 

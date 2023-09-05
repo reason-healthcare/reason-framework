@@ -41,7 +41,11 @@ export const buildQuestionnaireItemGroup = async (SDUrl: string, structureDefini
       elementPath = element.path
     }
 
-    item.definition = `${SDUrl}#${elementPath}`
+    if (element.sliceName) {
+      item.definition = `${SDUrl}#${elementPath}:${element.sliceName}`
+    } else {
+      item.definition = `${SDUrl}#${elementPath}`
+    }
 
     if (element.short) {
       item.text = element.short
@@ -163,7 +167,8 @@ export const buildQuestionnaireItemGroup = async (SDUrl: string, structureDefini
     } else if (processAsGroup && elementType) {
 
       const getDataTypeSD = async (elementType: fhir4.ElementDefinitionType["code"]) => {
-        try{
+        // TODO: use Resolver here with content endpoint
+        try {
           const response = await axios.get(`http://hapi.fhir.org/baseR4/StructureDefinition/${elementType}`)
           return response.data
         } catch (error) {
