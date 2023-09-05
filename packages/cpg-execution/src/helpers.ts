@@ -387,9 +387,7 @@ export const getSnapshotDefinition = (snapshotElements: fhir4.StructureDefinitio
   snapshotElements?.forEach(e => {
     if (element.sliceName && element.path === e.path && element.sliceName === e.sliceName) {
       snapshotElement = e
-    } else if (e.path.endsWith('[x]') && e.sliceName && element.path === `${getPathPrefix(e.path)}.${e.sliceName}`) {
-      snapshotElement = e
-    } else if (e.path.includes('[x]') && e.base?.path && element.path === e.path.replace(/\[x\].+/, e.base.path)) {
+    } else if (e.path.includes('[x]') && e.id?.replace(/[a-z]+\[x\]\:/g, "") === element.path) {
       snapshotElement = e
     } else if (e.path === element.path) {
       snapshotElement = e
