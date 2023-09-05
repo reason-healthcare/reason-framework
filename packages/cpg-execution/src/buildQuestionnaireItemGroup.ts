@@ -15,7 +15,7 @@ export const buildQuestionnaireItemGroup = async (SDUrl: string, structureDefini
     //TODO
     // 1. support case feature expressions
     // 2. determine how readOnly will be used
-    // 3. Reference, Quantity and Coding are currently returned as a group type if there are constraints on child elements. If there are only contraints on the backbone, returned as reference, quanitity, coding types - is this how we should handle this?
+    // 3. Reference, Quantity and Coding are currently returned as a group type if there are constraints on child elements. If there are only contraints on the backbone, returned as reference, quanitity, coding types with no children - is this how we should handle this?
     // 4. Support Slicing
 
   const childElements = subGroupElements.filter(e => getPathPrefix(e.path) === parentElementPath)
@@ -111,7 +111,7 @@ export const buildQuestionnaireItemGroup = async (SDUrl: string, structureDefini
     // TODO: there might be a case where the snapshot element has a fixed value when the differential does not?
     let fixedElementKey = Object.keys(element).find(k => { return k.startsWith("fixed") || k.startsWith("pattern") || k.startsWith("defaultValue") })
 
-    if (binding && !fixedElementKey) {
+    if (binding) {
       item.answerValueSet = omitCanonicalVersion(binding.valueSet)
       if (binding.strength === "example") {
         item.type = "open-choice"
@@ -134,9 +134,10 @@ export const buildQuestionnaireItemGroup = async (SDUrl: string, structureDefini
         item.initial = initialValue?.coding?.map(coding => {
           return {"valueCoding": coding}
         })
-      } else if (elementType === "code" && binding?.valueSet) {
+      } else if (elementType === "code") {
+        // Bug: need codesystem, not valueset - or can we return soley the code with item.answerValueSet?
         initialValue = {} as fhir4.Coding
-        initialValue.system = omitCanonicalVersion(binding.valueSet)
+        // initialValue.system = omitCanonicalVersion(binding.valueSet)
         initialValue.code = element[fixedElementKey as keyof fhir4.ElementDefinition] as string
       } else {
         initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition]

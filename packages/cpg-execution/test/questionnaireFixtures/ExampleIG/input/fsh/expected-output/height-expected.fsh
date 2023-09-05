@@ -11,9 +11,10 @@ Description: "Simple test case with fixed[x]"
     * extension[questionnaire-hidden].valueBoolean = true
     * insert QuestionnaireItemMeta(HeightObservation, Observation.code)
     * text = "Body Height"
-    * type = #choice
+    * type = #open-choice
     * required = true
     * initial.valueCoding = http://loinc.org#8302-2 "Body Height"
+    * answerValueSet = Canonical(observation-codes)
   * item[+]
     * insert QuestionnaireItemMeta(HeightObservation, Observation.status)
     * text = "registered | preliminary | final | amended +"

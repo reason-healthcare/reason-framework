@@ -8,12 +8,6 @@ Description: "Simple test case with fixed[x]"
   * type = #group
   * text = "Measurements and simple assertions"
   * item[+]
-    * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.code)
-    * text = "Type of observation (code / type)"
-    * type = #open-choice
-    * required = true
-    * answerValueSet = Canonical(observation-codes)
-  * item[+]
     * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.status)
     * text = "registered | preliminary | final | amended +"
     * type = #choice
@@ -21,39 +15,8 @@ Description: "Simple test case with fixed[x]"
     * extension
       * url = Canonical(questionnaire-hidden)
       * valueBoolean = true
-    * initial.valueCoding = http://hl7.org/fhir/observation-status#final
-  * item[+]
-    * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.initial.valueString)
-    * type = #string
-    * text = "Actual Result"
-    * extension
-      * url = Canonical(questionnaire-hidden)
-      * valueBoolean = true
-    * initial.valueString = "hello"
-  * item[+]
-    * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.initial.valueBoolean)
-    * type = #boolean
-    * text = "Actual result"
-    * extension
-      * url = Canonical(questionnaire-hidden)
-      * valueBoolean = true
-    * initial.valueBoolean = true
-  * item[+]
-    * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.initial.valueInteger)
-    * type = #integer
-    * text = "Actual result"
-    * extension
-      * url = Canonical(questionnaire-hidden)
-      * valueBoolean = true
-    * initial.valueInteger = 5
-  * item[+]
-    * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.initial.valueDateTime)
-    * type = #dateTime
-    * text = "Actual result"
-    * extension
-      * url = Canonical(questionnaire-hidden)
-      * valueBoolean = true
-    * initial.valueDateTime = "2023-08-23"
+    * initial.valueCoding = #final
+    * answerValueSet = Canonical(observation-status)
   * item[+]
     * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.category)
     * type = #choice
@@ -62,23 +25,43 @@ Description: "Simple test case with fixed[x]"
       * url = Canonical(questionnaire-hidden)
       * valueBoolean = true
     * initial.valueCoding = $observation-category#vital-signs "Vital Signs"
+    * answerValueSet = Canonical(observation-category)
     * repeats = true
-  // * item[+]  //sushi error : type Coding was expected in place of reference and quantity
-  //   * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.initial.valueQuantity)
-  //   * type = #quantity
-  //   * text = "Actual result"
-  //   * extension
-  //     * url = Canonical(questionnaire-hidden)
-  //     * valueBoolean = true
-  //   * initial.valueQuantity
-  //     * value = 55
-  //     * system = "http://unitsofmeasure.org"
-  //     * code = #mm
-  // * item[+]
- //    * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.subject)
-  //   * type = #reference
-  //   * text = "Who and/or what the observation is about"
-  //   * extension
-  //     * url = Canonical(questionnaire-hidden)
-  //     * valueBoolean = true
-  //   * initial.valueReference = Reference(Patient/patient-1)
+  * item[+]
+    * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.valueBoolean)
+    * type = #boolean
+    * text = "Actual result"
+    * extension
+      * url = Canonical(questionnaire-hidden)
+      * valueBoolean = true
+    * initial.valueBoolean = true
+  * item[+]
+    * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.valueDateTime)
+    * type = #dateTime
+    * text = "Actual result"
+    * extension
+      * url = Canonical(questionnaire-hidden)
+      * valueBoolean = true
+    * initial.valueDateTime = "2023-08-23"
+  * item[+]
+    * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.valueInteger)
+    * type = #integer
+    * text = "Actual result"
+    * extension
+      * url = Canonical(questionnaire-hidden)
+      * valueBoolean = true
+    * initial.valueInteger = 5
+  * item[+]
+    * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.valueString)
+    * type = #string
+    * text = "Actual result"
+    * extension
+      * url = Canonical(questionnaire-hidden)
+      * valueBoolean = true
+    * initial.valueString = "hello"
+  * item[+]
+    * insert QuestionnaireItemMeta(DataCollectionObservation, Observation.code)
+    * text = "Type of observation (code / type)"
+    * type = #open-choice
+    * required = true
+    * answerValueSet = Canonical(observation-codes)
