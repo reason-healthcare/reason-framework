@@ -4,14 +4,14 @@ import Resolver from './resolver'
 
 
 /**
-* @param SDUrl the structure definition URL
-* @param structureDefinitionSnapshot elements from the strucutre definition passed to $questionnaire
+* @param structureDefinition.url the structure definition URL
+* @param structureDefinition the strucutre definition passed to $questionnaire
 * @param subGroupElements a list of element definitions to be processed as an questionnaire item grouping
 * @param parentElementPath the primary element path for the group
 * @returns Questionnaire Item List
 */
 
-export const buildQuestionnaireItemGroup = async (SDUrl: string, structureDefinitionSnapshot: fhir4.StructureDefinitionSnapshot["element"], parentElementPath: fhir4.ElementDefinition["path"], subGroupElements: fhir4.ElementDefinition[]): Promise<fhir4.QuestionnaireItem[]> => {
+export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.StructureDefinition, parentElementPath: fhir4.ElementDefinition["path"], subGroupElements: fhir4.ElementDefinition[]): Promise<fhir4.QuestionnaireItem[]> => {
 
     //TODO
     // 1. support case feature expressions
@@ -26,7 +26,7 @@ export const buildQuestionnaireItemGroup = async (SDUrl: string, structureDefini
       linkId: uuidv4(),
     } as fhir4.QuestionnaireItem
 
-    let snapshotDefinition = getSnapshotDefinition(structureDefinitionSnapshot, element)
+    let snapshotDefinition = getSnapshotDefinition(structureDefinition?.snapshot?.element, element)
 
     let elementType: fhir4.ElementDefinitionType["code"] | undefined
     if (element.type) {
@@ -43,9 +43,9 @@ export const buildQuestionnaireItemGroup = async (SDUrl: string, structureDefini
     }
 
     if (element.sliceName) {
-      item.definition = `${SDUrl}#${elementPath}:${element.sliceName}`
+      item.definition = `${structureDefinition.url}#${elementPath}:${element.sliceName}`
     } else {
-      item.definition = `${SDUrl}#${elementPath}`
+      item.definition = `${structureDefinition.url}#${elementPath}`
     }
 
     if (element.short) {
@@ -163,7 +163,7 @@ export const buildQuestionnaireItemGroup = async (SDUrl: string, structureDefini
 
     if (processAsGroup && (elementType === "BackboneElement" || elementType === "Element" || elementType === "CodeableConcept" || elementType === "Coding" || elementType === "Reference" || elementType === "Quantity")) {
 
-      item.item = await buildQuestionnaireItemGroup(SDUrl, structureDefinitionSnapshot, element.path, childSubGroupElements)
+      item.item = await buildQuestionnaireItemGroup(structureDefinition, element.path, childSubGroupElements)
 
     } else if (processAsGroup && elementType) {
       const endpoint: fhir4.Endpoint = {
@@ -210,7 +210,7 @@ export const buildQuestionnaireItemGroup = async (SDUrl: string, structureDefini
         })
       }
 
-      item.item = await buildQuestionnaireItemGroup(SDUrl, structureDefinitionSnapshot, element.path, childSubGroupElements)
+      item.item = await buildQuestionnaireItemGroup(structureDefinition, element.path, childSubGroupElements)
 
     }
 

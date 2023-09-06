@@ -66,7 +66,7 @@ export const buildQuestionnaire = async (
 
     let subGroupItems
     if (structureDefinition.snapshot && backboneElement) {
-      subGroupItems = await buildQuestionnaireItemGroup(structureDefinition.url, structureDefinition.snapshot.element, backboneElement.path, subGroupElements)
+      subGroupItems = await buildQuestionnaireItemGroup(structureDefinition, backboneElement.path, subGroupElements)
     }
 
     questionnaire.item = [{
