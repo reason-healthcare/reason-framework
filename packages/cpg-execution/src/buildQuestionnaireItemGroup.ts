@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid"
 import { is, omitCanonicalVersion, getSnapshotDefinition, getPathPrefix } from "./helpers"
-import axios from 'axios'
+import Resolver from './resolver'
+
 
 /**
 * @param SDUrl the structure definition URL
@@ -165,39 +166,49 @@ export const buildQuestionnaireItemGroup = async (SDUrl: string, structureDefini
       item.item = await buildQuestionnaireItemGroup(SDUrl, structureDefinitionSnapshot, element.path, childSubGroupElements)
 
     } else if (processAsGroup && elementType) {
-
-      const getDataTypeSD = async (elementType: fhir4.ElementDefinitionType["code"]) => {
-        // TODO: use Resolver here with content endpoint
-        try {
-          const response = await axios.get(`http://hapi.fhir.org/baseR4/StructureDefinition/${elementType}`)
-          return response.data
-        } catch (error) {
-          if (axios.isAxiosError(error)) {
-            console.error(error.message)
-          } else {
-            console.error(error)
-          }
-        }
+      const endpoint: fhir4.Endpoint = {
+        resourceType: 'Endpoint',
+        address: "http://hapi.fhir.org/baseR4",
+        status: 'active',
+        payloadType: [
+          {
+            coding: [
+              {
+                code: 'all',
+              },
+            ],
+          },
+        ],
+        connectionType: {
+          code: "hl7-fhir-rest",
+        },
       }
+      const resolver = Resolver(endpoint)
 
       // TODO: refactor this block because intent is unclear
 
-      let dataTypeSD = await getDataTypeSD(elementType)
-      dataTypeSD = dataTypeSD.differential.element.map((e: fhir4.ElementDefinition) => {
-        if (elementType) {
-          return e = {...e, path: e.path.replace(elementType, element.path)}
-          // now observation.effectiveTiming.repeat instead of Timing.repeat
-        }
-      })
+      let dataTypeSD = await resolver.resolveReference(`StructureDefinition/${elementType}`)
+      console.log(JSON.stringify(dataTypeSD))
+      if (is.StructureDefinition(dataTypeSD) && dataTypeSD.differential) {
+        const dataTypeDifferential = dataTypeSD.differential.element.map((e: fhir4.ElementDefinition) => {
+          if (elementType) {
+            return e = {...e, path: e.path.replace(elementType, element.path)}
+            // now observation.effectiveTiming.repeat instead of Timing.repeat
+          }
+        })
 
-      dataTypeSD.forEach((dataTypeElement: fhir4.ElementDefinition) => {
-        let prefix: string
-        if (dataTypeElement.path.includes("[x]")) {
-          prefix = dataTypeElement.path.replace("[x]", "")
-        }
-        if (!childSubGroupElements.some(e => e.path.startsWith(prefix) || e.path === dataTypeElement.path))
-        childSubGroupElements.push(dataTypeElement)
-      })
+        dataTypeDifferential?.forEach(dataTypeElement => {
+          if (dataTypeElement) {
+            let prefix: string
+            if (dataTypeElement?.path.includes("[x]")) {
+              prefix = dataTypeElement.path.replace("[x]", "")
+            }
+            if (!childSubGroupElements.some(e => e.path.startsWith(prefix) || e.path === dataTypeElement?.path))
+
+            childSubGroupElements.push(dataTypeElement)
+          }
+        })
+      }
 
       item.item = await buildQuestionnaireItemGroup(SDUrl, structureDefinitionSnapshot, element.path, childSubGroupElements)
 
