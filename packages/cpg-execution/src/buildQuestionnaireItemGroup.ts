@@ -2,7 +2,6 @@ import { v4 as uuidv4 } from "uuid"
 import { is, omitCanonicalVersion, getSnapshotDefinition, getPathPrefix } from "./helpers"
 import Resolver from './resolver'
 
-
 /**
 * @param structureDefinition.url the structure definition URL
 * @param structureDefinition the strucutre definition passed to $questionnaire
@@ -153,6 +152,38 @@ export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.Str
       }
     }
 
+    if (element.path === `${parentElementPath}.value[x]`) {
+      const featureExtension = structureDefinition.extension?.find(e => e.url === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-featureExpression")
+
+      if (featureExtension) {
+        const featureExpresion = featureExtension.valueExpression
+
+        const connectionTypeCode = process.env.ENDPOINT_ADDRESS?.startsWith('http')
+          ? 'hl7-fhir-rest'
+          : process.env.ENDPOINT_ADDRESS?.startsWith('file')
+          ? 'hl7-fhir-file'
+          : 'unknown'
+
+        const endpoint: fhir4.Endpoint = {
+          resourceType: 'Endpoint',
+          address: process.env.ENDPOINT_ADDRESS ?? 'unknown',
+          status: 'active',
+          payloadType: [
+            {
+              coding: [
+                {
+                  code: 'all',
+                },
+              ],
+            },
+          ],
+          connectionType: {
+            code: connectionTypeCode,
+          },
+        }
+        const library = await Resolver(endpoint).resolveCanonical(featureExpresion?.reference)
+      }
+    }
     // TODO: (may remove) Context from where the corresponding data-requirement is used with a special extension (e.g. PlanDefinition.action.input[extension]...)? or.....
 
     const childSubGroupElements = subGroupElements.filter(e => e.path.startsWith(`${element.path}.`) && element.path !== e.path)
@@ -166,7 +197,7 @@ export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.Str
       item.item = await buildQuestionnaireItemGroup(structureDefinition, element.path, childSubGroupElements)
 
     } else if (processAsGroup && elementType) {
-      const endpoint: fhir4.Endpoint = {
+      const fhirRestEndpoint: fhir4.Endpoint = {
         resourceType: 'Endpoint',
         address: "http://hapi.fhir.org/baseR4",
         status: 'active',
@@ -183,7 +214,7 @@ export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.Str
           code: "hl7-fhir-rest",
         },
       }
-      const resolver = Resolver(endpoint)
+      const resolver = Resolver(fhirRestEndpoint)
 
       // TODO: refactor this block because intent is unclear
 

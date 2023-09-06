@@ -54,6 +54,13 @@ export const buildQuestionnaire = async (
     subGroupElements = subGroupElements?.filter(e => e.mustSupport === true || getSnapshotDefinition(structureDefinition?.snapshot?.element, e)?.mustSupport === true)
   }
 
+  if (structureDefinition.extension?.some(e => e.url === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-featureExpression") && !subGroupElements?.some(e => e.path === `${backboneElement?.path}.value[x]`)) {
+    let valueElement = structureDefinition.snapshot?.element.find(e => e.path === `${backboneElement?.path}.value[x]`)
+    if (valueElement) {
+      subGroupElements?.push(valueElement)
+    }
+  }
+
   questionnaire.item = [{
     linkId: uuidv4(),
     definition: `${structureDefinition.url}#${backboneElement?.path}`,
@@ -62,19 +69,13 @@ export const buildQuestionnaire = async (
     item: []
   }]
 
-  if (subGroupElements) {
-
-    let subGroupItems
-    if (structureDefinition.snapshot && backboneElement) {
-      subGroupItems = await buildQuestionnaireItemGroup(structureDefinition, backboneElement.path, subGroupElements)
-    }
-
+  if (subGroupElements && backboneElement) {
     questionnaire.item = [{
       linkId: uuidv4(),
       definition: `${structureDefinition.url}#${backboneElement?.path}`,
       text: backboneElement?.short? backboneElement?.short : backboneElement?.path,
       type: "group",
-      item: subGroupItems
+      item: await buildQuestionnaireItemGroup(structureDefinition, backboneElement.path, subGroupElements)
     }]
   }
   return questionnaire
