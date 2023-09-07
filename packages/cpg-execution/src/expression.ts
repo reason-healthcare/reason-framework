@@ -14,6 +14,7 @@ import {
   RequestResource
 } from './helpers'
 import { Resolver } from './resolver'
+import { StructureDefinition } from 'fhir/r4'
 
 export const processDynamicValue = async (
   dynamicValue:
@@ -611,3 +612,133 @@ export const set = (obj: any, path: string, value: any): void => {
 
   lodashSet(obj, path, value)
 }
+
+export const processFeatureExpression = async (
+  expression: fhir4.Expression,
+  definitionalResource: fhir4.StructureDefinition,
+  // targetResource: fhir4.Questionnaire,
+  contentResolver: Resolver,
+  terminologyResolver: Resolver,
+  dataResolver?: Resolver | undefined,
+  data?: fhir4.Bundle | undefined,
+  libraries?: fhir4.Library[] | undefined,
+  subject?: string | undefined,
+  encounter?: string | undefined,
+  practitioner?: string | undefined,
+  organization?: string | undefined
+): Promise<fhir4.Resource | undefined> => {
+
+  if (expression.language === 'text/fhirpath') {
+    const subjectResource = await resolveBundleOrEndpoint(
+      subject,
+      data,
+      dataResolver
+    )
+    const encounterResource = await resolveBundleOrEndpoint(
+      encounter,
+      data,
+      dataResolver
+    )
+    const practitionerResource = await resolveBundleOrEndpoint(
+      practitioner,
+      data,
+      dataResolver
+    )
+    const organizationResource = await resolveBundleOrEndpoint(
+      organization,
+      data,
+      dataResolver
+    )
+    const result = evaluateFhirpath(
+      expression.expression ?? '',
+      definitionalResource,
+      {
+        subject: subjectResource,
+        encounter: encounterResource,
+        practitioner: practitionerResource,
+        organization: organizationResource
+      }
+    )
+    if (result.length > 1) {
+      console.error(
+        'DynamicValue got multiple results, expecting one...',
+        inspect(expression),
+        inspect(result)
+      )
+    }
+    return result[0]
+  } else if (expression.language === 'text/cql-identifier') {
+    const dataContext = removeUndefinedProps(
+      await buildDataContext(
+        dataResolver,
+        data,
+        subject,
+        encounter,
+        practitioner,
+        organization
+      )
+    )
+
+    if (dataContext == null) {
+      console.warn(
+        `Can not process CQL without dataContext, skipping ${inspect(
+          expression
+        )}`
+      )
+      // console.log(
+      //   JSON.stringify(targetResource) +
+      //     'targetResource from processDynamicValue function'
+      // )
+      // return targetResource
+    }
+
+    const inBundle = (
+      entry: fhir4.BundleEntry,
+      bundle: fhir4.Bundle
+    ): boolean => {
+      return (
+        bundle.entry?.some((be) => {
+          const { resource: entryResource } = entry
+          const { resource: bundleResource } = be
+          if (entryResource != null && bundleResource != null) {
+            return (
+              entryResource.id === bundleResource.id &&
+              entryResource.resourceType === bundleResource.resourceType
+            )
+          }
+          return false
+        }) ?? false
+      )
+    }
+
+    if (is.Bundle(dataContext) && is.Bundle(data) && data != null) {
+      ;(dataContext.entry ||= [])?.push(
+        ...(data.entry?.filter((e) => !inBundle(e, dataContext)) ?? [])
+      )
+    }
+
+    const value = await evaluateCqlExpression(
+      subject ?? '',
+      expression,
+      dataContext,
+      contentResolver,
+      terminologyResolver,
+      dataResolver,
+      libraries
+    )
+    return value
+  } else {
+    console.warn(
+      `Expression lanugage '${
+        expression.language ?? '[none]'
+      }' not supported, only support for: text/fhirpath, text/cql-identifier`
+    )
+  }
+  // console.log(
+  //   JSON.stringify(
+  //     JSON.stringify(targetResource) + 'targetResource from process'
+  //   )
+  // )
+  // return targetResource
+}
+

@@ -151,39 +151,6 @@ export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.Str
         item.initial = [{[`value${valueType}`]: initialValue}]
       }
     }
-
-    if (element.path === `${parentElementPath}.value[x]`) {
-      const featureExtension = structureDefinition.extension?.find(e => e.url === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-featureExpression")
-
-      if (featureExtension) {
-        const featureExpresion = featureExtension.valueExpression
-
-        const connectionTypeCode = process.env.ENDPOINT_ADDRESS?.startsWith('http')
-          ? 'hl7-fhir-rest'
-          : process.env.ENDPOINT_ADDRESS?.startsWith('file')
-          ? 'hl7-fhir-file'
-          : 'unknown'
-
-        const endpoint: fhir4.Endpoint = {
-          resourceType: 'Endpoint',
-          address: process.env.ENDPOINT_ADDRESS ?? 'unknown',
-          status: 'active',
-          payloadType: [
-            {
-              coding: [
-                {
-                  code: 'all',
-                },
-              ],
-            },
-          ],
-          connectionType: {
-            code: connectionTypeCode,
-          },
-        }
-        const library = await Resolver(endpoint).resolveCanonical(featureExpresion?.reference)
-      }
-    }
     // TODO: (may remove) Context from where the corresponding data-requirement is used with a special extension (e.g. PlanDefinition.action.input[extension]...)? or.....
 
     const childSubGroupElements = subGroupElements.filter(e => e.path.startsWith(`${element.path}.`) && element.path !== e.path)
