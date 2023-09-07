@@ -60,19 +60,6 @@ export const buildQuestionnaire = async (
     subGroupElements = subGroupElements?.filter(e => e.mustSupport === true || getSnapshotDefinition(structureDefinition?.snapshot?.element, e)?.mustSupport === true)
   }
 
-  const featureExpressionExtension = structureDefinition.extension?.find(e => e.url === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-featureExpression")
-  let featureExpressionValue
-  if (featureExpressionExtension) {
-    const featureExpresion = featureExpressionExtension.valueExpression
-    const dataResolver = undefined
-
-    if (featureExpresion) {
-      const resolver = Resolver(defaultEndpoint)
-      const referenceResource = await resolver.resolveCanonical(featureExpresion?.reference)
-      featureExpressionValue = await processFeatureExpression(featureExpresion, referenceResource, resolver, resolver, dataResolver, data)
-    }
-  }
-
   questionnaire.item = [{
     linkId: uuidv4(),
     definition: `${structureDefinition.url}#${backboneElement?.path}`,
@@ -87,8 +74,20 @@ export const buildQuestionnaire = async (
       definition: `${structureDefinition.url}#${backboneElement?.path}`,
       text: backboneElement?.short? backboneElement?.short : backboneElement?.path,
       type: "group",
-      item: await buildQuestionnaireItemGroup(structureDefinition, backboneElement.path, subGroupElements, featureExpressionValue)
+      item: await buildQuestionnaireItemGroup(structureDefinition, backboneElement.path, subGroupElements)
     }]
   }
+
+    const featureExpressionExtension = structureDefinition.extension?.find(e => e.url === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-featureExpression")
+    let featureExpressionValue
+    if (featureExpressionExtension) {
+      const featureExpresion = featureExpressionExtension.valueExpression
+      const dataResolver = undefined
+
+      if (featureExpresion) {
+        const resolver = Resolver(defaultEndpoint)
+        featureExpressionValue = await processFeatureExpression(featureExpresion, questionnaire, resolver, resolver, dataResolver, data)
+      }
+    }
   return questionnaire
 }

@@ -4,11 +4,11 @@ Usage: #example
 * description = "Test case for a caseFeatureDefinition with the featureExpression extension"
 * insert QuestionnaireMetaData(WeightCaseFeatureExpected)
 * item
-  * insert QuestionnaireItemMeta(WeightCaseFeatureExpected, Observation)
+  * insert QuestionnaireItemMeta(WeightCaseFeature, Observation)
   * text = "Measurements and simple assertions"
   * type = #group
   * item[0]
-    * insert QuestionnaireItemMeta(WeightCaseFeatureExpected, Observation.valueQuantity)
+    * insert QuestionnaireItemMeta(WeightCaseFeature, Observation.valueQuantity)
     * text = "Actual result"
     * type = #quantity
     * initial.valueQuantity
@@ -17,13 +17,13 @@ Usage: #example
       * system = $unitsofmeasure
       * code = #kg
   * item[+]
-    * insert QuestionnaireItemMeta(WeightCaseFeatureExpected, Observation.status)
+    * insert QuestionnaireItemMeta(WeightCaseFeature, Observation.status)
     * text = "registered | preliminary | final | amended +"
     * required = true
     * type = #choice
     * answerValueSet = Canonical(observation-status)
   * item[+]
-    * insert QuestionnaireItemMeta(WeightCaseFeatureExpected, Observation.code)
+    * insert QuestionnaireItemMeta(WeightCaseFeature, Observation.code)
     * text = "Type of observation (code / type)"
     * required = true
     * type = #open-choice

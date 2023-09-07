@@ -1,4 +1,4 @@
-Profile: BodyWeightCaseFeature
+Profile: WeightCaseFeature
 Parent: Observation
 * ^extension[+].url = "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-featureExpression"
 * ^extension[=].valueExpression.language = #text/cql-identifier

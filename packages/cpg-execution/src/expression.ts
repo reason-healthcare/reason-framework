@@ -381,7 +381,6 @@ export const evaluateCqlExpression = async (
       })
     })
 
-    console.log(JSON.stringify(value))
     return value
   } else {
     console.warn('Expression is not text/cql-identifier', expression.language)
@@ -617,8 +616,8 @@ export const set = (obj: any, path: string, value: any): void => {
 
 export const processFeatureExpression = async (
   expression: fhir4.Expression,
-  referenceResource: fhir4.Resource,
-  // targetResource: fhir4.Questionnaire,
+  // referenceResource: fhir4.Resource,
+  targetResource: fhir4.Questionnaire,
   contentResolver: Resolver,
   terminologyResolver: Resolver,
   dataResolver?: Resolver | undefined,
@@ -652,7 +651,7 @@ export const processFeatureExpression = async (
     )
     const result = evaluateFhirpath(
       expression.expression ?? '',
-      referenceResource,
+      // referenceResource,
       {
         subject: subjectResource,
         encounter: encounterResource,
@@ -718,13 +717,6 @@ export const processFeatureExpression = async (
       )
     }
 
-    const libraries: fhir4.Library[] = []
-    if (is.Library(referenceResource)) {
-      libraries.push(referenceResource)
-    } else {
-      console.error("CQL expression cannot be resolved without a Library")
-    }
-
     const value = await evaluateCqlExpression(
       subject ?? '',
       expression,
@@ -732,9 +724,28 @@ export const processFeatureExpression = async (
       contentResolver,
       terminologyResolver,
       dataResolver,
-      libraries
     )
-    return value
+
+    const targetItem = targetResource.item?.find(i => i.definition?.includes(".value"))
+
+    console.info(JSON.stringify(value))
+    console.log(Object.entries(value))
+
+
+    if (typeof value === "object") {
+      Object.entries(value).forEach(([k, v]) => {
+        if (typeof v === "object" && v) {
+          console.log(Object.keys(v))
+        }
+      })
+    }
+
+    // Here instead of returning value:
+    // 1. if value is not an object, set target resource weight item.item.initialValue to value
+    // 2. if value is an object, for each property in the object, asign the value to the property and add it to item.item.initialValue
+    // value.map(v => {
+    //   v = v.value
+    // })
   } else {
     console.warn(
       `Expression lanugage '${

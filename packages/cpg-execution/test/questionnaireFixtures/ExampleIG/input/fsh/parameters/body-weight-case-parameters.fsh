@@ -1,4 +1,4 @@
-Instance: BodyWeightCaseParameters
+Instance: WeightCaseFeatureParameters
 InstanceOf: Parameters
 Usage: #example
 * parameter[+]
@@ -6,7 +6,7 @@ Usage: #example
   * valueBoolean = false
 * parameter[+]
   * name = "url"
-  * valueString = "http://example.org/StructureDefinition/BodyWeightCaseFeature"
+  * valueString = "http://example.org/StructureDefinition/WeightCaseFeature"
 * parameter[+]
   * name = "data"
   * resource = PatientTestBundle1
