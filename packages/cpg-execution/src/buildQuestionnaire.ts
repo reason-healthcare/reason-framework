@@ -60,18 +60,16 @@ export const buildQuestionnaire = async (
     subGroupElements = subGroupElements?.filter(e => e.mustSupport === true || getSnapshotDefinition(structureDefinition?.snapshot?.element, e)?.mustSupport === true)
   }
 
-  const featureExtension = structureDefinition.extension?.find(e => e.url === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-featureExpression")
-
-  if (featureExtension) {
-    const featureExpresion = featureExtension.valueExpression
-
+  const featureExpressionExtension = structureDefinition.extension?.find(e => e.url === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-featureExpression")
+  let featureExpressionValue
+  if (featureExpressionExtension) {
+    const featureExpresion = featureExpressionExtension.valueExpression
     const dataResolver = undefined
 
     if (featureExpresion) {
       const resolver = Resolver(defaultEndpoint)
       const referenceResource = await resolver.resolveCanonical(featureExpresion?.reference)
-      const value = await processFeatureExpression(featureExpresion, referenceResource, resolver, resolver, dataResolver, data)
-      console.log(JSON.stringify(value) + " value")
+      featureExpressionValue = await processFeatureExpression(featureExpresion, referenceResource, resolver, resolver, dataResolver, data)
     }
   }
 
@@ -89,7 +87,7 @@ export const buildQuestionnaire = async (
       definition: `${structureDefinition.url}#${backboneElement?.path}`,
       text: backboneElement?.short? backboneElement?.short : backboneElement?.path,
       type: "group",
-      item: await buildQuestionnaireItemGroup(structureDefinition, backboneElement.path, subGroupElements)
+      item: await buildQuestionnaireItemGroup(structureDefinition, backboneElement.path, subGroupElements, featureExpressionValue)
     }]
   }
   return questionnaire

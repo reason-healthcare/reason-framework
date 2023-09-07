@@ -10,9 +10,16 @@ define "Patient id":
   Patient.id
 
 define "Body Weight Observation":
-  First([Observation]).value
+  First([Observation])
 
 define "Body Weight":
-  "Body Weight Observation".value.value
+  "Body Weight Observation".value
+
+define "Height Observation":
+  Last([Observation])
+
+define "Height":
+  "Height Observation".value.value
+
 
 

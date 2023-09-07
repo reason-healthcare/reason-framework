@@ -10,7 +10,7 @@ import Resolver from './resolver'
 * @returns Questionnaire Item List
 */
 
-export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.StructureDefinition, parentElementPath: fhir4.ElementDefinition["path"], subGroupElements: fhir4.ElementDefinition[]): Promise<fhir4.QuestionnaireItem[]> => {
+export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.StructureDefinition, parentElementPath: fhir4.ElementDefinition["path"], subGroupElements: fhir4.ElementDefinition[], featureExpressionValue?: any): Promise<fhir4.QuestionnaireItem[]> => {
 
     //TODO
     // 1. support case feature expressions
@@ -131,8 +131,8 @@ export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.Str
         }]
       }
 
-      // Set initial[x] for fixed[x], pattern[x], defaultValue[x]
       let initialValue
+      // Set initial[x] for fixed[x], pattern[x], defaultValue[x]
       if (elementType === "CodeableConcept") {
         initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition] as fhir4.CodeableConcept | undefined
         item.initial = initialValue?.coding?.map(coding => {
@@ -150,6 +150,10 @@ export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.Str
       if (valueType && initialValue && elementType !== "CodeableConcept") {
         item.initial = [{[`value${valueType}`]: initialValue}]
       }
+    }
+
+    if (element.path === `${parentElementPath}.value[x]` && featureExpressionValue) {
+      item.initial = [{[`value${valueType}`]: featureExpressionValue}]
     }
     // TODO: (may remove) Context from where the corresponding data-requirement is used with a special extension (e.g. PlanDefinition.action.input[extension]...)? or.....
 

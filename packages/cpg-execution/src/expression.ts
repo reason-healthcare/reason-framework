@@ -380,6 +380,8 @@ export const evaluateCqlExpression = async (
         }
       })
     })
+
+    console.log(JSON.stringify(value))
     return value
   } else {
     console.warn('Expression is not text/cql-identifier', expression.language)
