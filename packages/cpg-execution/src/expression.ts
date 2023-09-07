@@ -615,13 +615,12 @@ export const set = (obj: any, path: string, value: any): void => {
 
 export const processFeatureExpression = async (
   expression: fhir4.Expression,
-  definitionalResource: fhir4.StructureDefinition,
+  referenceResource: fhir4.Resource,
   // targetResource: fhir4.Questionnaire,
   contentResolver: Resolver,
   terminologyResolver: Resolver,
   dataResolver?: Resolver | undefined,
   data?: fhir4.Bundle | undefined,
-  libraries?: fhir4.Library[] | undefined,
   subject?: string | undefined,
   encounter?: string | undefined,
   practitioner?: string | undefined,
@@ -632,26 +631,26 @@ export const processFeatureExpression = async (
     const subjectResource = await resolveBundleOrEndpoint(
       subject,
       data,
-      dataResolver
+      // dataResolver
     )
     const encounterResource = await resolveBundleOrEndpoint(
       encounter,
       data,
-      dataResolver
+      // dataResolver
     )
     const practitionerResource = await resolveBundleOrEndpoint(
       practitioner,
       data,
-      dataResolver
+      // dataResolver
     )
     const organizationResource = await resolveBundleOrEndpoint(
       organization,
       data,
-      dataResolver
+      // dataResolver
     )
     const result = evaluateFhirpath(
       expression.expression ?? '',
-      definitionalResource,
+      referenceResource,
       {
         subject: subjectResource,
         encounter: encounterResource,
@@ -661,7 +660,7 @@ export const processFeatureExpression = async (
     )
     if (result.length > 1) {
       console.error(
-        'DynamicValue got multiple results, expecting one...',
+        'Expression got multiple results, expecting one...',
         inspect(expression),
         inspect(result)
       )
@@ -715,6 +714,13 @@ export const processFeatureExpression = async (
       ;(dataContext.entry ||= [])?.push(
         ...(data.entry?.filter((e) => !inBundle(e, dataContext)) ?? [])
       )
+    }
+
+    const libraries: fhir4.Library[] = []
+    if (is.Library(referenceResource)) {
+      libraries.push(referenceResource)
+    } else {
+      console.error("CQL expression cannot be resolved without a Library")
     }
 
     const value = await evaluateCqlExpression(

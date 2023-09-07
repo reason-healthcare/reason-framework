@@ -1,12 +1,14 @@
 import { v4 as uuidv4 } from "uuid"
-import { questionnaireBaseUrl, getSnapshotDefinition, getPathPrefix } from "./helpers"
+import { questionnaireBaseUrl, getSnapshotDefinition, getPathPrefix, is } from "./helpers"
 import {buildQuestionnaireItemGroup} from "./buildQuestionnaireItemGroup"
 import { processFeatureExpression } from "./expression"
 import Resolver from './resolver'
 
 export interface BuildQuestionnaireArgs {
   structureDefinition: fhir4.StructureDefinition,
-  supportedOnly?: boolean | undefined
+  defaultEndpoint: fhir4.Endpoint
+  supportedOnly?: boolean | undefined,
+  data?: fhir4.Bundle | undefined,
 }
 
 export const buildQuestionnaire = async (
@@ -15,7 +17,9 @@ export const buildQuestionnaire = async (
 
   const {
     structureDefinition,
+    defaultEndpoint,
     supportedOnly,
+    data
   } = args
 
   const questionnaire: fhir4.Questionnaire = {
@@ -61,33 +65,13 @@ export const buildQuestionnaire = async (
   if (featureExtension) {
     const featureExpresion = featureExtension.valueExpression
 
-    const connectionTypeCode = process.env.ENDPOINT_ADDRESS?.startsWith('http')
-      ? 'hl7-fhir-rest'
-      : process.env.ENDPOINT_ADDRESS?.startsWith('file')
-      ? 'hl7-fhir-file'
-      : 'unknown'
+    const dataResolver = undefined
 
-    const endpoint: fhir4.Endpoint = {
-      resourceType: 'Endpoint',
-      address: process.env.ENDPOINT_ADDRESS ?? 'unknown',
-      status: 'active',
-      payloadType: [
-        {
-          coding: [
-            {
-              code: 'all',
-            },
-          ],
-        },
-      ],
-      connectionType: {
-        code: connectionTypeCode,
-      },
-    }
     if (featureExpresion) {
-      const resolver = Resolver(endpoint)
-      const library = await resolver.resolveCanonical(featureExpresion?.reference)
-      const value = processFeatureExpression(featureExpresion, structureDefinition, resolver, resolver)
+      const resolver = Resolver(defaultEndpoint)
+      const referenceResource = await resolver.resolveCanonical(featureExpresion?.reference)
+      const value = await processFeatureExpression(featureExpresion, referenceResource, resolver, resolver, dataResolver, data)
+      console.log(JSON.stringify(value) + " value")
     }
   }
 

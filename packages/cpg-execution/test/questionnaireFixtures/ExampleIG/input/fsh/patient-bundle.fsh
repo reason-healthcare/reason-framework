@@ -2,7 +2,7 @@ Instance: Patient1
 InstanceOf: Patient
 Usage: #inline
 * name
-  * given = "Alice"
+  * given = "Sarah"
 
 Instance: BodyWeight1
 InstanceOf: Observation
@@ -15,3 +15,4 @@ Instance: PatientTestBundle1
 InstanceOf: Bundle
 * type = #collection
 * entry[+].resource = Patient1
+* entry[+].resource = BodyWeight1

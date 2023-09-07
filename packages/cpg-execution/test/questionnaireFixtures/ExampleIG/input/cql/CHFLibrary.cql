@@ -9,7 +9,10 @@ context Patient
 define "Patient id":
   Patient.id
 
+define "Body Weight Observation":
+  First([Observation]).value
+
 define "Body Weight":
-  First([Observation])
+  "Body Weight Observation".value.value
 
 

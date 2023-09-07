@@ -1,0 +1,9 @@
+{
+  "options": ["EnableAnnotations", "EnableLocators"],
+  "formats": ["JSON"],
+  "validateUnits": true,
+  "verifyOnly": false,
+  "errorLevel": "Info",
+  "signatureLevel": "None",
+  "compatibilityLevel": "1.5"
+}

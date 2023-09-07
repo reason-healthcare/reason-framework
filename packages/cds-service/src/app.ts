@@ -588,13 +588,22 @@ export default async (options?: FastifyServerOptions) => {
           }
         }
 
+        interface BuildQuestionnaireArgs {
+          structureDefinition: fhir4.StructureDefinition,
+          defaultEndpoint: fhir4.Endpoint,
+          supportedOnly?: boolean | undefined,
+          data?: fhir4.Bundle | undefined,
+        }
+
         const args: BuildQuestionnaireArgs = {
           structureDefinition,
+          defaultEndpoint,
           supportedOnly: valueFromParameters(
             parameters,
             'supportedOnly',
             'valueBoolean'
-          )
+          ),
+          data: resourceFromParameters(parameters, 'data') as fhir4.Bundle | undefined
         }
         res.send(await buildQuestionnaire(args))
       }
