@@ -68,26 +68,23 @@ export const buildQuestionnaire = async (
     item: []
   }]
 
+  const featureExpression = structureDefinition.extension?.find(e => e.url === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-featureExpression")?.valueExpression
+  let featureExpressionValue
+  const dataResolver = undefined
+  const resolver = Resolver(defaultEndpoint)
+  if (featureExpression) {
+    featureExpressionValue = await processFeatureExpression(featureExpression, resolver, resolver, dataResolver, data)
+  }
+
   if (subGroupElements && backboneElement) {
     questionnaire.item = [{
       linkId: uuidv4(),
       definition: `${structureDefinition.url}#${backboneElement?.path}`,
       text: backboneElement?.short? backboneElement?.short : backboneElement?.path,
       type: "group",
-      item: await buildQuestionnaireItemGroup(structureDefinition, backboneElement.path, subGroupElements)
+      item: await buildQuestionnaireItemGroup(structureDefinition, backboneElement.path, subGroupElements, featureExpressionValue)
     }]
   }
 
-    const featureExpressionExtension = structureDefinition.extension?.find(e => e.url === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-featureExpression")
-    let featureExpressionValue
-    if (featureExpressionExtension) {
-      const featureExpresion = featureExpressionExtension.valueExpression
-      const dataResolver = undefined
-
-      if (featureExpresion) {
-        const resolver = Resolver(defaultEndpoint)
-        featureExpressionValue = await processFeatureExpression(featureExpresion, questionnaire, resolver, resolver, dataResolver, data)
-      }
-    }
   return questionnaire
 }

@@ -7,6 +7,7 @@ import Resolver from './resolver'
 * @param structureDefinition the strucutre definition passed to $questionnaire
 * @param subGroupElements a list of element definitions to be processed as an questionnaire item grouping
 * @param parentElementPath the primary element path for the group
+* @param featureExpresionValue resolved feature expression value from structure definition
 * @returns Questionnaire Item List
 */
 
@@ -112,9 +113,6 @@ export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.Str
     }
 
     let binding = element.binding || snapshotDefinition?.binding
-    // TODO: there might be a case where the snapshot element has a fixed value when the differential does not?
-    let fixedElementKey = Object.keys(element).find(k => { return k.startsWith("fixed") || k.startsWith("pattern") || k.startsWith("defaultValue") })
-
     if (binding) {
       item.answerValueSet = omitCanonicalVersion(binding.valueSet)
       if (binding.strength === "example") {
@@ -122,39 +120,41 @@ export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.Str
       }
     }
 
-    if (fixedElementKey) {
-      // Add "hidden" extension for fixed[x] and pattern[x]
-      if (fixedElementKey.startsWith("fixed") || fixedElementKey.startsWith("pattern")) {
-        item.extension = [{
-          url: "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
-          valueBoolean: true
-        }]
-      }
+    let initialValue
+    if (element.path.endsWith("value[x]") && featureExpressionValue) {
+      initialValue = featureExpressionValue
+    } else {
+      let fixedElementKey = Object.keys(element).find(k => { return k.startsWith("fixed") || k.startsWith("pattern") || k.startsWith("defaultValue") })
+      if (fixedElementKey) {
+        // Add "hidden" extension for fixed[x] and pattern[x]
+        if (fixedElementKey.startsWith("fixed") || fixedElementKey.startsWith("pattern")) {
+          item.extension = [{
+            url: "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+            valueBoolean: true
+          }]
+        }
 
-      let initialValue
-      // Set initial[x] for fixed[x], pattern[x], defaultValue[x]
-      if (elementType === "CodeableConcept") {
-        initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition] as fhir4.CodeableConcept | undefined
-        item.initial = initialValue?.coding?.map(coding => {
-          return {"valueCoding": coding}
-        })
-      } else if (elementType === "code") {
-        // Bug: need codesystem, not valueset - or can we return soley the code with item.answerValueSet?
-        initialValue = {} as fhir4.Coding
-        // initialValue.system = omitCanonicalVersion(binding.valueSet)
-        initialValue.code = element[fixedElementKey as keyof fhir4.ElementDefinition] as string
-      } else {
-        initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition]
-      }
+        // Set initial[x] for fixed[x], pattern[x], defaultValue[x]
+        if (elementType === "CodeableConcept") {
+          initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition] as fhir4.CodeableConcept | undefined
+          item.initial = initialValue?.coding?.map(coding => {
+            return {"valueCoding": coding}
+          })
+        } else if (elementType === "code") {
+          // Bug: need codesystem, not valueset - or can we return soley the code with item.answerValueSet?
+          initialValue = {} as fhir4.Coding
+          // initialValue.system = omitCanonicalVersion(binding.valueSet)
+          initialValue.code = element[fixedElementKey as keyof fhir4.ElementDefinition] as string
+        } else {
+          initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition]
+        }
 
-      if (valueType && initialValue && elementType !== "CodeableConcept") {
-        item.initial = [{[`value${valueType}`]: initialValue}]
-      }
     }
+  }
 
-    if (element.path === `${parentElementPath}.value[x]` && featureExpressionValue) {
-      item.initial = [{[`value${valueType}`]: featureExpressionValue}]
-    }
+  if (valueType && initialValue && elementType !== "CodeableConcept") {
+    item.initial = [{[`value${valueType}`]: initialValue}]
+  }
     // TODO: (may remove) Context from where the corresponding data-requirement is used with a special extension (e.g. PlanDefinition.action.input[extension]...)? or.....
 
     const childSubGroupElements = subGroupElements.filter(e => e.path.startsWith(`${element.path}.`) && element.path !== e.path)

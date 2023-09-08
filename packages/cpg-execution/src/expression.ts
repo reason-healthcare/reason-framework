@@ -617,7 +617,7 @@ export const set = (obj: any, path: string, value: any): void => {
 export const processFeatureExpression = async (
   expression: fhir4.Expression,
   // referenceResource: fhir4.Resource,
-  targetResource: fhir4.Questionnaire,
+  // targetResource: fhir4.Questionnaire,
   contentResolver: Resolver,
   terminologyResolver: Resolver,
   dataResolver?: Resolver | undefined,
@@ -726,26 +726,23 @@ export const processFeatureExpression = async (
       dataResolver,
     )
 
-    const targetItem = targetResource.item?.find(i => i.definition?.includes(".value"))
-
-    console.info(JSON.stringify(value))
-    console.log(Object.entries(value))
-
+    // if (targetResource.item && targetResource.item[0]) {
+    //   let targetItem = targetResource.item[0].item?.find(i => i.definition?.includes(".value"))
+    //   const targetIndex = targetResource.item[0].item?.findIndex(i => i.definition?.includes(".value"))
 
     if (typeof value === "object") {
-      Object.entries(value).forEach(([k, v]) => {
-        if (typeof v === "object" && v) {
-          console.log(Object.keys(v))
+      const targetValue: any = {}
+      for (const item of Object.entries(value)) {
+        const [propertyName, obj]: [string, any] = item;
+        if (obj && obj.hasOwnProperty('value')) {
+          targetValue[propertyName] = obj['value']
         }
-      })
+      }
+      return targetValue
     }
 
-    // Here instead of returning value:
-    // 1. if value is not an object, set target resource weight item.item.initialValue to value
-    // 2. if value is an object, for each property in the object, asign the value to the property and add it to item.item.initialValue
-    // value.map(v => {
-    //   v = v.value
-    // })
+    return value
+
   } else {
     console.warn(
       `Expression lanugage '${
