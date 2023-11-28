@@ -16,6 +16,7 @@ import {
 import Resolver from '@reason-framework/cpg-execution/lib/resolver'
 import { is, notEmpty } from '@reason-framework/cpg-execution/lib/helpers'
 import { removeUndefinedProps } from '@reason-framework/cpg-execution/lib/helpers'
+import { v4 as uuidv4 } from "uuid"
 
 /**
  * The patient whose record was opened, including their encounter, if
@@ -580,7 +581,7 @@ export default async (options?: FastifyServerOptions) => {
 
         // if profile not provided, use Canonical -- should we also support identifier and slug (URL: [base]/StructureDefinition/[id]/$questionnaire)?
         if (structureDefinition == null) {
-          let url = valueFromParameters(parameters, 'url', 'valueString')
+          let url = valueFromParameters(parameters, 'url', 'valueUri')
           const contentResolver = Resolver(defaultEndpoint)
           const structureDefinitionRaw = await contentResolver.resolveCanonical(url)
           if (is.StructureDefinition(structureDefinitionRaw)) {
@@ -606,6 +607,66 @@ export default async (options?: FastifyServerOptions) => {
           data: resourceFromParameters(parameters, 'data') as fhir4.Bundle | undefined
         }
         res.send(await buildQuestionnaire(args))
+      }
+    }
+  )
+
+  app.post(
+    '/PlanDefinition/$questionnaire',
+    async (req: FastifyRequest, res: FastifyReply): Promise<void> => {
+      const { parameter: parameters } = req.body as fhir4.Parameters
+      const contentResolver = Resolver(defaultEndpoint)
+      let planDefinition
+      // Use resource as PD if provided
+      if (parameters != null) {
+        planDefinition = resourceFromParameters(
+          parameters,
+          'profile'
+        ) as fhir4.PlanDefinition
+
+        // If resource not provided, use Canonical
+        if (planDefinition == null) {
+          let url = valueFromParameters(parameters, 'url', 'valueUri')
+          const planDefinitionRaw = await contentResolver.resolveCanonical(url)
+          if (is.PlanDefinition(planDefinitionRaw)) {
+            planDefinition = planDefinitionRaw
+          }
+        }
+
+        const QuestionnaireBundle : fhir4.Bundle = {
+          "resourceType": "Bundle",
+          "id": uuidv4(),
+          "type": "collection",
+          "entry": []
+        }
+
+        const data = resourceFromParameters(parameters, 'data')  as fhir4.Bundle | undefined
+        const supportedOnly = valueFromParameters(parameters, 'supportedOnly', 'valueBoolean'
+        )
+
+        console.log(JSON.stringify(planDefinition))
+
+        // Resolve all SDs from PD action.inputs
+        planDefinition?.action?.forEach((a : fhir4.PlanDefinitionAction) => {
+          a.input?.forEach(i => {
+            i.profile?.forEach(async (profile) => {
+              const structureDefinition : fhir4.StructureDefinition = await contentResolver.resolveCanonical(profile)
+              const questionnaire : fhir4.Questionnaire = await buildQuestionnaire({
+                structureDefinition,
+                defaultEndpoint,
+                supportedOnly,
+                data
+              } as BuildQuestionnaireArgs)
+              const bundleEntry = {
+                "resource": questionnaire,
+                "fullUrl": questionnaire.url
+              }
+              QuestionnaireBundle.entry?.length ? QuestionnaireBundle.entry.push(bundleEntry) : QuestionnaireBundle.entry = [bundleEntry]
+            })
+          })
+        })
+
+        res.send(QuestionnaireBundle)
       }
     }
   )
