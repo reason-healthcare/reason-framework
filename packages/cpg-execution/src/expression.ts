@@ -277,6 +277,8 @@ export const evaluateCqlExpression = async (
     )
   }
 
+  // console.log(JSON.stringify(await contentResolver.allByResourceType('Library')))
+
   const allLibraries = (await contentResolver.allByResourceType('Library'))
     ?.filter(is.Library)
     ?.filter((l) =>
@@ -616,8 +618,6 @@ export const set = (obj: any, path: string, value: any): void => {
 
 export const processFeatureExpression = async (
   expression: fhir4.Expression,
-  // referenceResource: fhir4.Resource,
-  // targetResource: fhir4.Questionnaire,
   contentResolver: Resolver,
   terminologyResolver: Resolver,
   dataResolver?: Resolver | undefined,
@@ -632,22 +632,22 @@ export const processFeatureExpression = async (
     const subjectResource = await resolveBundleOrEndpoint(
       subject,
       data,
-      // dataResolver
+      dataResolver
     )
     const encounterResource = await resolveBundleOrEndpoint(
       encounter,
       data,
-      // dataResolver
+      dataResolver
     )
     const practitionerResource = await resolveBundleOrEndpoint(
       practitioner,
       data,
-      // dataResolver
+      dataResolver
     )
     const organizationResource = await resolveBundleOrEndpoint(
       organization,
       data,
-      // dataResolver
+      dataResolver
     )
     const result = evaluateFhirpath(
       expression.expression ?? '',
@@ -717,7 +717,7 @@ export const processFeatureExpression = async (
       )
     }
 
-    const value = await evaluateCqlExpression(
+    const result = await evaluateCqlExpression(
       subject ?? '',
       expression,
       dataContext,
@@ -726,20 +726,25 @@ export const processFeatureExpression = async (
       dataResolver,
     )
 
+    console.log(JSON.stringify(result) + 'result')
+    console.log(JSON.stringify(result.value["value"]) + 'value')
+
+    const value = result.value["value"]
     // if (targetResource.item && targetResource.item[0]) {
     //   let targetItem = targetResource.item[0].item?.find(i => i.definition?.includes(".value"))
     //   const targetIndex = targetResource.item[0].item?.findIndex(i => i.definition?.includes(".value"))
 
-    if (typeof value === "object") {
-      const targetValue: any = {}
-      for (const item of Object.entries(value)) {
-        const [propertyName, obj]: [string, any] = item;
-        if (obj && obj.hasOwnProperty('value')) {
-          targetValue[propertyName] = obj['value']
-        }
-      }
-      return targetValue
-    }
+    // if (typeof value === "object") {
+    //   const targetValue: any = {}
+    //   for (const item of Object.entries(value)) {
+    //     const [propertyName, obj]: [string, any] = item;
+    //     if (obj && obj.hasOwnProperty('value')) {
+    //       targetValue[propertyName] = obj['value']
+    //     }
+    //   }
+    //   console.log(JSON.stringify(targetValue) + 'target Value')
+    //   return targetValue
+    // }
 
     return value
 

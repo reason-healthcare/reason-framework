@@ -647,16 +647,16 @@ export default async (options?: FastifyServerOptions) => {
         console.log(JSON.stringify(planDefinition))
 
         // Resolve all SDs from PD action.inputs
+        // To Do: support only applicalbe actions
         planDefinition?.action?.forEach((a : fhir4.PlanDefinitionAction) => {
           a.input?.forEach(i => {
             i.profile?.forEach(async (profile) => {
-              const structureDefinition : fhir4.StructureDefinition = await contentResolver.resolveCanonical(profile)
               const questionnaire : fhir4.Questionnaire = await buildQuestionnaire({
-                structureDefinition,
+                structureDefinition: await contentResolver.resolveCanonical(profile) as fhir4.StructureDefinition,
                 defaultEndpoint,
                 supportedOnly,
                 data
-              } as BuildQuestionnaireArgs)
+              })
               const bundleEntry = {
                 "resource": questionnaire,
                 "fullUrl": questionnaire.url

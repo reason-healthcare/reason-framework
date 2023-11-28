@@ -74,6 +74,7 @@ export const buildQuestionnaire = async (
   const resolver = Resolver(defaultEndpoint)
   if (featureExpression) {
     featureExpressionValue = await processFeatureExpression(featureExpression, resolver, resolver, dataResolver, data)
+    console.log(JSON.stringify(featureExpressionValue) + 'feature expression value')
   }
 
   if (subGroupElements && backboneElement) {
