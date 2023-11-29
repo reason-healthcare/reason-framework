@@ -70,11 +70,9 @@ export const buildQuestionnaire = async (
 
   const featureExpression = structureDefinition.extension?.find(e => e.url === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-featureExpression")?.valueExpression
   let featureExpressionValue
-  const dataResolver = undefined
   const resolver = Resolver(defaultEndpoint)
   if (featureExpression) {
-    featureExpressionValue = await processFeatureExpression(featureExpression, resolver, resolver, dataResolver, data)
-    console.log(JSON.stringify(featureExpressionValue) + 'feature expression value')
+    featureExpressionValue = await processFeatureExpression(featureExpression, resolver, resolver, data)
   }
 
   if (subGroupElements && backboneElement) {

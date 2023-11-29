@@ -3,6 +3,7 @@ import cqlFhir from 'cql-exec-fhir'
 import fhirpath from 'fhirpath'
 import fhirpathR4Model from 'fhirpath/fhir-context/r4'
 import lodashSet from 'lodash/set'
+import lodashGet from 'lodash/get'
 import FHIRHelpersLibrary from './support/Library-FHIRHelpers.json'
 
 import {
@@ -136,6 +137,7 @@ export const processDynamicValue = async (
       dataResolver,
       libraries
     )
+
     set(targetResource, path, value)
   } else {
     console.warn(
@@ -276,8 +278,6 @@ export const evaluateCqlExpression = async (
       } -- ${inspect(patients)}`
     )
   }
-
-  // console.log(JSON.stringify(await contentResolver.allByResourceType('Library')))
 
   const allLibraries = (await contentResolver.allByResourceType('Library'))
     ?.filter(is.Library)
@@ -620,8 +620,8 @@ export const processFeatureExpression = async (
   expression: fhir4.Expression,
   contentResolver: Resolver,
   terminologyResolver: Resolver,
-  dataResolver?: Resolver | undefined,
   data?: fhir4.Bundle | undefined,
+  dataResolver?: Resolver | undefined,
   subject?: string | undefined,
   encounter?: string | undefined,
   practitioner?: string | undefined,
@@ -651,7 +651,6 @@ export const processFeatureExpression = async (
     )
     const result = evaluateFhirpath(
       expression.expression ?? '',
-      // referenceResource,
       {
         subject: subjectResource,
         encounter: encounterResource,
@@ -685,11 +684,6 @@ export const processFeatureExpression = async (
           expression
         )}`
       )
-      // console.log(
-      //   JSON.stringify(targetResource) +
-      //     'targetResource from processDynamicValue function'
-      // )
-      // return targetResource
     }
 
     const inBundle = (
@@ -717,36 +711,19 @@ export const processFeatureExpression = async (
       )
     }
 
-    // const result = await evaluateCqlExpression(
-    //   subject ?? '',
-    //   expression,
-    //   dataContext,
-    //   contentResolver,
-    //   terminologyResolver,
-    //   dataResolver,
-    // )
+    const result = await evaluateCqlExpression(
+      subject ?? '',
+      expression,
+      dataContext,
+      contentResolver,
+      terminologyResolver,
+      dataResolver,
+    )
 
-    // console.log(JSON.stringify(result) + 'result')
-    // console.log(JSON.stringify(result.value["value"]) + 'value')
+    const valueObj = lodashGet(result, 'value')
+    const value = lodashGet(valueObj, 'value')
 
-    // const value = result.value["value"]
-    // if (targetResource.item && targetResource.item[0]) {
-    //   let targetItem = targetResource.item[0].item?.find(i => i.definition?.includes(".value"))
-    //   const targetIndex = targetResource.item[0].item?.findIndex(i => i.definition?.includes(".value"))
-
-    // if (typeof value === "object") {
-    //   const targetValue: any = {}
-    //   for (const item of Object.entries(value)) {
-    //     const [propertyName, obj]: [string, any] = item;
-    //     if (obj && obj.hasOwnProperty('value')) {
-    //       targetValue[propertyName] = obj['value']
-    //     }
-    //   }
-    //   console.log(JSON.stringify(targetValue) + 'target Value')
-    //   return targetValue
-    // }
-
-    // return value
+    return value
 
   } else {
     console.warn(
@@ -755,11 +732,5 @@ export const processFeatureExpression = async (
       }' not supported, only support for: text/fhirpath, text/cql-identifier`
     )
   }
-  // console.log(
-  //   JSON.stringify(
-  //     JSON.stringify(targetResource) + 'targetResource from process'
-  //   )
-  // )
-  // return targetResource
 }
 
