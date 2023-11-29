@@ -717,19 +717,19 @@ export const processFeatureExpression = async (
       )
     }
 
-    const result = await evaluateCqlExpression(
-      subject ?? '',
-      expression,
-      dataContext,
-      contentResolver,
-      terminologyResolver,
-      dataResolver,
-    )
+    // const result = await evaluateCqlExpression(
+    //   subject ?? '',
+    //   expression,
+    //   dataContext,
+    //   contentResolver,
+    //   terminologyResolver,
+    //   dataResolver,
+    // )
 
-    console.log(JSON.stringify(result) + 'result')
-    console.log(JSON.stringify(result.value["value"]) + 'value')
+    // console.log(JSON.stringify(result) + 'result')
+    // console.log(JSON.stringify(result.value["value"]) + 'value')
 
-    const value = result.value["value"]
+    // const value = result.value["value"]
     // if (targetResource.item && targetResource.item[0]) {
     //   let targetItem = targetResource.item[0].item?.find(i => i.definition?.includes(".value"))
     //   const targetIndex = targetResource.item[0].item?.findIndex(i => i.definition?.includes(".value"))
@@ -746,7 +746,7 @@ export const processFeatureExpression = async (
     //   return targetValue
     // }
 
-    return value
+    // return value
 
   } else {
     console.warn(

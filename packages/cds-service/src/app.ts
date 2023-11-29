@@ -633,39 +633,46 @@ export default async (options?: FastifyServerOptions) => {
           }
         }
 
-        const QuestionnaireBundle : fhir4.Bundle = {
-          "resourceType": "Bundle",
-          "id": uuidv4(),
-          "type": "collection",
-          "entry": []
-        }
-
-        const data = resourceFromParameters(parameters, 'data')  as fhir4.Bundle | undefined
-        const supportedOnly = valueFromParameters(parameters, 'supportedOnly', 'valueBoolean'
-        )
-
-        console.log(JSON.stringify(planDefinition))
+        // console.log(JSON.stringify(planDefinition))
 
         // Resolve all SDs from PD action.inputs
         // To Do: support only applicalbe actions
+        let profiles : string[] | undefined
         planDefinition?.action?.forEach((a : fhir4.PlanDefinitionAction) => {
           a.input?.forEach(i => {
-            i.profile?.forEach(async (profile) => {
-              const questionnaire : fhir4.Questionnaire = await buildQuestionnaire({
-                structureDefinition: await contentResolver.resolveCanonical(profile) as fhir4.StructureDefinition,
-                defaultEndpoint,
-                supportedOnly,
-                data
-              })
-              const bundleEntry = {
-                "resource": questionnaire,
-                "fullUrl": questionnaire.url
-              }
-              QuestionnaireBundle.entry?.length ? QuestionnaireBundle.entry.push(bundleEntry) : QuestionnaireBundle.entry = [bundleEntry]
+            i.profile?.forEach(profile => {
+              profiles && profiles.length ? profiles.push(profile) : profiles = [profile]
             })
           })
         })
 
+        const QuestionnaireBundle : fhir4.Bundle = {
+          "resourceType": "Bundle",
+          "id": uuidv4(),
+          "type": "collection",
+        }
+        const data = resourceFromParameters(parameters, 'data')  as fhir4.Bundle | undefined
+        const supportedOnly = valueFromParameters(parameters, 'supportedOnly', 'valueBoolean'
+        )
+
+        if (profiles) {
+          const bundleEntries = await Promise.all(profiles.map(async (p) => {
+            const questionnaire : fhir4.Questionnaire = await buildQuestionnaire({
+              structureDefinition: await contentResolver.resolveCanonical(p) as fhir4.StructureDefinition,
+              defaultEndpoint,
+              supportedOnly,
+              data
+            })
+            return {
+              "resource": questionnaire,
+              "fullUrl": questionnaire.url
+            }
+          }))
+          QuestionnaireBundle.entry = bundleEntries
+          // console.log(JSON.stringify(bundleEntries))
+        }
+
+        // console.log(JSON.stringify(QuestionnaireBundle) + 'questionnaire bundle')
         res.send(QuestionnaireBundle)
       }
     }
