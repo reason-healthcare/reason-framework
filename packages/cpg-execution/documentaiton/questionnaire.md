@@ -23,9 +23,8 @@ For each case-feature definition/profile, create a group of questionnaire items.
 | max > 1 | repeats | |
 | maxLength | maxLength | apply if type = string |
 | extension.cpg-featureExpression | sets initial[x] | see [ElementDefinition Mappings](#mapping-elementdefinition-data-types-to-questionnaire-items) |
-| binding.valueSet & binding.strength = required, preferred, or extensibile | translates to answerValueSet, set type as 'choice' | |
+| binding.valueSet & binding.strength = required, preferred, or extensibile | expaneded valueSet used as answerOption, set type as 'choice' | |
 | ??| readOnly | |
-| ??| answerOption | |
 
 Process each element from the structure definition:
 * If the element is in the differential or snapshot min > 0, create a questionnaire item:

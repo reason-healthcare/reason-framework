@@ -14,10 +14,10 @@ import Resolver from './resolver'
 export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.StructureDefinition, parentElementPath: fhir4.ElementDefinition["path"], subGroupElements: fhir4.ElementDefinition[], featureExpressionValue?: any): Promise<fhir4.QuestionnaireItem[]> => {
 
     //TODO
-    // 1. support case feature expressions
-    // 2. determine how readOnly will be used
-    // 3. Reference, Quantity and Coding are currently returned as a group type if there are constraints on child elements. If there are only contraints on the backbone, returned as reference, quanitity, coding types with no children - is this how we should handle this?
-    // 4. Support Slicing - Bug: returns duplicate items
+    // 1. determine how readOnly will be used
+    // 2. Reference, Quantity and Coding are currently returned as a group type if there are constraints on child elements. If there are only contraints on the backbone, returned as reference, quanitity, coding types with no children - is this how we should handle this?
+    // 3. Support Slicing - Bug: returns duplicate items
+    // 4. binding.ValueSet should translate to item.answerOption using expansion
 
   const childElements = subGroupElements.filter(e => getPathPrefix(e.path) === parentElementPath)
 
@@ -115,42 +115,39 @@ export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.Str
     let binding = element.binding || snapshotDefinition?.binding
     if (binding) {
       item.answerValueSet = omitCanonicalVersion(binding.valueSet)
-      if (binding.strength === "example") {
-        item.type = "open-choice"
-      }
+      // if (binding.strength === "example") {
+      //   item.type = "open-choice"
+      // }
     }
 
     let initialValue
-    if (element.path.endsWith("value[x]") && featureExpressionValue) {
+    let fixedElementKey = Object.keys(element).find(k => { return k.startsWith("fixed") || k.startsWith("pattern") || k.startsWith("defaultValue") })
+    if (fixedElementKey) {
+      // Add "hidden" extension for fixed[x] and pattern[x]
+      if (fixedElementKey.startsWith("fixed") || fixedElementKey.startsWith("pattern")) {
+        item.extension = [{
+          url: "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+          valueBoolean: true
+        }]
+      }
+
+      // Set initial[x] for fixed[x], pattern[x], defaultValue[x]
+      if (elementType === "CodeableConcept") {
+        initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition] as fhir4.CodeableConcept | undefined
+        item.initial = initialValue?.coding?.map(coding => {
+          return {"valueCoding": coding}
+        })
+      } else if (elementType === "code") {
+        // Bug: need codesystem, not valueset - or can we return soley the code with item.answerValueSet?
+        initialValue = {} as fhir4.Coding
+        // initialValue.system = omitCanonicalVersion(binding.valueSet)
+        initialValue.code = element[fixedElementKey as keyof fhir4.ElementDefinition] as string
+      } else {
+        initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition]
+      }
+    } else if (element.path.endsWith("value[x]") && featureExpressionValue) {
       initialValue = featureExpressionValue
-    } else {
-      let fixedElementKey = Object.keys(element).find(k => { return k.startsWith("fixed") || k.startsWith("pattern") || k.startsWith("defaultValue") })
-      if (fixedElementKey) {
-        // Add "hidden" extension for fixed[x] and pattern[x]
-        if (fixedElementKey.startsWith("fixed") || fixedElementKey.startsWith("pattern")) {
-          item.extension = [{
-            url: "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
-            valueBoolean: true
-          }]
-        }
-
-        // Set initial[x] for fixed[x], pattern[x], defaultValue[x]
-        if (elementType === "CodeableConcept") {
-          initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition] as fhir4.CodeableConcept | undefined
-          item.initial = initialValue?.coding?.map(coding => {
-            return {"valueCoding": coding}
-          })
-        } else if (elementType === "code") {
-          // Bug: need codesystem, not valueset - or can we return soley the code with item.answerValueSet?
-          initialValue = {} as fhir4.Coding
-          // initialValue.system = omitCanonicalVersion(binding.valueSet)
-          initialValue.code = element[fixedElementKey as keyof fhir4.ElementDefinition] as string
-        } else {
-          initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition]
-        }
-
     }
-  }
 
   if (valueType && initialValue && elementType !== "CodeableConcept") {
     item.initial = [{[`value${valueType}`]: initialValue}]
