@@ -70,7 +70,7 @@ export const buildQuestionnaire = async (
     // For each case feature property, find the corresponding elementDef and add to subGroupElements if not already present
     if (featureExpressionResource) {
       Object.keys(featureExpressionResource).forEach((k) => {
-        if (featureExpressionResource[k] && k !== 'meta' && k !== 'id' && k!== 'identifier') {
+        if (featureExpressionResource[k] && k !== 'meta' && k !== 'id' && k !== 'identifier' && k !== 'extension') {
           structureDefinition?.snapshot?.element.forEach(e => {
             if (featureExpressionResource[k] && e.path.startsWith(backboneElement?.path + '.' + k) && !subGroupElements?.some(el => el.path === e.path)) {
               subGroupElements?.push(e)
@@ -80,8 +80,6 @@ export const buildQuestionnaire = async (
       })
     }
   }
-
-  console.log(JSON.stringify(featureExpressionResource) + 'fe')
 
   questionnaire.item = [{
     linkId: uuidv4(),

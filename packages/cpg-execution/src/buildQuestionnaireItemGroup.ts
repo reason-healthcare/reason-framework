@@ -153,12 +153,23 @@ export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.Str
       }
       // Is there a better way to access the CQL values?
       // TODO: iterate over repeating values, currently using the first value
+      // TODO: handle code / CodeableConcept
       let featureExpressionValue
-      if (featureExpressionKey && featureExpressionResource[featureExpressionKey]) {
-        featureExpressionResource[featureExpressionKey].length ? featureExpressionValue = featureExpressionResource[featureExpressionKey][0] : featureExpressionResource[featureExpressionKey]
-      }
+      (featureExpressionKey && featureExpressionResource[featureExpressionKey]) ? featureExpressionValue = featureExpressionResource[featureExpressionKey][0] || featureExpressionResource[featureExpressionKey] : null
+
       if (featureExpressionValue) {
-        (valueType && valueType === 'Reference' || valueType === 'Quantity') ? initialValue = featureExpressionValue[valueType.toLowerCase()].value : initialValue = featureExpressionValue.value
+        if (valueType && valueType === 'Reference' || valueType === 'Quantity') {
+          initialValue = featureExpressionValue[valueType.toLowerCase()].value
+        } else {
+          initialValue = featureExpressionValue.value
+        }
+      }
+      // Add hidden extension for all case feature elements except 'value'
+      if (featureExpressionKey !== 'value') {
+        item.extension = [{
+          url: "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+          valueBoolean: true
+        }]
       }
     }
 
@@ -196,8 +207,6 @@ export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.Str
         },
       }
       const resolver = Resolver(fhirRestEndpoint)
-
-      // TODO: refactor this block because intent is unclear
 
       let dataTypeSD = await resolver.resolveReference(`StructureDefinition/${elementType}`)
       console.log(JSON.stringify(dataTypeSD))
