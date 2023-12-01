@@ -68,10 +68,9 @@ export const buildQuestionnaire = async (
   if (featureExpression) {
     featureExpressionResource = await processFeatureExpression(featureExpression, resolver, resolver, data)
     // For each case feature property, find the corresponding elementDef and add to subGroupElements if not already present
-    console.log(typeof featureExpressionResource + 'type')
     if (featureExpressionResource) {
       Object.keys(featureExpressionResource).forEach((k) => {
-        if (featureExpressionResource[k] && k !== 'meta') {
+        if (featureExpressionResource[k] && k !== 'meta' && k !== 'id' && k!== 'identifier') {
           structureDefinition?.snapshot?.element.forEach(e => {
             if (featureExpressionResource[k] && e.path.startsWith(backboneElement?.path + '.' + k) && !subGroupElements?.some(el => el.path === e.path)) {
               subGroupElements?.push(e)

@@ -3,7 +3,6 @@ import cqlFhir from 'cql-exec-fhir'
 import fhirpath from 'fhirpath'
 import fhirpathR4Model from 'fhirpath/fhir-context/r4'
 import lodashSet from 'lodash/set'
-import lodashGet from 'lodash/get'
 import FHIRHelpersLibrary from './support/Library-FHIRHelpers.json'
 
 import {

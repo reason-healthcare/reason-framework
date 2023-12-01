@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid"
 import { is, omitCanonicalVersion, getSnapshotDefinition, getPathPrefix } from "./helpers"
 import Resolver from './resolver'
+import lodashGet from 'lodash/get'
 
 /**
 * @param structureDefinition.url the structure definition URL
@@ -131,7 +132,7 @@ export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.Str
         }]
       }
 
-      // Set initial[x] for fixed[x], pattern[x], defaultValue[x]
+      // Set initial[x] from fixed[x], pattern[x], defaultValue[x], or featureExpression
       if (elementType === "CodeableConcept") {
         initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition] as fhir4.CodeableConcept | undefined
         item.initial = initialValue?.coding?.map(coding => {
@@ -150,7 +151,15 @@ export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.Str
       if (element.path.endsWith('[x]') && valueType) {
         featureExpressionKey = featureExpressionKey?.replace(valueType, '')
       }
-      featureExpressionKey ? initialValue = featureExpressionResource[featureExpressionKey].value : null
+      // Is there a better way to access the CQL values?
+      // TODO: iterate over repeating values, currently using the first value
+      let featureExpressionValue
+      if (featureExpressionKey && featureExpressionResource[featureExpressionKey]) {
+        featureExpressionResource[featureExpressionKey].length ? featureExpressionValue = featureExpressionResource[featureExpressionKey][0] : featureExpressionResource[featureExpressionKey]
+      }
+      if (featureExpressionValue) {
+        (valueType && valueType === 'Reference' || valueType === 'Quantity') ? initialValue = featureExpressionValue[valueType.toLowerCase()].value : initialValue = featureExpressionValue.value
+      }
     }
 
     if (valueType && initialValue && elementType !== "CodeableConcept") {
