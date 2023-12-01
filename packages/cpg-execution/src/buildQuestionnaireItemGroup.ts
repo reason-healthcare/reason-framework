@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from "uuid"
 import { is, omitCanonicalVersion, getSnapshotDefinition, getPathPrefix } from "./helpers"
 import Resolver from './resolver'
 import lodashGet from 'lodash/get'
+import { initial } from "lodash"
 
 /**
 * @param structureDefinition.url the structure definition URL
@@ -152,14 +153,18 @@ export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.Str
         featureExpressionKey = featureExpressionKey?.replace(valueType, '')
       }
       // Is there a better way to access the CQL values?
-      // TODO: iterate over repeating values, currently using the first value
-      // TODO: handle code / CodeableConcept
+      // TODO
+        // 1. iterate over repeating values, currently using the first value
+        // 2. handle code / CodeableConcept / Quantity
+        // 3. Fix reference (may have other properties)
+
       let featureExpressionValue
       (featureExpressionKey && featureExpressionResource[featureExpressionKey]) ? featureExpressionValue = featureExpressionResource[featureExpressionKey][0] || featureExpressionResource[featureExpressionKey] : null
 
       if (featureExpressionValue) {
-        if (valueType && valueType === 'Reference' || valueType === 'Quantity') {
-          initialValue = featureExpressionValue[valueType.toLowerCase()].value
+        if (valueType && valueType === 'Reference') {
+          initialValue = {} as fhir4.Reference
+          initialValue.reference = featureExpressionValue[valueType.toLowerCase()].value
         } else {
           initialValue = featureExpressionValue.value
         }
