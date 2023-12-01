@@ -720,14 +720,7 @@ export const processFeatureExpression = async (
       dataResolver,
     )
 
-    console.log(JSON.stringify(expression) + JSON.stringify(result))
-
-    const valueObj = lodashGet(result, 'value')
-    const value = lodashGet(valueObj, 'value')
-
-    console.log(value + 'value')
-
-    return value
+    return result
 
   } else {
     console.warn(

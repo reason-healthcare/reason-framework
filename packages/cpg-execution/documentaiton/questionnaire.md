@@ -59,10 +59,19 @@ Process each element from the structure definition:
       * If value is a complex data type, see [ElementDefinition Mappings](#mapping-elementdefinition-data-types-to-questionnaire-items) to process choice type
    * QuestionnaireItem.answerOption => if the element has a binding to a VS (how to handle example binding - set type to open-choice)
 
-    ### Mapping ElementDefinition data types to Questionnaire Items
-    * To see a mapping of FHIR primitive types to QuestionnaireItem.initialValue[x] and QuestionnaireItem.type, visit https://docs.google.com/spreadsheets/d/1YmmW28fDX0VsSlQAVsK2p9bbkV3hxhxnUaUCiRKAL6M/edit?usp=sharing
-    * For complex data types with non-primitive data types, $questionnaire should be applied to the SD of the complex data type and returned as a subgroup of questionnaire items
-    * See ./contactQuestionnaireRepresentation as an example questionnaire.item representation of the ContactPoint data type https://www.hl7.org/fhir/datatypes.html#ContactPoint
+
+  If the featureExpression extension is present on the SD, an additional questionnaire item should be created for each property in the instantiated case feature resource. Each item should have the following properties from the case feature:
+    * QuestionnaireItem.linkId => generate some unique id
+    * QuestionnaireItem.required = true
+    * QuestionnaireItem.initial => Set by the value of the case feature property
+    * QuestionnaireItem.type => Set by the type of value of the case feature property
+    * Hidden extension (excluding value[x] of the caseFeature which should be exposed)
+  The elementDefinition should set remaining properties.
+
+  ### Mapping ElementDefinition data types to Questionnaire Items
+  * To see a mapping of FHIR primitive types to QuestionnaireItem.initialValue[x] and QuestionnaireItem.type, visit https://docs.google.com/spreadsheets/d/1YmmW28fDX0VsSlQAVsK2p9bbkV3hxhxnUaUCiRKAL6M/edit?usp=sharing
+  * For complex data types with non-primitive data types, $questionnaire should be applied to the SD of the complex data type and returned as a subgroup of questionnaire items
+  * See ./contactQuestionnaireRepresentation as an example questionnaire.item representation of the ContactPoint data type https://www.hl7.org/fhir/datatypes.html#ContactPoint
 
 
 

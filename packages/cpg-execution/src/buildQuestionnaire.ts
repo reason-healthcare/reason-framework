@@ -3,6 +3,7 @@ import { questionnaireBaseUrl, getSnapshotDefinition, getPathPrefix, is } from "
 import {buildQuestionnaireItemGroup} from "./buildQuestionnaireItemGroup"
 import { processFeatureExpression } from "./expression"
 import Resolver from './resolver'
+import { FhirResource } from "fhir/r4"
 
 export interface BuildQuestionnaireArgs {
   structureDefinition: fhir4.StructureDefinition,
@@ -60,6 +61,29 @@ export const buildQuestionnaire = async (
     subGroupElements = subGroupElements?.filter(e => e.mustSupport === true || getSnapshotDefinition(structureDefinition?.snapshot?.element, e)?.mustSupport === true)
   }
 
+  const featureExpression = structureDefinition.extension?.find(e => e.url === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-featureExpression")?.valueExpression
+  // TODO: fix type here
+  let featureExpressionResource: any
+  const resolver = Resolver(defaultEndpoint)
+  if (featureExpression) {
+    featureExpressionResource = await processFeatureExpression(featureExpression, resolver, resolver, data)
+    // For each case feature property, find the corresponding elementDef and add to subGroupElements if not already present
+    console.log(typeof featureExpressionResource + 'type')
+    if (featureExpressionResource) {
+      Object.keys(featureExpressionResource).forEach((k) => {
+        if (featureExpressionResource[k] && k !== 'meta') {
+          structureDefinition?.snapshot?.element.forEach(e => {
+            if (featureExpressionResource[k] && e.path.startsWith(backboneElement?.path + '.' + k) && !subGroupElements?.some(el => el.path === e.path)) {
+              subGroupElements?.push(e)
+            }
+          })
+        }
+      })
+    }
+  }
+
+  console.log(JSON.stringify(featureExpressionResource) + 'fe')
+
   questionnaire.item = [{
     linkId: uuidv4(),
     definition: `${structureDefinition.url}#${backboneElement?.path}`,
@@ -68,20 +92,13 @@ export const buildQuestionnaire = async (
     item: []
   }]
 
-  const featureExpression = structureDefinition.extension?.find(e => e.url === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-featureExpression")?.valueExpression
-  let featureExpressionValue
-  const resolver = Resolver(defaultEndpoint)
-  if (featureExpression) {
-    featureExpressionValue = await processFeatureExpression(featureExpression, resolver, resolver, data)
-  }
-
   if (subGroupElements && backboneElement) {
     questionnaire.item = [{
       linkId: uuidv4(),
       definition: `${structureDefinition.url}#${backboneElement?.path}`,
       text: backboneElement?.short? backboneElement?.short : backboneElement?.path,
       type: "group",
-      item: await buildQuestionnaireItemGroup(structureDefinition, backboneElement.path, subGroupElements, featureExpressionValue)
+      item: await buildQuestionnaireItemGroup(structureDefinition, backboneElement.path, subGroupElements, featureExpressionResource)
     }]
   }
 

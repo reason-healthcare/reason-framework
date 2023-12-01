@@ -7,11 +7,11 @@ import Resolver from './resolver'
 * @param structureDefinition the strucutre definition passed to $questionnaire
 * @param subGroupElements a list of element definitions to be processed as an questionnaire item grouping
 * @param parentElementPath the primary element path for the group
-* @param featureExpresionValue resolved feature expression value from structure definition
+* @param featureExpresionResource resolved resource from featureExpression extension
 * @returns Questionnaire Item List
 */
 
-export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.StructureDefinition, parentElementPath: fhir4.ElementDefinition["path"], subGroupElements: fhir4.ElementDefinition[], featureExpressionValue?: any): Promise<fhir4.QuestionnaireItem[]> => {
+export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.StructureDefinition, parentElementPath: fhir4.ElementDefinition["path"], subGroupElements: fhir4.ElementDefinition[], featureExpressionResource?: any): Promise<fhir4.QuestionnaireItem[]> => {
 
     //TODO
     // 1. determine how readOnly will be used
@@ -145,13 +145,17 @@ export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.Str
       } else {
         initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition]
       }
-    } else if (element.path.endsWith("value[x]") && featureExpressionValue) {
-      initialValue = featureExpressionValue
+    } else if (featureExpressionResource) {
+      let featureExpressionKey = elementPath.split('.').pop()
+      if (element.path.endsWith('[x]') && valueType) {
+        featureExpressionKey = featureExpressionKey?.replace(valueType, '')
+      }
+      featureExpressionKey ? initialValue = featureExpressionResource[featureExpressionKey].value : null
     }
 
-  if (valueType && initialValue && elementType !== "CodeableConcept") {
-    item.initial = [{[`value${valueType}`]: initialValue}]
-  }
+    if (valueType && initialValue && elementType !== "CodeableConcept") {
+      item.initial = [{[`value${valueType}`]: initialValue}]
+    }
     // TODO: (may remove) Context from where the corresponding data-requirement is used with a special extension (e.g. PlanDefinition.action.input[extension]...)? or.....
 
     const childSubGroupElements = subGroupElements.filter(e => e.path.startsWith(`${element.path}.`) && element.path !== e.path)

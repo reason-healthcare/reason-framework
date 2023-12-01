@@ -632,11 +632,7 @@ export default async (options?: FastifyServerOptions) => {
             planDefinition = planDefinitionRaw
           }
         }
-
-        // console.log(JSON.stringify(planDefinition))
-
         // Resolve all SDs from PD action.inputs
-        // To Do: support only applicalbe actions
         let profiles : string[] | undefined
         planDefinition?.action?.forEach((a : fhir4.PlanDefinitionAction) => {
           a.input?.forEach(i => {
@@ -669,10 +665,7 @@ export default async (options?: FastifyServerOptions) => {
             }
           }))
           QuestionnaireBundle.entry = bundleEntries
-          // console.log(JSON.stringify(bundleEntries))
         }
-
-        // console.log(JSON.stringify(QuestionnaireBundle) + 'questionnaire bundle')
         res.send(QuestionnaireBundle)
       }
     }
