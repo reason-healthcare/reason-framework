@@ -22,7 +22,7 @@ For each case-feature definition/profile, create a group of questionnaire items.
 | min > 0 | required | |
 | max > 1 | repeats | |
 | maxLength | maxLength | apply if type = string |
-| extension.cpg-featureExpression | sets initial[x] | see [ElementDefinition Mappings](#mapping-elementdefinition-data-types-to-questionnaire-items) |
+| extension.cpg-featureExpression | sets initial[x], add questionnaire-itemExtractionContext extension to item group | see [ElementDefinition Mappings](#mapping-elementdefinition-data-types-to-questionnaire-items) |
 | binding.valueSet & binding.strength = required, preferred, or extensibile | expaneded valueSet used as answerOption, set type as 'choice' | |
 | ??| readOnly | |
 
@@ -59,8 +59,12 @@ Process each element from the structure definition:
       * If value is a complex data type, see [ElementDefinition Mappings](#mapping-elementdefinition-data-types-to-questionnaire-items) to process choice type
    * QuestionnaireItem.answerOption => if the element has a binding to a VS (how to handle example binding - set type to open-choice)
 
+  ### Use of featureExpression
+  If the featureExpression extension is present on the SD, the questionnaire-itemExtractionContext extension should be added to the top level item group. This is processed depending on the need to update or create a resource:
+    * If the feature was asserted, the extension should refernence the observation instantiated by the feature
+    * If the feature was inferred, the extension should be a code for the type of resource that will be created
 
-  If the featureExpression extension is present on the SD, an additional questionnaire item should be created for each property in the instantiated case feature resource. Each item should have the following properties from the case feature:
+  An additional questionnaire item should be created for each property in the instantiated case feature resource. Each item should have the following properties from the case feature:
     * QuestionnaireItem.linkId => generate some unique id
     * QuestionnaireItem.required = true
     * QuestionnaireItem.initial => Set by the value of the case feature property

@@ -3,7 +3,6 @@ import { questionnaireBaseUrl, getSnapshotDefinition, getPathPrefix, is } from "
 import {buildQuestionnaireItemGroup} from "./buildQuestionnaireItemGroup"
 import { processFeatureExpression } from "./expression"
 import Resolver from './resolver'
-import { FhirResource } from "fhir/r4"
 
 export interface BuildQuestionnaireArgs {
   structureDefinition: fhir4.StructureDefinition,
@@ -31,7 +30,6 @@ export const buildQuestionnaire = async (
   }
 
   questionnaire.url = `${questionnaireBaseUrl}/Questionnaire/${questionnaire.id}`
-
   const backboneElement = structureDefinition.snapshot?.element.find(e => e.path === structureDefinition.type)
 
   // Add differential elements to process first
@@ -62,8 +60,8 @@ export const buildQuestionnaire = async (
   }
 
   const featureExpression = structureDefinition.extension?.find(e => e.url === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-featureExpression")?.valueExpression
-  // TODO: fix type here
   let featureExpressionResource: any
+  let extractContextExtension: fhir4.Extension[] | undefined
   const resolver = Resolver(defaultEndpoint)
   if (featureExpression) {
     featureExpressionResource = await processFeatureExpression(featureExpression, resolver, resolver, data)
@@ -78,16 +76,19 @@ export const buildQuestionnaire = async (
           })
         }
       })
+      const featureType = featureExpressionResource.extension?.find((e: any) => e.url.value === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-caseFeatureType")?.value.value
+      const assertedFeature = featureType === 'asserted' || featureExpressionResource.id.value && data?.entry?.find(e => e.resource?.id === featureExpressionResource.id.value) ? true : false
+      // If the feature was asserted, the extract context extension should point to the resource to update
+      if (assertedFeature) {
+        extractContextExtension = [{"url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-itemExtractionContext", valueExpression: featureExpression}]
+      // Otherwise, if a new resource should be created when extracted, resolve the definition type and set valueCode
+      } else {
+        const canonical = featureExpressionResource.extension?.find((e: any) => e.url.value === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-instantiatesCaseFeature").value.value
+        const definition = await resolver.resolveCanonical(canonical)
+        definition ? extractContextExtension = [{"url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-itemExtractionContext", "valueCode": definition.type}] : undefined
+      }
     }
   }
-
-  questionnaire.item = [{
-    linkId: uuidv4(),
-    definition: `${structureDefinition.url}#${backboneElement?.path}`,
-    text: backboneElement?.path,
-    type: "group",
-    item: []
-  }]
 
   if (subGroupElements && backboneElement) {
     questionnaire.item = [{
@@ -95,8 +96,9 @@ export const buildQuestionnaire = async (
       definition: `${structureDefinition.url}#${backboneElement?.path}`,
       text: backboneElement?.short? backboneElement?.short : backboneElement?.path,
       type: "group",
-      item: await buildQuestionnaireItemGroup(structureDefinition, backboneElement.path, subGroupElements, featureExpressionResource)
     }]
+    extractContextExtension ? questionnaire.item[0].extension = extractContextExtension : undefined
+    questionnaire.item[0].item = await buildQuestionnaireItemGroup(structureDefinition, backboneElement.path, subGroupElements, featureExpressionResource)
   }
 
   return questionnaire

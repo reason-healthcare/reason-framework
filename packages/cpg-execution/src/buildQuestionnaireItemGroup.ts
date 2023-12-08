@@ -214,12 +214,10 @@ export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.Str
       const resolver = Resolver(fhirRestEndpoint)
 
       let dataTypeSD = await resolver.resolveReference(`StructureDefinition/${elementType}`)
-      console.log(JSON.stringify(dataTypeSD))
       if (is.StructureDefinition(dataTypeSD) && dataTypeSD.differential) {
         const dataTypeDifferential = dataTypeSD.differential.element.map((e: fhir4.ElementDefinition) => {
           if (elementType) {
             return e = {...e, path: e.path.replace(elementType, element.path)}
-            // now observation.effectiveTiming.repeat instead of Timing.repeat
           }
         })
 
