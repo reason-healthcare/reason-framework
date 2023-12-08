@@ -77,7 +77,7 @@ export const buildQuestionnaire = async (
         }
       })
       const featureType = featureExpressionResource.extension?.find((e: any) => e.url.value === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-caseFeatureType")?.value.value
-      const assertedFeature = featureType === 'asserted' || featureExpressionResource.id.value && data?.entry?.find(e => e.resource?.id === featureExpressionResource.id.value) ? true : false
+      const assertedFeature = featureType === 'asserted' || featureExpressionResource.id?.value && data?.entry?.find(e => e.resource?.id === featureExpressionResource.id.value) ? true : false
       // If the feature was asserted, the extract context extension should point to the resource to update
       if (assertedFeature) {
         extractContextExtension = [{"url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-itemExtractionContext", valueExpression: featureExpression}]
