@@ -1,8 +1,7 @@
 import { v4 as uuidv4 } from "uuid"
-import { is, omitCanonicalVersion, getSnapshotDefinition, getPathPrefix } from "./helpers"
+import { is, getSnapshotDefinition, getPathPrefix } from "./helpers"
 import Resolver from './resolver'
-import lodashGet from 'lodash/get'
-import { initial } from "lodash"
+import RestResolver from "./resolver/rest"
 
 /**
 * @param structureDefinition.url the structure definition URL
@@ -13,7 +12,7 @@ import { initial } from "lodash"
 * @returns Questionnaire Item List
 */
 
-export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.StructureDefinition, parentElementPath: fhir4.ElementDefinition["path"], subGroupElements: fhir4.ElementDefinition[], featureExpressionResource?: any): Promise<fhir4.QuestionnaireItem[]> => {
+export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.StructureDefinition, parentElementPath: fhir4.ElementDefinition["path"], subGroupElements: fhir4.ElementDefinition[], contentEndpoint: fhir4.Endpoint, baseEndpoint: fhir4.Endpoint, featureExpressionResource?: any): Promise<fhir4.QuestionnaireItem[]> => {
 
     //TODO
     // 1. determine how readOnly will be used
@@ -114,13 +113,26 @@ export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.Str
       processAsGroup = true
     }
 
+    const contentResolver = Resolver(contentEndpoint)
+    const baseResolver = Resolver(baseEndpoint) as RestResolver
     let binding = element.binding || snapshotDefinition?.binding
-    if (binding) {
-      item.answerValueSet = omitCanonicalVersion(binding.valueSet)
-      // if (binding.strength === "example") {
-      //   item.type = "open-choice"
-      // }
+    // TODO: refactor to use terminology endpoint
+    let valueSetResource
+    // try {
+    //   valueSetResource = await baseResolver.resolveCanonical(binding?.valueSet, ['ValueSet'])
+    // } catch (e) {
+    //   console.log(`Not able to find ValueSet at ${baseEndpoint.address}: ${e}`)
+    // }
+    // if (!valueSetResource) {
+      // For the time being resolve terminology from filesystem
+    try {
+      valueSetResource = await contentResolver.resolveCanonical(binding?.valueSet)
+    } catch (e) {
+      console.log(`Not able to find ValueSet at ${contentEndpoint.address}: ${e}`)
     }
+    // }
+    // Expansion will be used to resolve codes and to set answerOption
+    let valueSetExpansion: fhir4.ValueSet | undefined = is.ValueSet(valueSetResource) ? await baseResolver.expandValueSet(valueSetResource, baseEndpoint) : undefined
 
     let initialValue
     let fixedElementKey = Object.keys(element).find(k => { return k.startsWith("fixed") || k.startsWith("pattern") || k.startsWith("defaultValue") })
@@ -132,18 +144,24 @@ export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.Str
           valueBoolean: true
         }]
       }
-
       // Set initial[x] from fixed[x], pattern[x], defaultValue[x], or featureExpression
       if (elementType === "CodeableConcept") {
         initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition] as fhir4.CodeableConcept | undefined
-        item.initial = initialValue?.coding?.map(coding => {
-          return {"valueCoding": coding}
-        })
+        if (initialValue?.coding?.length) {
+          // Should we use multiple codings here if available?
+          // Should answer option be returned for fixed/hidden elements?
+          initialValue = initialValue?.coding[0]
+          // const codeSystem: fhir4.CodeSystem | undefined =  await contentResolver.resolveCanonical(initialValue.coding[0].system)
+          // codeSystem?.concept?.length ? codeSystem.concept.forEach((c) => {
+          //   console.log('codesystem ' + codeSystem?.concept?.length + codeSystem.url)
+          //   item.answerOption?.length ? item.answerOption.push(c) : item.answerOption = [c]
+          // }) : undefined
+        }
       } else if (elementType === "code") {
-        // Bug: need codesystem, not valueset - or can we return soley the code with item.answerValueSet?
         initialValue = {} as fhir4.Coding
-        // initialValue.system = omitCanonicalVersion(binding.valueSet)
-        initialValue.code = element[fixedElementKey as keyof fhir4.ElementDefinition] as string
+        let code = element[fixedElementKey as keyof fhir4.ElementDefinition] as string
+        initialValue.code = code
+        initialValue.system = valueSetExpansion?.expansion?.contains?.find(i => i.code === code)?.system
       } else {
         initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition]
       }
@@ -178,8 +196,16 @@ export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.Str
       }
     }
 
-    if (valueType && initialValue && elementType !== "CodeableConcept") {
+    if (valueType && initialValue) {
       item.initial = [{[`value${valueType}`]: initialValue}]
+    }
+
+    // Add binding expansion as answerOption if value is not fixed/pattern
+    if (!fixedElementKey && valueSetExpansion?.expansion?.contains && valueSetExpansion?.expansion?.contains.length) {
+      item.answerOption = []
+      valueSetExpansion.expansion.contains.forEach(i => item.answerOption?.push(i))
+    } else if (!fixedElementKey){
+      item.answerValueSet = binding?.valueSet
     }
     // TODO: (may remove) Context from where the corresponding data-requirement is used with a special extension (e.g. PlanDefinition.action.input[extension]...)? or.....
 
@@ -191,29 +217,10 @@ export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.Str
 
     if (processAsGroup && (elementType === "BackboneElement" || elementType === "Element" || elementType === "CodeableConcept" || elementType === "Coding" || elementType === "Reference" || elementType === "Quantity")) {
 
-      item.item = await buildQuestionnaireItemGroup(structureDefinition, element.path, childSubGroupElements)
+      item.item = await buildQuestionnaireItemGroup(structureDefinition, element.path, childSubGroupElements, contentEndpoint, baseEndpoint)
 
     } else if (processAsGroup && elementType) {
-      const fhirRestEndpoint: fhir4.Endpoint = {
-        resourceType: 'Endpoint',
-        address: "http://hapi.fhir.org/baseR4",
-        status: 'active',
-        payloadType: [
-          {
-            coding: [
-              {
-                code: 'all',
-              },
-            ],
-          },
-        ],
-        connectionType: {
-          code: "hl7-fhir-rest",
-        },
-      }
-      const resolver = Resolver(fhirRestEndpoint)
-
-      let dataTypeSD = await resolver.resolveReference(`StructureDefinition/${elementType}`)
+      let dataTypeSD = await contentResolver.resolveReference(`/StructureDefinition/${elementType}`)
       if (is.StructureDefinition(dataTypeSD) && dataTypeSD.differential) {
         const dataTypeDifferential = dataTypeSD.differential.element.map((e: fhir4.ElementDefinition) => {
           if (elementType) {
@@ -234,7 +241,7 @@ export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.Str
         })
       }
 
-      item.item = await buildQuestionnaireItemGroup(structureDefinition, element.path, childSubGroupElements)
+      item.item = await buildQuestionnaireItemGroup(structureDefinition, element.path, childSubGroupElements, contentEndpoint, baseEndpoint)
 
     }
 

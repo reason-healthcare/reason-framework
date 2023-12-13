@@ -6,7 +6,8 @@ import Resolver from './resolver'
 
 export interface BuildQuestionnaireArgs {
   structureDefinition: fhir4.StructureDefinition,
-  defaultEndpoint: fhir4.Endpoint
+  contentEndpoint: fhir4.Endpoint,
+  baseEndpoint: fhir4.Endpoint,
   supportedOnly?: boolean | undefined,
   data?: fhir4.Bundle | undefined,
 }
@@ -17,7 +18,8 @@ export const buildQuestionnaire = async (
 
   const {
     structureDefinition,
-    defaultEndpoint,
+    contentEndpoint,
+    baseEndpoint,
     supportedOnly,
     data
   } = args
@@ -62,9 +64,9 @@ export const buildQuestionnaire = async (
   const featureExpression = structureDefinition.extension?.find(e => e.url === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-featureExpression")?.valueExpression
   let featureExpressionResource: any
   let extractContextExtension: fhir4.Extension[] | undefined
-  const resolver = Resolver(defaultEndpoint)
+  const contentResolver = Resolver(contentEndpoint)
   if (featureExpression) {
-    featureExpressionResource = await processFeatureExpression(featureExpression, resolver, resolver, data)
+    featureExpressionResource = await processFeatureExpression(featureExpression, contentResolver, contentResolver, data)
     // For each case feature property, find the corresponding elementDef and add to subGroupElements if not already present
     if (featureExpressionResource) {
       Object.keys(featureExpressionResource).forEach((k) => {
@@ -84,7 +86,7 @@ export const buildQuestionnaire = async (
       // Otherwise, if a new resource should be created when extracted, resolve the definition type and set valueCode
       } else {
         const canonical = featureExpressionResource.extension?.find((e: any) => e.url.value === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-instantiatesCaseFeature").value.value
-        const definition = await resolver.resolveCanonical(canonical)
+        const definition = await contentResolver.resolveCanonical(canonical)
         definition ? extractContextExtension = [{"url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-itemExtractionContext", "valueCode": definition.type}] : undefined
       }
     }
@@ -98,7 +100,7 @@ export const buildQuestionnaire = async (
       type: "group",
     }]
     extractContextExtension ? questionnaire.item[0].extension = extractContextExtension : undefined
-    questionnaire.item[0].item = await buildQuestionnaireItemGroup(structureDefinition, backboneElement.path, subGroupElements, featureExpressionResource)
+    questionnaire.item[0].item = await buildQuestionnaireItemGroup(structureDefinition, backboneElement.path, subGroupElements, contentEndpoint, baseEndpoint, featureExpressionResource)
   }
 
   return questionnaire

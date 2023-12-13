@@ -118,6 +118,24 @@ const defaultEndpoint: fhir4.Endpoint = {
   },
 }
 
+const defaultBaseResourceEndpoint: fhir4.Endpoint = {
+  resourceType: 'Endpoint',
+  address: process.env.BASE_RESOURCE_ENDPOINT_ADDRESS ?? 'unknown',
+  status: 'active',
+  payloadType: [
+    {
+      coding: [
+        {
+          code: 'all',
+        },
+      ],
+    },
+  ],
+  connectionType: {
+    code: 'hl7-fhir-rest',
+  },
+}
+
 const isPatientViewContext = (
   context: any,
   hook: string
@@ -589,16 +607,10 @@ export default async (options?: FastifyServerOptions) => {
           }
         }
 
-        interface BuildQuestionnaireArgs {
-          structureDefinition: fhir4.StructureDefinition,
-          defaultEndpoint: fhir4.Endpoint,
-          supportedOnly?: boolean | undefined,
-          data?: fhir4.Bundle | undefined,
-        }
-
         const args: BuildQuestionnaireArgs = {
           structureDefinition,
-          defaultEndpoint,
+          contentEndpoint: defaultEndpoint,
+          baseEndpoint: defaultBaseResourceEndpoint,
           supportedOnly: valueFromParameters(
             parameters,
             'supportedOnly',
@@ -655,7 +667,8 @@ export default async (options?: FastifyServerOptions) => {
           const bundleEntries = await Promise.all(profiles.map(async (p) => {
             const questionnaire : fhir4.Questionnaire = await buildQuestionnaire({
               structureDefinition: await contentResolver.resolveCanonical(p) as fhir4.StructureDefinition,
-              defaultEndpoint,
+              contentEndpoint: defaultEndpoint,
+              baseEndpoint: defaultBaseResourceEndpoint,
               supportedOnly,
               data
             })

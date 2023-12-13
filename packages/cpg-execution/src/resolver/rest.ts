@@ -111,19 +111,32 @@ class RestResolver extends BaseResolver implements Resolver {
     if (canonical != null) {
       let results
       if (process.env.CANONICAL_SEARCH_ROOT != null) {
-        console.log('Running canonical root search...')
-        try {
-          if (version != null) {
-            results = await this.client.request(
-              `/?url=${canonical}&version=${version}`
-            )
-          } else {
-            results = await this.client.request(`/?url=${canonical}`)
+        if (resourceTypes?.length) {
+          const searchParams: { url: string; version?: string } = {
+            url: canonical
           }
-        } catch (e) {
-          throw new Error(
-            `Problem with canonical search ${inspect(e)} -- ${process.env}`
-          )
+          // if (version != null) {
+          //   searchParams.version = version
+          // }
+          results = await this.client.search({
+            resourceType: resourceTypes[0],
+            searchParams
+          })
+        } else {
+          console.log('Running canonical root search...')
+          try {
+            if (version != null) {
+              results = await this.client.request(
+                `/?url=${canonical}&version=${version}`
+              )
+            } else {
+              results = await this.client.request(`/?url=${canonical}`)
+            }
+          } catch (e) {
+            throw new Error(
+              `Problem with canonical search ${inspect(e)} -- ${process.env}`
+            )
+          }
         }
       } else {
         // Batch search
@@ -163,11 +176,7 @@ class RestResolver extends BaseResolver implements Resolver {
               .filter(notEmpty) ?? []
         }
 
-        console.log(resources.length + 'length')
-        console.log(JSON.stringify(resources[0].resourceType) + 'resource 1')
-        console.log(JSON.stringify(resources[1]) + 'resource 2') //this is the operation outcome
-
-        if (resources?.length === 2) {  //temp set to 2 to include operation outcome
+        if (resources?.length <= 2) {  //temp set to 2 to include operation outcome
           const result = resources[0]
           Cache.setKey(`canonical-resource-${canonicalWithVersion}`, result)
           Cache.save(true)
@@ -278,6 +287,30 @@ class RestResolver extends BaseResolver implements Resolver {
         )
       )
     }
+  }
+
+  public async expandValueSet(valueSet: fhir4.ValueSet, endpoint: fhir4.Endpoint) {
+    const body: fhir4.Parameters = {
+      "resourceType": "Parameters",
+      "parameter": [
+        {
+          "name": "valueSet",
+          "resource": valueSet
+        },
+        // {
+        //   "name": "context",
+        //   "valueString": "http://hl7.org/fhir/StructureDefinition/Observation#Observation.status"
+        // }
+      ]
+    }
+    let expansion: fhir4.ValueSet | undefined
+    try {
+      let result = await this.client.request(`${endpoint.address}/ValueSet/$expand`, { method: 'POST',options: {"headers": {"Content-Type": "application/json"}}, body })
+      is.ValueSet(result) ? expansion = result : expansion = undefined
+    } catch (e) {
+      console.log('Problem expanding valueset' + JSON.stringify(e))
+    }
+    return expansion
   }
 }
 
