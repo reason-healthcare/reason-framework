@@ -176,7 +176,8 @@ class RestResolver extends BaseResolver implements Resolver {
               .filter(notEmpty) ?? []
         }
 
-        if (resources?.length <= 2) {  //temp set to 2 to include operation outcome
+        if (resources?.length <= 2) {
+          //temp set to 2 to include operation outcome
           const result = resources[0]
           Cache.setKey(`canonical-resource-${canonicalWithVersion}`, result)
           Cache.save(true)
@@ -289,14 +290,17 @@ class RestResolver extends BaseResolver implements Resolver {
     }
   }
 
-  public async expandValueSet(valueSet: fhir4.ValueSet, endpoint: fhir4.Endpoint) {
+  public async expandValueSet(
+    valueSet: fhir4.ValueSet,
+    endpoint: fhir4.Endpoint
+  ) {
     const body: fhir4.Parameters = {
-      "resourceType": "Parameters",
-      "parameter": [
+      resourceType: 'Parameters',
+      parameter: [
         {
-          "name": "valueSet",
-          "resource": valueSet
-        },
+          name: 'valueSet',
+          resource: valueSet
+        }
         // {
         //   "name": "context",
         //   "valueString": "http://hl7.org/fhir/StructureDefinition/Observation#Observation.status"
@@ -305,8 +309,15 @@ class RestResolver extends BaseResolver implements Resolver {
     }
     let expansion: fhir4.ValueSet | undefined
     try {
-      let result = await this.client.request(`${endpoint.address}/ValueSet/$expand`, { method: 'POST',options: {"headers": {"Content-Type": "application/json"}}, body })
-      is.ValueSet(result) ? expansion = result : expansion = undefined
+      let result = await this.client.request(
+        `${endpoint.address}/ValueSet/$expand`,
+        {
+          method: 'POST',
+          options: { headers: { 'Content-Type': 'application/json' } },
+          body: JSON.stringify(body)
+        }
+      )
+      is.ValueSet(result) ? (expansion = result) : (expansion = undefined)
     } catch (e) {
       console.log('Problem expanding valueset' + JSON.stringify(e))
     }
