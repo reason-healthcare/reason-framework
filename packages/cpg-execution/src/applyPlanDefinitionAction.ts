@@ -189,6 +189,7 @@ export const applyPlanDefinitionAction = async (
     documentation,
     code,
     textEquivalent,
+    condition,
     timingAge,
     timingDateTime,
     timingDuration,
@@ -227,6 +228,11 @@ export const applyPlanDefinitionAction = async (
   // Priority
   if (priority != null) {
     requestGroupAction.priority = priority
+  }
+
+  // Condition
+  if (condition != null) {
+    requestGroupAction.condition = condition
   }
 
   // Documentation
@@ -269,7 +275,7 @@ export const applyPlanDefinitionAction = async (
 
       if (is.RequestResource(appliedResource)) {
         if (is.RequestResourceWithIntent(appliedResource)) {
-          appliedResource.intent = 'option'
+          appliedResource.intent = 'proposal'
         }
 
         requestGroupAction.type = {
