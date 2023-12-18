@@ -83,12 +83,11 @@ export const buildQuestionnaire = async (
       // If the feature was asserted, the extract context extension should point to the resource to update
       if (assertedFeature) {
         extractContextExtension = [{"url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-itemExtractionContext", valueExpression: featureExpression}]
-      // Otherwise, if a new resource should be created when extracted, resolve the definition type and set valueCode
-      } else {
-        const canonical = featureExpressionResource.extension?.find((e: any) => e.url.value === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-instantiatesCaseFeature").value.value
-        const definition = await contentResolver.resolveCanonical(canonical)
-        definition ? extractContextExtension = [{"url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-itemExtractionContext", "valueCode": definition.type}] : undefined
       }
+    }
+    // Otherwise, if a new resource should be created when extracted, resolve the definition type and set valueCode - this will be set even if featureExpression returns null
+    if (!extractContextExtension) {
+      extractContextExtension = [{"url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-itemExtractionContext", "valueCode": structureDefinition.type}]
     }
   }
 
