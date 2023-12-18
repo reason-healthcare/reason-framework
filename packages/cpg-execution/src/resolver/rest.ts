@@ -254,10 +254,7 @@ class RestResolver extends BaseResolver implements Resolver {
                             system: c.system,
                             version: c.version
                           }
-                        }) || []
-                      // Handle compose?
-                      /*
-                      const codes = vs.compose?.include
+                        }) || vs.compose?.include
                         ?.flatMap((include) => {
                           return include.concept
                             ?.map((c) => {
@@ -267,10 +264,9 @@ class RestResolver extends BaseResolver implements Resolver {
                                 version: include.version
                               }
                             })
-                            .filter(notEmpty)
+                            ?.filter(c => c.code != null)
                         })
-                        .filter(notEmpty)
-                      */
+                        ?.filter(c => c != null) || []
                       acc[vsVersion] = new ValueSet(key, vsVersion, codes)
                     }
                     return acc
