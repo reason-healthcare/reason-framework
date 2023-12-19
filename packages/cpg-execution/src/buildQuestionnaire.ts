@@ -8,6 +8,7 @@ export interface BuildQuestionnaireArgs {
   structureDefinition: fhir4.StructureDefinition,
   contentEndpoint: fhir4.Endpoint,
   baseEndpoint: fhir4.Endpoint,
+  artifactEndpointConfiguration?: fhir4.ParametersParameter["part"][],
   supportedOnly?: boolean | undefined,
   data?: fhir4.Bundle | undefined,
 }

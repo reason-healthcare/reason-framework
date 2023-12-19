@@ -4,7 +4,7 @@ import { ValueSet } from 'cql-execution'
 import { Resolver } from '../resolver'
 import BaseResolver from './base'
 import Cache from '../cache'
-import { is, omitCanonicalVersion } from '../helpers'
+import { is, omitCanonicalVersion, notEmpty } from '../helpers'
 
 /**
  * A simple FileResolver implementing Resolver interface.
@@ -135,9 +135,9 @@ class FileResolver extends BaseResolver implements Resolver {
                               version: include.version
                             }
                           })
-                          ?.filter(c => c.code != null)
+                          ?.filter(notEmpty)
                       })
-                      ?.filter(c => c != null) || []
+                      ?.filter(notEmpty) || []
                     acc[vsVersion] = new ValueSet(key, vsVersion, codes)
                   }
                   return acc
