@@ -49,7 +49,9 @@ export const buildQuestionnaireItemGroup = async (structureDefinition: fhir4.Str
       item.definition = `${structureDefinition.url}#${elementPath}`
     }
 
-    if (element.short) {
+    if (elementType === "code") {
+      item.text = element.definition || snapshotDefinition?.definition // element.short is a list of codes for code data type. Definition will be more descriptive.
+    } else if (element.short) {
       item.text = element.short
     } else if (snapshotDefinition?.short) {
       item.text = snapshotDefinition?.short
