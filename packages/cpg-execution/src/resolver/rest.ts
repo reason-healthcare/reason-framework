@@ -288,8 +288,8 @@ class RestResolver extends BaseResolver implements Resolver {
 
   public async expandValueSet(
     valueSet: fhir4.ValueSet,
-    endpoint: fhir4.Endpoint
   ) {
+    console.log(valueSet.url + 'vs')
     const body: fhir4.Parameters = {
       resourceType: 'Parameters',
       parameter: [
@@ -297,16 +297,12 @@ class RestResolver extends BaseResolver implements Resolver {
           name: 'valueSet',
           resource: valueSet
         }
-        // {
-        //   "name": "context",
-        //   "valueString": "http://hl7.org/fhir/StructureDefinition/Observation#Observation.status"
-        // }
       ]
     }
     let expansion: fhir4.ValueSet | undefined
     try {
       let result = await this.client.request(
-        `${endpoint.address}/ValueSet/$expand`,
+        `${this.endpoint.address}/ValueSet/$expand`,
         {
           method: 'POST',
           options: { headers: { 'Content-Type': 'application/json' } },

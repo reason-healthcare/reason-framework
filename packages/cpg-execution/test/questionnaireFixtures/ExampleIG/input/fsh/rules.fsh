@@ -16,7 +16,15 @@ RuleSet: KnowledgeArtifactDefinitionMetadata(id, type)
 * jurisdiction = http://unstats.un.org/unsd/methods/m49/m49.htm#001 "World"
 * version = "0.1.0"
 * status = #draft
-* extension[cpg-knowledgeCapability].valueCode = #shareable
-* extension[cpg-knowledgeCapability].valueCode = #computable
-* extension[cpg-knowledgeCapability].valueCode = #publishable
-* extension[cpg-knowledgeRepresentationLevel].valueCode = #structured
+* extension
+  * url = "http://hl7.org/fhir/StructureDefinition/cqf-knowledgeCapability"
+  * valueCode = #shareable
+* extension
+  * url = "http://hl7.org/fhir/StructureDefinition/cqf-knowledgeCapability"
+  * valueCode = #computable
+* extension
+  * url = "http://hl7.org/fhir/StructureDefinition/cqf-knowledgeCapability"
+  * valueCode = #publishable
+* extension
+  * url = "http://hl7.org/fhir/StructureDefinition/cqf-knowledgeRepresentationLev"
+  * valueCode = #structured

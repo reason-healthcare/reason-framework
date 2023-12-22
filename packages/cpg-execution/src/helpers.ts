@@ -1,4 +1,5 @@
 import util from 'node:util'
+import { EndpointConfiguration } from './buildQuestionnaire'
 
 export const terminologyResources = ['CodeSystem', 'ConceptMap', 'ValueSet']
 
@@ -400,4 +401,15 @@ export const getPathPrefix = (path: fhir4.ElementDefinition["path"]): fhir4.Elem
   const prefix = path.split(".")
   prefix.pop()
   return prefix.join(".")
+}
+
+// if artifactRoute is present and artifactRoute starts with canonical or artifact reference: rank based on number of matching characters
+// if artifactRoute is not present: include but rank lower
+// https://build.fhir.org/ig/HL7/crmi-ig/StructureDefinition-crmi-artifact-endpoint-configurable-operation.html
+export const rankEndpoints = (endpointConfigurations: EndpointConfiguration[], canonical: string) => {
+  return endpointConfigurations.sort((a, b) => {
+    const aRank = a.artifactRoute && canonical.startsWith(a.artifactRoute) ? a.artifactRoute.length : 0
+    const bRank = b.artifactRoute && canonical.startsWith(b.artifactRoute) ? b.artifactRoute.length : 0
+    return bRank - aRank
+  })
 }

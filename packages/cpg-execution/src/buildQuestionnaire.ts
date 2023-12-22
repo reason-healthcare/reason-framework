@@ -4,13 +4,21 @@ import {buildQuestionnaireItemGroup} from "./buildQuestionnaireItemGroup"
 import { processFeatureExpression } from "./expression"
 import Resolver from './resolver'
 
+export interface EndpointConfiguration {
+  artifactRoute: string | undefined,
+  endpointUri?: string | undefined,
+  endpoint: fhir4.Endpoint
+}
+
 export interface BuildQuestionnaireArgs {
   structureDefinition: fhir4.StructureDefinition,
-  contentEndpoint: fhir4.Endpoint,
-  baseEndpoint: fhir4.Endpoint,
-  artifactEndpointConfiguration?: fhir4.ParametersParameter["part"][],
-  supportedOnly?: boolean | undefined,
   data?: fhir4.Bundle | undefined,
+  dataEndpoint?: fhir4.Endpoint | undefined
+  configurableEndpoints?: EndpointConfiguration[] | undefined,
+  contentEndpoint: fhir4.Endpoint
+  terminologyEndpoint: fhir4.Endpoint,
+  supportedOnly?: boolean | undefined,
+  baseEndpoint?: fhir4.Endpoint,
 }
 
 export const buildQuestionnaire = async (
@@ -19,10 +27,13 @@ export const buildQuestionnaire = async (
 
   const {
     structureDefinition,
+    data,
+    dataEndpoint,
+    configurableEndpoints,
     contentEndpoint,
-    baseEndpoint,
+    terminologyEndpoint,
     supportedOnly,
-    data
+    baseEndpoint,
   } = args
 
   const questionnaire: fhir4.Questionnaire = {
@@ -62,12 +73,15 @@ export const buildQuestionnaire = async (
     subGroupElements = subGroupElements?.filter(e => e.mustSupport === true || getSnapshotDefinition(structureDefinition?.snapshot?.element, e)?.mustSupport === true)
   }
 
+  const contentResolver = Resolver(contentEndpoint)
+  const terminologyResolver = Resolver(terminologyEndpoint)
+  const dataResolver = dataEndpoint != null ? Resolver(dataEndpoint) : undefined
+
   const featureExpression = structureDefinition.extension?.find(e => e.url === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-featureExpression")?.valueExpression
   let featureExpressionResource: any
   let extractContextExtension: fhir4.Extension[] | undefined
-  const contentResolver = Resolver(contentEndpoint)
   if (featureExpression) {
-    featureExpressionResource = await processFeatureExpression(featureExpression, contentResolver, contentResolver, data)
+    featureExpressionResource = await processFeatureExpression(featureExpression, configurableEndpoints, terminologyResolver, contentResolver, data, dataResolver)
     // For each case feature property, find the corresponding elementDef and add to subGroupElements if not already present
     if (featureExpressionResource) {
       Object.keys(featureExpressionResource).forEach((k) => {
@@ -100,7 +114,7 @@ export const buildQuestionnaire = async (
       type: "group",
     }]
     extractContextExtension ? questionnaire.item[0].extension = extractContextExtension : undefined
-    questionnaire.item[0].item = await buildQuestionnaireItemGroup(structureDefinition, backboneElement.path, subGroupElements, contentEndpoint, baseEndpoint, featureExpressionResource)
+    questionnaire.item[0].item = await buildQuestionnaireItemGroup(structureDefinition, backboneElement.path, subGroupElements, terminologyResolver, baseEndpoint, dataResolver, contentResolver, configurableEndpoints, featureExpressionResource)
   }
 
   return questionnaire

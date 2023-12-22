@@ -3,8 +3,7 @@ import cqlFhir from 'cql-exec-fhir'
 import fhirpath from 'fhirpath'
 import fhirpathR4Model from 'fhirpath/fhir-context/r4'
 import lodashSet from 'lodash/set'
-import FHIRHelpersLibrary from './support/Library-FHIRHelpers.json'
-
+import { rankEndpoints } from './helpers'
 import {
   handleError,
   inspect,
@@ -13,8 +12,9 @@ import {
   removeUndefinedProps,
   RequestResource
 } from './helpers'
-import { Resolver } from './resolver'
-import { StructureDefinition } from 'fhir/r4'
+import { Resolver as ResolverType} from './resolver'
+import Resolver from './resolver'
+
 
 export const processDynamicValue = async (
   dynamicValue:
@@ -22,9 +22,9 @@ export const processDynamicValue = async (
     | fhir4.PlanDefinitionActionDynamicValue,
   definitionalResource: fhir4.PlanDefinition | fhir4.ActivityDefinition,
   targetResource: RequestResource | fhir4.Questionnaire,
-  contentResolver: Resolver,
-  terminologyResolver: Resolver,
-  dataResolver?: Resolver | undefined,
+  contentResolver: ResolverType,
+  terminologyResolver: ResolverType,
+  dataResolver?: ResolverType | undefined,
   data?: fhir4.Bundle | undefined,
   libraries?: fhir4.Library[] | undefined,
   subject?: string | undefined,
@@ -156,7 +156,7 @@ export const processDynamicValue = async (
 const resolveBundleOrEndpoint = async (
   reference?: string | undefined,
   data?: fhir4.Bundle | undefined,
-  dataResolver?: Resolver | undefined
+  dataResolver?: ResolverType | undefined
 ): Promise<fhir4.FhirResource | undefined> => {
   if (reference == null) {
     return
@@ -192,7 +192,7 @@ const resolveBundleOrEndpoint = async (
  * @returns FHIR Bundle of initial context plus resolved references
  */
 export const buildDataContext = async (
-  dataResolver?: Resolver | undefined,
+  dataResolver?: ResolverType | undefined,
   data?: fhir4.Bundle | undefined,
   subject?: string | undefined,
   encounter?: string | undefined,
@@ -261,9 +261,9 @@ export const evaluateCqlExpression = async (
   patientRef: string,
   expression: fhir4.Expression,
   dataContext: fhir4.Bundle,
-  contentResolver: Resolver,
-  terminologyResolver: Resolver,
-  dataResolver?: Resolver | undefined,
+  contentResolver: ResolverType,
+  terminologyResolver: ResolverType,
+  dataResolver?: ResolverType | undefined,
   libraries?: fhir4.Library[] | undefined
 ): Promise<any> => {
   const patients = dataContext?.entry
@@ -390,7 +390,7 @@ export const evaluateCqlExpression = async (
 
 const getDataRequirements = async (
   elmLibrary: any,
-  contentResolver: Resolver
+  contentResolver: ResolverType
 ): Promise<fhir4.DataRequirement[]> => {
   const dataRequirements: fhir4.DataRequirement[] = []
 
@@ -457,9 +457,9 @@ export const evaluateCqlLibrary = async (
   patientRef: string,
   library: fhir4.Library,
   libraryManager: Record<string, any>,
-  terminologyResolver: Resolver,
-  contentResolver: Resolver,
-  dataResolver?: Resolver | undefined,
+  terminologyResolver: ResolverType,
+  contentResolver: ResolverType,
+  dataResolver?: ResolverType | undefined,
   dataContext?: fhir4.Bundle | undefined
 ): Promise<Results> => {
   dataContext ||= {
@@ -617,10 +617,11 @@ export const set = (obj: any, path: string, value: any): void => {
 
 export const processFeatureExpression = async (
   expression: fhir4.Expression,
-  contentResolver: Resolver,
-  terminologyResolver: Resolver,
+  configurableEndpoints: any,
+  terminologyResolver: ResolverType,
+  contentResolver: ResolverType,
   data?: fhir4.Bundle | undefined,
-  dataResolver?: Resolver | undefined,
+  dataResolver?: ResolverType | undefined,
   subject?: string | undefined,
   encounter?: string | undefined,
   practitioner?: string | undefined,
@@ -708,6 +709,11 @@ export const processFeatureExpression = async (
       ;(dataContext.entry ||= [])?.push(
         ...(data.entry?.filter((e) => !inBundle(e, dataContext)) ?? [])
       )
+    }
+
+    if (configurableEndpoints && expression.reference) {
+      const endpoints = rankEndpoints(configurableEndpoints, expression.reference)
+      contentResolver = endpoints.length && endpoints[0].endpoint ? Resolver(endpoints[0].endpoint) : contentResolver
     }
 
     const result = await evaluateCqlExpression(
