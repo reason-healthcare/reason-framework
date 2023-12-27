@@ -18,7 +18,7 @@ import Resolver from '@reason-framework/cpg-execution/lib/resolver'
 import { is, notEmpty } from '@reason-framework/cpg-execution/lib/helpers'
 import { removeUndefinedProps } from '@reason-framework/cpg-execution/lib/helpers'
 import { v4 as uuidv4 } from "uuid"
-import { rankEndpoints } from '@reason-framework/cpg-execution/lib/helpers'
+import { rankEndpoints, resolveFromConfigurableEndpoints } from '@reason-framework/cpg-execution/lib/helpers'
 
 /**
  * The patient whose record was opened, including their encounter, if
@@ -634,17 +634,7 @@ export default async (options?: FastifyServerOptions) => {
           let url = valueFromParameters(parameters, 'url', 'valueUri')
           if (configurableEndpoints && url) {
             const endpoints = rankEndpoints(configurableEndpoints, url)
-            for (let i = 0; i < endpoints.length; i++) {
-              const resolver = Resolver(endpoints[i].endpoint)
-              try {
-                structureDefinitionRaw = await resolver.resolveCanonical(url)
-                if (structureDefinitionRaw) {
-                  break
-                }
-              } catch (e) {
-                console.log(e)
-              }
-            }
+            structureDefinitionRaw = await resolveFromConfigurableEndpoints(endpoints, url)
           } else if (contentEndpoint) {
             const resolver = Resolver(contentEndpoint)
             structureDefinitionRaw = await resolver?.resolveCanonical(url)
@@ -710,17 +700,7 @@ export default async (options?: FastifyServerOptions) => {
           let planDefinitionRaw
             if (configurableEndpoints) {
               const endpoints = rankEndpoints(configurableEndpoints, url)
-              for (let i = 0; i < endpoints.length; i++) {
-                const resolver = Resolver(endpoints[i].endpoint)
-                try {
-                  planDefinitionRaw = await resolver.resolveCanonical(url)
-                  if (planDefinitionRaw) {
-                    break
-                  }
-                } catch (e) {
-                  console.log(e)
-                }
-              }
+              planDefinitionRaw = await resolveFromConfigurableEndpoints(endpoints, url)
             } else if (contentEndpoint) {
               const resolver = Resolver(contentEndpoint)
               planDefinitionRaw = await resolver.resolveCanonical(url)
@@ -752,20 +732,10 @@ export default async (options?: FastifyServerOptions) => {
             let structureDefinitionRaw
             if (configurableEndpoints) {
               const endpoints = rankEndpoints(configurableEndpoints, p)
-              for (let i = 0; i < endpoints.length; i++) {
-                const resolver = Resolver(endpoints[i].endpoint)
-                try {
-                  structureDefinitionRaw = await resolver.resolveCanonical(p)
-                  if (structureDefinitionRaw) {
-                    break
-                  }
-                } catch (e) {
-                  console.log(e)
-                }
-              }
+              structureDefinitionRaw = await resolveFromConfigurableEndpoints(endpoints, p)
             } else if (contentEndpoint) {
               const resolver = Resolver(contentEndpoint)
-              structureDefinitionRaw = await resolver?.resolveCanonical(p)
+              structureDefinitionRaw = await resolver.resolveCanonical(p)
             }
             if (is.StructureDefinition(structureDefinitionRaw)) {
               structureDefinition = structureDefinitionRaw

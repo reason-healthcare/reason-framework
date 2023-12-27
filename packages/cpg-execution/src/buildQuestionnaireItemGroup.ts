@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid"
-import { is, getSnapshotDefinition, getPathPrefix, rankEndpoints } from "./helpers"
+import { is, getSnapshotDefinition, getPathPrefix, rankEndpoints, resolveFromConfigurableEndpoints } from "./helpers"
 import Resolver from './resolver'
 import RestResolver from "./resolver/rest"
 import FileResolver from "./resolver/file"
@@ -29,7 +29,9 @@ export const buildQuestionnaireItemGroup = async (
     // 1. determine how readOnly will be used
     // 2. Reference, Quantity and Coding are currently returned as a group type if there are constraints on child elements. If there are only contraints on the backbone, returned as reference, quanitity, coding types with no children - is this how we should handle this?
     // 3. Support Slicing - Bug: returns duplicate items
-    // 4. binding.ValueSet should translate to item.answerOption using expansion
+
+    // 4. Bug: fix data type SD resolution to use reference or batch search
+    // 5. Is value set resolution working properly?
 
   const childElements = subGroupElements.filter(e => getPathPrefix(e.path) === parentElementPath)
 
@@ -172,7 +174,6 @@ export const buildQuestionnaireItemGroup = async (
         initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition] as fhir4.CodeableConcept | undefined
         if (initialValue?.coding?.length) {
           // Should we use multiple codings here if available?
-          // Should answer option be returned for fixed/hidden elements?
           initialValue = initialValue?.coding[0]
         }
       } else if (elementType === "code") {
@@ -189,28 +190,12 @@ export const buildQuestionnaireItemGroup = async (
         featureExpressionKey = featureExpressionKey?.replace(valueType, '')
       }
       // Is there a better way to access the CQL values?
-      // TODO
-        // 1. iterate over repeating values, currently using the first value
-        // 2. handle code / CodeableConcept / Quantity
-        // 3. Fix reference (may have other properties)
-
+      // TODO: iterate over repeating values, currently using the first value
       let featureExpressionValue
       (featureExpressionKey && featureExpressionResource[featureExpressionKey]) ? featureExpressionValue = featureExpressionResource[featureExpressionKey][0] || featureExpressionResource[featureExpressionKey] : null
 
       if (featureExpressionValue) {
-        if (valueType && valueType === 'Reference') {
-          initialValue = {} as fhir4.Reference
-          initialValue.reference = featureExpressionValue[valueType.toLowerCase()].value
-        } else {
-          initialValue = featureExpressionValue.value
-        }
-      }
-      // Add hidden extension for all case feature elements except 'value'
-      if (featureExpressionKey !== 'value') {
-        item.extension = [{
-          url: "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
-          valueBoolean: true
-        }]
+        initialValue = featureExpressionValue.value
       }
     }
 
@@ -219,14 +204,12 @@ export const buildQuestionnaireItemGroup = async (
     }
 
     // Add binding expansion as answerOption if value is not fixed/pattern
-    // TODO: if case feature value, answerOption should be present despite being fixed
     if (!fixedElementKey && valueSetExpansion?.expansion?.contains && valueSetExpansion?.expansion?.contains.length) {
       item.answerOption = []
       valueSetExpansion.expansion.contains.forEach(i => item.answerOption?.push(i))
     } else if (!fixedElementKey){
       item.answerValueSet = binding?.valueSet
     }
-    // TODO: (may remove) Context from where the corresponding data-requirement is used with a special extension (e.g. PlanDefinition.action.input[extension]...)? or.....
 
     const childSubGroupElements = subGroupElements.filter(e => e.path.startsWith(`${element.path}.`) && element.path !== e.path)
     if (childSubGroupElements.length !== 0) {
@@ -242,17 +225,7 @@ export const buildQuestionnaireItemGroup = async (
       let dataTypeSD
       if (configurableEndpoints && structureDefinition.baseDefinition) {
         const endpoints = rankEndpoints(configurableEndpoints, structureDefinition.baseDefinition)
-        for (let i = 0; i < endpoints.length; i++) {
-          const resolver = Resolver(endpoints[i].endpoint)
-          try {
-            dataTypeSD = await resolver.resolveCanonical(structureDefinition.baseDefinition)
-            if (dataTypeSD) {
-              break
-            }
-          } catch (e) {
-            console.log(e)
-          }
-        }
+        dataTypeSD = await resolveFromConfigurableEndpoints(endpoints, structureDefinition.baseDefinition, ["StructureDefinition"])
       } else if (contentResolver) {
         dataTypeSD = await contentResolver?.resolveReference(`/StructureDefinition/${elementType}`)
       }

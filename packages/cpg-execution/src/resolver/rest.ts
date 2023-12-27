@@ -289,6 +289,11 @@ class RestResolver extends BaseResolver implements Resolver {
   public async expandValueSet(
     valueSet: fhir4.ValueSet,
   ) {
+    const cached = Cache.getKey(`vs-with-expansion-${valueSet.url}`)
+    if (cached != null) {
+      return cached
+    }
+
     const body: fhir4.Parameters = {
       resourceType: 'Parameters',
       parameter: [
@@ -308,7 +313,11 @@ class RestResolver extends BaseResolver implements Resolver {
           body: JSON.stringify(body)
         }
       )
-      is.ValueSet(result) ? (expansion = result) : (expansion = undefined)
+      if (is.ValueSet(result)) {
+        expansion = result
+        Cache.setKey(`vs-with-expansion-${valueSet.url}`, expansion)
+        Cache.save(true)
+      }
     } catch (e) {
       console.log('Problem expanding valueset' + JSON.stringify(e))
     }

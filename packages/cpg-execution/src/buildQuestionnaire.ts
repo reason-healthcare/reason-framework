@@ -82,17 +82,7 @@ export const buildQuestionnaire = async (
   let extractContextExtension: fhir4.Extension[] | undefined
   if (featureExpression) {
     featureExpressionResource = await processFeatureExpression(featureExpression, configurableEndpoints, terminologyResolver, contentResolver, data, dataResolver)
-    // For each case feature property, find the corresponding elementDef and add to subGroupElements if not already present
     if (featureExpressionResource) {
-      Object.keys(featureExpressionResource).forEach((k) => {
-        if (featureExpressionResource[k] && k !== 'meta' && k !== 'id' && k !== 'identifier' && k !== 'extension') {
-          structureDefinition?.snapshot?.element.forEach(e => {
-            if (featureExpressionResource[k] && e.path.startsWith(backboneElement?.path + '.' + k) && !subGroupElements?.some(el => el.path === e.path)) {
-              subGroupElements?.push(e)
-            }
-          })
-        }
-      })
       const featureType = featureExpressionResource.extension?.find((e: any) => e.url.value === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-caseFeatureType")?.value.value
       const assertedFeature = featureType === 'asserted' || featureExpressionResource.id?.value && data?.entry?.find(e => e.resource?.id === featureExpressionResource.id.value) ? true : false
       // If the feature was asserted, the extract context extension should point to the resource to update
