@@ -115,9 +115,9 @@ class RestResolver extends BaseResolver implements Resolver {
           const searchParams: { url: string; version?: string } = {
             url: canonical
           }
-          // if (version != null) {
-          //   searchParams.version = version
-          // }
+          if (version != null) {
+            searchParams.version = version
+          }
           results = await this.client.search({
             resourceType: resourceTypes[0],
             searchParams
@@ -289,7 +289,6 @@ class RestResolver extends BaseResolver implements Resolver {
   public async expandValueSet(
     valueSet: fhir4.ValueSet,
   ) {
-    console.log(valueSet.url + 'vs')
     const body: fhir4.Parameters = {
       resourceType: 'Parameters',
       parameter: [

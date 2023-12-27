@@ -128,22 +128,18 @@ export const buildQuestionnaireItemGroup = async (
 
     let binding = element.binding || snapshotDefinition?.binding
     let valueSetResource: fhir4.ValueSet | undefined
-    console.log(binding?.valueSet + 'binding')
     try {
       valueSetResource = await terminologyResolver.resolveCanonical(binding?.valueSet)
-      console.log(JSON.stringify(valueSetResource))
     } catch (e) {
       console.warn(`Not able to find ValueSet ${binding?.valueSet}`)
     }
     // Expansion will be used to resolve codes and to set answerOption
-    // Use terminology endpoint first, then try configurable rest endpoints
+    // Try terminology endpoint if it is a rest endpoint, then try configurable rest endpoints
     let valueSetExpansion: fhir4.ValueSet | undefined
     if (is.ValueSet(valueSetResource)) {
-      console.log(valueSetResource.url)
       if (terminologyResolver instanceof RestResolver) {
         valueSetExpansion = await terminologyResolver.expandValueSet(valueSetResource)
       } else if (configurableEndpoints && valueSetResource.url) {
-        console.log(valueSetResource.url)
         const endpoints = rankEndpoints(configurableEndpoints, valueSetResource.url)
         for (let i = 0; i < endpoints.length; i++) {
           if (endpoints[i].endpoint.connectionType.code === 'hl7-fhir-rest') {
@@ -223,6 +219,7 @@ export const buildQuestionnaireItemGroup = async (
     }
 
     // Add binding expansion as answerOption if value is not fixed/pattern
+    // TODO: if case feature value, answerOption should be present despite being fixed
     if (!fixedElementKey && valueSetExpansion?.expansion?.contains && valueSetExpansion?.expansion?.contains.length) {
       item.answerOption = []
       valueSetExpansion.expansion.contains.forEach(i => item.answerOption?.push(i))

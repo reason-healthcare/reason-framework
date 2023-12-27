@@ -127,7 +127,7 @@ const defaultEndpoint = createEndpoint(process.env.ENDPOINT_ADDRESS, 'all')
 const endpointConfigurationFromParameters = (
   parameters: fhir4.ParametersParameter[]
 ): EndpointConfiguration[] | undefined => {
-  return parameters.filter(p => p.name === "artifactEndpointConfiguration")?.map(p => {
+  const endpoints = parameters.filter(p => p.name === "artifactEndpointConfiguration")?.map(p => {
     let artifactRoute = p.part?.find(p => p.name === "artifactRoute")?.valueUri
     let endpoint = p.part?.find(p => p.name === "endpoint")?.resource || createEndpoint(p.part?.find(p => p.name === "endpointUri")?.valueUri, 'content')
     if (endpoint !== null && artifactRoute !== null) {
@@ -137,6 +137,10 @@ const endpointConfigurationFromParameters = (
       } as EndpointConfiguration
     }
   }).filter(notEmpty)
+  if (!endpoints.length) {
+    return undefined
+  }
+  return endpoints
 }
 
 const isPatientViewContext = (
@@ -719,7 +723,7 @@ export default async (options?: FastifyServerOptions) => {
               }
             } else if (contentEndpoint) {
               const resolver = Resolver(contentEndpoint)
-              planDefinitionRaw = await resolver?.resolveCanonical(url)
+              planDefinitionRaw = await resolver.resolveCanonical(url)
             }
           if (is.PlanDefinition(planDefinitionRaw)) {
             planDefinition = planDefinitionRaw
@@ -776,8 +780,8 @@ export default async (options?: FastifyServerOptions) => {
               supportedOnly,
             } as BuildQuestionnaireArgs)
             return {
-              "resource": questionnaire,
-              "fullUrl": questionnaire.url
+              "fullUrl": questionnaire.url,
+              "resource": questionnaire
             }
           }))
           QuestionnaireBundle.entry = bundleEntries
