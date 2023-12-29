@@ -5,7 +5,7 @@ import { processFeatureExpression } from "./expression"
 import Resolver from './resolver'
 
 export interface EndpointConfiguration {
-  artifactRoute: string | undefined,
+  artifactRoute?: string | undefined,
   endpointUri?: string | undefined,
   endpoint: fhir4.Endpoint
 }
@@ -15,10 +15,9 @@ export interface BuildQuestionnaireArgs {
   data?: fhir4.Bundle | undefined,
   dataEndpoint?: fhir4.Endpoint | undefined
   configurableEndpoints?: EndpointConfiguration[] | undefined,
-  contentEndpoint: fhir4.Endpoint
-  terminologyEndpoint: fhir4.Endpoint,
+  contentEndpoint?: fhir4.Endpoint | undefined
+  terminologyEndpoint?: fhir4.Endpoint | undefined,
   supportedOnly?: boolean | undefined,
-  baseEndpoint?: fhir4.Endpoint,
 }
 
 export const buildQuestionnaire = async (
@@ -33,7 +32,6 @@ export const buildQuestionnaire = async (
     contentEndpoint,
     terminologyEndpoint,
     supportedOnly,
-    baseEndpoint,
   } = args
 
   const questionnaire: fhir4.Questionnaire = {
@@ -44,16 +42,16 @@ export const buildQuestionnaire = async (
   }
 
   questionnaire.url = `${questionnaireBaseUrl}/Questionnaire/${questionnaire.id}`
-  const backboneElement = structureDefinition.snapshot?.element.find(e => e.path === structureDefinition.type)
+  const rootElement = structureDefinition.snapshot?.element.find(e => e.path === structureDefinition.type)
 
   // Add differential elements to process first
   let subGroupElements: fhir4.ElementDefinition[] | undefined = structureDefinition?.differential?.element
 
   const elementIsRootOrHasParent = (element: fhir4.ElementDefinition, subGroupElements: fhir4.ElementDefinition[] | undefined) => {
-    if (getPathPrefix(element.path) === backboneElement?.path) {
+    if (getPathPrefix(element.path) === rootElement?.path) {
       return true
     }
-    // if the path prefix matches an item already in the array of subGroupElements, its parent has a cardinality of 1 and the element should be considered for processing
+    // if the path prefix matches an item already in the array of subGroupElements, its parent has a cardinality of 1 and the element should be added for processing
     return subGroupElements?.some(e => getPathPrefix(element.path) === e.path)
   }
 
@@ -70,11 +68,11 @@ export const buildQuestionnaire = async (
   })
 
   if (supportedOnly === true) {
-    subGroupElements = subGroupElements?.filter(e => e.mustSupport === true || getSnapshotDefinition(structureDefinition?.snapshot?.element, e)?.mustSupport === true)
+    subGroupElements = subGroupElements?.filter(e => e.mustSupport === true)
   }
 
-  const contentResolver = Resolver(contentEndpoint)
-  const terminologyResolver = Resolver(terminologyEndpoint)
+  const contentResolver = contentEndpoint != null ? Resolver(contentEndpoint) : undefined
+  const terminologyResolver = terminologyEndpoint != null ? Resolver(terminologyEndpoint) : undefined
   const dataResolver = dataEndpoint != null ? Resolver(dataEndpoint) : undefined
 
   const featureExpression = structureDefinition.extension?.find(e => e.url === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-featureExpression")?.valueExpression
@@ -83,28 +81,44 @@ export const buildQuestionnaire = async (
   if (featureExpression) {
     featureExpressionResource = await processFeatureExpression(featureExpression, configurableEndpoints, terminologyResolver, contentResolver, data, dataResolver)
     if (featureExpressionResource) {
-      const featureType = featureExpressionResource.extension?.find((e: any) => e.url.value === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-caseFeatureType")?.value.value
-      const assertedFeature = featureType === 'asserted' || featureExpressionResource.id?.value && data?.entry?.find(e => e.resource?.id === featureExpressionResource.id.value) ? true : false
+      const metaData = ['meta', 'id', 'identifier', 'extension']
+      // For each case feature property, find the corresponding elementDef and add to subGroupElements if not already present
+      Object.keys(featureExpressionResource).forEach((k) => {
+        const elementPath = rootElement?.path + '.' + k
+        let elementDef
+        if (!metaData.includes(k) && !subGroupElements?.some(e => e.path.startsWith(elementPath))) {
+            elementDef = structureDefinition?.snapshot?.element.find(el => el.path.startsWith(elementPath))
+          }
+        if (elementDef && subGroupElements?.length) {
+          subGroupElements?.push(elementDef)
+        } else if (elementDef) {
+          subGroupElements = [elementDef]
+        }
+      })
+
       // If the feature was asserted, the extract context extension should point to the resource to update
-      if (assertedFeature) {
+      const featureType = featureExpressionResource.extension?.find((e: any) => e.url.value === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-caseFeatureType")?.value.value
+      // TODO: also use data resolver here
+      if (featureType === 'asserted' || data?.entry?.find(e => e.resource?.id === featureExpressionResource.id)) {
         extractContextExtension = [{"url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-itemExtractionContext", valueExpression: featureExpression}]
       }
     }
+
     // Otherwise, if a new resource should be created when extracted, resolve the definition type and set valueCode - this will be set even if featureExpression returns null
     if (!extractContextExtension) {
       extractContextExtension = [{"url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-itemExtractionContext", "valueCode": structureDefinition.type}]
     }
   }
 
-  if (subGroupElements && backboneElement) {
+  if (subGroupElements && rootElement) {
     questionnaire.item = [{
       linkId: uuidv4(),
-      definition: `${structureDefinition.url}#${backboneElement?.path}`,
-      text: backboneElement?.short? backboneElement?.short : backboneElement?.path,
+      definition: `${structureDefinition.url}#${rootElement?.path}`,
+      text: rootElement?.short ?? rootElement?.path,
       type: "group",
     }]
     extractContextExtension ? questionnaire.item[0].extension = extractContextExtension : undefined
-    questionnaire.item[0].item = await buildQuestionnaireItemGroup(structureDefinition, backboneElement.path, subGroupElements, terminologyResolver, baseEndpoint, dataResolver, contentResolver, configurableEndpoints, featureExpressionResource)
+    questionnaire.item[0].item = await buildQuestionnaireItemGroup(structureDefinition, rootElement.path, subGroupElements, terminologyResolver, dataResolver, contentResolver, configurableEndpoints, featureExpressionResource)
   }
 
   return questionnaire

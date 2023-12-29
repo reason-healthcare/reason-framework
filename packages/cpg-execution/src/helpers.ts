@@ -379,10 +379,7 @@ if (baseUrl.endsWith('/')) {
   baseUrl = baseUrl.slice(0, -1)
 }
 
-export const omitCanonicalVersion = (canonical: string | undefined): string | undefined => {
-  return canonical?.split("|").shift()
-}
-
+// Use snapshot elements as fallback to differential
 export const getSnapshotDefinition = (snapshotElements: fhir4.StructureDefinitionSnapshot["element"] | undefined, element: fhir4.ElementDefinition) => {
 
   let snapshotElement: fhir4.ElementDefinition | undefined
@@ -398,13 +395,14 @@ export const getSnapshotDefinition = (snapshotElements: fhir4.StructureDefinitio
   return snapshotElement
 }
 
+// Used to find child element definitions within flat structure definitions
 export const getPathPrefix = (path: fhir4.ElementDefinition["path"]): fhir4.ElementDefinition["path"] => {
   const prefix = path.split(".")
   prefix.pop()
   return prefix.join(".")
 }
 
-// https://build.fhir.org/ig/HL7/crmi-ig/StructureDefinition-crmi-artifact-endpoint-configurable-operation.html
+// CRMI configurable endpoints https://build.fhir.org/ig/HL7/crmi-ig/StructureDefinition-crmi-artifact-endpoint-configurable-operation.html
 // if artifactRoute is present and artifactRoute starts with canonical or artifact reference: rank based on number of matching characters
 // if artifactRoute is not present: include but rank lower
 export const rankEndpoints = (endpointConfigurations: EndpointConfiguration[], canonical: string) => {
@@ -427,7 +425,7 @@ export const resolveFromConfigurableEndpoints = async (endpoints: EndpointConfig
       resource = await resolver.resolveCanonical(request, resourceTypes)
       return resource
     } catch (e) {
-      console.log(e)
+      console.warn(`Unable to resolve ${request} at configurable endpoint ${endpoints[i].endpoint.address}. Will try next endpoint`)
     }
   }
 }

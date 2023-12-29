@@ -4,7 +4,7 @@ import { ValueSet } from 'cql-execution'
 import { Resolver } from '../resolver'
 import BaseResolver from './base'
 import Cache from '../cache'
-import { is, omitCanonicalVersion, notEmpty } from '../helpers'
+import { is, notEmpty } from '../helpers'
 
 /**
  * A simple FileResolver implementing Resolver interface.
@@ -79,7 +79,7 @@ class FileResolver extends BaseResolver implements Resolver {
   }
 
   public async resolveCanonical(canonical: string | undefined) {
-    canonical = omitCanonicalVersion(canonical) // Temp while resolving VS from filesystem
+    canonical = canonical?.split("|").shift()
     return canonical != null ? this.resourcesByCanonical[canonical] : undefined
   }
 

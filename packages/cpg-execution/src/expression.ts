@@ -618,8 +618,8 @@ export const set = (obj: any, path: string, value: any): void => {
 export const processFeatureExpression = async (
   expression: fhir4.Expression,
   configurableEndpoints: any,
-  terminologyResolver: ResolverType,
-  contentResolver: ResolverType,
+  terminologyResolver?: ResolverType | undefined,
+  contentResolver?: ResolverType | undefined,
   data?: fhir4.Bundle | undefined,
   dataResolver?: ResolverType | undefined,
   subject?: string | undefined,
@@ -714,18 +714,20 @@ export const processFeatureExpression = async (
     if (configurableEndpoints && expression.reference) {
       const endpoints = rankEndpoints(configurableEndpoints, expression.reference)
       contentResolver = endpoints.length && endpoints[0].endpoint ? Resolver(endpoints[0].endpoint) : contentResolver
+      terminologyResolver = endpoints.length && endpoints[0].endpoint ? Resolver(endpoints[0].endpoint) : terminologyResolver
     }
 
-    const result = await evaluateCqlExpression(
-      subject ?? '',
-      expression,
-      dataContext,
-      contentResolver,
-      terminologyResolver,
-      dataResolver,
-    )
-
-    return result
+    if (contentResolver != null && terminologyResolver != null) {
+      const result = await evaluateCqlExpression(
+        subject ?? '',
+        expression,
+        dataContext,
+        contentResolver,
+        terminologyResolver,
+        dataResolver,
+      )
+      return result
+    }
 
   } else {
     console.warn(

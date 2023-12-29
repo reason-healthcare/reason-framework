@@ -17,8 +17,7 @@ export const buildQuestionnaireItemGroup = async (
     structureDefinition: fhir4.StructureDefinition,
     parentElementPath: fhir4.ElementDefinition["path"],
     subGroupElements: fhir4.ElementDefinition[],
-    terminologyResolver: RestResolver | FileResolver,
-    baseEndpoint: fhir4.Endpoint | undefined,
+    terminologyResolver?: RestResolver | FileResolver | undefined,
     dataResolver?: RestResolver | FileResolver | undefined,
     contentResolver?: RestResolver| FileResolver | undefined,
     configurableEndpoints?: EndpointConfiguration[] | undefined,
@@ -30,13 +29,22 @@ export const buildQuestionnaireItemGroup = async (
     // 2. Reference, Quantity and Coding are currently returned as a group type if there are constraints on child elements. If there are only contraints on the backbone, returned as reference, quanitity, coding types with no children - is this how we should handle this?
     // 3. Support Slicing - Bug: returns duplicate items
 
-    // 4. Bug: fix data type SD resolution to use reference or batch search
-    // 5. Is value set resolution working properly?
-    // 6. Update postman/exepected output CPG starter
-
   const childElements = subGroupElements.filter(e => getPathPrefix(e.path) === parentElementPath)
 
   const subGroup = await Promise.all(childElements.map(async (element) => {
+    const {
+      type,
+      path,
+      sliceName,
+      definition,
+      short,
+      label,
+      min,
+      max,
+      maxLength,
+      binding,
+    } = element
+
     let item = {
       linkId: uuidv4(),
     } as fhir4.QuestionnaireItem
@@ -44,54 +52,54 @@ export const buildQuestionnaireItemGroup = async (
     let snapshotDefinition = getSnapshotDefinition(structureDefinition?.snapshot?.element, element)
 
     let elementType: fhir4.ElementDefinitionType["code"] | undefined
-    if (element.type) {
-      elementType = element.type[0].code
+    if (type) {
+      elementType = type[0].code
     } else if (snapshotDefinition?.type) {
       elementType = snapshotDefinition.type[0].code
     }
 
     let elementPath: fhir4.ElementDefinition["path"]
-    if (element.path.includes("[x]") && elementType) {
-      elementPath = element.path.replace("[x]", (elementType.charAt(0).toUpperCase() + elementType.slice(1)))
+    if (path.includes("[x]") && elementType) {
+      elementPath = path.replace("[x]", (elementType.charAt(0).toUpperCase() + elementType.slice(1)))
     } else {
-      elementPath = element.path
+      elementPath = path
     }
 
-    if (element.sliceName) {
-      item.definition = `${structureDefinition.url}#${elementPath}:${element.sliceName}`
+    if (sliceName) {
+      item.definition = `${structureDefinition.url}#${elementPath}:${sliceName}`
     } else {
       item.definition = `${structureDefinition.url}#${elementPath}`
     }
 
     if (elementType === "code") {
-      item.text = element.definition || snapshotDefinition?.definition // element.short is a list of codes for code data type. Definition will be more descriptive.
-    } else if (element.short) {
-      item.text = element.short
+      item.text = definition || snapshotDefinition?.definition // short is a list of codes for code data type. Definition will be more descriptive.
+    } else if (short) {
+      item.text = short
     } else if (snapshotDefinition?.short) {
       item.text = snapshotDefinition?.short
-    } else if (element.label) {
-      item.text = element.label
+    } else if (label) {
+      item.text = label
     } else if (snapshotDefinition?.label) {
       item.text = snapshotDefinition?.label
     } else {
       item.text = elementPath?.split('.').join(' ')
     }
 
-    if (element.min && element.min > 0) {
+    if (min && min > 0) {
       item.required = true
-    } else if (!element.min && snapshotDefinition?.min && snapshotDefinition.min > 0) {
+    } else if (!min && snapshotDefinition?.min && snapshotDefinition.min > 0) {
       item.required = true
     }
 
-    if (element.max && (element.max === "*" || parseInt(element.max) > 1)) {
+    if (max && (max === "*" || parseInt(max) > 1)) {
       item.repeats = true
-    } else if (!element.max && snapshotDefinition?.max && (snapshotDefinition.max === "*" || parseInt(snapshotDefinition.max) > 1)) {
+    } else if (!max && snapshotDefinition?.max && (snapshotDefinition.max === "*" || parseInt(snapshotDefinition.max) > 1)) {
       item.repeats = true
     }
 
-    if (element.maxLength && elementType === "string") {
-      item.maxLength = element.maxLength
-    } else if (!element.maxLength && snapshotDefinition?.maxLength && elementType === "string") {
+    if (maxLength && elementType === "string") {
+      item.maxLength = maxLength
+    } else if (!maxLength && snapshotDefinition?.maxLength && elementType === "string") {
       item.maxLength = snapshotDefinition.maxLength
     }
 
@@ -129,34 +137,44 @@ export const buildQuestionnaireItemGroup = async (
       processAsGroup = true
     }
 
-    let binding = element.binding || snapshotDefinition?.binding
+    let elementBinding = binding || snapshotDefinition?.binding
     let valueSetResource: fhir4.ValueSet | undefined
-    try {
-      valueSetResource = await terminologyResolver.resolveCanonical(binding?.valueSet)
-    } catch (e) {
-      console.warn(`Not able to find ValueSet ${binding?.valueSet}`)
+    let rankedEndpoints
+    if (configurableEndpoints && elementBinding?.valueSet) {
+      rankedEndpoints = rankEndpoints(configurableEndpoints, elementBinding.valueSet)
+      try {
+        valueSetResource = await resolveFromConfigurableEndpoints(rankedEndpoints, elementBinding.valueSet, "canonical", ["ValueSet"]) as fhir4.ValueSet
+      } catch (e) {
+        console.warn(`Not able to resolve ValueSet ${elementBinding.valueSet} from configurable endpoint. Will try terminology resolver`)
+      }
+    }
+    if (!valueSetResource && terminologyResolver != null) {
+      try {
+        valueSetResource = await terminologyResolver.resolveCanonical(elementBinding?.valueSet)
+      } catch (e) {
+        console.warn(`Not able to find ValueSet ${elementBinding?.valueSet}`)
+      }
     }
     // Expansion will be used to resolve codes and to set answerOption
     // Try terminology endpoint if it is a rest endpoint, then try configurable rest endpoints
     let valueSetExpansion: fhir4.ValueSet | undefined
     if (is.ValueSet(valueSetResource)) {
-      if (terminologyResolver instanceof RestResolver) {
-        valueSetExpansion = await terminologyResolver.expandValueSet(valueSetResource)
-      } else if (configurableEndpoints && valueSetResource.url) {
-        const endpoints = rankEndpoints(configurableEndpoints, valueSetResource.url)
-        for (let i = 0; i < endpoints.length; i++) {
-          if (endpoints[i].endpoint.connectionType.code === 'hl7-fhir-rest') {
-            const resolver = Resolver(endpoints[i].endpoint) as RestResolver
+      if (rankedEndpoints) {
+        for (let i = 0; i < rankedEndpoints.length; i++) {
+          if (rankedEndpoints[i].endpoint.connectionType.code === 'hl7-fhir-rest') {
+            const resolver = Resolver(rankedEndpoints[i].endpoint) as RestResolver
             try {
               valueSetExpansion = await resolver.expandValueSet(valueSetResource)
               if (valueSetExpansion) {
                 break
               }
             } catch (e) {
-              console.log(e)
+              console.warn(`Unable to expand valueset ${valueSetResource.url} at configurable endpoints`)
             }
           }
         }
+      } else if (terminologyResolver instanceof RestResolver) {
+        valueSetExpansion = await terminologyResolver.expandValueSet(valueSetResource)
       }
     }
 
@@ -187,7 +205,7 @@ export const buildQuestionnaireItemGroup = async (
       }
     } else if (featureExpressionResource) {
       let featureExpressionKey = elementPath.split('.').pop()
-      if (element.path.endsWith('[x]') && valueType) {
+      if (path.endsWith('[x]') && valueType) {
         featureExpressionKey = featureExpressionKey?.replace(valueType, '')
       }
       // Is there a better way to access the CQL values?
@@ -204,15 +222,15 @@ export const buildQuestionnaireItemGroup = async (
       item.initial = [{[`value${valueType}`]: initialValue}]
     }
 
-    // Add binding expansion as answerOption if value is not fixed/pattern
+    // Add elementBinding expansion as answerOption if value is not fixed/pattern
     if (!fixedElementKey && valueSetExpansion?.expansion?.contains && valueSetExpansion?.expansion?.contains.length) {
       item.answerOption = []
       valueSetExpansion.expansion.contains.forEach(i => item.answerOption?.push(i))
     } else if (!fixedElementKey){
-      item.answerValueSet = binding?.valueSet
+      item.answerValueSet = elementBinding?.valueSet
     }
 
-    const childSubGroupElements = subGroupElements.filter(e => e.path.startsWith(`${element.path}.`) && element.path !== e.path)
+    const childSubGroupElements = subGroupElements.filter(e => e.path.startsWith(`${path}.`) && path !== e.path)
     if (childSubGroupElements.length !== 0) {
       item.type = "group"
       processAsGroup = true
@@ -220,7 +238,7 @@ export const buildQuestionnaireItemGroup = async (
 
     if (processAsGroup && (elementType === "BackboneElement" || elementType === "Element" || elementType === "CodeableConcept" || elementType === "Coding" || elementType === "Reference" || elementType === "Quantity")) {
 
-      item.item = await buildQuestionnaireItemGroup(structureDefinition, element.path, childSubGroupElements, terminologyResolver,  baseEndpoint, dataResolver, contentResolver, configurableEndpoints)
+      item.item = await buildQuestionnaireItemGroup(structureDefinition, path, childSubGroupElements, terminologyResolver, dataResolver, contentResolver, configurableEndpoints)
 
     } else if (processAsGroup && elementType) {
       let dataTypeSD
@@ -233,7 +251,7 @@ export const buildQuestionnaireItemGroup = async (
       if (is.StructureDefinition(dataTypeSD) && dataTypeSD.differential) {
         const dataTypeDifferential = dataTypeSD.differential.element.map((e: fhir4.ElementDefinition) => {
           if (elementType) {
-            return e = {...e, path: e.path.replace(elementType, element.path)}
+            return e = {...e, path: e.path.replace(elementType, path)}
           }
         })
 
@@ -250,7 +268,7 @@ export const buildQuestionnaireItemGroup = async (
         })
       }
 
-      item.item = await buildQuestionnaireItemGroup(structureDefinition, element.path, childSubGroupElements, terminologyResolver, baseEndpoint, dataResolver, contentResolver, configurableEndpoints)
+      item.item = await buildQuestionnaireItemGroup(structureDefinition, path, childSubGroupElements, terminologyResolver, dataResolver, contentResolver, configurableEndpoints)
     }
 
     return item

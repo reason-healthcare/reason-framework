@@ -599,36 +599,37 @@ export default async (options?: FastifyServerOptions) => {
 
         const data = resourceFromParameters(parameters, 'data')  as fhir4.Bundle | undefined
         const supportedOnly = valueFromParameters(parameters, 'supportedOnly', 'valueBoolean')
-        const dataEndpoint = resourceFromParameters(
-          parameters,
-          'dataEndpoint'
-        ) as fhir4.Endpoint | undefined
+        const dataEndpoint =
+          (resourceFromParameters(
+            parameters,
+            'dataEndpoint'
+          ) as fhir4.Endpoint) || defaultEndpoint || undefined
         const terminologyEndpoint =
           (resourceFromParameters(
             parameters,
             'terminologyEndpoint'
-          ) as fhir4.Endpoint) ?? defaultEndpoint
-        const configurableEndpoints = endpointConfigurationFromParameters(
-          parameters,
-        ) as EndpointConfiguration[] | undefined
+          ) as fhir4.Endpoint) || defaultEndpoint || undefined
         const contentEndpoint =
           (resourceFromParameters(
             parameters,
             'terminologyEndpoint'
-          ) as fhir4.Endpoint) ?? defaultEndpoint
+          ) as fhir4.Endpoint) || defaultEndpoint || undefined
+        const configurableEndpoints = endpointConfigurationFromParameters(
+          parameters,
+        ) as EndpointConfiguration[] | undefined
 
-        if (!contentEndpoint && !configurableEndpoints) {
-          console.warn('Need to specify either a content endpoint or configurable content endpoints')
+        if ((!contentEndpoint || !terminologyEndpoint) && !configurableEndpoints) {
+          console.warn('Need to specify either content and terminology endpoints or configurable endpoints')
         }
 
-        // use profile as SD if provided
+        // Use profile as SD if provided
         let structureDefinition
         structureDefinition = resourceFromParameters(
           parameters,
           'profile'
         )
 
-        // if profile not provided, use Canonical -- should we also support identifier and slug (URL: [base]/StructureDefinition/[id]/$questionnaire)?
+        // If profile not provided, use Canonical
         if (structureDefinition == null) {
           let structureDefinitionRaw
           let url = valueFromParameters(parameters, 'url', 'valueUri')
@@ -667,26 +668,27 @@ export default async (options?: FastifyServerOptions) => {
       if (parameters != null) {
         const data = resourceFromParameters(parameters, 'data')  as fhir4.Bundle | undefined
         const supportedOnly = valueFromParameters(parameters, 'supportedOnly', 'valueBoolean')
-        const dataEndpoint = resourceFromParameters(
-          parameters,
-          'dataEndpoint'
-        ) as fhir4.Endpoint | undefined
+        const dataEndpoint =
+          (resourceFromParameters(
+            parameters,
+            'dataEndpoint'
+          ) as fhir4.Endpoint) || defaultEndpoint || undefined
         const terminologyEndpoint =
           (resourceFromParameters(
             parameters,
             'terminologyEndpoint'
-          ) as fhir4.Endpoint) ?? defaultEndpoint
-        const configurableEndpoints = endpointConfigurationFromParameters(
-          parameters,
-        ) as EndpointConfiguration[] | undefined
+          ) as fhir4.Endpoint) || defaultEndpoint || undefined
         const contentEndpoint =
           (resourceFromParameters(
             parameters,
             'terminologyEndpoint'
-          ) as fhir4.Endpoint) ?? defaultEndpoint
+          ) as fhir4.Endpoint) || defaultEndpoint || undefined
+        const configurableEndpoints = endpointConfigurationFromParameters(
+          parameters,
+        ) as EndpointConfiguration[] | undefined
 
-        if (!contentEndpoint && !configurableEndpoints) {
-          console.warn('Need to specify either a content endpoint or configurable content endpoints')
+        if ((!contentEndpoint || !terminologyEndpoint) && !configurableEndpoints) {
+          console.warn('Need to specify either content and terminology endpoints or configurable endpoints')
         }
 
         let planDefinition = resourceFromParameters(
@@ -717,14 +719,8 @@ export default async (options?: FastifyServerOptions) => {
         }
 
         // Resolve all SDs from PD action.inputs
-        let profiles : string[] | undefined
-        planDefinition?.action?.forEach((a : fhir4.PlanDefinitionAction) => {
-          a.input?.forEach(i => {
-            i.profile?.forEach(profile => {
-              profiles && profiles.length ? profiles.push(profile) : profiles = [profile]
-            })
-          })
-        })
+        let profiles: string[] | undefined = planDefinition?.action?.flatMap((action) =>
+        action.input?.flatMap((input) => input.profile)).filter(notEmpty)
 
         if (profiles) {
           let structureDefinition: fhir4.StructureDefinition
