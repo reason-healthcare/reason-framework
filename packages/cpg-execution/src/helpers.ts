@@ -415,12 +415,16 @@ export const rankEndpoints = (endpointConfigurations: EndpointConfiguration[], c
   })
 }
 
-export const resolveFromConfigurableEndpoints = async (endpoints: EndpointConfiguration[], canonical: string, resourceTypes?: string[] | undefined): Promise<fhir4.FhirResource | undefined> => {
+export const resolveFromConfigurableEndpoints = async (endpoints: EndpointConfiguration[], request: string, requestType?: 'reference' | 'canonical' | undefined, resourceTypes?: string[] | undefined): Promise<fhir4.FhirResource | undefined> => {
   let resource
   for (let i = 0; i < endpoints.length; i++) {
     const resolver = Resolver(endpoints[i].endpoint)
     try {
-      resource = await resolver.resolveCanonical(canonical, resourceTypes)
+      if (requestType === 'reference') {
+        resource = await resolver.resolveReference(request)
+        return resource
+      }
+      resource = await resolver.resolveCanonical(request, resourceTypes)
       return resource
     } catch (e) {
       console.log(e)

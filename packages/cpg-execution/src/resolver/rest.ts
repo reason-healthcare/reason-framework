@@ -110,33 +110,22 @@ class RestResolver extends BaseResolver implements Resolver {
 
     if (canonical != null) {
       let results
+      let requestParams = `/?url=${canonical}`
+      if (version != null) {
+        requestParams += `&version=${version}`
+      }
+      // // HAPI server requires resource type
+      // if (resourceTypes?.length) {
+      //   requestParams = `/${resourceTypes[0]}` + requestParams
+      // }
       if (process.env.CANONICAL_SEARCH_ROOT != null) {
-        if (resourceTypes?.length) {
-          const searchParams: { url: string; version?: string } = {
-            url: canonical
-          }
-          if (version != null) {
-            searchParams.version = version
-          }
-          results = await this.client.search({
-            resourceType: resourceTypes[0],
-            searchParams
-          })
-        } else {
-          console.log('Running canonical root search...')
-          try {
-            if (version != null) {
-              results = await this.client.request(
-                `/?url=${canonical}&version=${version}`
-              )
-            } else {
-              results = await this.client.request(`/?url=${canonical}`)
-            }
-          } catch (e) {
-            throw new Error(
-              `Problem with canonical search ${inspect(e)} -- ${process.env}`
-            )
-          }
+        console.log('Running canonical root search...')
+        try {
+          results = await this. client.request(requestParams)
+        } catch (e) {
+          throw new Error(
+            `Problem with canonical search ${inspect(e)} -- ${process.env}`
+          )
         }
       } else {
         // Batch search

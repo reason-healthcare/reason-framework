@@ -32,6 +32,7 @@ export const buildQuestionnaireItemGroup = async (
 
     // 4. Bug: fix data type SD resolution to use reference or batch search
     // 5. Is value set resolution working properly?
+    // 6. Update postman/exepected output CPG starter
 
   const childElements = subGroupElements.filter(e => getPathPrefix(e.path) === parentElementPath)
 
@@ -225,7 +226,7 @@ export const buildQuestionnaireItemGroup = async (
       let dataTypeSD
       if (configurableEndpoints && structureDefinition.baseDefinition) {
         const endpoints = rankEndpoints(configurableEndpoints, structureDefinition.baseDefinition)
-        dataTypeSD = await resolveFromConfigurableEndpoints(endpoints, structureDefinition.baseDefinition, ["StructureDefinition"])
+        dataTypeSD = await resolveFromConfigurableEndpoints(endpoints, `/StructureDefinition/${elementType}`, 'reference')
       } else if (contentResolver) {
         dataTypeSD = await contentResolver?.resolveReference(`/StructureDefinition/${elementType}`)
       }
