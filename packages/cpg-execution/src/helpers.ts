@@ -425,7 +425,7 @@ export const resolveFromConfigurableEndpoints = async (endpoints: EndpointConfig
       resource = await resolver.resolveCanonical(request, resourceTypes)
       return resource
     } catch (e) {
-      console.warn(`Unable to resolve ${request} at configurable endpoint ${endpoints[i].endpoint.address}. Will try next endpoint`)
+      console.warn(`Unable to resolve ${request} at configurable endpoint ${endpoints[i].endpoint.address}. ${endpoints[i + 1].endpoint ? `Will try ${endpoints[i + 1].endpoint.address}`: ''}`)
     }
   }
 }

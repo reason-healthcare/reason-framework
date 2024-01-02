@@ -81,12 +81,12 @@ export const buildQuestionnaire = async (
   if (featureExpression) {
     featureExpressionResource = await processFeatureExpression(featureExpression, configurableEndpoints, terminologyResolver, contentResolver, data, dataResolver)
     if (featureExpressionResource) {
-      const metaData = ['meta', 'id', 'identifier', 'extension']
       // For each case feature property, find the corresponding elementDef and add to subGroupElements if not already present
       Object.keys(featureExpressionResource).forEach((k) => {
         const elementPath = rootElement?.path + '.' + k
         let elementDef
-        if (!metaData.includes(k) && !subGroupElements?.some(e => e.path.startsWith(elementPath))) {
+        if (featureExpressionResource[k] && !subGroupElements?.some(e => e.path.startsWith(elementPath)))
+          {
             elementDef = structureDefinition?.snapshot?.element.find(el => el.path.startsWith(elementPath))
           }
         if (elementDef && subGroupElements?.length) {
@@ -97,7 +97,7 @@ export const buildQuestionnaire = async (
       })
 
       // If the feature was asserted, the extract context extension should point to the resource to update
-      const featureType = featureExpressionResource.extension?.find((e: any) => e.url.value === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-caseFeatureType")?.value.value
+      const featureType = featureExpressionResource.extension?.find((e: any) => e.url === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-caseFeatureType")
       // TODO: also use data resolver here
       if (featureType === 'asserted' || data?.entry?.find(e => e.resource?.id === featureExpressionResource.id)) {
         extractContextExtension = [{"url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-itemExtractionContext", valueExpression: featureExpression}]

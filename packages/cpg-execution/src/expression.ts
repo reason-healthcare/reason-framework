@@ -3,6 +3,7 @@ import cqlFhir from 'cql-exec-fhir'
 import fhirpath from 'fhirpath'
 import fhirpathR4Model from 'fhirpath/fhir-context/r4'
 import lodashSet from 'lodash/set'
+import lodashGet from 'lodash/get'
 import { rankEndpoints } from './helpers'
 import {
   handleError,
@@ -718,7 +719,7 @@ export const processFeatureExpression = async (
     }
 
     if (contentResolver != null && terminologyResolver != null) {
-      const result = await evaluateCqlExpression(
+      let result = await evaluateCqlExpression(
         subject ?? '',
         expression,
         dataContext,
@@ -726,6 +727,19 @@ export const processFeatureExpression = async (
         terminologyResolver,
         dataResolver,
       )
+
+      if (result && typeof result === "object") {
+        // TODO: handle further nesting, arrays, etc
+        result = Object.entries(result).reduce((cleanedResult, [key, value]) => {
+          if (typeof value === "object" && value?.hasOwnProperty("value")) {
+            const resultValue = lodashGet(value, 'value');
+            if (resultValue !== undefined) {
+              cleanedResult[key] = resultValue;
+            }
+          }
+          return cleanedResult;
+        }, {} as Record<string, any>);
+      }
       return result
     }
 

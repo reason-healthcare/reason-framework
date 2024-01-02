@@ -57,6 +57,9 @@ export const buildQuestionnaireItemGroup = async (
     } else if (snapshotDefinition?.type) {
       elementType = snapshotDefinition.type[0].code
     }
+    if (elementType?.startsWith('http://hl7.org/fhirpath/System.')) {
+      elementType = elementType.split('.').pop()?.toLowerCase()
+    }
 
     let elementPath: fhir4.ElementDefinition["path"]
     if (path.includes("[x]") && elementType) {
@@ -182,12 +185,10 @@ export const buildQuestionnaireItemGroup = async (
     let fixedElementKey = Object.keys(element).find(k => { return k.startsWith("fixed") || k.startsWith("pattern") || k.startsWith("defaultValue") })
     if (fixedElementKey) {
       // Add "hidden" extension for fixed[x] and pattern[x]
-      if (fixedElementKey.startsWith("fixed") || fixedElementKey.startsWith("pattern")) {
-        item.extension = [{
-          url: "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
-          valueBoolean: true
-        }]
-      }
+      item.extension = [{
+        url: "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+        valueBoolean: true
+      }]
       // Set initial[x] from fixed[x], pattern[x], defaultValue[x], or featureExpression
       if (elementType === "CodeableConcept") {
         initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition] as fhir4.CodeableConcept | undefined
@@ -208,14 +209,15 @@ export const buildQuestionnaireItemGroup = async (
       if (path.endsWith('[x]') && valueType) {
         featureExpressionKey = featureExpressionKey?.replace(valueType, '')
       }
-      // Is there a better way to access the CQL values?
-      // TODO: iterate over repeating values, currently using the first value
-      let featureExpressionValue
-      (featureExpressionKey && featureExpressionResource[featureExpressionKey]) ? featureExpressionValue = featureExpressionResource[featureExpressionKey][0] || featureExpressionResource[featureExpressionKey] : null
-
-      if (featureExpressionValue) {
-        initialValue = featureExpressionValue.value
+      if (featureExpressionKey !== 'value') {
+        item.extension = [{
+          url: "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+          valueBoolean: true
+        }]
       }
+
+      // TODO: iterate over repeating values?
+      (featureExpressionKey && featureExpressionResource[featureExpressionKey]) ? initialValue = featureExpressionResource[featureExpressionKey][0] || featureExpressionResource[featureExpressionKey] : null
     }
 
     if (valueType && initialValue) {
