@@ -10,6 +10,8 @@ import {
   ApplyActivityDefinitionArgs,
   applyPlanDefinition,
   ApplyPlanDefinitionArgs,
+  assembleQuestionnaire,
+  AssembleQuestionnaireArgs,
 } from '@reason-framework/cpg-execution'
 import Resolver from '@reason-framework/cpg-execution/lib/resolver'
 import { is, notEmpty } from '@reason-framework/cpg-execution/lib/helpers'
@@ -559,6 +561,28 @@ export default async (options?: FastifyServerOptions) => {
         }
 
         res.send(await applyPlanDefinition(args))
+      }
+    }
+  )
+
+  app.post(
+    '/Questionnaire/$assemble',
+    async (req: FastifyRequest, res: FastifyReply): Promise<void> => {
+      const { parameter: parameters } = req.body as fhir4.Parameters
+      if (parameters != null) {
+        const questionnaire = resourceFromParameters(
+          parameters,
+          'questionnaire',
+        ) as fhir4.Questionnaire
+        if (questionnaire != null) {
+          const args: AssembleQuestionnaireArgs = {
+            questionnaire,
+            contentEndpoint: defaultEndpoint
+          }
+          res.send(await assembleQuestionnaire(args))
+        } else {
+          console.warn('Need to provide questionnaire')
+        }
       }
     }
   )
