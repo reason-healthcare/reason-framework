@@ -215,9 +215,7 @@ export const buildQuestionnaireItemGroup = async (
           valueBoolean: true
         }]
       }
-
-      // TODO: iterate over repeating values?
-      (featureExpressionKey && featureExpressionResource[featureExpressionKey]) ? initialValue = featureExpressionResource[featureExpressionKey][0] || featureExpressionResource[featureExpressionKey] : null
+      (featureExpressionKey && featureExpressionResource[featureExpressionKey]) ? initialValue = featureExpressionResource[featureExpressionKey] : null
     }
 
     if (valueType && initialValue) {
