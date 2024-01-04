@@ -41,11 +41,10 @@ export const assembleQuestionnaire = async (
       if (subQuestionnaireExtension?.valueCanonical) {
         const subQuestionnaire = await contentResolver.resolveCanonical(subQuestionnaireExtension.valueCanonical)
 
+        const rootExtensions = ["http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-itemPopulationContext", "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-itemExtractionContext", "http://hl7.org/fhir/StructureDefinition/variable", "http://hl7.org/fhir/StructureDefinition/cqf-library", "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-launchContext"]
+
         subQuestionnaire.extension?.forEach((e: fhir4.Extension) => {
-          if (
-            e.url === "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-itemPopulationContext" ||
-            e.url === "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-itemExtractionContext"
-          ) {
+          if (rootExtensions.includes(e.url) && !extension?.some(ext => ext.url === e.url)) {
             extension?.push(e) || set(questionnaire, 'extension', e)
           }
         })
@@ -65,11 +64,14 @@ export const assembleQuestionnaire = async (
     set(questionnaire, 'item', updatedItems);
   }
 
-  // Adjust or remove the assemble-expectation extension from the Questionnaire - because it no longer requires assembly!
+  // Adjust or remove the assemble-expectation extension from the Questionnaire - because it no longer requires assembly
   if (extension) {
     const assembleExpectationIndex = extension.findIndex(e => e.url === "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-assemble-expectation")
-    if (assembleExpectationIndex != null) {
+    const assembleExpectationCode = extension[assembleExpectationIndex].valueCode
+    if (assembleExpectationCode === "assemble-root") {
       extension.splice(assembleExpectationIndex, 1)
+    } else if (assembleExpectationCode?.includes("assemble")) {
+      set(questionnaire, `${extension[assembleExpectationIndex]}.valueCode`, assembleExpectationCode.replace("assemble", "independent"))
     }
   }
 
