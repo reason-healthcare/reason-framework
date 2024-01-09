@@ -15,7 +15,7 @@ import {
   EndpointConfiguration,
 } from '@reason-framework/cpg-execution'
 import Resolver from '@reason-framework/cpg-execution/lib/resolver'
-import { is, notEmpty } from '@reason-framework/cpg-execution/lib/helpers'
+import { is, notEmpty, questionnaireBaseUrl } from '@reason-framework/cpg-execution/lib/helpers'
 import { removeUndefinedProps } from '@reason-framework/cpg-execution/lib/helpers'
 import { v4 as uuidv4 } from "uuid"
 import { rankEndpoints, resolveFromConfigurableEndpoints } from '@reason-framework/cpg-execution/lib/helpers'
@@ -712,10 +712,10 @@ export default async (options?: FastifyServerOptions) => {
           }
         }
 
-        const QuestionnaireBundle : fhir4.Bundle = {
-          "resourceType": "Bundle",
-          "id": uuidv4(),
-          "type": "collection",
+        const questionnaireBundle : fhir4.Bundle = {
+          resourceType: "Bundle",
+          id: uuidv4(),
+          type: "collection",
         }
 
         // Resolve all SDs from PD action.inputs
@@ -746,13 +746,48 @@ export default async (options?: FastifyServerOptions) => {
               supportedOnly,
             } as BuildQuestionnaireArgs)
             return {
-              "fullUrl": questionnaire.url,
-              "resource": questionnaire
+              fullUrl: questionnaire.url,
+              resource: questionnaire
             }
           }))
-          QuestionnaireBundle.entry = bundleEntries
+          questionnaireBundle.entry = bundleEntries
         }
-        res.send(QuestionnaireBundle)
+
+        if (questionnaireBundle.entry?.length) {
+          const modularQuestionnaire: fhir4.Questionnaire = {
+            id: uuidv4(),
+            resourceType: "Questionnaire",
+            description: `Questionnaire generated from ${planDefinition.url}`,
+            status: "draft",
+            extension: [{
+              url: "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-assemble-expectation",
+              valueCode: "assemble-root"
+            }],
+            item: []
+          }
+          modularQuestionnaire.url = `${questionnaireBaseUrl}/Questionnaire/${modularQuestionnaire.id}`
+          questionnaireBundle.entry.forEach((e) => {
+            if (e.resource && is.Questionnaire(e.resource)) {
+              const resource = e.resource as fhir4.Questionnaire
+              const modularItem: fhir4.QuestionnaireItem = {
+                linkId: uuidv4(),
+                type: "display",
+                text: `Sub-quesitonnaire - ${resource.url}`,
+                extension: [{
+                  url: "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-subQuestionnaire",
+                  valueCanonical: resource.url
+                }]
+              }
+              modularQuestionnaire.item?.push(modularItem)
+            }
+          })
+          questionnaireBundle.entry.push({
+            fullUrl: modularQuestionnaire.url,
+            resource: modularQuestionnaire
+          })
+        }
+
+        res.send(questionnaireBundle)
       }
     }
   )
