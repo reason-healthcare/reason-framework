@@ -349,7 +349,7 @@ export const applyPlanDefinitionAction = async (
         //   console.log("appliedR" + JSON.stringify(appliedResource))
         // }
         if (subRequestGroup?.resource) {
-          subRequestGroup.resource.intent = 'option'
+          subRequestGroup.resource.intent = 'proposal'
           appliedResource = subRequestGroup.resource
         }
       } else {

@@ -215,10 +215,10 @@ export const buildQuestionnaireItemGroup = async (
           valueBoolean: true
         }]
       }
-      (featureExpressionKey && featureExpressionResource[featureExpressionKey]) ? initialValue = featureExpressionResource[featureExpressionKey] : null
+      (featureExpressionKey && featureExpressionResource[featureExpressionKey] != null) ? initialValue = featureExpressionResource[featureExpressionKey] : null
     }
 
-    if (valueType && initialValue) {
+    if (valueType != null && initialValue != null) {
       item.initial = [{[`value${valueType}`]: initialValue}]
     }
 
