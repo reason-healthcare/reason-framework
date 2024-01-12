@@ -718,9 +718,60 @@ export default async (options?: FastifyServerOptions) => {
           type: "collection",
         }
 
-        // Resolve all SDs from PD action.inputs
-        let profiles: string[] | undefined = planDefinition?.action?.flatMap((action) =>
-        action.input?.flatMap((input) => input.profile)).filter(notEmpty)
+        const getPlanDefinitions = async (planDefinition: fhir4.PlanDefinition, configurableEndpoints: EndpointConfiguration[] | undefined, contentEndpoint: fhir4.Endpoint) => {
+          let totalPlans: fhir4.PlanDefinition[] = [planDefinition]
+          let plans = await Promise.all(planDefinition?.action?.flatMap(async (action: fhir4.PlanDefinitionAction) => {
+            let url = action.definitionCanonical
+            let planDefinitionRaw
+            let planDefinition
+              if (configurableEndpoints && url) {
+                const endpoints = rankEndpoints(configurableEndpoints, url)
+                planDefinitionRaw = await resolveFromConfigurableEndpoints(endpoints, url)
+              } else if (contentEndpoint) {
+                const resolver = Resolver(contentEndpoint)
+                planDefinitionRaw = await resolver.resolveCanonical(url)
+              }
+            if (is.PlanDefinition(planDefinitionRaw)) {
+              planDefinition = planDefinitionRaw
+            }
+            return planDefinition
+          }) ?? []) as fhir4.PlanDefinition[]
+
+          const filteredPlans = plans.filter(notEmpty)
+          if (filteredPlans?.length) {
+            totalPlans = totalPlans.concat(filteredPlans)
+            filteredPlans.forEach(async (p) => {
+              totalPlans = totalPlans.concat(await getPlanDefinitions(p, configurableEndpoints, contentEndpoint))
+            })
+          }
+          return totalPlans
+        }
+
+        const getDataRequirements = (actions: fhir4.PlanDefinitionAction[]) => {
+          let totalCanonicals: string[] = []
+          // For each action, find input and add to list of profiles
+          let canonicals = actions.flatMap((action) => action.input?.flatMap((input) => input.profile))
+          const filteredCanonicals = canonicals.filter(c => typeof c === 'string') as string[]
+          if (filteredCanonicals.length) {
+            totalCanonicals = [...new Set(totalCanonicals.concat(filteredCanonicals))]
+          }
+          actions.forEach(action => {
+            if (action.action) {
+              totalCanonicals = totalCanonicals.concat(getDataRequirements(action.action))
+            }
+          })
+          return totalCanonicals
+        }
+
+        let profiles: string[] = []
+        if (planDefinition.url) {
+          const planDefinitions = await getPlanDefinitions(planDefinition, configurableEndpoints, contentEndpoint) || [planDefinition]
+          planDefinitions.forEach((p) => {
+            if (p.action) {
+              profiles = [...new Set(profiles.concat(getDataRequirements(p.action)))]
+            }
+          })
+        }
 
         if (profiles) {
           let structureDefinition: fhir4.StructureDefinition
