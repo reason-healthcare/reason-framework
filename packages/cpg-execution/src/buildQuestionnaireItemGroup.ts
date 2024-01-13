@@ -181,41 +181,47 @@ export const buildQuestionnaireItemGroup = async (
       }
     }
 
-    let initialValue
-    let fixedElementKey = Object.keys(element).find(k => { return k.startsWith("fixed") || k.startsWith("pattern") || k.startsWith("defaultValue") })
-    if (fixedElementKey) {
-      // Add "hidden" extension for fixed[x] and pattern[x]
-      item.extension = [{
-        url: "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
-        valueBoolean: true
-      }]
-      // Set initial[x] from fixed[x], pattern[x], defaultValue[x], or featureExpression
+    const getInitialValue = (resource: any, key: string) => {
+      let initialValue
       if (elementType === "CodeableConcept") {
-        initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition] as fhir4.CodeableConcept | undefined
+        initialValue = resource[key as keyof fhir4.ElementDefinition] as fhir4.CodeableConcept | undefined
         if (initialValue?.coding?.length) {
           // Should we use multiple codings here if available?
           initialValue = initialValue?.coding[0]
         }
       } else if (elementType === "code") {
         initialValue = {} as fhir4.Coding
-        let code = element[fixedElementKey as keyof fhir4.ElementDefinition] as string
+        let code = resource[key as keyof fhir4.ElementDefinition] as string
         initialValue.code = code
         initialValue.system = valueSetExpansion?.expansion?.contains?.find(i => i.code === code)?.system
       } else {
-        initialValue = element[fixedElementKey as keyof fhir4.ElementDefinition]
+        initialValue = resource[key as keyof fhir4.ElementDefinition]
       }
+      return initialValue
+    }
+
+    let initialValue
+    let fixedElementKey = Object.keys(element).find(k => { return k.startsWith("fixed") || k.startsWith("pattern") || k.startsWith("defaultValue") })
+    if (fixedElementKey) {
+      item.extension = [{
+        url: "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+        valueBoolean: true
+      }]
+      initialValue = getInitialValue(element, fixedElementKey)
+    // Use feature expression to set initial value if not fixed
     } else if (featureExpressionResource) {
       let featureExpressionKey = elementPath.split('.').pop()
-      if (path.endsWith('[x]') && elementType) {
+      if (featureExpressionKey && path.endsWith('[x]') && elementType) {
         featureExpressionKey = featureExpressionKey?.replace(elementType.charAt(0).toUpperCase() + elementType.slice(1), '')
       }
+      // Feature Expression value should be displayed to user
       if (featureExpressionKey !== 'value') {
         item.extension = [{
           url: "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
           valueBoolean: true
         }]
       }
-      featureExpressionKey && featureExpressionResource[featureExpressionKey] != null ? initialValue = featureExpressionResource[featureExpressionKey] : null
+      featureExpressionKey ? initialValue = getInitialValue(featureExpressionResource, featureExpressionKey) : null
     }
 
     if (valueType != null && initialValue != null) {
