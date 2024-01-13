@@ -308,7 +308,7 @@ class RestResolver extends BaseResolver implements Resolver {
         Cache.save(true)
       }
     } catch (e) {
-      console.log('Problem expanding valueset' + JSON.stringify(e))
+      console.log('Problem expanding valueset ' + valueSet.url)
     }
     return expansion
   }

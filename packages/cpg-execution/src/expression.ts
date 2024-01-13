@@ -728,17 +728,27 @@ export const processFeatureExpression = async (
         dataResolver,
       )
 
-      if (result && typeof result === "object") {
-        // TODO: handle further nesting, arrays, etc
-        result = Object.entries(result).reduce((cleanedResult, [key, value]) => {
-          if (typeof value === "object" && value?.hasOwnProperty("value")) {
+      const getCleanedResult = (result: any): any => {
+        let cleanedResult = {}
+        if (result instanceof Array) {
+          return result.map(r => getCleanedResult(r));
+        }
+        cleanedResult = Object.entries(result).reduce((cleanedResult, [key, value]) => {
+          if (value?.hasOwnProperty("value")) {
             const resultValue = lodashGet(value, 'value');
             if (resultValue !== undefined) {
               cleanedResult[key] = resultValue;
             }
+          } else if (typeof value === "object" && key !== 'meta') {
+            cleanedResult[key] = getCleanedResult(value)
           }
           return cleanedResult;
-        }, {} as Record<string, any>);
+        }, cleanedResult as Record<string, any>)
+        return cleanedResult
+      }
+
+      if (result && typeof result === "object") {
+        result = getCleanedResult(result)
       }
       return result
     }

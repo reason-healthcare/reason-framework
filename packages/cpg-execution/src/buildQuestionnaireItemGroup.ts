@@ -206,8 +206,8 @@ export const buildQuestionnaireItemGroup = async (
       }
     } else if (featureExpressionResource) {
       let featureExpressionKey = elementPath.split('.').pop()
-      if (path.endsWith('[x]') && valueType) {
-        featureExpressionKey = featureExpressionKey?.replace(valueType, '')
+      if (path.endsWith('[x]') && elementType) {
+        featureExpressionKey = featureExpressionKey?.replace(elementType.charAt(0).toUpperCase() + elementType.slice(1), '')
       }
       if (featureExpressionKey !== 'value') {
         item.extension = [{
@@ -215,7 +215,7 @@ export const buildQuestionnaireItemGroup = async (
           valueBoolean: true
         }]
       }
-      (featureExpressionKey && featureExpressionResource[featureExpressionKey] != null) ? initialValue = featureExpressionResource[featureExpressionKey] : null
+      featureExpressionKey && featureExpressionResource[featureExpressionKey] != null ? initialValue = featureExpressionResource[featureExpressionKey] : null
     }
 
     if (valueType != null && initialValue != null) {
