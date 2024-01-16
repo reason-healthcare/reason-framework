@@ -413,19 +413,39 @@ export const rankEndpoints = (endpointConfigurations: EndpointConfiguration[], c
   })
 }
 
-export const resolveFromConfigurableEndpoints = async (endpoints: EndpointConfiguration[], request: string, requestType?: 'reference' | 'canonical' | undefined, resourceTypes?: string[] | undefined): Promise<fhir4.FhirResource | undefined> => {
+export const resolveFromConfigurableEndpoints = async (endpoints: EndpointConfiguration[], request: string, resourceTypes?: string[] | undefined): Promise<fhir4.FhirResource | undefined> => {
   let resource
   for (let i = 0; i < endpoints.length; i++) {
     const resolver = Resolver(endpoints[i].endpoint)
     try {
-      if (requestType === 'reference') {
-        resource = await resolver.resolveReference(request)
+      if (request.startsWith('http')) {
+        resource = await resolver.resolveCanonical(request, resourceTypes)
         return resource
       }
-      resource = await resolver.resolveCanonical(request, resourceTypes)
+      resource = await resolver.resolveReference(request)
       return resource
     } catch (e) {
       console.warn(`Unable to resolve ${request} at configurable endpoint ${endpoints[i].endpoint.address}. ${endpoints[i + 1].endpoint ? `Will try ${endpoints[i + 1].endpoint.address}`: ''}`)
     }
   }
+}
+
+export const resolveFromEndpoints = async (request: string, configurableEndpoints?: EndpointConfiguration[] | undefined, secondaryEndpoint?: fhir4.Endpoint | undefined ): Promise<fhir4.Resource| undefined> => {
+  let resourceRaw
+  let resource
+  if (configurableEndpoints) {
+    const endpoints = rankEndpoints(configurableEndpoints, request)
+    resourceRaw = await resolveFromConfigurableEndpoints(endpoints, request)
+  } else if (secondaryEndpoint) {
+    const resolver = Resolver(secondaryEndpoint)
+    if (request.startsWith('http')) {
+      resourceRaw = await resolver.resolveCanonical(request)
+    } else {
+      resourceRaw = await resolver.resolveReference(request)
+    }
+  }
+  if (is.FhirResource(resourceRaw)) {
+    resource = resourceRaw
+  }
+  return resource
 }

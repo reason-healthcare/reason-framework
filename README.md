@@ -46,9 +46,12 @@ cd packages/cpg-execution
 ## Supported features
 This technology focuses on imlementing [Workflow]([url](https://hl7.org/fhir/r5/workflow-module.html)) module of FHIR as well as the [Clinical Guidelines IG](https://hl7.org/fhir/uv/cpg/index.html). In particular, the following features are supported:
 
+* ActivityDefinition/$apply from [FHIR R5](https://hl7.org/fhir/r5/activitydefinition-operation-apply.html)
 * PlanDefinition/$apply from [FHIR R5](https://hl7.org/fhir/r5/plandefinition-operation-apply.html)
 * [CPGPlanDefinitionApply](https://hl7.org/fhir/uv/cpg/OperationDefinition-cpg-plandefinition-apply.html)'s profile for PlanDefinition/$apply - specifically `data`, `dataEndpoint`, `contentEndpoint`, and `terminologyEndpoint` parameters
   * both `http(s)://` and `file://` URL schemes for endpoint parameters are supported
+* StructureDefinition/$questionnaire from [FHIR R5](https://hl7.org/fhir/structuredefinition-operation-questionnaire.html) with additional support for `data`, `dataEndpoint`, `contentEndpoint`,`terminologyEndpoint`, and `configurableEndpoint` parameters
+* PlanDefinition/$questionnaire - not yet defined in FHIR spec. See packages/cpg-execution/documentation/questionnaire.md for in progress documentation.
 
 ## Docker
 

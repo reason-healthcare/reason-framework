@@ -146,7 +146,7 @@ export const buildQuestionnaireItemGroup = async (
     if (configurableEndpoints && elementBinding?.valueSet) {
       rankedEndpoints = rankEndpoints(configurableEndpoints, elementBinding.valueSet)
       try {
-        valueSetResource = await resolveFromConfigurableEndpoints(rankedEndpoints, elementBinding.valueSet, "canonical", ["ValueSet"]) as fhir4.ValueSet
+        valueSetResource = await resolveFromConfigurableEndpoints(rankedEndpoints, elementBinding.valueSet, ["ValueSet"]) as fhir4.ValueSet
       } catch (e) {
         console.warn(`Not able to resolve ValueSet ${elementBinding.valueSet} from configurable endpoint. Will try terminology resolver`)
       }
@@ -250,7 +250,7 @@ export const buildQuestionnaireItemGroup = async (
       let dataTypeSD
       if (configurableEndpoints && structureDefinition.baseDefinition) {
         const endpoints = rankEndpoints(configurableEndpoints, structureDefinition.baseDefinition)
-        dataTypeSD = await resolveFromConfigurableEndpoints(endpoints, `/StructureDefinition/${elementType}`, 'reference')
+        dataTypeSD = await resolveFromConfigurableEndpoints(endpoints, `/StructureDefinition/${elementType}`)
       } else if (contentResolver) {
         dataTypeSD = await contentResolver?.resolveReference(`/StructureDefinition/${elementType}`)
       }
