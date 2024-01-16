@@ -33,7 +33,7 @@ npm run dev
 
 ## Content
 
-There is fixture content at [CPG Starter Content](https://github.com/reason-healthcare/cpg-starter-example). Follow the readme there for setup instructions. The content must be built with IG publisher prior to using with CPG engine.
+There is fixture content at [CPG Starter Content](https://github.com/reason-healthcare/cpg-starter-example). Follow the [instructions](https://github.com/reason-healthcare/cpg-starter-example/blob/demo/connectathon35.md) there for setup. The content must be built with IG publisher prior to using with CPG engine.
 
 ## Docker
 
