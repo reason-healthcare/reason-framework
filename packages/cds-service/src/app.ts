@@ -718,8 +718,9 @@ export default async (options?: FastifyServerOptions) => {
           let allCanonicals: string[] = []
           // For each action, find input and add to list of profiles
           let canonicals = actions.flatMap((action) => action.input?.flatMap((input) => input.profile)).filter(notEmpty)
-          if (canonicals.length) {
-            allCanonicals = [...new Set(allCanonicals.concat(canonicals))]
+          const filteredCanonicals = canonicals.filter(c => c != null)
+          if (filteredCanonicals.length) {
+            allCanonicals = [...new Set(allCanonicals.concat(filteredCanonicals))]
           }
           actions.forEach(action => {
             if (action.action) {
@@ -793,7 +794,7 @@ export default async (options?: FastifyServerOptions) => {
               modularQuestionnaire.item?.push(modularItem)
             }
           })
-          questionnaireBundle.entry.push({
+          questionnaireBundle.entry.unshift({
             fullUrl: modularQuestionnaire.url,
             resource: modularQuestionnaire
           })

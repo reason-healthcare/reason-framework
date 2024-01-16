@@ -85,7 +85,8 @@ export const buildQuestionnaire = async (
       Object.keys(featureExpressionResource).forEach((k) => {
         const elementPath = rootElement?.path + '.' + k
         let elementDef
-        if (featureExpressionResource[k] && !subGroupElements?.some(e => e.path.startsWith(elementPath)))
+        // TODO: how should we handle extensions, meta, etc?
+        if (k !== "extension" && featureExpressionResource[k] && !subGroupElements?.some(e => e.path.startsWith(elementPath)))
           {
             elementDef = structureDefinition?.snapshot?.element.find(el => el.path.startsWith(elementPath))
           }
