@@ -574,10 +574,15 @@ export default async (options?: FastifyServerOptions) => {
           parameters,
           'questionnaire',
         ) as fhir4.Questionnaire
+        const contentEndpoint =
+        (resourceFromParameters(
+          parameters,
+          'contentEndpoint'
+        ) as fhir4.Endpoint) ?? defaultEndpoint
         if (questionnaire != null) {
           const args: AssembleQuestionnaireArgs = {
             questionnaire,
-            contentEndpoint: defaultEndpoint
+            contentEndpoint
           }
           res.send(await assembleQuestionnaire(args))
         } else {
