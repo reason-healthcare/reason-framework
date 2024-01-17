@@ -1,4 +1,6 @@
 import util from 'node:util'
+import { EndpointConfiguration } from './buildQuestionnaire'
+import Resolver from './resolver'
 
 export const terminologyResources = ['CodeSystem', 'ConceptMap', 'ValueSet']
 
@@ -282,6 +284,9 @@ export const is = {
   Questionnaire: (resource: any): resource is fhir4.Questionnaire => {
     return resource?.resourceType === 'Questionnaire'
   },
+  QuestionnaireItemType(dataType: string): dataType is fhir4.QuestionnaireItem["type"] {
+    return dataType === "string" || dataType === "boolean" || dataType === "group" || dataType === "display" || dataType === "question" || dataType === "decimal" || dataType === "integer" || dataType === "date" || dataType === "dateTime" || dataType === "time" || dataType === "text" || dataType === "url" || dataType === "choice" || dataType === "open-choice" || dataType.toLowerCase() === "attachment" || dataType.toLowerCase() === "reference" || dataType.toLowerCase() === "quantity"
+  },
   RequestGroup: (resource: any): resource is fhir4.RequestGroup => {
     return resource?.resourceType === 'RequestGroup'
   },
@@ -303,6 +308,9 @@ export const is = {
       is.ServiceRequest(resource) ||
       is.Task(resource)
     )
+  },
+  StructureDefinition: (resource: any): resource is fhir4.StructureDefinition => {
+    return resource?.resourceType === 'StructureDefinition'
   },
   SupplyRequest: (resource: any): resource is fhir4.SupplyRequest => {
     return resource?.resourceType === 'SupplyRequest'
@@ -363,4 +371,81 @@ export let baseUrl =
   process.env.BASE_URL != null ? process.env.BASE_URL : 'http://apply-processor'
 if (baseUrl.endsWith('/')) {
   baseUrl = baseUrl.slice(0, -1)
+}
+
+export let questionnaireBaseUrl =
+  process.env.BASE_URL != null ? process.env.BASE_URL : 'http://questionnaire-processor'
+if (baseUrl.endsWith('/')) {
+  baseUrl = baseUrl.slice(0, -1)
+}
+
+// Use snapshot elements as fallback to differential
+export const getSnapshotDefinition = (snapshotElements: fhir4.StructureDefinitionSnapshot["element"] | undefined, element: fhir4.ElementDefinition) => {
+
+  let snapshotElement: fhir4.ElementDefinition | undefined
+  snapshotElements?.forEach(e => {
+    if (element.sliceName && element.path === e.path && element.sliceName === e.sliceName) {
+      snapshotElement = e
+    } else if (e.path.includes('[x]') && e.id?.replace(/[a-z]+\[x\]\:/g, "") === element.path) {
+      snapshotElement = e
+    } else if (e.path === element.path) {
+      snapshotElement = e
+    }
+  })
+  return snapshotElement
+}
+
+// Used to find child element definitions within flat structure definitions
+export const getPathPrefix = (path: fhir4.ElementDefinition["path"]): fhir4.ElementDefinition["path"] => {
+  const prefix = path.split(".")
+  prefix.pop()
+  return prefix.join(".")
+}
+
+// CRMI configurable endpoints https://build.fhir.org/ig/HL7/crmi-ig/StructureDefinition-crmi-artifact-endpoint-configurable-operation.html
+// if artifactRoute is present and artifactRoute starts with canonical or artifact reference: rank based on number of matching characters
+// if artifactRoute is not present: include but rank lower
+export const rankEndpoints = (endpointConfigurations: EndpointConfiguration[], canonical: string) => {
+  return endpointConfigurations.sort((a, b) => {
+    const aRank = a.artifactRoute && canonical.startsWith(a.artifactRoute) ? a.artifactRoute.length : 0
+    const bRank = b.artifactRoute && canonical.startsWith(b.artifactRoute) ? b.artifactRoute.length : 0
+    return bRank - aRank
+  })
+}
+
+export const resolveFromConfigurableEndpoints = async (endpoints: EndpointConfiguration[], request: string, resourceTypes?: string[] | undefined): Promise<fhir4.FhirResource | undefined> => {
+  let resource
+  for (let i = 0; i < endpoints.length; i++) {
+    const resolver = Resolver(endpoints[i].endpoint)
+    try {
+      if (request.startsWith('http')) {
+        resource = await resolver.resolveCanonical(request, resourceTypes)
+        return resource
+      }
+      resource = await resolver.resolveReference(request)
+      return resource
+    } catch (e) {
+      console.warn(`Unable to resolve ${request} at configurable endpoint ${endpoints[i].endpoint.address}. ${endpoints[i + 1].endpoint ? `Will try ${endpoints[i + 1].endpoint.address}`: ''}`)
+    }
+  }
+}
+
+export const resolveFromEndpoints = async (request: string, configurableEndpoints?: EndpointConfiguration[] | undefined, secondaryEndpoint?: fhir4.Endpoint | undefined ): Promise<fhir4.Resource| undefined> => {
+  let resourceRaw
+  let resource
+  if (configurableEndpoints) {
+    const endpoints = rankEndpoints(configurableEndpoints, request)
+    resourceRaw = await resolveFromConfigurableEndpoints(endpoints, request)
+  } else if (secondaryEndpoint) {
+    const resolver = Resolver(secondaryEndpoint)
+    if (request.startsWith('http')) {
+      resourceRaw = await resolver.resolveCanonical(request)
+    } else {
+      resourceRaw = await resolver.resolveReference(request)
+    }
+  }
+  if (is.FhirResource(resourceRaw)) {
+    resource = resourceRaw
+  }
+  return resource
 }

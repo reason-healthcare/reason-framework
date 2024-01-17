@@ -4,7 +4,7 @@ import { ValueSet } from 'cql-execution'
 import { Resolver } from '../resolver'
 import BaseResolver from './base'
 import Cache from '../cache'
-import { is } from '../helpers'
+import { is, notEmpty } from '../helpers'
 
 /**
  * A simple FileResolver implementing Resolver interface.
@@ -79,6 +79,7 @@ class FileResolver extends BaseResolver implements Resolver {
   }
 
   public async resolveCanonical(canonical: string | undefined) {
+    canonical = canonical?.split("|").shift()
     return canonical != null ? this.resourcesByCanonical[canonical] : undefined
   }
 
@@ -124,9 +125,7 @@ class FileResolver extends BaseResolver implements Resolver {
                           system: c.system,
                           version: c.version
                         }
-                      }) || []
-                    /* Handle compose?
-                    const codes = vs.compose?.include
+                      }) || vs.compose?.include
                       ?.flatMap((include) => {
                         return include.concept
                           ?.map((c) => {
@@ -138,8 +137,7 @@ class FileResolver extends BaseResolver implements Resolver {
                           })
                           ?.filter(notEmpty)
                       })
-                      ?.filter(notEmpty)
-                      */
+                      ?.filter(notEmpty) || []
                     acc[vsVersion] = new ValueSet(key, vsVersion, codes)
                   }
                   return acc

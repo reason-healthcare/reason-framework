@@ -23,6 +23,12 @@ Run `npm run fmt` in the root of this monorepo
 To run locally, make sure to build the project, then `cd
 ./packages/cds-service`. Then run:
 ```
+cp .env.example .env
+```
+Then, go to your new .env file and update the path for your machine.
+
+Finally, run:
+```
 node ./lib/server.js
 ```
 
@@ -33,10 +39,24 @@ npm run dev
 
 ## Content
 
-There is fixture content in `packages/cpg-execution/test/fixtures/ExampleIG`.
-This is built using IG Publisher, so you will need to make sure you have all the
-requirements to run that installed. Once you do, there is a script that will
-help create the output and clear un-necessary files:
+There is fixture content (pre-built) in `packages/cpg-execution/test/fixtures/ExampleIG`.
+
+If you wish to edit and build the content yourself, this process uses IG Publisher. 
+You will need to make sure you have all the requirements to run that installed.
+If you are using [asdf](https://asdf-vm.com/), the `.tool-versions` file includes all the requirements, so `asdf install` should work. After running, you will need to install the following:
+
+```
+npm install -g fsh-sushi
+gem install jekyll -N
+```
+
+The first time, you will also need to install IG Publisher:
+```
+cd packages/cpg-execution/test/fixtures/ExampleIG
+./_updatePublisher.sh
+```
+
+Once you do, there is a script that will help create the output and clear unnecessary files:
 
 ```
 cd packages/cpg-execution
@@ -46,9 +66,12 @@ cd packages/cpg-execution
 ## Supported features
 This technology focuses on imlementing [Workflow]([url](https://hl7.org/fhir/r5/workflow-module.html)) module of FHIR as well as the [Clinical Guidelines IG](https://hl7.org/fhir/uv/cpg/index.html). In particular, the following features are supported:
 
+* ActivityDefinition/$apply from [FHIR R5](https://hl7.org/fhir/r5/activitydefinition-operation-apply.html)
 * PlanDefinition/$apply from [FHIR R5](https://hl7.org/fhir/r5/plandefinition-operation-apply.html)
 * [CPGPlanDefinitionApply](https://hl7.org/fhir/uv/cpg/OperationDefinition-cpg-plandefinition-apply.html)'s profile for PlanDefinition/$apply - specifically `data`, `dataEndpoint`, `contentEndpoint`, and `terminologyEndpoint` parameters
   * both `http(s)://` and `file://` URL schemes for endpoint parameters are supported
+* StructureDefinition/$questionnaire from [FHIR R5](https://hl7.org/fhir/structuredefinition-operation-questionnaire.html) with additional support for `data`, `dataEndpoint`, `contentEndpoint`,`terminologyEndpoint`, and `configurableEndpoint` parameters
+* PlanDefinition/$questionnaire - not yet defined in FHIR spec. See packages/cpg-execution/documentation/questionnaire.md for in progress documentation.
 
 ## Docker
 

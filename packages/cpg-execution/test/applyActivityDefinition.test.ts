@@ -89,7 +89,7 @@ describe('.apply', () => {
     const resource = result ?? {}
     if (is.CommunicationRequest(resource)) {
       expect(resource.payload?.[0]?.contentString).toEqual(
-        'welcome to my message'
+        'welcome to my message from CQL!'
       )
     } else {
       fail('Not a CommunicationRequest')
