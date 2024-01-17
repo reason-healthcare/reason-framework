@@ -13,6 +13,8 @@ import {
   buildQuestionnaire,
   BuildQuestionnaireArgs,
   EndpointConfiguration,
+  assembleQuestionnaire,
+  AssembleQuestionnaireArgs,
 } from '@reason-framework/cpg-execution'
 import Resolver from '@reason-framework/cpg-execution/lib/resolver'
 import { is, notEmpty, questionnaireBaseUrl } from '@reason-framework/cpg-execution/lib/helpers'
@@ -718,7 +720,7 @@ export default async (options?: FastifyServerOptions) => {
           let allCanonicals: string[] = []
           // For each action, find input and add to list of profiles
           let canonicals = actions.flatMap((action) => action.input?.flatMap((input) => input.profile)).filter(notEmpty)
-          const filteredCanonicals = canonicals.filter(c => c != null)
+          const filteredCanonicals = canonicals.filter(c => c != undefined)
           if (filteredCanonicals.length) {
             allCanonicals = [...new Set(allCanonicals.concat(filteredCanonicals))]
           }
@@ -785,7 +787,7 @@ export default async (options?: FastifyServerOptions) => {
               const modularItem: fhir4.QuestionnaireItem = {
                 linkId: uuidv4(),
                 type: "display",
-                text: `Sub-quesitonnaire - ${resource.url}`,
+                text: `Sub-questionnaire - ${resource.url}`,
                 extension: [{
                   url: "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-subQuestionnaire",
                   valueCanonical: resource.url
@@ -801,6 +803,33 @@ export default async (options?: FastifyServerOptions) => {
         }
 
         res.send(questionnaireBundle)
+      }
+    }
+  )
+
+  app.post(
+    '/Questionnaire/$assemble',
+    async (req: FastifyRequest, res: FastifyReply): Promise<void> => {
+      const { parameter: parameters } = req.body as fhir4.Parameters
+      if (parameters != null) {
+        const questionnaire = resourceFromParameters(
+          parameters,
+          'questionnaire',
+        ) as fhir4.Questionnaire
+        const contentEndpoint =
+        (resourceFromParameters(
+          parameters,
+          'contentEndpoint'
+        ) as fhir4.Endpoint) ?? defaultEndpoint
+        if (questionnaire != null) {
+          const args: AssembleQuestionnaireArgs = {
+            questionnaire,
+            contentEndpoint
+          }
+          res.send(await assembleQuestionnaire(args))
+        } else {
+          console.warn('Need to provide questionnaire')
+        }
       }
     }
   )
