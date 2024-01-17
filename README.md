@@ -43,7 +43,7 @@ There is fixture content (pre-built) in `packages/cpg-execution/test/fixtures/Ex
 
 If you wish to edit and build the content yourself, this process uses IG Publisher. 
 You will need to make sure you have all the requirements to run that installed.
-If you are using asdf, the `.tool-versions` file includes all the requirements, so `asdf install` should work. After running, you will need to install the following:
+If you are using [asdf](https://asdf-vm.com/), the `.tool-versions` file includes all the requirements, so `asdf install` should work. After running, you will need to install the following:
 
 ```
 npm install -g fsh-sushi
