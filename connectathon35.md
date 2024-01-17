@@ -23,6 +23,12 @@ Run `npm run fmt` in the root of this monorepo
 To run locally, make sure to build the project, then `cd
 ./packages/cds-service`. Then run:
 ```
+cp .env.example .env
+```
+Then, go to your new .env file and update the path for your machine.
+
+Finally, run:
+```
 node ./lib/server.js
 ```
 
