@@ -110,16 +110,18 @@ class RestResolver extends BaseResolver implements Resolver {
 
     if (canonical != null) {
       let results
+      let requestParams = `/?url=${canonical}`
+      if (version != null) {
+        requestParams += `&version=${version}`
+      }
+      // // HAPI server requires resource type
+      // if (resourceTypes?.length) {
+      //   requestParams = `/${resourceTypes[0]}` + requestParams
+      // }
       if (process.env.CANONICAL_SEARCH_ROOT != null) {
         console.log('Running canonical root search...')
         try {
-          if (version != null) {
-            results = await this.client.request(
-              `/?url=${canonical}&version=${version}`
-            )
-          } else {
-            results = await this.client.request(`/?url=${canonical}`)
-          }
+          results = await this. client.request(requestParams)
         } catch (e) {
           throw new Error(
             `Problem with canonical search ${inspect(e)} -- ${process.env}`
@@ -163,7 +165,8 @@ class RestResolver extends BaseResolver implements Resolver {
               .filter(notEmpty) ?? []
         }
 
-        if (resources?.length === 1) {
+        if (resources?.length <= 2) {
+          //temp set to 2 to include operation outcome
           const result = resources[0]
           Cache.setKey(`canonical-resource-${canonicalWithVersion}`, result)
           Cache.save(true)
@@ -240,10 +243,7 @@ class RestResolver extends BaseResolver implements Resolver {
                             system: c.system,
                             version: c.version
                           }
-                        }) || []
-                      // Handle compose?
-                      /*
-                      const codes = vs.compose?.include
+                        }) || vs.compose?.include
                         ?.flatMap((include) => {
                           return include.concept
                             ?.map((c) => {
@@ -253,10 +253,9 @@ class RestResolver extends BaseResolver implements Resolver {
                                 version: include.version
                               }
                             })
-                            .filter(notEmpty)
+                            ?.filter(c => c.code != null)
                         })
-                        .filter(notEmpty)
-                      */
+                        ?.filter(c => c != null) || []
                       acc[vsVersion] = new ValueSet(key, vsVersion, codes)
                     }
                     return acc
@@ -274,6 +273,44 @@ class RestResolver extends BaseResolver implements Resolver {
         )
       )
     }
+  }
+
+  public async expandValueSet(
+    valueSet: fhir4.ValueSet,
+  ) {
+    const cached = Cache.getKey(`vs-with-expansion-${valueSet.url}`)
+    if (cached != null) {
+      return cached
+    }
+
+    const body: fhir4.Parameters = {
+      resourceType: 'Parameters',
+      parameter: [
+        {
+          name: 'valueSet',
+          resource: valueSet
+        }
+      ]
+    }
+    let expansion: fhir4.ValueSet | undefined
+    try {
+      let result = await this.client.request(
+        `${this.endpoint.address}/ValueSet/$expand`,
+        {
+          method: 'POST',
+          options: { headers: { 'Content-Type': 'application/json' } },
+          body: JSON.stringify(body)
+        }
+      )
+      if (is.ValueSet(result)) {
+        expansion = result
+        Cache.setKey(`vs-with-expansion-${valueSet.url}`, expansion)
+        Cache.save(true)
+      }
+    } catch (e) {
+      console.log('Problem expanding valueset ' + valueSet.url)
+    }
+    return expansion
   }
 }
 

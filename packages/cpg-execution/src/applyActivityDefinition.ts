@@ -100,13 +100,13 @@ export const applyActivityDefinition = async (
   } = activityDefinition
 
   if (resourceType != null && is.RequestResourceType(resourceType)) {
-    const meta: fhir4.Meta = {}
-    if (profile != null) {
-      meta.profile = [profile]
-    }
+    // const meta: fhir4.Meta = {}
+    // if (profile != null) {
+    //   meta.profile = [profile]
+    // }
     const targetResource = {
       id: uuidv4(),
-      meta,
+      // meta,
       resourceType,
       status: 'draft'
     }
