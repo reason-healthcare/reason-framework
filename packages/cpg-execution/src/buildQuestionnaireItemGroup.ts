@@ -233,7 +233,7 @@ export const buildQuestionnaireItemGroup = async (
     // Add elementBinding expansion as answerOption if value is not fixed/pattern
     if (!fixedElementKey && valueSetExpansion?.expansion?.contains && valueSetExpansion?.expansion?.contains.length) {
       item.answerOption = []
-      valueSetExpansion.expansion.contains.forEach(i => item.answerOption?.push(i))
+      valueSetExpansion.expansion.contains.forEach(i => item.answerOption?.push({valueCoding: i}))
     } else if (!fixedElementKey){
       item.answerValueSet = elementBinding?.valueSet
     }
