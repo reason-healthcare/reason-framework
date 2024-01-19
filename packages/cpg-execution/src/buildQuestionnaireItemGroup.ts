@@ -162,7 +162,9 @@ export const buildQuestionnaireItemGroup = async (
     // Try terminology endpoint if it is a rest endpoint, then try configurable rest endpoints
     let valueSetExpansion: fhir4.ValueSet | undefined
     if (is.ValueSet(valueSetResource)) {
-      if (rankedEndpoints) {
+      if (valueSetResource.expansion) {
+        valueSetExpansion = valueSetResource
+      } else if (rankedEndpoints) {
         for (let i = 0; i < rankedEndpoints.length; i++) {
           if (rankedEndpoints[i].endpoint.connectionType.code === 'hl7-fhir-rest') {
             const resolver = Resolver(rankedEndpoints[i].endpoint) as RestResolver
