@@ -162,7 +162,9 @@ export const buildQuestionnaireItemGroup = async (
     // Try terminology endpoint if it is a rest endpoint, then try configurable rest endpoints
     let valueSetExpansion: fhir4.ValueSet | undefined
     if (is.ValueSet(valueSetResource)) {
-      if (rankedEndpoints) {
+      if (valueSetResource.expansion) {
+        valueSetExpansion = valueSetResource
+      } else if (rankedEndpoints) {
         for (let i = 0; i < rankedEndpoints.length; i++) {
           if (rankedEndpoints[i].endpoint.connectionType.code === 'hl7-fhir-rest') {
             const resolver = Resolver(rankedEndpoints[i].endpoint) as RestResolver
@@ -231,7 +233,7 @@ export const buildQuestionnaireItemGroup = async (
     // Add elementBinding expansion as answerOption if value is not fixed/pattern
     if (!fixedElementKey && valueSetExpansion?.expansion?.contains && valueSetExpansion?.expansion?.contains.length) {
       item.answerOption = []
-      valueSetExpansion.expansion.contains.forEach(i => item.answerOption?.push(i))
+      valueSetExpansion.expansion.contains.forEach(i => item.answerOption?.push({valueCoding: i}))
     } else if (!fixedElementKey){
       item.answerValueSet = elementBinding?.valueSet
     }
