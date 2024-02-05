@@ -688,7 +688,7 @@ export default async (options?: FastifyServerOptions) => {
 
         let planDefinition = resourceFromParameters(
           parameters,
-          'profile'
+          'planDefinition'
         ) as fhir4.PlanDefinition | undefined
 
         // If resource not provided, use Canonical
