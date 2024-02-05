@@ -39,7 +39,7 @@ npm run dev
 
 ## Content
 
-There is fixture content at [CPG Starter Content](https://github.com/reason-healthcare/cpg-starter-example). Follow the [instructions](https://github.com/reason-healthcare/cpg-starter-example/blob/demo/connectathon35.md) there for setup. The content must be built with IG publisher prior to using with CPG engine.
+There is fixture content at [CPG Starter Content](https://github.com/reason-healthcare/interactive-cds-content). Follow the [instructions](https://github.com/reason-healthcare/interactive-cds-content/blob/main/connectathon35.md) there for setup. The content must be built with IG publisher prior to using with CPG engine.
 
 ## Docker
 
@@ -56,8 +56,3 @@ Then run the project with docker
 The `[endpoint address]` can either be a file or a remote service. In docker,
 this endpoint will be used for all three (content, terminology, and data)
 endpoints.
-
-```
-./bin/docker-run file:///Users/.../cpg-starter-example/output
-```
-

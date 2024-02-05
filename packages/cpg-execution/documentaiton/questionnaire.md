@@ -3,13 +3,9 @@
 Elements from the structure definition should be processed to questionnaire items if:
   1. The element is a part of the differential
   2. The element is a part of the snapshot and has a cardinality of at least 1..* (min >1). Nested child elements with min > 1 should also be included if parent has min > 1.
-  3. Optionally, the parameter "supportedOnly" can be supplied to the operation. If true, the above applies only to elements with must support flags.
-
-For each case-feature definition/profile, create a group of questionnaire items. Add additional questionnaire item groupings for:
-  1. Parent elements with one or more nested children elements i.e. if element path is nested beyond element.x, group the element.x children together
-  2. Complex data types see [ElementDefinition Mappings](#mapping-elementdefinition-data-types-to-questionnaire-items)
-
-   <!-- How should we handle backbone elements and complex type elements where child elements do not meet criteria - we shouldn't return an empty group -->
+  3. Optionally, the parameter "supportedOnly" can be supplied. If true, the above applies only to elements with must support flags.
+  4. Additionally, if the SD contains inference or assertion logic (CPG feature expressions), and an instantiated case feature is returned based on the data context, each of the case feature properties should be processed to questionnaire items. This will enable conformance with the $extract operation.
+<!-- Consider parameter "useSnapshot" boolean. However, in the case of use with $extract, the snapshot must at least be used as a fallback for element definition properties like "type". -->
 
 | elementDefinition | questionnaireItem | notes |
 | -----------------| -----------------| -------|
@@ -22,14 +18,14 @@ For each case-feature definition/profile, create a group of questionnaire items.
 | min > 0 | required | |
 | max > 1 | repeats | |
 | maxLength | maxLength | apply if type = string |
-| extension.cpg-featureExpression | sets initial[x], add questionnaire-itemExtractionContext extension to item group | see [ElementDefinition Mappings](#mapping-elementdefinition-data-types-to-questionnaire-items) |
-| binding.valueSet & binding.strength = required, preferred, or extensibile | expaneded valueSet used as answerOption, set type as 'choice' | |
+| extension.cpg-featureExpression | sets initial[x], hidden true (unless element is value[x]) | see [Use with Definition based extraction ($extract)](#use-with-definition-based-extraction-extract) |
+| binding.valueSet | expaneded valueSet used as answerOption, set type as 'choice' | |
 | ??| readOnly | |
 
-Process each element from the structure definition:
-* If the element is in the differential or snapshot min > 0, create a questionnaire item:
-  * If the element has pattern[x] or fixed[x] make the item hidden and set initial[x]
-  * If the element does not have pattern[x] or fixed[x] make the item visible
+Process elements from the structure definition/feature expression resource:
+* For each element to process, create a questionnaire item
+  * If the element has pattern[x], fixed[x], or a featureExpression value make the item hidden and set initial[x]
+  * If the element does not have pattern[x] or fixed[x] or the element corresponds to the case feature value, make the item visible
   * For the rest of questionnaire item properties:
     * QuestionnaireItem.linkId => generate some unique id
     * QuestionnaireItem.definition => "{structureDefinition.url}#{full element path}", where:
@@ -44,9 +40,7 @@ Process each element from the structure definition:
     * QuestionnaireItem.type (should always be primitive type) =>
         * If the element type is specified in the differential, map to Questionnaire.type
         * If the element type is not specified in the differential, use the snapshot type and map to Questionnaire.type
-        * If pattern[x] or fixed[x] refers to a code, treat as a coding with type 'choice'(note: during $extract need to map this type back to code) -- or consider similar with data type string?
-        Should type actually be coding if the value is fixed?
-        * If element has a binding to a VS, set type as 'choice'
+        * If of type code, treat as a coding with type 'choice'(note: during $extract need to map this type back to code)
         * For a more detailed mapping of primitive and complex data types, see [ElementDefinition Mappings](#mapping-elementdefinition-data-types-to-questionnaire-items)
     * QuestionnaireItem.required => if (element.min > 0)
     * QuestionnaireItem.repeats => if (element.max > 1)
@@ -56,26 +50,35 @@ Process each element from the structure definition:
       * Use pattern[x] or fixed[x]
       * Use defaultValue[x] if the element does not have pattern[x] or fixed[x]
       * Otherwise use featureExpression (if available)
-      * If value is a complex data type, see [ElementDefinition Mappings](#mapping-elementdefinition-data-types-to-questionnaire-items) to process choice type
-   * QuestionnaireItem.answerOption => if the element has a binding to a VS (how to handle example binding - set type to open-choice)
+    * QuestionnaireItem.answerOption => expanded value set binding <!-- how should example binding be handled? open choice? -->
+* Ideally, the snapshot element will be used as a fallback for properties missing on differential elements and feature expression resources.
 
-  ### Use of extract context for case feature expressions
-  If the featureExpression extension is present, the questionnaire-itemExtractionContext extension should be added to the top level item group. This is processed depending on the need to update or create a case feature:
-    * If the feature was asserted, the extension should refernence the case feature resource
-    * If the feature was inferred, the extension should be a code for the type of resource that will be created
-  See [SDC Definition Based Extraction](https://hl7.org/fhir/uv/sdc/extraction.html#definition-based-extraction)
+### Use with definition based extraction ($extract)
+* If the featureExpression extension is present, the questionnaire-itemExtractionContext extension should be added to the top level item group.
+* During extract, if the QuestionnaireResponse contains a value for the definition, the case feature will be
+  1. Updated if the feature expression was asserted, or
+  2. Created if
+    a. The feature was inferred, or
+    b. The feature expression returned null
 
-  ### Mapping ElementDefinition data types to Questionnaire Items
-  * To see a mapping of FHIR primitive types to QuestionnaireItem.initialValue[x] and QuestionnaireItem.type, visit https://docs.google.com/spreadsheets/d/1YmmW28fDX0VsSlQAVsK2p9bbkV3hxhxnUaUCiRKAL6M/edit?usp=sharing
-  * For complex data types with non-primitive data types, $questionnaire should be applied to the SD of the complex data type and returned as a subgroup of questionnaire items
-  * See ./contactQuestionnaireRepresentation as an example questionnaire.item representation of the ContactPoint data type https://www.hl7.org/fhir/datatypes.html#ContactPoint
+See [SDC Definition Based Extraction](https://hl7.org/fhir/uv/sdc/extraction.html#definition-based-extraction)
 
-  ### Parameters
-  * Content Endpoint: used to resolve FHIR resources
-  * Configurable Endpoints: used to resolve FHIR resources and base definitions. Prioritize over content endpoint. The $questionnaire operation uses element definitions from both profiled resources and base definitions, so a server with core FHIR content should be specificed. See [CRMI Artificat Endpoint Configurable](https://build.fhir.org/ig/HL7/crmi-ig/StructureDefinition-crmi-artifact-endpoint-configurable-operation.html) for further details on configuration.
-  * Terminology Endpoint: used to resolve terminology. If the terminology endpoint is not capable of $expand, an appropriate endpoint should be specified as a configurable and used as a fallback.
-  * Data: the patient context
-  * Data Endpoint: the patient context. Data should be used in place of data endpoint if specified.
+### Mapping ElementDefinition data types to Questionnaire Items
+* See mappings of FHIR primitive types to QuestionnaireItem.initialValue[x] and QuestionnaireItem.type [here](https://docs.google.com/spreadsheets/d/1YmmW28fDX0VsSlQAVsK2p9bbkV3hxhxnUaUCiRKAL6M/edit?usp=sharing)
+* For non-primitive, complex data types, $questionnaire should be applied to the SD of the data type and returned as a subgroup of questionnaire items
+* See `./rangeQuestionnaireRepresentation` as an example questionnaire.item representation of the Range data type https://www.hl7.org/fhir/datatypes.html#Range
+
+### Reason Framework Supported Parameters
+| name | description |
+| - | - |
+| contentEndpoint | used to resolve FHIR resources |
+| artifactEndpointConfiguration | used to resolve FHIR resources and base definitions. Prioritize over content endpoint. The $questionnaire operation uses element definitions from both profiled resources and base definitions, so a server with core FHIR content may be specificed. See [CRMI Artificat Endpoint Configurable](https://build.fhir.org/ig/HL7/crmi-ig/StructureDefinition-crmi-artifact-endpoint-configurable-operation.html) for further details on configuration. |
+| terminologyEndpoint | used to resolve terminology. If the terminology endpoint is not capable of $expand, an appropriate endpoint should be specified as a configurable and used as a fallback. |
+| data | the patient context |
+| dataEndpoint | the patient context. Data should be used in place of data endpoint if specified. |
+| url | canonical of planDefinition or structureDefinition |
+| profile | structure definition resource |
+| planDefinition | plan definition resource |
 
 
 
