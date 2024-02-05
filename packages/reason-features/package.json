@@ -1,0 +1,23 @@
+{
+  "name": "reason-features",
+  "version": "1.0.0",
+  "description": "Reason Framework e2e tests",
+  "main": "index.js",
+  "scripts": {
+    "test": "cucumber-js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reason-healthcare/reason-features.git"
+  },
+  "author": "Vermonster LLC",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/reason-healthcare/reason-features/issues"
+  },
+  "homepage": "https://github.com/reason-healthcare/reason-features#readme",
+  "dependencies": {
+    "@cucumber/cucumber": "^10.3.1",
+    "ts-node": "^10.9.2"
+  }
+}
