@@ -1,9 +1,10 @@
 {
-  "name": "reason-features",
+  "name": "@reason-framework/reason-features",
   "version": "1.0.0",
   "description": "Reason Framework e2e tests",
-  "main": "index.js",
+  "main": "features/step_definitions/steps.js",
   "scripts": {
+    "build": "tsc -p tsconfig.json",
     "test": "cucumber-js"
   },
   "repository": {
@@ -18,6 +19,7 @@
   "homepage": "https://github.com/reason-healthcare/reason-features#readme",
   "dependencies": {
     "@cucumber/cucumber": "^10.3.1",
+    "@reason-framework/reason-features": "^1.0.0",
     "ts-node": "^10.9.2"
   }
 }
