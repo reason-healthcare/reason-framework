@@ -18,25 +18,74 @@ Usage: #Example
     * expression
       * language = #text/cql-identifier
       * expression = "Over 18"
-  * definitionCanonical = Canonical(CommunicateOver18)
+  * definitionCanonical = Canonical(ReportOver18)
+  * selectionBehavior = #at-most-one
+  * action[+]
+    * definitionCanonical = Canonical(OrderMedication1)
+  * action[+]
+    * definitionCanonical = Canonical(OrderMedication2)
 * action[+]
   * condition
     * kind = #applicability
     * expression
       * language = #text/cql-identifier
       * expression = "Not over 18"
-  * definitionCanonical = Canonical(CommunicateUnder18)
+  * definitionCanonical = Canonical(ReportUnder18)
+  * selectionBehavior = #at-most-one
+  * action[+]
+    * definitionCanonical = Canonical(OrderMedication3)
+  * action[+]
+    * definitionCanonical = Canonical(OrderMedication4)
+// * action[+]
+  // * condition
+  //   * kind = #applicability
+  //   * expression
+  //     * language = #text/cql-identifier
+  //     * expression = "Should select treatment"
+  // * selectionBehavior = #at-most-one
+  // * action[+]
+  //   * definitionCanonical = Canonical(OrderMedication1)
+  // * action[+]
+  //   * definitionCanonical = Canonical(OrderMedication2)
 
-Instance: CommunicateOver18
-InstanceOf: CPGCommunicationActivity
+Instance: ReportOver18
+InstanceOf: CPGGenerateReportActivity
 * insert DefinitionMetaData
-* kind = #CommunicationRequest
+* kind = #Task
 * intent = #proposal
 * doNotPerform = false
 
-Instance: CommunicateUnder18
-InstanceOf: CPGCommunicationActivity
+Instance: ReportUnder18
+InstanceOf: CPGGenerateReportActivity
 * insert DefinitionMetaData
-* kind = #CommunicationRequest
+* kind = #Task
+* intent = #proposal
+* doNotPerform = false
+
+Instance: OrderMedication1
+InstanceOf: CPGMedicationRequestActivity
+* insert DefinitionMetaData
+* kind = #MedicationRequest
+* intent = #proposal
+* doNotPerform = false
+
+Instance: OrderMedication2
+InstanceOf: CPGMedicationRequestActivity
+* insert DefinitionMetaData
+* kind = #MedicationRequest
+* intent = #proposal
+* doNotPerform = false
+
+Instance: OrderMedication3
+InstanceOf: CPGMedicationRequestActivity
+* insert DefinitionMetaData
+* kind = #MedicationRequest
+* intent = #proposal
+* doNotPerform = false
+
+Instance: OrderMedication4
+InstanceOf: CPGMedicationRequestActivity
+* insert DefinitionMetaData
+* kind = #MedicationRequest
 * intent = #proposal
 * doNotPerform = false

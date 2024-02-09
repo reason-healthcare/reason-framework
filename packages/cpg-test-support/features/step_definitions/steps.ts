@@ -1,6 +1,10 @@
 import assert from 'assert'
 import fs from 'fs'
+import path from 'path'
+import dotenv from 'dotenv';
 import { Given, When, Then } from '@cucumber/cucumber'
+
+dotenv.config();
 
 interface TestContext {
   planDefinitionIdentifier: string
@@ -16,7 +20,9 @@ Given('{string} is loaded', function (this: TestContext, planDefinitionIdentifie
 When('apply is called with context {string}', async function(this: TestContext, patientContextIdentifier: string) {
   this.patientContextIdentifier = patientContextIdentifier
   // TODO: Need to load the bundle in output/Bundle-XXX.json and JSON parse to create `patientContent`
-  const patientContext: fhir4.Bundle = JSON.parse(fs.readFileSync(`../../DevIG/output/Bundle-${patientContextIdentifier}`, { encoding: 'utf8' })) // Maybe we handle the file name dynamically based on an environment variable?
+  // TODO: handle data endpoint
+  const filePath = path.join(process.cwd(), 'output', `Bundle-${patientContextIdentifier}.json`)
+  const patientContext: fhir4.Bundle = JSON.parse(fs.readFileSync(filePath, { encoding: 'utf8' }))
   // TODO: Throw error if there is more than one patient in patient context
 
   let endpointType
@@ -25,7 +31,7 @@ When('apply is called with context {string}', async function(this: TestContext, 
   } else if (process.env.CONTENT_ENDPOINT?.startsWith('http')) {
     endpointType = "hl7-fhir-rest"
   } else {
-    throw new Error('Must specify http or file endpoint')
+    throw new Error('Must specify http or file content endpoint')
   }
 
   const contentEndpoint: fhir4.Endpoint = {
@@ -51,7 +57,7 @@ When('apply is called with context {string}', async function(this: TestContext, 
     parameter: [
       {
         name: "url",
-        valueString: this.patientContextIdentifier
+        valueString: this.planDefinitionIdentifier
       },
       {
         name: "contentEndpoint",
@@ -82,15 +88,18 @@ When('apply is called with context {string}', async function(this: TestContext, 
   if (!process.env.CPG_ENDPOINT) {
     throw new Error('Must specify CPG Engine Endpoint')
   }
+  const url = `${process.env.CPG_ENDPOINT}/PlanDefinition/$apply`
   let response
   try {
-    response = await fetch(process.env.CPG_ENDPOINT, {
+    response = await fetch(url, {
       method: 'POST',
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(body)
     })
+    this.cpgResponse = await response.json();
+    console.log(JSON.stringify(this.cpgResponse))
     if (!response.ok) {
       throw response
     }
@@ -100,6 +109,53 @@ When('apply is called with context {string}', async function(this: TestContext, 
 })
 
 Then('{string} should have been recommended', function (this: TestContext, activityDefinitionIdentifier: string) {
+  const assert = require('assert')
+  const instantiatedResource= this.cpgResponse?.entry?.find(entry => {
+    const resource = entry.resource as fhir4.RequestGroup | fhir4.MedicationRequest | fhir4.Task | fhir4.ServiceRequest
+    console.log(resource.instantiatesCanonical + 'canonical')
+    if (
+      resource.instantiatesCanonical
+      && typeof resource.instantiatesCanonical === "string"
+      && resource.instantiatesCanonical.split("|")[0] === activityDefinitionIdentifier)
+    {
+      return true
+    }
+  })
+  assert(instantiatedResource,[`Unable to find recommendation for ${activityDefinitionIdentifier}`])
+});
+
+Then('...', function (this: TestContext, activityDefinitionIdentifier: string) {
   // TODO: Look at the resulting RequestGroup and filter all the leaf nodes in all RGs in the response bundle,
+  // And "[selection-behavior]" of "[activity-identifier]" and "[activity-identifier]" should be recommended
+
+  // const instantiatedCanonicals = this.cpgResponse.entry.flatMap(e => {
+  //   const {
+  //     fullUrl,
+  //     resource
+  //   } = e
+  //   let canonicals
+  //   if (resource?.resourceType === "RequestGroup" && resource?.action) {
+  //     canonicals = resource.action.map((action) => {
+  //       let canonical
+  //       this.cpgResponse?.entry?.find(entry => {
+  //         if (
+  //           action.resource?.reference
+  //           && entry.fullUrl?.endsWith(action.resource.reference)
+  //           && entry.resource?.hasOwnProperty("instantiatesCanonical"))
+  //         {
+  //           const targetCanonical = entry.resource as fhir4.RequestGroup | fhir4.MedicationRequest | fhir4.Task | fhir4.ServiceRequest
+  //           canonical = targetCanonical.instantiatesCanonical
+  //           if (canonical && canonical === activityDefinitionIdentifier) {
+  //             // assert.equal(canonical, activityDefinitionIdentifier)
+  //           }
+  //         }
+  //       })
+  //       return canonical
+  //     })
+  //   }
+  //   return canonicals
+  // }).filter(c => c != null)
+
+
   // resolve the `RG.action.resource` and find where `resource.instantiatesCanonical` matches the `activityDefinitionIdentifier`
 });
