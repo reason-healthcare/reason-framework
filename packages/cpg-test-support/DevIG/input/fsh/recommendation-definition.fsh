@@ -36,17 +36,6 @@ Usage: #Example
     * definitionCanonical = Canonical(OrderMedication3)
   * action[+]
     * definitionCanonical = Canonical(OrderMedication4)
-// * action[+]
-  // * condition
-  //   * kind = #applicability
-  //   * expression
-  //     * language = #text/cql-identifier
-  //     * expression = "Should select treatment"
-  // * selectionBehavior = #at-most-one
-  // * action[+]
-  //   * definitionCanonical = Canonical(OrderMedication1)
-  // * action[+]
-  //   * definitionCanonical = Canonical(OrderMedication2)
 
 Instance: ReportOver18
 InstanceOf: CPGGenerateReportActivity

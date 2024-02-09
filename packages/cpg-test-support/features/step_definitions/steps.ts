@@ -12,18 +12,22 @@ interface TestContext {
   cpgResponse: fhir4.Bundle | undefined
 }
 
+const resolveInstantiatesCanonical = (instantiatesCanonical: string | string[] | undefined) => {
+  if (typeof instantiatesCanonical === "string") {
+    return instantiatesCanonical.split("|")[0]
+  } else if (instantiatesCanonical && instantiatesCanonical.length) {
+    return instantiatesCanonical[0].split("|")[0]
+  }
+}
+
 Given('{string} is loaded', function (this: TestContext, planDefinitionIdentifier: string) {
-  // e.g. http://acme/PlanDefinition/MyPlanDefinition|0.1.1
   this.planDefinitionIdentifier = planDefinitionIdentifier
 });
 
 When('apply is called with context {string}', async function(this: TestContext, patientContextIdentifier: string) {
   this.patientContextIdentifier = patientContextIdentifier
-  // TODO: Need to load the bundle in output/Bundle-XXX.json and JSON parse to create `patientContent`
-  // TODO: handle data endpoint
   const filePath = path.join(process.cwd(), 'output', `Bundle-${patientContextIdentifier}.json`)
   const patientContext: fhir4.Bundle = JSON.parse(fs.readFileSync(filePath, { encoding: 'utf8' }))
-  // TODO: Throw error if there is more than one patient in patient context
 
   let endpointType
   if (process.env.CONTENT_ENDPOINT?.startsWith('file://')) {
@@ -70,21 +74,6 @@ When('apply is called with context {string}', async function(this: TestContext, 
     ]
   }
 
-  /*
-   TODO: Fetch to `GET {process.ENV.CPG_ENDPOINT}/PlanDefinition/$apply` with body:
-   const body = {
-    url: `${this.planDefinitionIdentifier.split('|')[0]}`,
-    version: `${this.planDefinitionIdentifier.split('|')[1]`,
-    contentEndpoint: process.env.CONTENT_ENDPOINT,
-    data: patientContext
-   }
-
-   // Then do the request and store response
-   const this.response = await fetch{
-    url: process.env.CPG_ENDPOINT,
-    body
-   }
-   */
   if (!process.env.CPG_ENDPOINT) {
     throw new Error('Must specify CPG Engine Endpoint')
   }
@@ -99,7 +88,6 @@ When('apply is called with context {string}', async function(this: TestContext, 
       body: JSON.stringify(body)
     })
     this.cpgResponse = await response.json();
-    console.log(JSON.stringify(this.cpgResponse))
     if (!response.ok) {
       throw response
     }
@@ -109,53 +97,38 @@ When('apply is called with context {string}', async function(this: TestContext, 
 })
 
 Then('{string} should have been recommended', function (this: TestContext, activityDefinitionIdentifier: string) {
-  const assert = require('assert')
   const instantiatedResource= this.cpgResponse?.entry?.find(entry => {
     const resource = entry.resource as fhir4.RequestGroup | fhir4.MedicationRequest | fhir4.Task | fhir4.ServiceRequest
-    console.log(resource.instantiatesCanonical + 'canonical')
-    if (
-      resource.instantiatesCanonical
-      && typeof resource.instantiatesCanonical === "string"
-      && resource.instantiatesCanonical.split("|")[0] === activityDefinitionIdentifier)
-    {
-      return true
-    }
+    return resolveInstantiatesCanonical(resource.instantiatesCanonical) === activityDefinitionIdentifier
   })
-  assert(instantiatedResource,[`Unable to find recommendation for ${activityDefinitionIdentifier}`])
+  assert(instantiatedResource)
 });
 
-Then('...', function (this: TestContext, activityDefinitionIdentifier: string) {
-  // TODO: Look at the resulting RequestGroup and filter all the leaf nodes in all RGs in the response bundle,
-  // And "[selection-behavior]" of "[activity-identifier]" and "[activity-identifier]" should be recommended
+Then('{string} of {string} and {string} should be recommended', function (this: TestContext, selectionBehaviorCode: string, activityDefinitionIdentifier1: string, activityDefinitionIdentifier2: string) {
 
-  // const instantiatedCanonicals = this.cpgResponse.entry.flatMap(e => {
-  //   const {
-  //     fullUrl,
-  //     resource
-  //   } = e
-  //   let canonicals
-  //   if (resource?.resourceType === "RequestGroup" && resource?.action) {
-  //     canonicals = resource.action.map((action) => {
-  //       let canonical
-  //       this.cpgResponse?.entry?.find(entry => {
-  //         if (
-  //           action.resource?.reference
-  //           && entry.fullUrl?.endsWith(action.resource.reference)
-  //           && entry.resource?.hasOwnProperty("instantiatesCanonical"))
-  //         {
-  //           const targetCanonical = entry.resource as fhir4.RequestGroup | fhir4.MedicationRequest | fhir4.Task | fhir4.ServiceRequest
-  //           canonical = targetCanonical.instantiatesCanonical
-  //           if (canonical && canonical === activityDefinitionIdentifier) {
-  //             // assert.equal(canonical, activityDefinitionIdentifier)
-  //           }
-  //         }
-  //       })
-  //       return canonical
-  //     })
-  //   }
-  //   return canonicals
-  // }).filter(c => c != null)
+  const resolveRequestResource = (action: fhir4.RequestGroupAction) => {
+    if (action.resource?.reference) {
+      const id = action.resource.reference.split("/")[1]
+      return this.cpgResponse?.entry?.find(e => e.resource?.id === id)?.resource as fhir4.RequestGroup | fhir4.MedicationRequest | fhir4.Task | fhir4.ServiceRequest
+    }
+  }
 
+  const resourceWithSelection = this.cpgResponse?.entry?.find(entry => {
+    const resource = entry.resource as fhir4.RequestGroup
+    const actionWithSelection = resource.action?.find(aws => {
+      if (aws.selectionBehavior && aws.selectionBehavior === selectionBehaviorCode && aws.action) {
+        const activityCanonicals = aws.action.map(a => {
+          const requestResource = resolveRequestResource(a)
+          return resolveInstantiatesCanonical(requestResource?.instantiatesCanonical) ?? undefined
+        }).filter(canonical => canonical != null)
+        if (activityCanonicals.includes(activityDefinitionIdentifier1) && activityCanonicals.includes(activityDefinitionIdentifier2)) {
+          return true
+        }
+      }
+    })
+    return actionWithSelection
+  })
 
-  // resolve the `RG.action.resource` and find where `resource.instantiatesCanonical` matches the `activityDefinitionIdentifier`
+  assert(resourceWithSelection)
+
 });
