@@ -124,7 +124,10 @@ const createEndpoint = (endpointAddress: string | undefined, payloadTypeCode: st
   }
 }
 
-const defaultEndpoint = createEndpoint(process.env.ENDPOINT_ADDRESS, 'all')
+let defaultEndpoint: fhir4.Endpoint
+if (process.env.ENDPOINT_ADDRESS) {
+  defaultEndpoint = createEndpoint(process.env.ENDPOINT_ADDRESS, 'all')
+}
 
 const endpointConfigurationFromParameters = (
   parameters: fhir4.ParametersParameter[]
@@ -605,17 +608,17 @@ export default async (options?: FastifyServerOptions) => {
           (resourceFromParameters(
             parameters,
             'dataEndpoint'
-          ) as fhir4.Endpoint) || defaultEndpoint || undefined
+          ) as fhir4.Endpoint) || defaultEndpoint
         const terminologyEndpoint =
           (resourceFromParameters(
             parameters,
             'terminologyEndpoint'
-          ) as fhir4.Endpoint) || defaultEndpoint || undefined
+          ) as fhir4.Endpoint) || defaultEndpoint
         const contentEndpoint =
           (resourceFromParameters(
             parameters,
-            'terminologyEndpoint'
-          ) as fhir4.Endpoint) || defaultEndpoint || undefined
+            'contentEndpoint'
+          ) as fhir4.Endpoint) || defaultEndpoint
         const configurableEndpoints = endpointConfigurationFromParameters(
           parameters,
         ) as EndpointConfiguration[] | undefined
@@ -667,17 +670,17 @@ export default async (options?: FastifyServerOptions) => {
           (resourceFromParameters(
             parameters,
             'dataEndpoint'
-          ) as fhir4.Endpoint) || defaultEndpoint || undefined
+          ) as fhir4.Endpoint) || defaultEndpoint
         const terminologyEndpoint =
           (resourceFromParameters(
             parameters,
             'terminologyEndpoint'
-          ) as fhir4.Endpoint) || defaultEndpoint || undefined
+          ) as fhir4.Endpoint) || defaultEndpoint
         const contentEndpoint =
           (resourceFromParameters(
             parameters,
-            'terminologyEndpoint'
-          ) as fhir4.Endpoint) || defaultEndpoint || undefined
+            'contentEndpoint'
+          ) as fhir4.Endpoint) || defaultEndpoint
         const configurableEndpoints = endpointConfigurationFromParameters(
           parameters,
         ) as EndpointConfiguration[] | undefined
