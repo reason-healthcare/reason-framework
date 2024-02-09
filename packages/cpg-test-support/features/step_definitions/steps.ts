@@ -2,7 +2,7 @@ import assert from 'assert'
 import fs from 'fs'
 import path from 'path'
 import dotenv from 'dotenv';
-import { Given, When, Then } from '@cucumber/cucumber'
+import { Given, When, Then, DataTable } from '@cucumber/cucumber'
 
 dotenv.config();
 
@@ -104,7 +104,8 @@ Then('{string} should have been recommended', function (this: TestContext, activ
   assert(instantiatedResource)
 });
 
-Then('{string} of {string} and {string} should be recommended', function (this: TestContext, selectionBehaviorCode: string, activityDefinitionIdentifier1: string, activityDefinitionIdentifier2: string) {
+Then('{string} of the following should have been recommended', function (this: TestContext, selectionBehaviorCode: string, activityDefinitionIdentifierTable: DataTable) {
+  const activityDefinitionIdentifiers: string[] = activityDefinitionIdentifierTable.raw().map(i => i[0]).sort()
 
   const resolveRequestResource = (action: fhir4.RequestGroupAction) => {
     if (action.resource?.reference) {
@@ -120,15 +121,12 @@ Then('{string} of {string} and {string} should be recommended', function (this: 
         const activityCanonicals = aws.action.map(a => {
           const requestResource = resolveRequestResource(a)
           return resolveInstantiatesCanonical(requestResource?.instantiatesCanonical) ?? undefined
-        }).filter(canonical => canonical != null)
-        if (activityCanonicals.includes(activityDefinitionIdentifier1) && activityCanonicals.includes(activityDefinitionIdentifier2)) {
-          return true
-        }
+        }).filter(canonical => canonical != null).sort()
+        return activityCanonicals.sort().toString() === activityDefinitionIdentifiers.sort().toString()
       }
     })
     return actionWithSelection
   })
 
   assert(resourceWithSelection)
-
 });
