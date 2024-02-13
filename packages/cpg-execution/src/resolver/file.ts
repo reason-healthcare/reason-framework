@@ -79,7 +79,7 @@ class FileResolver extends BaseResolver implements Resolver {
   }
 
   public async resolveCanonical(canonical: string | undefined) {
-    canonical = canonical?.split("|").shift()
+    canonical = canonical?.split('|').shift()
     return canonical != null ? this.resourcesByCanonical[canonical] : undefined
   }
 
@@ -125,19 +125,21 @@ class FileResolver extends BaseResolver implements Resolver {
                           system: c.system,
                           version: c.version
                         }
-                      }) || vs.compose?.include
-                      ?.flatMap((include) => {
-                        return include.concept
-                          ?.map((c) => {
-                            return {
-                              code: c.code,
-                              system: include.system,
-                              version: include.version
-                            }
-                          })
-                          ?.filter(notEmpty)
-                      })
-                      ?.filter(notEmpty) || []
+                      }) ||
+                      vs.compose?.include
+                        ?.flatMap((include) => {
+                          return include.concept
+                            ?.map((c) => {
+                              return {
+                                code: c.code,
+                                system: include.system,
+                                version: include.version
+                              }
+                            })
+                            ?.filter(notEmpty)
+                        })
+                        ?.filter(notEmpty) ||
+                      []
                     acc[vsVersion] = new ValueSet(key, vsVersion, codes)
                   }
                   return acc
