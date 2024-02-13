@@ -10,6 +10,7 @@ interface TestContext {
   planDefinitionIdentifier: string
   patientContextIdentifier: string
   cpgResponse: fhir4.Bundle | undefined
+  recommendations: string[] | undefined
 }
 
 const resolveInstantiatesCanonical = (instantiatesCanonical: string | string[] | undefined) => {
@@ -18,6 +19,35 @@ const resolveInstantiatesCanonical = (instantiatesCanonical: string | string[] |
   } else if (instantiatesCanonical && instantiatesCanonical.length) {
     return instantiatesCanonical[0].split("|")[0]
   }
+}
+
+const createEndpoint = (type: string, address: string) => {
+  let endpointType
+  if (address.startsWith('file://')) {
+    endpointType = "hl7-fhir-file"
+  } else if (address.startsWith('http')) {
+    endpointType = "hl7-fhir-rest"
+  } else {
+    throw new Error(`${type} endpoint must start with http or file`)
+  }
+
+  return {
+    resourceType: 'Endpoint',
+    address: address,
+    status: 'active',
+    payloadType: [
+      {
+        coding: [
+          {
+            code: type,
+          },
+        ],
+      },
+    ],
+    connectionType: {
+      code: endpointType,
+    }
+  } as fhir4.Endpoint
 }
 
 Given('{string} is loaded', function (this: TestContext, planDefinitionIdentifier: string) {
@@ -29,32 +59,17 @@ When('apply is called with context {string}', async function(this: TestContext, 
   const filePath = path.join(process.cwd(), 'output', `Bundle-${patientContextIdentifier}.json`)
   const patientContext: fhir4.Bundle = JSON.parse(fs.readFileSync(filePath, { encoding: 'utf8' }))
 
-  let endpointType
-  if (process.env.CONTENT_ENDPOINT?.startsWith('file://')) {
-    endpointType = "hl7-fhir-file"
-  } else if (process.env.CONTENT_ENDPOINT?.startsWith('http')) {
-    endpointType = "hl7-fhir-rest"
-  } else {
-    throw new Error('Must specify http or file content endpoint')
-  }
+  const {
+    CONTENT_ENDPOINT,
+    TERMINOLOGY_ENDPOINT,
+    CPG_ENDPOINT
+  } = process.env
 
-  const contentEndpoint: fhir4.Endpoint = {
-    resourceType: 'Endpoint',
-    address: process.env.CONTENT_ENDPOINT,
-    status: 'active',
-    payloadType: [
-      {
-        coding: [
-          {
-            code: 'content',
-          },
-        ],
-      },
-    ],
-    connectionType: {
-      code: endpointType,
-    }
+  if (!CONTENT_ENDPOINT) {
+    throw new Error('Must specify content endpoint')
   }
+  const contentEndpoint: fhir4.Endpoint = createEndpoint('content', CONTENT_ENDPOINT)
+  const terminologyEndpoint = TERMINOLOGY_ENDPOINT ? createEndpoint('terminology', TERMINOLOGY_ENDPOINT) : createEndpoint('terminology', CONTENT_ENDPOINT)
 
   const body: fhir4.Parameters = {
     resourceType: "Parameters",
@@ -64,23 +79,28 @@ When('apply is called with context {string}', async function(this: TestContext, 
         valueString: this.planDefinitionIdentifier
       },
       {
+        name: "data",
+        resource: patientContext
+      },
+      {
         name: "contentEndpoint",
         resource: contentEndpoint
       },
       {
-        name: "data",
-        resource: patientContext
+        name: "terminologyEndpoint",
+        resource: terminologyEndpoint
       }
     ]
   }
 
-  if (!process.env.CPG_ENDPOINT) {
+  let cpgEndpoint = CPG_ENDPOINT
+  if (!cpgEndpoint) {
     throw new Error('Must specify CPG Engine Endpoint')
+  } else if (cpgEndpoint.startsWith('http://localhost')) {
+    cpgEndpoint = cpgEndpoint.replace('http://localhost', 'http://127.0.0.1')
   }
-  const url = `${process.env.CPG_ENDPOINT}/PlanDefinition/$apply`
-  let response
   try {
-    response = await fetch(url, {
+   const response = await fetch(`${cpgEndpoint}/PlanDefinition/$apply`, {
       method: 'POST',
       headers: {
         "Content-Type": "application/json",
@@ -104,7 +124,7 @@ Then('{string} should have been recommended', function (this: TestContext, activ
   assert(instantiatedResource)
 });
 
-Then('{string} of the following should have been recommended', function (this: TestContext, selectionBehaviorCode: string, activityDefinitionIdentifierTable: DataTable) {
+Then('select {string} of the following should have been recommended', function (this: TestContext, selectionBehaviorCode: string, activityDefinitionIdentifierTable: DataTable) {
   const activityDefinitionIdentifiers: string[] = activityDefinitionIdentifierTable.raw().map(i => i[0]).sort()
 
   const resolveRequestResource = (action: fhir4.RequestGroupAction) => {
