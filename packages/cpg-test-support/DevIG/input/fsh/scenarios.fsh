@@ -8,6 +8,10 @@ InstanceOf: Patient
 * name.given = "Under18"
 * birthDate = "2024-01-01"
 
+Instance: Patient3
+InstanceOf: Patient
+* name.given = "NoDOB"
+
 Instance: Patient1Scenario
 InstanceOf: Bundle
 * type = #collection
@@ -21,3 +25,10 @@ InstanceOf: Bundle
 * entry[+]
   * fullUrl = "http://example.org/Patient/Patient2"
   * resource = Patient2
+
+Instance: Patient3Scenario
+InstanceOf: Bundle
+* type = #collection
+* entry[+]
+  * fullUrl = "http://example.org/Patient/Patient3"
+  * resource = Patient3

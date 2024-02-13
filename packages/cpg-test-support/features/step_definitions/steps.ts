@@ -117,12 +117,14 @@ When('apply is called with context {string}', async function(this: TestContext, 
 })
 
 Then('{string} should have been recommended', function (this: TestContext, activityDefinitionIdentifier: string) {
-  const instantiatedResource= this.cpgResponse?.entry?.find(entry => {
+  const instantiatedResource = this.cpgResponse?.entry?.find(entry => {
     const resource = entry.resource as fhir4.RequestGroup | fhir4.MedicationRequest | fhir4.Task | fhir4.ServiceRequest
     return resolveInstantiatesCanonical(resource.instantiatesCanonical) === activityDefinitionIdentifier
   })
   assert(instantiatedResource)
 });
+
+// so you have to keep track of all the recommendation actions, and then if there are any left after the assertions, that's a failure
 
 Then('select {string} of the following should have been recommended', function (this: TestContext, selectionBehaviorCode: string, activityDefinitionIdentifierTable: DataTable) {
   const activityDefinitionIdentifiers: string[] = activityDefinitionIdentifierTable.raw().map(i => i[0]).sort()
@@ -136,10 +138,10 @@ Then('select {string} of the following should have been recommended', function (
 
   const resourceWithSelection = this.cpgResponse?.entry?.find(entry => {
     const resource = entry.resource as fhir4.RequestGroup
-    const actionWithSelection = resource.action?.find(aws => {
-      if (aws.selectionBehavior && aws.selectionBehavior === selectionBehaviorCode && aws.action) {
-        const activityCanonicals = aws.action.map(a => {
-          const requestResource = resolveRequestResource(a)
+    const actionWithSelection = resource.action?.find(action => {
+      if (action.selectionBehavior && action.selectionBehavior === selectionBehaviorCode && action.action) {
+        const activityCanonicals = action.action.map(subAction => {
+          const requestResource = resolveRequestResource(subAction)
           return resolveInstantiatesCanonical(requestResource?.instantiatesCanonical) ?? undefined
         }).filter(canonical => canonical != null).sort()
         return activityCanonicals.sort().toString() === activityDefinitionIdentifiers.sort().toString()
@@ -150,3 +152,18 @@ Then('select {string} of the following should have been recommended', function (
 
   assert(resourceWithSelection)
 });
+
+Then('no activites should have been recommended', function (this: TestContext) {
+  //TODO: there may be multiple requests that should not be present. Identify all of these vs just the first.
+  const requestResource = this.cpgResponse?.entry?.find(entry => {
+    const type = entry.resource?.resourceType
+    console.log(type + 'type')
+    const requestResourceTypes = ["Task", "CommunicationRequest", "MedicationRequest", "ImmunizationRecommendation"]
+    if (type && requestResourceTypes.includes(type)) {
+      return true
+    }
+    return false
+  })
+
+  assert(requestResource == null, `Found request of type ${requestResource?.resource?.resourceType}`)
+})
