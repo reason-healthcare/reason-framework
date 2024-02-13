@@ -121,7 +121,7 @@ class RestResolver extends BaseResolver implements Resolver {
       if (process.env.CANONICAL_SEARCH_ROOT != null) {
         console.log('Running canonical root search...')
         try {
-          results = await this. client.request(requestParams)
+          results = await this.client.request(requestParams)
         } catch (e) {
           throw new Error(
             `Problem with canonical search ${inspect(e)} -- ${process.env}`
@@ -243,19 +243,21 @@ class RestResolver extends BaseResolver implements Resolver {
                             system: c.system,
                             version: c.version
                           }
-                        }) || vs.compose?.include
-                        ?.flatMap((include) => {
-                          return include.concept
-                            ?.map((c) => {
-                              return {
-                                code: c.code,
-                                system: include.system,
-                                version: include.version
-                              }
-                            })
-                            ?.filter(c => c.code != null)
-                        })
-                        ?.filter(c => c != null) || []
+                        }) ||
+                        vs.compose?.include
+                          ?.flatMap((include) => {
+                            return include.concept
+                              ?.map((c) => {
+                                return {
+                                  code: c.code,
+                                  system: include.system,
+                                  version: include.version
+                                }
+                              })
+                              ?.filter((c) => c.code != null)
+                          })
+                          ?.filter((c) => c != null) ||
+                        []
                       acc[vsVersion] = new ValueSet(key, vsVersion, codes)
                     }
                     return acc
@@ -275,9 +277,7 @@ class RestResolver extends BaseResolver implements Resolver {
     }
   }
 
-  public async expandValueSet(
-    valueSet: fhir4.ValueSet,
-  ) {
+  public async expandValueSet(valueSet: fhir4.ValueSet) {
     const cached = Cache.getKey(`vs-with-expansion-${valueSet.url}`)
     if (cached != null) {
       return cached
