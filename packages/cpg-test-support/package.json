@@ -5,7 +5,8 @@
   "main": "features/step_definitions/steps.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "cucumber-js"
+    "test": "cucumber-js",
+    "fmt": "prettier --write ."
   },
   "repository": {
     "type": "git",
@@ -22,5 +23,13 @@
     "@reason-framework/cpg-test-support": "^1.0.0",
     "dotenv": "^16.4.4",
     "ts-node": "^10.9.2"
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
+  "devDependencies": {
+    "prettier": "2.8.1"
   }
 }

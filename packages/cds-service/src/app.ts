@@ -17,9 +17,13 @@ import {
   AssembleQuestionnaireArgs,
 } from '@reason-framework/cpg-execution'
 import Resolver from '@reason-framework/cpg-execution/lib/resolver'
-import { is, notEmpty, questionnaireBaseUrl } from '@reason-framework/cpg-execution/lib/helpers'
+import {
+  is,
+  notEmpty,
+  questionnaireBaseUrl,
+} from '@reason-framework/cpg-execution/lib/helpers'
 import { removeUndefinedProps } from '@reason-framework/cpg-execution/lib/helpers'
-import { v4 as uuidv4 } from "uuid"
+import { v4 as uuidv4 } from 'uuid'
 import { resolveFromEndpoints } from '@reason-framework/cpg-execution/lib/helpers'
 
 /**
@@ -98,12 +102,15 @@ const resourceFromParameters = (
     ?.resource
 }
 
-const createEndpoint = (endpointAddress: string | undefined, payloadTypeCode: string): fhir4.Endpoint => {
+const createEndpoint = (
+  endpointAddress: string | undefined,
+  payloadTypeCode: string
+): fhir4.Endpoint => {
   const connectionTypeCode = endpointAddress?.startsWith('http')
-  ? 'hl7-fhir-rest'
-  : endpointAddress?.startsWith('file')
-  ? 'hl7-fhir-file'
-  : 'unknown'
+    ? 'hl7-fhir-rest'
+    : endpointAddress?.startsWith('file')
+    ? 'hl7-fhir-file'
+    : 'unknown'
 
   return {
     resourceType: 'Endpoint',
@@ -129,16 +136,26 @@ const defaultEndpoint = createEndpoint(process.env.ENDPOINT_ADDRESS, 'all')
 const endpointConfigurationFromParameters = (
   parameters: fhir4.ParametersParameter[]
 ): EndpointConfiguration[] | undefined => {
-  const endpoints = parameters.filter(p => p.name === "artifactEndpointConfiguration")?.map(p => {
-    let artifactRoute = p.part?.find(p => p.name === "artifactRoute")?.valueUri
-    let endpoint = p.part?.find(p => p.name === "endpoint")?.resource || createEndpoint(p.part?.find(p => p.name === "endpointUri")?.valueUri, 'content')
-    if (endpoint !== null && artifactRoute !== null) {
-      return {
-        artifactRoute,
-        endpoint
-      } as EndpointConfiguration
-    }
-  }).filter(notEmpty)
+  const endpoints = parameters
+    .filter((p) => p.name === 'artifactEndpointConfiguration')
+    ?.map((p) => {
+      let artifactRoute = p.part?.find(
+        (p) => p.name === 'artifactRoute'
+      )?.valueUri
+      let endpoint =
+        p.part?.find((p) => p.name === 'endpoint')?.resource ||
+        createEndpoint(
+          p.part?.find((p) => p.name === 'endpointUri')?.valueUri,
+          'content'
+        )
+      if (endpoint !== null && artifactRoute !== null) {
+        return {
+          artifactRoute,
+          endpoint,
+        } as EndpointConfiguration
+      }
+    })
+    .filter(notEmpty)
   if (!endpoints.length) {
     return undefined
   }
@@ -598,43 +615,60 @@ export default async (options?: FastifyServerOptions) => {
       const { parameter: parameters } = req.body as fhir4.Parameters
 
       if (parameters != null) {
-
-        const data = resourceFromParameters(parameters, 'data')  as fhir4.Bundle | undefined
-        const supportedOnly = valueFromParameters(parameters, 'supportedOnly', 'valueBoolean')
+        const data = resourceFromParameters(parameters, 'data') as
+          | fhir4.Bundle
+          | undefined
+        const supportedOnly = valueFromParameters(
+          parameters,
+          'supportedOnly',
+          'valueBoolean'
+        )
         const dataEndpoint =
           (resourceFromParameters(
             parameters,
             'dataEndpoint'
-          ) as fhir4.Endpoint) || defaultEndpoint || undefined
+          ) as fhir4.Endpoint) ||
+          defaultEndpoint ||
+          undefined
         const terminologyEndpoint =
           (resourceFromParameters(
             parameters,
             'terminologyEndpoint'
-          ) as fhir4.Endpoint) || defaultEndpoint || undefined
+          ) as fhir4.Endpoint) ||
+          defaultEndpoint ||
+          undefined
         const contentEndpoint =
           (resourceFromParameters(
             parameters,
             'terminologyEndpoint'
-          ) as fhir4.Endpoint) || defaultEndpoint || undefined
+          ) as fhir4.Endpoint) ||
+          defaultEndpoint ||
+          undefined
         const configurableEndpoints = endpointConfigurationFromParameters(
-          parameters,
+          parameters
         ) as EndpointConfiguration[] | undefined
 
-        if ((!contentEndpoint || !terminologyEndpoint) && !configurableEndpoints) {
-          console.warn('Need to specify either content and terminology endpoints or configurable endpoints')
+        if (
+          (!contentEndpoint || !terminologyEndpoint) &&
+          !configurableEndpoints
+        ) {
+          console.warn(
+            'Need to specify either content and terminology endpoints or configurable endpoints'
+          )
         }
 
         // Use profile as SD if provided
         let structureDefinition
-        structureDefinition = resourceFromParameters(
-          parameters,
-          'profile'
-        )
+        structureDefinition = resourceFromParameters(parameters, 'profile')
 
         // If profile not provided, use Canonical
         if (structureDefinition == null) {
           let url = valueFromParameters(parameters, 'url', 'valueUri')
-          let structureDefinitionRaw = resolveFromEndpoints(url, configurableEndpoints, contentEndpoint)
+          let structureDefinitionRaw = resolveFromEndpoints(
+            url,
+            configurableEndpoints,
+            contentEndpoint
+          )
           if (is.StructureDefinition(structureDefinitionRaw)) {
             structureDefinition = structureDefinitionRaw
             const args: BuildQuestionnaireArgs = {
@@ -644,11 +678,11 @@ export default async (options?: FastifyServerOptions) => {
               configurableEndpoints,
               contentEndpoint,
               terminologyEndpoint,
-              supportedOnly
+              supportedOnly,
             }
             res.send(await buildQuestionnaire(args))
           } else {
-            console.warn("Must provide a structure definition")
+            console.warn('Must provide a structure definition')
           }
         }
       }
@@ -661,51 +695,83 @@ export default async (options?: FastifyServerOptions) => {
       const { parameter: parameters } = req.body as fhir4.Parameters
       // Use resource as PD if provided
       if (parameters != null) {
-        const data = resourceFromParameters(parameters, 'data')  as fhir4.Bundle | undefined
-        const supportedOnly = valueFromParameters(parameters, 'supportedOnly', 'valueBoolean')
+        const data = resourceFromParameters(parameters, 'data') as
+          | fhir4.Bundle
+          | undefined
+        const supportedOnly = valueFromParameters(
+          parameters,
+          'supportedOnly',
+          'valueBoolean'
+        )
         const dataEndpoint =
           (resourceFromParameters(
             parameters,
             'dataEndpoint'
-          ) as fhir4.Endpoint) || defaultEndpoint || undefined
+          ) as fhir4.Endpoint) ||
+          defaultEndpoint ||
+          undefined
         const terminologyEndpoint =
           (resourceFromParameters(
             parameters,
             'terminologyEndpoint'
-          ) as fhir4.Endpoint) || defaultEndpoint || undefined
+          ) as fhir4.Endpoint) ||
+          defaultEndpoint ||
+          undefined
         const contentEndpoint =
           (resourceFromParameters(
             parameters,
             'terminologyEndpoint'
-          ) as fhir4.Endpoint) || defaultEndpoint || undefined
+          ) as fhir4.Endpoint) ||
+          defaultEndpoint ||
+          undefined
         const configurableEndpoints = endpointConfigurationFromParameters(
-          parameters,
+          parameters
         ) as EndpointConfiguration[] | undefined
 
-        if ((!contentEndpoint || !terminologyEndpoint) && !configurableEndpoints) {
-          console.warn('Need to specify either content and terminology endpoints or configurable endpoints')
+        if (
+          (!contentEndpoint || !terminologyEndpoint) &&
+          !configurableEndpoints
+        ) {
+          console.warn(
+            'Need to specify either content and terminology endpoints or configurable endpoints'
+          )
         }
 
-        let planDefinition = resourceFromParameters(
-          parameters,
-          'profile'
-        ) as fhir4.PlanDefinition | undefined
+        let planDefinition = resourceFromParameters(parameters, 'profile') as
+          | fhir4.PlanDefinition
+          | undefined
 
         // If resource not provided, use Canonical
         if (planDefinition == null) {
           let url = valueFromParameters(parameters, 'url', 'valueUri')
-          planDefinition = await resolveFromEndpoints(url, configurableEndpoints, contentEndpoint) as fhir4.PlanDefinition
+          planDefinition = (await resolveFromEndpoints(
+            url,
+            configurableEndpoints,
+            contentEndpoint
+          )) as fhir4.PlanDefinition
         }
 
-        const getNestedPlanDefinitions = async (planDefinition: fhir4.PlanDefinition) => {
+        const getNestedPlanDefinitions = async (
+          planDefinition: fhir4.PlanDefinition
+        ) => {
           let allPlans: fhir4.PlanDefinition[] = [planDefinition]
-          let plans = (await Promise.all(planDefinition?.action?.flatMap(async (action: fhir4.PlanDefinitionAction) => {
-            let planDefinition
-            if (action.definitionCanonical) {
-              planDefinition = await resolveFromEndpoints(action.definitionCanonical, configurableEndpoints, contentEndpoint)
-            }
-            return planDefinition
-          }) ?? []) as fhir4.PlanDefinition[]).filter(notEmpty)
+          let plans = (
+            (await Promise.all(
+              planDefinition?.action?.flatMap(
+                async (action: fhir4.PlanDefinitionAction) => {
+                  let planDefinition
+                  if (action.definitionCanonical) {
+                    planDefinition = await resolveFromEndpoints(
+                      action.definitionCanonical,
+                      configurableEndpoints,
+                      contentEndpoint
+                    )
+                  }
+                  return planDefinition
+                }
+              ) ?? []
+            )) as fhir4.PlanDefinition[]
+          ).filter(notEmpty)
 
           if (plans?.length) {
             allPlans = allPlans.concat(plans)
@@ -719,14 +785,22 @@ export default async (options?: FastifyServerOptions) => {
         const getDataRequirements = (actions: fhir4.PlanDefinitionAction[]) => {
           let allCanonicals: string[] = []
           // For each action, find input and add to list of profiles
-          let canonicals = actions.flatMap((action) => action.input?.flatMap((input) => input.profile)).filter(notEmpty)
-          const filteredCanonicals = canonicals.filter(c => c != undefined)
+          let canonicals = actions
+            .flatMap((action) =>
+              action.input?.flatMap((input) => input.profile)
+            )
+            .filter(notEmpty)
+          const filteredCanonicals = canonicals.filter((c) => c != undefined)
           if (filteredCanonicals.length) {
-            allCanonicals = [...new Set(allCanonicals.concat(filteredCanonicals))]
+            allCanonicals = [
+              ...new Set(allCanonicals.concat(filteredCanonicals)),
+            ]
           }
-          actions.forEach(action => {
+          actions.forEach((action) => {
             if (action.action) {
-              allCanonicals = allCanonicals.concat(getDataRequirements(action.action))
+              allCanonicals = allCanonicals.concat(
+                getDataRequirements(action.action)
+              )
             }
           })
           return allCanonicals
@@ -734,51 +808,64 @@ export default async (options?: FastifyServerOptions) => {
 
         let profiles: string[] = []
         if (planDefinition?.url) {
-          const planDefinitions = await getNestedPlanDefinitions(planDefinition) || [planDefinition]
+          const planDefinitions = (await getNestedPlanDefinitions(
+            planDefinition
+          )) || [planDefinition]
           planDefinitions.forEach((p) => {
             if (p.action) {
-              profiles = [...new Set(profiles.concat(getDataRequirements(p.action)))]
+              profiles = [
+                ...new Set(profiles.concat(getDataRequirements(p.action))),
+              ]
             }
           })
         }
 
-        const questionnaireBundle : fhir4.Bundle = {
-          resourceType: "Bundle",
+        const questionnaireBundle: fhir4.Bundle = {
+          resourceType: 'Bundle',
           id: uuidv4(),
-          type: "collection",
+          type: 'collection',
         }
 
         if (profiles) {
-          const bundleEntries = await Promise.all(profiles.map(async (p) => {
-            const structureDefinition = await resolveFromEndpoints(p, configurableEndpoints, contentEndpoint) as fhir4.StructureDefinition
-            const questionnaire : fhir4.Questionnaire = await buildQuestionnaire({
-              structureDefinition,
-              data,
-              dataEndpoint,
-              configurableEndpoints,
-              contentEndpoint,
-              terminologyEndpoint,
-              supportedOnly,
-            } as BuildQuestionnaireArgs)
-            return {
-              fullUrl: questionnaire.url,
-              resource: questionnaire
-            }
-          }))
+          const bundleEntries = await Promise.all(
+            profiles.map(async (p) => {
+              const structureDefinition = (await resolveFromEndpoints(
+                p,
+                configurableEndpoints,
+                contentEndpoint
+              )) as fhir4.StructureDefinition
+              const questionnaire: fhir4.Questionnaire =
+                await buildQuestionnaire({
+                  structureDefinition,
+                  data,
+                  dataEndpoint,
+                  configurableEndpoints,
+                  contentEndpoint,
+                  terminologyEndpoint,
+                  supportedOnly,
+                } as BuildQuestionnaireArgs)
+              return {
+                fullUrl: questionnaire.url,
+                resource: questionnaire,
+              }
+            })
+          )
           questionnaireBundle.entry = bundleEntries
         }
 
         if (questionnaireBundle.entry?.length) {
           const modularQuestionnaire: fhir4.Questionnaire = {
             id: uuidv4(),
-            resourceType: "Questionnaire",
+            resourceType: 'Questionnaire',
             description: `Questionnaire generated from ${planDefinition.url}`,
-            status: "draft",
-            extension: [{
-              url: "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-assemble-expectation",
-              valueCode: "assemble-root"
-            }],
-            item: []
+            status: 'draft',
+            extension: [
+              {
+                url: 'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-assemble-expectation',
+                valueCode: 'assemble-root',
+              },
+            ],
+            item: [],
           }
           modularQuestionnaire.url = `${questionnaireBaseUrl}/Questionnaire/${modularQuestionnaire.id}`
           questionnaireBundle.entry.forEach((e) => {
@@ -786,19 +873,21 @@ export default async (options?: FastifyServerOptions) => {
               const resource = e.resource as fhir4.Questionnaire
               const modularItem: fhir4.QuestionnaireItem = {
                 linkId: uuidv4(),
-                type: "display",
+                type: 'display',
                 text: `Sub-questionnaire - ${resource.url}`,
-                extension: [{
-                  url: "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-subQuestionnaire",
-                  valueCanonical: resource.url
-                }]
+                extension: [
+                  {
+                    url: 'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-subQuestionnaire',
+                    valueCanonical: resource.url,
+                  },
+                ],
               }
               modularQuestionnaire.item?.push(modularItem)
             }
           })
           questionnaireBundle.entry.unshift({
             fullUrl: modularQuestionnaire.url,
-            resource: modularQuestionnaire
+            resource: modularQuestionnaire,
           })
         }
 
@@ -814,17 +903,17 @@ export default async (options?: FastifyServerOptions) => {
       if (parameters != null) {
         const questionnaire = resourceFromParameters(
           parameters,
-          'questionnaire',
+          'questionnaire'
         ) as fhir4.Questionnaire
         const contentEndpoint =
-        (resourceFromParameters(
-          parameters,
-          'contentEndpoint'
-        ) as fhir4.Endpoint) ?? defaultEndpoint
+          (resourceFromParameters(
+            parameters,
+            'contentEndpoint'
+          ) as fhir4.Endpoint) ?? defaultEndpoint
         if (questionnaire != null) {
           const args: AssembleQuestionnaireArgs = {
             questionnaire,
-            contentEndpoint
+            contentEndpoint,
           }
           res.send(await assembleQuestionnaire(args))
         } else {

@@ -13,9 +13,8 @@ import {
   removeUndefinedProps,
   RequestResource
 } from './helpers'
-import { Resolver as ResolverType} from './resolver'
+import { Resolver as ResolverType } from './resolver'
 import Resolver from './resolver'
-
 
 export const processDynamicValue = async (
   dynamicValue:
@@ -628,7 +627,6 @@ export const processFeatureExpression = async (
   practitioner?: string | undefined,
   organization?: string | undefined
 ): Promise<fhir4.Resource | undefined> => {
-
   if (expression.language === 'text/fhirpath') {
     const subjectResource = await resolveBundleOrEndpoint(
       subject,
@@ -650,15 +648,12 @@ export const processFeatureExpression = async (
       data,
       dataResolver
     )
-    const result = evaluateFhirpath(
-      expression.expression ?? '',
-      {
-        subject: subjectResource,
-        encounter: encounterResource,
-        practitioner: practitionerResource,
-        organization: organizationResource
-      }
-    )
+    const result = evaluateFhirpath(expression.expression ?? '', {
+      subject: subjectResource,
+      encounter: encounterResource,
+      practitioner: practitionerResource,
+      organization: organizationResource
+    })
     if (result.length > 1) {
       console.error(
         'Expression got multiple results, expecting one...',
@@ -713,9 +708,18 @@ export const processFeatureExpression = async (
     }
 
     if (configurableEndpoints && expression.reference) {
-      const endpoints = rankEndpoints(configurableEndpoints, expression.reference)
-      contentResolver = endpoints.length && endpoints[0].endpoint ? Resolver(endpoints[0].endpoint) : contentResolver
-      terminologyResolver = endpoints.length && endpoints[0].endpoint ? Resolver(endpoints[0].endpoint) : terminologyResolver
+      const endpoints = rankEndpoints(
+        configurableEndpoints,
+        expression.reference
+      )
+      contentResolver =
+        endpoints.length && endpoints[0].endpoint
+          ? Resolver(endpoints[0].endpoint)
+          : contentResolver
+      terminologyResolver =
+        endpoints.length && endpoints[0].endpoint
+          ? Resolver(endpoints[0].endpoint)
+          : terminologyResolver
     }
 
     if (contentResolver != null && terminologyResolver != null) {
@@ -725,34 +729,36 @@ export const processFeatureExpression = async (
         dataContext,
         contentResolver,
         terminologyResolver,
-        dataResolver,
+        dataResolver
       )
 
       const getCleanedResult = (result: any): any => {
         let cleanedResult = {}
         if (result instanceof Array) {
-          return result.map(r => getCleanedResult(r));
+          return result.map((r) => getCleanedResult(r))
         }
-        cleanedResult = Object.entries(result).reduce((cleanedResult, [key, value]) => {
-          if (value?.hasOwnProperty("value")) {
-            const resultValue = lodashGet(value, 'value');
-            if (resultValue !== undefined) {
-              cleanedResult[key] = resultValue;
+        cleanedResult = Object.entries(result).reduce(
+          (cleanedResult, [key, value]) => {
+            if (value?.hasOwnProperty('value')) {
+              const resultValue = lodashGet(value, 'value')
+              if (resultValue !== undefined) {
+                cleanedResult[key] = resultValue
+              }
+            } else if (typeof value === 'object' && key !== 'meta') {
+              cleanedResult[key] = getCleanedResult(value)
             }
-          } else if (typeof value === "object" && key !== 'meta') {
-            cleanedResult[key] = getCleanedResult(value)
-          }
-          return cleanedResult;
-        }, cleanedResult as Record<string, any>)
+            return cleanedResult
+          },
+          cleanedResult as Record<string, any>
+        )
         return cleanedResult
       }
 
-      if (result && typeof result === "object") {
+      if (result && typeof result === 'object') {
         result = getCleanedResult(result)
       }
       return result
     }
-
   } else {
     console.warn(
       `Expression lanugage '${
@@ -761,4 +767,3 @@ export const processFeatureExpression = async (
     )
   }
 }
-
