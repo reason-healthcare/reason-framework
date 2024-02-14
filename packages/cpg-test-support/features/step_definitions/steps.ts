@@ -2,7 +2,7 @@ import assert from 'assert'
 import fs from 'fs'
 import path from 'path'
 import dotenv from 'dotenv';
-import { Given, When, Then, DataTable } from '@cucumber/cucumber'
+import { Given, When, Then, DataTable, AfterAll, After } from '@cucumber/cucumber'
 
 dotenv.config();
 
@@ -10,8 +10,10 @@ interface TestContext {
   planDefinitionIdentifier: string
   patientContextIdentifier: string
   cpgResponse: fhir4.Bundle | undefined
-  recommendations: string[] | undefined
+  requestResources: string[] | undefined
 }
+
+type RequestResource = fhir4.MedicationRequest | fhir4.Task | fhir4.ServiceRequest // | fhir4.CommunicationRequest
 
 const resolveInstantiatesCanonical = (instantiatesCanonical: string | string[] | undefined) => {
   if (typeof instantiatesCanonical === "string") {
@@ -19,6 +21,13 @@ const resolveInstantiatesCanonical = (instantiatesCanonical: string | string[] |
   } else if (instantiatesCanonical && instantiatesCanonical.length) {
     return instantiatesCanonical[0].split("|")[0]
   }
+}
+
+const removeFromRequests = (canonical: string | undefined, resources: string[] | undefined) =>  {
+  if (typeof canonical === 'string' && resources?.includes(canonical)) {
+    resources = resources.filter(c => c !== canonical)
+  }
+  return resources
 }
 
 const createEndpoint = (type: string, address: string) => {
@@ -107,24 +116,38 @@ When('apply is called with context {string}', async function(this: TestContext, 
       },
       body: JSON.stringify(body)
     })
-    this.cpgResponse = await response.json();
+    this.cpgResponse = await response.json()
     if (!response.ok) {
       throw response
     }
   } catch (e) {
     console.log(e)
   }
+
+  // Create list of request resources. Each request resource that is asserted will be removed from the list. After all assertions, this array should be empty.
+  this.requestResources = this.cpgResponse?.entry?.map(entry => {
+    const type = entry.resource?.resourceType
+    const requestResourceTypes = ["Task", "CommunicationRequest", "MedicationRequest", "ImmunizationRecommendation"]
+    let canonical: RequestResource["instantiatesCanonical"]
+    if (type && requestResourceTypes.includes(type)) {
+      const resource = entry.resource as RequestResource
+      canonical = resolveInstantiatesCanonical(resource.instantiatesCanonical)
+    }
+    return canonical
+  }).filter(canonical => canonical != null) as string[]
+
 })
 
 Then('{string} should have been recommended', function (this: TestContext, activityDefinitionIdentifier: string) {
   const instantiatedResource = this.cpgResponse?.entry?.find(entry => {
-    const resource = entry.resource as fhir4.RequestGroup | fhir4.MedicationRequest | fhir4.Task | fhir4.ServiceRequest
-    return resolveInstantiatesCanonical(resource.instantiatesCanonical) === activityDefinitionIdentifier
+    const resource = entry.resource as fhir4.RequestGroup | RequestResource
+    const instantiatesCanonical = resolveInstantiatesCanonical(resource.instantiatesCanonical)
+    const isMatch = instantiatesCanonical === activityDefinitionIdentifier
+    isMatch ? this.requestResources = removeFromRequests(instantiatesCanonical, this.requestResources) : null
+    return isMatch
   })
-  assert(instantiatedResource)
+  assert(instantiatedResource, `Recommendations include ${this.requestResources}`)
 });
-
-// so you have to keep track of all the recommendation actions, and then if there are any left after the assertions, that's a failure
 
 Then('select {string} of the following should have been recommended', function (this: TestContext, selectionBehaviorCode: string, activityDefinitionIdentifierTable: DataTable) {
   const activityDefinitionIdentifiers: string[] = activityDefinitionIdentifierTable.raw().map(i => i[0]).sort()
@@ -132,7 +155,7 @@ Then('select {string} of the following should have been recommended', function (
   const resolveRequestResource = (action: fhir4.RequestGroupAction) => {
     if (action.resource?.reference) {
       const id = action.resource.reference.split("/")[1]
-      return this.cpgResponse?.entry?.find(e => e.resource?.id === id)?.resource as fhir4.RequestGroup | fhir4.MedicationRequest | fhir4.Task | fhir4.ServiceRequest
+      return this.cpgResponse?.entry?.find(e => e.resource?.id === id)?.resource as fhir4.RequestGroup | RequestResource
     }
   }
 
@@ -143,27 +166,21 @@ Then('select {string} of the following should have been recommended', function (
         const activityCanonicals = action.action.map(subAction => {
           const requestResource = resolveRequestResource(subAction)
           return resolveInstantiatesCanonical(requestResource?.instantiatesCanonical) ?? undefined
-        }).filter(canonical => canonical != null).sort()
-        return activityCanonicals.sort().toString() === activityDefinitionIdentifiers.sort().toString()
+        }).filter(canonical => canonical != null).sort() as string[]
+        const isMatch = activityCanonicals.sort().toString() === activityDefinitionIdentifiers.sort().toString()
+        isMatch ? activityCanonicals.forEach(c => this.requestResources = removeFromRequests(c, this.requestResources)) : null
+        return isMatch
       }
     })
     return actionWithSelection
   })
-
-  assert(resourceWithSelection)
+  assert(resourceWithSelection, `Recommendations include ${this.requestResources}`)
 });
 
 Then('no activites should have been recommended', function (this: TestContext) {
-  //TODO: there may be multiple requests that should not be present. Identify all of these vs just the first.
-  const requestResource = this.cpgResponse?.entry?.find(entry => {
-    const type = entry.resource?.resourceType
-    console.log(type + 'type')
-    const requestResourceTypes = ["Task", "CommunicationRequest", "MedicationRequest", "ImmunizationRecommendation"]
-    if (type && requestResourceTypes.includes(type)) {
-      return true
-    }
-    return false
-  })
+  assert(!this.requestResources || this.requestResources.length === 0, `Found additional recommendations ${this.requestResources}`)
+});
 
-  assert(requestResource == null, `Found request of type ${requestResource?.resource?.resourceType}`)
-})
+After(function (this: TestContext) {
+  assert(!this.requestResources || this.requestResources.length === 0, `Found additional recommendations ${this.requestResources}`)
+});
