@@ -1,6 +1,6 @@
 module.exports = {
   default: [
     '--require-module ts-node/register',
-    '--require features/**/*.js',
+    '--require step_definitions/**/*.js',
   ].join(' '),
 }

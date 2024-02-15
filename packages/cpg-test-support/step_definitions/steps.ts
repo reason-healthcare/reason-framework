@@ -38,6 +38,10 @@ const removeFromRequests = (
   return resources
 }
 
+const isEmpty = (requests: string[] | undefined) => {
+  return !requests || requests.length === 0
+}
+
 const createEndpoint = (type: string, address: string) => {
   let endpointType
   if (address.startsWith('file://')) {
@@ -171,6 +175,7 @@ Then(
   '{string} should have been recommended',
   function (this: TestContext, activityDefinitionIdentifier: string) {
     const instantiatedResource = this.cpgResponse?.entry?.find((entry) => {
+      // Custom type RequestResource does not currently include communication request because CPG v1.0 excludes instantiates canonical from this resource. v2.0 will include instantiates canonical, so the server should be updated.
       const resource = entry.resource as fhir4.RequestGroup | RequestResource
       const instantiatesCanonical = resolveInstantiatesCanonical(
         resource.instantiatesCanonical
@@ -186,7 +191,7 @@ Then(
     })
     assert(
       instantiatedResource,
-      `Recommendations include ${this.requestResources}`
+      isEmpty(this.requestResources) ? "There are no recommendations" : `Recommendations include:\n${this.requestResources?.join('\n')}`
     )
   }
 )
@@ -250,21 +255,25 @@ Then(
     })
     assert(
       resourceWithSelection,
-      `Recommendations include ${this.requestResources}`
+      isEmpty(this.requestResources) ? "There are no recommendations" : `Recommendations include:\n${this.requestResources?.join('\n')}`
     )
   }
 )
 
 Then('no activites should have been recommended', function (this: TestContext) {
   assert(
-    !this.requestResources || this.requestResources.length === 0,
-    `Found additional recommendations ${this.requestResources}`
+    isEmpty(this.requestResources)
   )
 })
 
+// Is there a way to assert this only if the other tests pass?
 After(function (this: TestContext) {
+  let message
+  if (!isEmpty(this.requestResources) && this.requestResources) {
+    message = `Found additional recommendations:\n ${this.requestResources.join(`\n`)}`
+  }
   assert(
-    !this.requestResources || this.requestResources.length === 0,
-    `Found additional recommendations ${this.requestResources}`
+    isEmpty(this.requestResources),
+    !isEmpty(this.requestResources) ? `Found additional recommendations:\n ${this.requestResources?.join(`\n`)}` : "There are no additional recommendations"
   )
 })
