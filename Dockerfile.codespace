@@ -1,0 +1,17 @@
+FROM hl7fhir/ig-publisher-base:latest
+
+# When building container, pass in via --build-arg
+# When running, pass in via -e flag
+ARG NPM_CONFIG_REGISTRY
+
+RUN mkdir -p /home/reason-framework
+
+COPY . /home/reason-framework
+COPY bin/start.sh /usr/local/bin/
+COPY bin/stop.sh /usr/local/bin/
+
+RUN chmod +x /usr/local/bin/start.sh && chmod +x /usr/local/bin/stop.sh
+
+RUN cd /home/reason-framework && npm install && npm run build
+
+EXPOSE 9001
