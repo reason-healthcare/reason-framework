@@ -191,7 +191,7 @@ Then(
     })
     assert(
       instantiatedResource,
-      isEmpty(this.requestResources) ? "There are no recommendations" : `Recommendations include:\n${this.requestResources?.join('\n')}`
+      isEmpty(this.requestResources) ? `Expected ${activityDefinitionIdentifier}, but found no recommendations` : `Expected ${activityDefinitionIdentifier}, but found:\n${this.requestResources?.join('\n')}`
     )
   }
 )
@@ -217,9 +217,8 @@ Then(
       }
     }
 
-    const resourceWithSelection = this.cpgResponse?.entry?.find((entry) => {
-      const resource = entry.resource as fhir4.RequestGroup
-      const actionWithSelection = resource.action?.find((action) => {
+    const findActionWithSelection: any = (action: fhir4.RequestGroupAction[]) => {
+      const actionWithSelection = action.find((action) => {
         if (
           action.selectionBehavior &&
           action.selectionBehavior === selectionBehaviorCode &&
@@ -239,30 +238,41 @@ Then(
           const isMatch =
             activityCanonicals.sort().toString() ===
             activityDefinitionIdentifiers.sort().toString()
-          isMatch
-            ? activityCanonicals.forEach(
-                (c) =>
-                  (this.requestResources = removeFromRequests(
-                    c,
-                    this.requestResources
-                  ))
-              )
-            : null
+          if (isMatch) {
+            activityCanonicals.forEach(
+              (c) =>
+                (this.requestResources = removeFromRequests(
+                  c,
+                  this.requestResources
+                ))
+            )
+          }
           return isMatch
+        } else if (action.action) {
+          return findActionWithSelection(action.action)
         }
       })
       return actionWithSelection
+    }
+
+    let actionWithSelection
+    this.cpgResponse?.entry?.forEach((entry) => {
+      const resource = entry.resource as fhir4.RequestGroup
+      if (resource.action) {
+        actionWithSelection = findActionWithSelection(resource.action)
+      }
     })
     assert(
-      resourceWithSelection,
-      isEmpty(this.requestResources) ? "There are no recommendations" : `Recommendations include:\n${this.requestResources?.join('\n')}`
+      actionWithSelection,
+      isEmpty(this.requestResources) ? `Expected ${activityDefinitionIdentifiers}, but found no recommendations` : `Expected ${activityDefinitionIdentifiers}, but found:\n${this.requestResources?.join('\n')}`
     )
   }
 )
 
 Then('no activites should have been recommended', function (this: TestContext) {
   assert(
-    isEmpty(this.requestResources)
+    isEmpty(this.requestResources),
+    "Expected no recommendations"
   )
 })
 
@@ -274,6 +284,6 @@ After(function (this: TestContext) {
   }
   assert(
     isEmpty(this.requestResources),
-    !isEmpty(this.requestResources) ? `Found additional recommendations:\n ${this.requestResources?.join(`\n`)}` : "There are no additional recommendations"
+    !isEmpty(this.requestResources) ? `Found unexpected recommendations:\n${this.requestResources?.join(`\n`)}` : "There are no additional recommendations"
   )
 })
