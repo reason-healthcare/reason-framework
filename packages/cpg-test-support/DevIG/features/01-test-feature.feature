@@ -1,8 +1,8 @@
 Feature: $apply operation
   Scenario: Check for recommentation
-    Given 'http://example.org/PlanDefinition/ExampleRecommendationDefinition' is loaded
+    Given 'ExampleRecommendationDefinition' is loaded
     When apply is called with context 'Patient1Scenario'
-    Then "http://example.org/ActivityDefinition/ReportOver18" should have been recommended
+    Then "ReportOver18" should have been recommended
     And select "at-most-one" of the following should have been recommended
-    | http://example.org/ActivityDefinition/OrderMedication1 |
-    | http://example.org/ActivityDefinition/OrderMedication2 |
+    | OrderMedication1 |
+    | OrderMedication2 |

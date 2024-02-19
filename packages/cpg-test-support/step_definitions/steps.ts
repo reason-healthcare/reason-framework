@@ -8,6 +8,7 @@ dotenv.config()
 
 interface TestContext {
   planDefinitionIdentifier: string
+  planDefinitionCanonical: string
   patientContextIdentifier: string
   cpgResponse: fhir4.Bundle | undefined
   requestResources: string[] | undefined
@@ -71,10 +72,23 @@ const createEndpoint = (type: string, address: string) => {
   } as fhir4.Endpoint
 }
 
+const { CONTENT_ENDPOINT, TERMINOLOGY_ENDPOINT, CPG_ENDPOINT } = process.env
+
 Given(
   '{string} is loaded',
   function (this: TestContext, planDefinitionIdentifier: string) {
     this.planDefinitionIdentifier = planDefinitionIdentifier
+    // TODO: handle rest endpoint resolve PD
+    if (CONTENT_ENDPOINT?.startsWith('file://')) {
+      const planDef: fhir4.PlanDefinition = JSON.parse(
+        fs.readFileSync(`${CONTENT_ENDPOINT.replace("file://", "")}/PlanDefinition-${planDefinitionIdentifier}.json`, { encoding: 'utf8' })
+      )
+      if (planDef && planDef.url) {
+        this.planDefinitionCanonical = planDef.url
+      } else {
+        throw new Error("Unable to resolve plan definition")
+      }
+    }
   }
 )
 
@@ -109,7 +123,7 @@ When(
       parameter: [
         {
           name: 'url',
-          valueString: this.planDefinitionIdentifier,
+          valueString: this.planDefinitionCanonical,
         },
         {
           name: 'data',
@@ -158,16 +172,13 @@ When(
           'MedicationRequest',
           'ImmunizationRecommendation',
         ]
-        let canonical: RequestResource['instantiatesCanonical']
+        let canonical
         if (type && requestResourceTypes.includes(type)) {
           const resource = entry.resource as RequestResource
-          canonical = resolveInstantiatesCanonical(
-            resource.instantiatesCanonical
-          )
+          canonical = resolveInstantiatesCanonical(resource.instantiatesCanonical)
         }
-        return canonical
-      })
-      .filter((canonical) => canonical != null) as string[]
+        return canonical ? canonical.split("/").pop() : null
+      }).filter((id) => id != null) as string[]
   }
 )
 
@@ -180,10 +191,10 @@ Then(
       const instantiatesCanonical = resolveInstantiatesCanonical(
         resource.instantiatesCanonical
       )
-      const isMatch = instantiatesCanonical === activityDefinitionIdentifier
+      const isMatch = instantiatesCanonical?.split("/").pop() === activityDefinitionIdentifier
       isMatch
         ? (this.requestResources = removeFromRequests(
-            instantiatesCanonical,
+            instantiatesCanonical.split("/").pop(),
             this.requestResources
           ))
         : null
@@ -217,54 +228,55 @@ Then(
       }
     }
 
-    const findActionWithSelection: any = (action: fhir4.RequestGroupAction[]) => {
-      const actionWithSelection = action.find((action) => {
+    const findSelectionMatch: any = (action: fhir4.RequestGroupAction[]) => {
+      const selectionMatch = action.find((action) => {
         if (
           action.selectionBehavior &&
           action.selectionBehavior === selectionBehaviorCode &&
           action.action
         ) {
-          const activityCanonicals = action.action
-            .map((subAction) => {
-              const requestResource = resolveRequestResource(subAction)
-              return (
-                resolveInstantiatesCanonical(
-                  requestResource?.instantiatesCanonical
-                ) ?? undefined
-              )
-            })
-            .filter((canonical) => canonical != null)
-            .sort() as string[]
-          const isMatch =
-            activityCanonicals.sort().toString() ===
-            activityDefinitionIdentifiers.sort().toString()
-          if (isMatch) {
-            activityCanonicals.forEach(
-              (c) =>
-                (this.requestResources = removeFromRequests(
-                  c,
-                  this.requestResources
-                ))
-            )
-          }
-          return isMatch
+          return true
         } else if (action.action) {
-          return findActionWithSelection(action.action)
+          return findSelectionMatch(action.action)
         }
       })
-      return actionWithSelection
+      return selectionMatch
     }
 
-    let actionWithSelection
+    const isCanonicalMatch = (action: fhir4.RequestGroupAction[]) => {
+      const activityIds = action.map((subAction) => {
+        const canonical = resolveInstantiatesCanonical(resolveRequestResource(subAction)?.instantiatesCanonical)
+        return canonical ? canonical.split("/").pop() : null
+      }).filter((id) => id != null)
+      .sort() as string[]
+      const isMatch =
+        activityIds.sort().toString() ===
+        activityDefinitionIdentifiers.sort().toString()
+      if (isMatch) {
+        activityIds.forEach(
+          (id) =>
+            (this.requestResources = removeFromRequests(
+              id,
+              this.requestResources
+            ))
+        )
+      }
+      return isMatch
+    }
+
+    let actionIsMatch
+    let message
     this.cpgResponse?.entry?.forEach((entry) => {
       const resource = entry.resource as fhir4.RequestGroup
       if (resource.action) {
-        actionWithSelection = findActionWithSelection(resource.action)
+        const selectionAction = findSelectionMatch(resource.action)
+        actionIsMatch = selectionAction?.action && isCanonicalMatch(selectionAction?.action)
+        message = !selectionAction ? `Recommendation with selection behavior "${selectionBehaviorCode}" expected, but does not exist` : isEmpty(this.requestResources) ? `\nExpected recommendations:\n${activityDefinitionIdentifiers.join('\n')}\nbut found no recommendations` : `\nExpected recommendations:\n${activityDefinitionIdentifiers.join('\n')} \nBut found:\n${this.requestResources?.join('\n')}`
       }
     })
     assert(
-      actionWithSelection,
-      isEmpty(this.requestResources) ? `Expected ${activityDefinitionIdentifiers}, but found no recommendations` : `Expected ${activityDefinitionIdentifiers}, but found:\n${this.requestResources?.join('\n')}`
+      actionIsMatch,
+      message
     )
   }
 )
@@ -272,18 +284,15 @@ Then(
 Then('no activites should have been recommended', function (this: TestContext) {
   assert(
     isEmpty(this.requestResources),
-    "Expected no recommendations"
+    `Found unexpected recommendations:\n${this.requestResources?.join(`\n`)}`
   )
 })
 
-// Is there a way to assert this only if the other tests pass?
-After(function (this: TestContext) {
-  let message
-  if (!isEmpty(this.requestResources) && this.requestResources) {
-    message = `Found additional recommendations:\n ${this.requestResources.join(`\n`)}`
+After(function (this: TestContext, scenario) {
+  if (scenario?.result?.status === "PASSED") {
+    assert (
+      isEmpty(this.requestResources),
+      `Found unexpected recommendations:\n${this.requestResources?.join(`\n`)}`
+    )
   }
-  assert(
-    isEmpty(this.requestResources),
-    !isEmpty(this.requestResources) ? `Found unexpected recommendations:\n${this.requestResources?.join(`\n`)}` : "There are no additional recommendations"
-  )
 })
