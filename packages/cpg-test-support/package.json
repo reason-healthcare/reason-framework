@@ -1,0 +1,35 @@
+{
+  "name": "@reason-framework/cpg-test-support",
+  "version": "1.0.0",
+  "description": "Reason Framework e2e tests",
+  "main": "features/step_definitions/steps.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "cucumber-js",
+    "fmt": "prettier --write ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reason-healthcare/cpg-test-support.git"
+  },
+  "author": "Vermonster LLC",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/reason-healthcare/cpg-test-support/issues"
+  },
+  "homepage": "https://github.com/reason-healthcare/cpg-test-support#readme",
+  "dependencies": {
+    "@cucumber/cucumber": "^10.3.1",
+    "@reason-framework/cpg-test-support": "^1.0.0",
+    "dotenv": "^16.4.4",
+    "ts-node": "^10.9.2"
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
+  "devDependencies": {
+    "prettier": "2.8.1"
+  }
+}
