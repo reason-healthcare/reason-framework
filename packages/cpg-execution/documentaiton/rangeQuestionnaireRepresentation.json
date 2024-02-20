@@ -1,0 +1,20 @@
+{
+  "linkId": "Range",
+  "definition": "http://example.org/StructureDefinition/ExampleObservation#Observation.valueRange",
+  "text": "Actual result",
+  "type": "group",
+  "item": [
+    {
+      "linkId": "Range.low",
+      "definition": "http://example.org/StructureDefinition/ExamleObservation#Observation.valueQuantity.low",
+      "text": "Low limit",
+      "type": "quantity"
+    },
+    {
+      "linkId": "Range.high",
+      "definition": "http://example.org/StructureDefinition/ExampleObservation#Observation.valueQuantity.high",
+      "text": "High limit",
+      "type": "quantity"
+    }
+  ]
+}
