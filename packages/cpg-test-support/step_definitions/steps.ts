@@ -81,12 +81,18 @@ Given(
     // TODO: handle rest endpoint resolve PD
     if (CONTENT_ENDPOINT?.startsWith('file://')) {
       const planDef: fhir4.PlanDefinition = JSON.parse(
-        fs.readFileSync(`${CONTENT_ENDPOINT.replace("file://", "")}/PlanDefinition-${planDefinitionIdentifier}.json`, { encoding: 'utf8' })
+        fs.readFileSync(
+          `${CONTENT_ENDPOINT.replace(
+            'file://',
+            ''
+          )}/PlanDefinition-${planDefinitionIdentifier}.json`,
+          { encoding: 'utf8' }
+        )
       )
       if (planDef && planDef.url) {
         this.planDefinitionCanonical = planDef.url
       } else {
-        throw new Error("Unable to resolve plan definition")
+        throw new Error('Unable to resolve plan definition')
       }
     }
   }
@@ -171,14 +177,20 @@ When(
           'CommunicationRequest',
           'MedicationRequest',
           'ImmunizationRecommendation',
+          'RequestGroup',
         ]
         let canonical
         if (type && requestResourceTypes.includes(type)) {
           const resource = entry.resource as RequestResource
-          canonical = resolveInstantiatesCanonical(resource.instantiatesCanonical)
+          canonical = resolveInstantiatesCanonical(
+            resource.instantiatesCanonical
+          )
         }
-        return canonical ? canonical.split("/").pop() : null
-      }).filter((id) => id != null) as string[]
+        return canonical && canonical != this.planDefinitionCanonical
+          ? canonical.split('/').pop()
+          : null
+      })
+      .filter((id) => id != null) as string[]
   }
 )
 
@@ -191,10 +203,11 @@ Then(
       const instantiatesCanonical = resolveInstantiatesCanonical(
         resource.instantiatesCanonical
       )
-      const isMatch = instantiatesCanonical?.split("/").pop() === activityDefinitionIdentifier
+      const isMatch =
+        instantiatesCanonical?.split('/').pop() === activityDefinitionIdentifier
       isMatch
         ? (this.requestResources = removeFromRequests(
-            instantiatesCanonical.split("/").pop(),
+            instantiatesCanonical.split('/').pop(),
             this.requestResources
           ))
         : null
@@ -202,7 +215,11 @@ Then(
     })
     assert(
       instantiatedResource,
-      isEmpty(this.requestResources) ? `Expected ${activityDefinitionIdentifier}, but found no recommendations` : `Expected ${activityDefinitionIdentifier}, but found:\n${this.requestResources?.join('\n')}`
+      isEmpty(this.requestResources)
+        ? `Expected ${activityDefinitionIdentifier}, but found no recommendations`
+        : `Expected ${activityDefinitionIdentifier}, but found:\n${this.requestResources?.join(
+            '\n'
+          )}`
     )
   }
 )
@@ -229,26 +246,31 @@ Then(
     }
 
     const findSelectionMatch: any = (action: fhir4.RequestGroupAction[]) => {
-      const selectionMatch = action.find((action) => {
+      let selectionMatch
+      action.forEach((action) => {
         if (
           action.selectionBehavior &&
           action.selectionBehavior === selectionBehaviorCode &&
           action.action
         ) {
-          return true
+          selectionMatch = action
         } else if (action.action) {
-          return findSelectionMatch(action.action)
+          selectionMatch = findSelectionMatch(action.action)
         }
       })
       return selectionMatch
     }
 
     const isCanonicalMatch = (action: fhir4.RequestGroupAction[]) => {
-      const activityIds = action.map((subAction) => {
-        const canonical = resolveInstantiatesCanonical(resolveRequestResource(subAction)?.instantiatesCanonical)
-        return canonical ? canonical.split("/").pop() : null
-      }).filter((id) => id != null)
-      .sort() as string[]
+      const activityIds = action
+        .map((subAction) => {
+          const canonical = resolveInstantiatesCanonical(
+            resolveRequestResource(subAction)?.instantiatesCanonical
+          )
+          return canonical ? canonical.split('/').pop() : null
+        })
+        .filter((id) => id != null)
+        .sort() as string[]
       const isMatch =
         activityIds.sort().toString() ===
         activityDefinitionIdentifiers.sort().toString()
@@ -270,14 +292,20 @@ Then(
       const resource = entry.resource as fhir4.RequestGroup
       if (resource.action) {
         const selectionAction = findSelectionMatch(resource.action)
-        actionIsMatch = selectionAction?.action && isCanonicalMatch(selectionAction?.action)
-        message = !selectionAction ? `Recommendation with selection behavior "${selectionBehaviorCode}" expected, but does not exist` : isEmpty(this.requestResources) ? `\nExpected recommendations:\n${activityDefinitionIdentifiers.join('\n')}\nbut found no recommendations` : `\nExpected recommendations:\n${activityDefinitionIdentifiers.join('\n')} \nBut found:\n${this.requestResources?.join('\n')}`
+        actionIsMatch =
+          selectionAction?.action && isCanonicalMatch(selectionAction?.action)
+        message = !selectionAction
+          ? `Recommendation with selection behavior "${selectionBehaviorCode}" expected, but does not exist`
+          : isEmpty(this.requestResources)
+          ? `\nExpected recommendations:\n${activityDefinitionIdentifiers.join(
+              '\n'
+            )}\nbut found no recommendations`
+          : `\nExpected recommendations:\n${activityDefinitionIdentifiers.join(
+              '\n'
+            )} \nBut found:\n${this.requestResources?.join('\n')}`
       }
     })
-    assert(
-      actionIsMatch,
-      message
-    )
+    assert(actionIsMatch, message)
   }
 )
 
@@ -289,8 +317,8 @@ Then('no activites should have been recommended', function (this: TestContext) {
 })
 
 After(function (this: TestContext, scenario) {
-  if (scenario?.result?.status === "PASSED") {
-    assert (
+  if (scenario?.result?.status === 'PASSED') {
+    assert(
       isEmpty(this.requestResources),
       `Found unexpected recommendations:\n${this.requestResources?.join(`\n`)}`
     )
