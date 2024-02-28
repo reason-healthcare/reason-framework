@@ -43,6 +43,12 @@ const isEmpty = (requests: string[] | undefined) => {
   return !requests || requests.length === 0
 }
 
+const notEmpty = <TValue>(
+  value: TValue | null | undefined
+): value is TValue => {
+  return value !== null && value !== undefined
+}
+
 const createEndpoint = (type: string, address: string) => {
   let endpointType
   if (address.startsWith('file://')) {
@@ -190,7 +196,7 @@ When(
           ? canonical.split('/').pop()
           : null
       })
-      .filter((id) => id != null) as string[]
+      .filter(notEmpty) as string[]
   }
 )
 
@@ -215,11 +221,11 @@ Then(
     })
     assert(
       instantiatedResource,
-      isEmpty(this.requestResources)
-        ? `Expected ${activityDefinitionIdentifier}, but found no recommendations`
-        : `Expected ${activityDefinitionIdentifier}, but found:\n${this.requestResources?.join(
-            '\n'
-          )}`
+      `\nExpected recommendation:\n- ${activityDefinitionIdentifier}\nBut found:\n- ${
+        isEmpty(this.requestResources)
+          ? 'no recommendations'
+          : this.requestResources?.join('\n- ')
+      }`
     )
   }
 )
@@ -245,37 +251,39 @@ Then(
       }
     }
 
-    const findSelectionMatch: any = (action: fhir4.RequestGroupAction[]) => {
+    const findSelectionGroup: any = (action: fhir4.RequestGroupAction[]) => {
       let selectionMatch
-      action.forEach((action) => {
+      for (let i = 0; i < action.length && !selectionMatch; i++) {
+        let subAction = action[i]
         if (
-          action.selectionBehavior &&
-          action.selectionBehavior === selectionBehaviorCode &&
-          action.action
+          subAction.selectionBehavior &&
+          subAction.selectionBehavior === selectionBehaviorCode
         ) {
-          selectionMatch = action
-        } else if (action.action) {
-          selectionMatch = findSelectionMatch(action.action)
+          selectionMatch = subAction
+        } else if (subAction.action) {
+          selectionMatch = findSelectionGroup(subAction.action)
         }
-      })
+      }
       return selectionMatch
     }
 
-    const isCanonicalMatch = (action: fhir4.RequestGroupAction[]) => {
-      const activityIds = action
+    const getCanonicalMatch = (
+      selectionGroupAction: fhir4.RequestGroupAction[]
+    ) => {
+      let isMatch = false
+      const selectionGroupActivityIds = selectionGroupAction
         .map((subAction) => {
           const canonical = resolveInstantiatesCanonical(
             resolveRequestResource(subAction)?.instantiatesCanonical
           )
           return canonical ? canonical.split('/').pop() : null
         })
-        .filter((id) => id != null)
-        .sort() as string[]
-      const isMatch =
-        activityIds.sort().toString() ===
+        .filter(notEmpty)
+      isMatch =
+        selectionGroupActivityIds.sort().toString() ===
         activityDefinitionIdentifiers.sort().toString()
       if (isMatch) {
-        activityIds.forEach(
+        selectionGroupActivityIds.forEach(
           (id) =>
             (this.requestResources = removeFromRequests(
               id,
@@ -286,33 +294,47 @@ Then(
       return isMatch
     }
 
-    let actionIsMatch
-    let message
-    this.cpgResponse?.entry?.forEach((entry) => {
-      const resource = entry.resource as fhir4.RequestGroup
-      if (resource.action) {
-        const selectionAction = findSelectionMatch(resource.action)
-        actionIsMatch =
-          selectionAction?.action && isCanonicalMatch(selectionAction?.action)
-        message = !selectionAction
-          ? `Recommendation with selection behavior "${selectionBehaviorCode}" expected, but does not exist`
-          : isEmpty(this.requestResources)
-          ? `\nExpected recommendations:\n${activityDefinitionIdentifiers.join(
-              '\n'
-            )}\nbut found no recommendations`
-          : `\nExpected recommendations:\n${activityDefinitionIdentifiers.join(
-              '\n'
-            )} \nBut found:\n${this.requestResources?.join('\n')}`
+    let isSelectionMatch = false
+    let isCanonicalMatch = false
+    if (this.cpgResponse?.entry) {
+      for (
+        let i = 0;
+        i < this.cpgResponse.entry.length && !isCanonicalMatch;
+        i++
+      ) {
+        const resource = this.cpgResponse.entry[i]
+          .resource as fhir4.RequestGroup
+        const selectionMatch = resource.action
+          ? findSelectionGroup(resource.action)
+          : null
+        if (selectionMatch) {
+          isSelectionMatch = true
+          isCanonicalMatch = selectionMatch.action
+            ? getCanonicalMatch(selectionMatch.action)
+            : false
+        }
       }
-    })
-    assert(actionIsMatch, message)
+    }
+
+    const message = !isSelectionMatch
+      ? `Recommendation with selection behavior "${selectionBehaviorCode}" expected, but does not exist`
+      : `\nExpected recommendations:\n- ${activityDefinitionIdentifiers.join(
+          '\n- '
+        )} \nBut found:\n- ${
+          isEmpty(this.requestResources)
+            ? 'no recommendations'
+            : this.requestResources?.join('\n- ')
+        }`
+    assert(isCanonicalMatch, message)
   }
 )
 
 Then('no activites should have been recommended', function (this: TestContext) {
   assert(
     isEmpty(this.requestResources),
-    `Found unexpected recommendations:\n${this.requestResources?.join(`\n`)}`
+    `Found unexpected recommendations:\n- ${this.requestResources?.join(
+      '\n- '
+    )}`
   )
 })
 
@@ -320,7 +342,9 @@ After(function (this: TestContext, scenario) {
   if (scenario?.result?.status === 'PASSED') {
     assert(
       isEmpty(this.requestResources),
-      `Found unexpected recommendations:\n${this.requestResources?.join(`\n`)}`
+      `Found unexpected recommendations:\n- ${this.requestResources?.join(
+        '\n- '
+      )}`
     )
   }
 })
