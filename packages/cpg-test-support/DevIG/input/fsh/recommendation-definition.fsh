@@ -30,12 +30,19 @@ Usage: #Example
     * expression
       * language = #text/cql-identifier
       * expression = "Not over 18"
-  * definitionCanonical = Canonical(ReportUnder18)
-  * selectionBehavior = #at-most-one
   * action[+]
-    * definitionCanonical = Canonical(OrderMedication3)
-  * action[+]
-    * definitionCanonical = Canonical(OrderMedication4)
+    * condition
+      * kind = #applicability
+      * expression
+        * language = #text/cql-identifier
+        * expression = "Not over 18"
+    * definitionCanonical = Canonical(ReportUnder18)
+    * action[+]
+      * selectionBehavior = #at-most-one
+      * action[+]
+        * definitionCanonical = Canonical(OrderMedication3)
+      * action[+]
+        * definitionCanonical = Canonical(OrderMedication4)
 
 Instance: ReportOver18
 InstanceOf: CPGGenerateReportActivity
