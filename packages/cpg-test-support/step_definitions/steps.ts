@@ -7,8 +7,7 @@ import { Given, When, Then, DataTable, After } from '@cucumber/cucumber'
 dotenv.config()
 
 interface TestContext {
-  planDefinitionIdentifier: string
-  planDefinitionCanonical: string
+  planDefinition: fhir4.PlanDefinition
   patientContextIdentifier: string
   cpgResponse: fhir4.Bundle | undefined
   requestResources: string[] | undefined
@@ -19,7 +18,12 @@ type RequestResource =
   | fhir4.Task
   | fhir4.ServiceRequest // | fhir4.CommunicationRequest
 
-const resolveInstantiatesCanonical = (
+/**
+ * Return instantiates canonical reference on the request resource
+ *
+ * @param instantiatesCanonical Canonical reference to the definition that produced the recommendation
+ */
+const getInstantiatesCanonical = (
   instantiatesCanonical: string | string[] | undefined
 ) => {
   if (typeof instantiatesCanonical === 'string') {
@@ -29,6 +33,42 @@ const resolveInstantiatesCanonical = (
   }
 }
 
+/**
+ * Resolve reference from filesystem or rest endpoint
+ *
+ * @param reference FHIR reference as a string i.e. 'Patient/Patient1'
+ */
+const resolveReference = async (reference: string, endpointAddress: string) => {
+  let resource
+  if (endpointAddress.startsWith("http")) {
+    try {
+      const response = await fetch(`${endpointAddress}/${reference}`)
+      if (!response.ok) {
+        throw response
+      }
+      resource = await response.json()
+    } catch (e) {
+      console.log(e)
+    }
+  } else if (endpointAddress.startsWith("file://")) {
+    const fileName = `${reference.split("/").join("-")}.json`
+    resource = JSON.parse(fs.readFileSync(
+      `${endpointAddress.replace(
+        'file://',
+        ''
+      )}/${fileName}`,
+      { encoding: 'utf8' }
+    ))
+  }
+  return resource
+}
+
+/**
+ * Remove canonical reference from a list of request resource references. This enables checking for requests that have not yet been tested against. Each time a request matches an assertion, it is removed.
+ *
+ * @param canonical Canonical reference to remove
+ * @param resources List of remaining request resource canonicals from the $apply output
+ */
 const removeFromRequests = (
   canonical: string | undefined,
   resources: string[] | undefined
@@ -78,29 +118,29 @@ const createEndpoint = (type: string, address: string) => {
   } as fhir4.Endpoint
 }
 
-const { CONTENT_ENDPOINT, TERMINOLOGY_ENDPOINT, CPG_ENDPOINT } = process.env
+const { CONTENT_ENDPOINT, TERMINOLOGY_ENDPOINT, DATA_ENDPOINT, CPG_ENDPOINT } = process.env
+const DEFAULT_SERVER = "http://127.0.0.1:9001" // Default server is cds-service localhost 9001
+const filePath = path.join(
+  process.cwd(),
+  'output'
+)
+const DEFAULT_ENDPOINT = `file:///${filePath}` // Default endpoint assumes package is being used at root of IG with an output package
+const contentEndpointAddress = CONTENT_ENDPOINT ?? DEFAULT_ENDPOINT
+const terminologyEndpointAddress = TERMINOLOGY_ENDPOINT ?? CONTENT_ENDPOINT ?? DEFAULT_ENDPOINT
+const dataEndpoint = DATA_ENDPOINT ?? DEFAULT_ENDPOINT
+const cpgServerAddress = CPG_ENDPOINT ?? DEFAULT_SERVER
 
 Given(
   '{string} is loaded',
-  function (this: TestContext, planDefinitionIdentifier: string) {
-    this.planDefinitionIdentifier = planDefinitionIdentifier
-    // TODO: handle rest endpoint resolve PD
-    if (CONTENT_ENDPOINT?.startsWith('file://')) {
-      const planDef: fhir4.PlanDefinition = JSON.parse(
-        fs.readFileSync(
-          `${CONTENT_ENDPOINT.replace(
-            'file://',
-            ''
-          )}/PlanDefinition-${planDefinitionIdentifier}.json`,
-          { encoding: 'utf8' }
-        )
-      )
-      if (planDef && planDef.url) {
-        this.planDefinitionCanonical = planDef.url
-      } else {
-        throw new Error('Unable to resolve plan definition')
-      }
+  async function (this: TestContext, planDefinitionIdentifier: string) {
+    const reference = `PlanDefinition/${planDefinitionIdentifier}`
+    let planDefinition = await resolveReference(reference, contentEndpointAddress)
+    if (!planDefinition) {
+      throw new Error('Unable to resolve plan definition')
+    } else if (planDefinition.resourceType !== 'PlanDefinition') {
+      throw new Error('Resource does not seem to be a FHIR Plan Definition')
     }
+    this.planDefinition = planDefinition
   }
 )
 
@@ -108,34 +148,20 @@ When(
   'apply is called with context {string}',
   async function (this: TestContext, patientContextIdentifier: string) {
     this.patientContextIdentifier = patientContextIdentifier
-    const filePath = path.join(
-      process.cwd(),
-      'output',
-      `Bundle-${patientContextIdentifier}.json`
-    )
-    const patientContext: fhir4.Bundle = JSON.parse(
-      fs.readFileSync(filePath, { encoding: 'utf8' })
-    )
-
-    const { CONTENT_ENDPOINT, TERMINOLOGY_ENDPOINT, CPG_ENDPOINT } = process.env
-
-    if (!CONTENT_ENDPOINT) {
-      throw new Error('Must specify content endpoint')
-    }
+    const reference = `Bundle/${patientContextIdentifier}`
+    const patientContext = await resolveReference(reference, dataEndpoint)
     const contentEndpoint: fhir4.Endpoint = createEndpoint(
       'content',
-      CONTENT_ENDPOINT
+      contentEndpointAddress
     )
-    const terminologyEndpoint = TERMINOLOGY_ENDPOINT
-      ? createEndpoint('terminology', TERMINOLOGY_ENDPOINT)
-      : createEndpoint('terminology', CONTENT_ENDPOINT)
+    const terminologyEndpoint = createEndpoint('terminology', terminologyEndpointAddress)
 
     const body: fhir4.Parameters = {
       resourceType: 'Parameters',
       parameter: [
         {
-          name: 'url',
-          valueString: this.planDefinitionCanonical,
+          name: 'planDefinition',
+          resource: this.planDefinition,
         },
         {
           name: 'data',
@@ -152,10 +178,8 @@ When(
       ],
     }
 
-    let cpgEndpoint = CPG_ENDPOINT
-    if (!cpgEndpoint) {
-      throw new Error('Must specify CPG Engine Endpoint')
-    } else if (cpgEndpoint.startsWith('http://localhost')) {
+    let cpgEndpoint = cpgServerAddress
+    if (cpgEndpoint.startsWith('http://localhost')) {
       cpgEndpoint = cpgEndpoint.replace('http://localhost', 'http://127.0.0.1')
     }
     try {
@@ -188,11 +212,11 @@ When(
         let canonical
         if (type && requestResourceTypes.includes(type)) {
           const resource = entry.resource as RequestResource
-          canonical = resolveInstantiatesCanonical(
+          canonical = getInstantiatesCanonical(
             resource.instantiatesCanonical
           )
         }
-        return canonical && canonical != this.planDefinitionCanonical
+        return canonical && canonical != this.planDefinition.url
           ? canonical.split('/').pop()
           : null
       })
@@ -206,7 +230,7 @@ Then(
     const instantiatedResource = this.cpgResponse?.entry?.find((entry) => {
       // Custom type RequestResource does not currently include communication request because CPG v1.0 excludes instantiates canonical from this resource. v2.0 will include instantiates canonical, so the server should be updated.
       const resource = entry.resource as fhir4.RequestGroup | RequestResource
-      const instantiatesCanonical = resolveInstantiatesCanonical(
+      const instantiatesCanonical = getInstantiatesCanonical(
         resource.instantiatesCanonical
       )
       const isMatch =
@@ -273,7 +297,7 @@ Then(
       let isMatch = false
       const selectionGroupActivityIds = selectionGroupAction
         .map((subAction) => {
-          const canonical = resolveInstantiatesCanonical(
+          const canonical = getInstantiatesCanonical(
             resolveRequestResource(subAction)?.instantiatesCanonical
           )
           return canonical ? canonical.split('/').pop() : null
