@@ -20,7 +20,6 @@
   "homepage": "https://github.com/reason-healthcare/cpg-test-support#readme",
   "dependencies": {
     "@cucumber/cucumber": "^10.3.1",
-    "@reason-framework/cpg-test-support": "^1.0.0",
     "dotenv": "^16.4.5",
     "ts-node": "^10.9.2"
   },
