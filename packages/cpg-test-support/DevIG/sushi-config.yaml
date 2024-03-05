@@ -66,7 +66,7 @@ dependencies:
 #
 parameters:
   path-binary: ./input/cql
-  no-narrative: true
+  no-narrative: '*/*'
 #   excludettl: true
 #   validation: [allow-any-extensions, no-broken-links]
 #
