@@ -176,6 +176,14 @@ export const applyActivityDefinition = async (
         )
       }
     } else if (is.CommunicationRequest(targetResource)) {
+      if (canonicalActivityDefinition != null) {
+        ;(targetResource.extension ||= []).push(
+          {
+            url: "http://hl7.org/fhir/StructureDefinition/workflow-instantiatesCanonical",
+            valueCanonical: canonicalActivityDefinition
+          }
+        )
+      }
       if (timingDateTime != null) {
         targetResource.occurrenceDateTime = timingDateTime
       }
@@ -248,6 +256,14 @@ export const applyActivityDefinition = async (
         )
       }
     } else if (is.ImmunizationRecommendation(targetResource)) {
+      if (canonicalActivityDefinition != null) {
+        ;(targetResource.extension ||= []).push(
+          {
+            url: "http://hl7.org/fhir/StructureDefinition/workflow-instantiatesCanonical",
+            valueCanonical: canonicalActivityDefinition
+          }
+        )
+      }
       if (subject != null) {
         targetResource.patient = referenceFromString(subject, 'Patient')
       }
