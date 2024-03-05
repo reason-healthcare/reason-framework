@@ -93,27 +93,36 @@ export const getInstantiatesCanonical = (resource: RequestResource) => {
 }
 
 /**
- * Resolve reference from filesystem or rest endpoint
+ * Resolve resource from filesystem or rest endpoint
  *
- * @param reference FHIR reference as a string i.e. 'Patient/Patient1'
+ * @param id Id of resource to resolve
+ * @param resourceType Type of resource to resolve
+ * @param endpointAddress Address to use for search
+ * @param version Optional version of resource
  */
 export const resolveReference = async (
-  reference: string,
-  endpointAddress: string
+  id: string,
+  resourceType: 'PlanDefinition' | 'Bundle',
+  endpointAddress: string,
+  version?: string | undefined
 ) => {
   let resource
   if (endpointAddress.startsWith('http')) {
     try {
-      const response = await fetch(`${endpointAddress}/${reference}`)
+      const versionQuery = version ? `&version=${version}` : null
+      const response = await fetch(
+        `${endpointAddress}/${resourceType}?_id=${id + versionQuery}`
+      )
       if (!response.ok) {
         throw response
       }
-      resource = await response.json()
+      const json = await response.json()
+      resource = json.entry[0].resource
     } catch (e) {
       console.log(e)
     }
   } else if (endpointAddress.startsWith('file://')) {
-    const fileName = `${reference.split('/').join('-')}.json`
+    const fileName = `${resourceType}-${id}.json`
     resource = JSON.parse(
       fs.readFileSync(`${endpointAddress.replace('file://', '')}/${fileName}`, {
         encoding: 'utf8',

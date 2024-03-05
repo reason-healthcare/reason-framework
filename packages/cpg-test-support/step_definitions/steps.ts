@@ -36,10 +36,12 @@ const cpgServerAddress = CPG_ENDPOINT ?? DEFAULT_SERVER
 Given(
   '{string} is loaded',
   async function (this: TestContext, planDefinitionIdentifier: string) {
-    const reference = `PlanDefinition/${planDefinitionIdentifier}`
+    const [id, version] = planDefinitionIdentifier.split('|')
     let planDefinition = await resolveReference(
-      reference,
-      contentEndpointAddress
+      id,
+      'PlanDefinition',
+      contentEndpointAddress,
+      version
     )
     if (!planDefinition) {
       throw new Error('Unable to resolve plan definition')
@@ -55,7 +57,11 @@ When(
   async function (this: TestContext, patientContextIdentifier: string) {
     this.patientContextIdentifier = patientContextIdentifier
     const reference = `Bundle/${patientContextIdentifier}`
-    const patientContext = await resolveReference(reference, dataEndpoint)
+    const patientContext = await resolveReference(
+      patientContextIdentifier,
+      'Bundle',
+      dataEndpoint
+    )
     const contentEndpoint: fhir4.Endpoint = createEndpoint(
       'content',
       contentEndpointAddress
