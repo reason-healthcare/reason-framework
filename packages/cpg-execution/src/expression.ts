@@ -15,6 +15,7 @@ import {
 } from './helpers'
 import { Resolver as ResolverType } from './resolver'
 import Resolver from './resolver'
+import FHIRHelpersLibrary from './support/Library-FHIRHelpers.json'
 
 export const processDynamicValue = async (
   dynamicValue:
@@ -145,11 +146,6 @@ export const processDynamicValue = async (
       }' not supported, only support for: text/fhirpath, text/cql-identifier`
     )
   }
-  console.log(
-    JSON.stringify(
-      JSON.stringify(targetResource) + 'targetResource from process'
-    )
-  )
   return targetResource
 }
 
@@ -305,8 +301,9 @@ export const evaluateCqlExpression = async (
     }, {} as Record<string, any>) ?? {}
 
   if (libraryManager['FHIRHelpers'] == null) {
-    /*
+    console.log('here 1')
     if (is.Library(FHIRHelpersLibrary)) {
+      console.log('here 2')
       const { content } = FHIRHelpersLibrary
       const elmEncoded = content?.find(
         (c) => c.contentType === 'application/elm+json'
@@ -317,8 +314,9 @@ export const evaluateCqlExpression = async (
       const fhirHelpersElm = JSON.parse(elmJson)
       libraryManager['FHIRHelpers'] = fhirHelpersElm
     }
-    */
   }
+  console.log(libraryManager['FHIRHelpers'] != null)
+
 
   const patientKey = patients?.[0]?.id
   if (patientKey == null) {
@@ -466,6 +464,8 @@ export const evaluateCqlLibrary = async (
     resourceType: 'Bundle',
     type: 'collection'
   }
+
+  console.log(libraryManager["FHIRHelpers"] != null)
 
   const elmEncoded = library.content?.find(
     (c) => c.contentType === 'application/elm+json'
