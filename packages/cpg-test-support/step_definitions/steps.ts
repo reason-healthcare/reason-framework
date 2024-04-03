@@ -176,20 +176,22 @@ Then(
       }
     }
 
-    const findSelectionGroup: any = (action: fhir4.RequestGroupAction[]) => {
-      let selectionMatch
-      for (let i = 0; i < action.length && !selectionMatch; i++) {
+    const findSelectionGroup = (action: fhir4.RequestGroupAction[]): boolean => {
+      let isMatch = false
+      for (let i = 0; i < action.length && !isMatch; i++) {
         let subAction = action[i]
         if (
           subAction.selectionBehavior &&
-          subAction.selectionBehavior === selectionBehaviorCode
+          subAction.selectionBehavior === selectionBehaviorCode &&
+          subAction.action
         ) {
-          selectionMatch = subAction
-        } else if (subAction.action) {
-          selectionMatch = findSelectionGroup(subAction.action)
+          isMatch = getCanonicalMatch(subAction.action)
+        }
+        if (!isMatch && subAction.action) {
+          isMatch = findSelectionGroup(subAction.action)
         }
       }
-      return selectionMatch
+      return isMatch
     }
 
     const getCanonicalMatch = (
@@ -228,38 +230,33 @@ Then(
       return isMatch
     }
 
-    let isSelectionMatch = false
-    let isCanonicalMatch = false
+    let isMatch = false
     if (this.cpgResponse?.entry) {
       for (
         let i = 0;
-        i < this.cpgResponse.entry.length && !isCanonicalMatch;
+        i < this.cpgResponse.entry.length && !isMatch;
         i++
       ) {
         const resource = this.cpgResponse.entry[i]
           .resource as fhir4.RequestGroup
-        const selectionMatch = resource.action
+        isMatch = resource.action
           ? findSelectionGroup(resource.action)
-          : null
-        if (selectionMatch) {
-          isSelectionMatch = true
-          isCanonicalMatch = selectionMatch.action
-            ? getCanonicalMatch(selectionMatch.action)
-            : false
-        }
+          : false
       }
     }
 
-    const message = !isSelectionMatch
-      ? `Recommendation with selection behavior "${selectionBehaviorCode}" expected, but does not exist`
-      : `\nExpected recommendations:\n- ${activityDefinitionIdentifiers.join(
+    const message =
+    // !isSelectionMatch
+    //   ? `Recommendation with selection behavior "${selectionBehaviorCode}" expected, but does not exist`
+    //   :
+      `\nExpected recommendations:\n- ${activityDefinitionIdentifiers.join(
           '\n- '
         )} \nBut found:\n- ${
           isEmpty(this.requestResources)
             ? 'no recommendations'
             : this.requestResources?.join('\n- ')
         }`
-    assert(isCanonicalMatch, message)
+    assert(isMatch, message)
   }
 )
 
