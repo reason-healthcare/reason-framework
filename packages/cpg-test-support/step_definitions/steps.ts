@@ -203,11 +203,19 @@ Then(
             ? getInstantiatesCanonical(resource)
             : undefined
           return canonical ? canonical.split('/').pop() : null
-        })
+        })  // this is the response from server
         .filter(notEmpty)
       isMatch =
         selectionGroupActivityIds.sort().toString() ===
         activityDefinitionIdentifiers.sort().toString()
+      if (selectionGroupActivityIds.length == 0) {
+        const selectionGroupTitles = selectionGroupAction
+        .map((subAction) => {
+          return subAction.title
+        })  // this is the response from server
+        .filter(notEmpty)
+        isMatch = selectionGroupTitles.sort().toString() === activityDefinitionIdentifiers.sort().toString()
+      }
       if (isMatch) {
         selectionGroupActivityIds.forEach(
           (id) =>
