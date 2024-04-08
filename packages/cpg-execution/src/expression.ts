@@ -95,10 +95,6 @@ export const processDynamicValue = async (
           expression
         )}`
       )
-      console.log(
-        JSON.stringify(targetResource) +
-          'targetResource from processDynamicValue function'
-      )
       return targetResource
     }
 

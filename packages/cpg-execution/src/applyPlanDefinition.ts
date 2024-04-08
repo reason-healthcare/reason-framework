@@ -191,21 +191,22 @@ export const applyPlanDefinition = async (
     }
     const libraries = libraryResults.filter(is.Library)
 
-    const actionBundles = await Promise.all(
-      planDefinition.action.map(
-        async (action) =>
-          await applyPlanDefinitionAction(
-            action,
-            planDefinition,
-            args,
-            contentResolver,
-            terminologyResolver,
-            dataResolver,
-            resourceBundle,
-            libraries
-          )
+    // Use for loop instead of .map so that actions are processed asynchronously. Otherwise request groups will be assigned to the incorrect actions
+    let actionBundles = []
+    for (const action of planDefinition.action) {
+      const result = await applyPlanDefinitionAction(
+        action,
+        planDefinition,
+        args,
+        contentResolver,
+        terminologyResolver,
+        dataResolver,
+        resourceBundle,
+        libraries
       )
-    )
+      actionBundles.push(result)
+    }
+
     if (actionBundles != null) {
       requestGroup.action = actionBundles.map((a) => a?.action).filter(notEmpty)
     }

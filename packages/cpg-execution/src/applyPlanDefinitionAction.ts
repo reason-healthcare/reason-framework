@@ -257,6 +257,7 @@ export const applyPlanDefinitionAction = async (
 
   // DefinitionCanonical...
   if (definitionCanonical != null) {
+
     const definitionResource = await contentResolver.resolveCanonical(
       definitionCanonical,
       ['ActivityDefinition', 'PlanDefinition', 'Questionnaire']
@@ -330,6 +331,7 @@ export const applyPlanDefinitionAction = async (
           ) //callback fn to declare types? Otherwise erroring bc of type 'undefined'
       }
     } else if (is.PlanDefinition(definitionResource)) {
+
       const planDefinitionArgs: ApplyPlanDefinitionArgs = {
         ...args,
         planDefinition: definitionResource
@@ -342,15 +344,9 @@ export const applyPlanDefinitionAction = async (
 
       const subRequestGroup = appliedBundle?.entry?.shift()
       if (is.RequestGroup(subRequestGroup?.resource)) {
-        // if (
-        //   subRequestGroup?.resource?.action?.every((a) => a.resource != null)  //do we need this? Not every subRequestGroups needs an action.resource because not all sub groups will have an action definition
-        // ) {
-        //   appliedResource = subRequestGroup?.resource
-        //   console.log("appliedR" + JSON.stringify(appliedResource))
-        // }
         if (subRequestGroup?.resource) {
           subRequestGroup.resource.intent = 'proposal'
-          appliedResource = subRequestGroup.resource
+          appliedResource = subRequestGroup?.resource
         }
       } else {
         throw new Error(
@@ -384,23 +380,23 @@ export const applyPlanDefinitionAction = async (
 
   // Process any children...
   if (!isAtomic(action) && action.action != null) {
-    const childActionBundlesRaw = await Promise.all(
-      action.action.map(
-        async (a) =>
-          await applyPlanDefinitionAction(
-            a,
-            planDefinition,
-            args,
-            contentResolver,
-            terminologyResolver,
-            dataResolver,
-            resourceBundle,
-            libraries
-          )
+   // Use for loop instead of .map so that actions are processed asynchronously. Otherwise request groups will be assigned to the incorrect actions
+    const childActionBundlesRaw = []
+    for (const childAction of action.action) {
+      const result = await applyPlanDefinitionAction(
+        childAction,
+        planDefinition,
+        args,
+        contentResolver,
+        terminologyResolver,
+        dataResolver,
+        resourceBundle,
+        libraries
       )
-    )
+      childActionBundlesRaw.push(result)
+    }
 
-    const childActionBundles = childActionBundlesRaw.filter(notEmpty)
+    const childActionBundles = childActionBundlesRaw?.filter(notEmpty)
 
     requestGroupAction.action = childActionBundles?.map(
       (childActionBundle) => childActionBundle.action
