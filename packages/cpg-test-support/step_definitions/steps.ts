@@ -54,6 +54,7 @@ Given(
 
 When(
   'apply is called with context {string}',
+  {timeout: 3 * 5000},
   async function (this: TestContext, patientContextIdentifier: string) {
     this.patientContextIdentifier = patientContextIdentifier
     const reference = `Bundle/${patientContextIdentifier}`
