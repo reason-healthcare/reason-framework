@@ -8,18 +8,24 @@ import {
   is,
   getInstantiatesCanonical,
   resolveReference,
-  removeFromRequests,
+  removeFromRecommendations,
+  removeFromSelectionGroups,
   notEmpty,
   createEndpoint,
+  resolveRequestResource
 } from './helpers'
 
 dotenv.config()
 
-interface TestContext {
+export interface TestContext {
   planDefinition: fhir4.PlanDefinition
   patientContextIdentifier: string
   cpgResponse: fhir4.Bundle | undefined
-  requestResources: string[] | undefined
+  recommendations: string[] | undefined
+  selectionGroups: {
+    selectionCode: fhir4.RequestGroupAction["selectionBehavior"],
+    definitions: string[]
+  }[]
 }
 
 const { CONTENT_ENDPOINT, TERMINOLOGY_ENDPOINT, DATA_ENDPOINT, CPG_ENDPOINT } =
@@ -114,8 +120,8 @@ When(
       console.log(e)
     }
 
-    // Create list of request resources. Each request resource that is asserted will be removed from the list. After all assertions, this array should be empty.
-    this.requestResources = this.cpgResponse?.entry
+    // Create list of recomendations. Each asserted recommendation will be removed from the list. After all assertions, this array should be empty.
+    this.recommendations = this.cpgResponse?.entry
       ?.map((entry) => {
         const canonical = is.RequestResource(entry.resource)
           ? getInstantiatesCanonical(entry.resource)
@@ -125,6 +131,30 @@ When(
           : null
       })
       .filter(notEmpty) as string[]
+
+    // Create list of selection groups. Used for test failure logging.
+    const findSelectionMatchs = (action: fhir4.RequestGroupAction[]) => {
+      let definitions: string[]
+      action.forEach((action) => {
+        const selectionCode = action.selectionBehavior
+        if (selectionCode && action.action) {
+          definitions = action.action.map(a => {
+            const request = resolveRequestResource(a, this.cpgResponse)
+            return request ? getInstantiatesCanonical(request)?.split('/').pop() : null
+          }).filter(notEmpty)
+          definitions.length ? (this.selectionGroups ||=[]).push({selectionCode, definitions}) : null
+        }
+        if (action.action) {
+          findSelectionMatchs(action.action)
+        }
+      })
+    }
+    this.cpgResponse?.entry?.forEach((entry) => {
+      if (is.RequestGroup(entry.resource) && entry.resource.action) {
+        findSelectionMatchs(entry.resource.action)
+      }
+    })
+
   }
 )
 
@@ -138,9 +168,9 @@ Then(
       const isMatch =
         instantiatesCanonical?.split('/').pop() === activityDefinitionIdentifier
       isMatch
-        ? (this.requestResources = removeFromRequests(
+        ? (this.recommendations = removeFromRecommendations(
             instantiatesCanonical.split('/').pop(),
-            this.requestResources
+            this.recommendations
           ))
         : null
       return isMatch
@@ -148,9 +178,9 @@ Then(
     assert(
       instantiatedResource,
       `\nExpected recommendation:\n- ${activityDefinitionIdentifier}\nBut found:\n- ${
-        isEmpty(this.requestResources)
-          ? 'no recommendations'
-          : this.requestResources?.join('\n- ')
+        isEmpty(this.recommendations)
+          ? '- No recommendations'
+          : this.recommendations?.join('\n- ')
       }`
     )
   }
@@ -161,23 +191,15 @@ Then(
   function (
     this: TestContext,
     selectionBehaviorCode: string,
-    activityDefinitionIdentifierTable: DataTable
+    selectionDefinitionIdentifiersTable: DataTable
   ) {
-    const activityDefinitionIdentifiers: string[] =
-      activityDefinitionIdentifierTable
+    const selectionDefinitionIdentifiers: string[] =
+      selectionDefinitionIdentifiersTable
         .raw()
         .map((i) => i[0])
         .sort()
 
-    const resolveRequestResource = (action: fhir4.RequestGroupAction) => {
-      if (action.resource?.reference) {
-        const id = action.resource.reference.split('/')[1]
-        return this.cpgResponse?.entry?.find((e) => e.resource?.id === id)
-          ?.resource as fhir4.RequestGroup | RequestResource
-      }
-    }
-
-    const findSelectionGroup = (
+    const findSelectionMatch = (
       action: fhir4.RequestGroupAction[]
     ): boolean => {
       let isMatch = false
@@ -188,22 +210,25 @@ Then(
           subAction.selectionBehavior === selectionBehaviorCode &&
           subAction.action
         ) {
-          isMatch = getCanonicalMatch(subAction.action)
+          isMatch = isCanonicalMatch(subAction.action, selectionBehaviorCode)
         }
         if (!isMatch && subAction.action) {
-          isMatch = findSelectionGroup(subAction.action)
+          isMatch = findSelectionMatch(subAction.action)
+        } else {
+
         }
       }
       return isMatch
     }
 
-    const getCanonicalMatch = (
-      selectionGroupAction: fhir4.RequestGroupAction[]
+    const isCanonicalMatch = (
+      selectionGroupAction: fhir4.RequestGroupAction[],
+      selectionBehaviorCode: fhir4.RequestGroupAction["selectionBehavior"]
     ) => {
       let isMatch = false
-      const selectionGroupActivityIds = selectionGroupAction
+      const selectionGroupDefinitions = selectionGroupAction
         .map((subAction) => {
-          const resource = resolveRequestResource(subAction)
+          const resource = resolveRequestResource(subAction, this.cpgResponse)
           const canonical = is.RequestResource(resource)
             ? getInstantiatesCanonical(resource)
             : undefined
@@ -211,9 +236,9 @@ Then(
         })
         .filter(notEmpty)
       isMatch =
-        selectionGroupActivityIds.sort().toString() ===
-        activityDefinitionIdentifiers.sort().toString()
-      if (selectionGroupActivityIds.length == 0) {
+        selectionGroupDefinitions.sort().toString() ===
+        selectionDefinitionIdentifiers.sort().toString()
+      if (selectionGroupDefinitions.length == 0) {
         const selectionGroupTitles = selectionGroupAction
           .map((subAction) => {
             return subAction.title
@@ -221,16 +246,13 @@ Then(
           .filter(notEmpty)
         isMatch =
           selectionGroupTitles.sort().toString() ===
-          activityDefinitionIdentifiers.sort().toString()
+          selectionDefinitionIdentifiers.sort().toString()
       }
       if (isMatch) {
-        selectionGroupActivityIds.forEach(
-          (id) =>
-            (this.requestResources = removeFromRequests(
-              id,
-              this.requestResources
-            ))
-        )
+        selectionGroupDefinitions.forEach((id) => {
+          this.recommendations = removeFromRecommendations(id, this.recommendations)
+        })
+        this.selectionGroups = removeFromSelectionGroups(selectionBehaviorCode, selectionGroupDefinitions, this.selectionGroups)
       }
       return isMatch
     }
@@ -240,20 +262,16 @@ Then(
       for (let i = 0; i < this.cpgResponse.entry.length && !isMatch; i++) {
         const resource = this.cpgResponse.entry[i]
           .resource as fhir4.RequestGroup
-        isMatch = resource.action ? findSelectionGroup(resource.action) : false
+        isMatch = resource.action ? findSelectionMatch(resource.action) : false
       }
     }
-
     const message =
-      // !isSelectionMatch
-      //   ? `Recommendation with selection behavior "${selectionBehaviorCode}" expected, but does not exist`
-      //   :
-      `\nExpected recommendations:\n- ${activityDefinitionIdentifiers.join(
-        '\n- '
-      )} \nBut found:\n- ${
-        isEmpty(this.requestResources)
-          ? 'no recommendations'
-          : this.requestResources?.join('\n- ')
+      `\nExpected:\n - ${selectionBehaviorCode}: ${selectionDefinitionIdentifiers.join(
+        ', '
+      )}\nBut found:\n ${
+        isEmpty(this.selectionGroups)
+          ? '- No selection groups'
+          : this.selectionGroups?.map(sg => `- ${sg.selectionCode}: ${sg.definitions.join(', ')}\n`)
       }`
     assert(isMatch, message)
   }
@@ -264,23 +282,15 @@ Then(
   function (
     this: TestContext,
     selectionBehaviorCode: string,
-    activityDefinitionIdentifierTable: DataTable
+    selectionActionIdentifiersTable: DataTable
   ) {
-    const activityDefinitionIdentifiers: string[] =
-      activityDefinitionIdentifierTable
+    const selectionActionIdentifiers: string[] =
+      selectionActionIdentifiersTable
         .raw()
         .map((i) => i[0])
         .sort()
 
-    const resolveRequestResource = (action: fhir4.RequestGroupAction) => {
-      if (action.resource?.reference) {
-        const id = action.resource.reference.split('/')[1]
-        return this.cpgResponse?.entry?.find((e) => e.resource?.id === id)
-          ?.resource as fhir4.RequestGroup | RequestResource
-      }
-    }
-
-    const findSelectionGroup = (
+    const findSelectionMatch = (
       action: fhir4.RequestGroupAction[]
     ): boolean => {
       let isMatch = false
@@ -291,16 +301,16 @@ Then(
           subAction.selectionBehavior === selectionBehaviorCode &&
           subAction.action
         ) {
-          isMatch = getActionMatch(subAction.action)
+          isMatch = isActionMatch(subAction.action)
         }
         if (!isMatch && subAction.action) {
-          isMatch = findSelectionGroup(subAction.action)
+          isMatch = findSelectionMatch(subAction.action)
         }
       }
       return isMatch
     }
 
-    const getActionMatch = (
+    const isActionMatch = (
       selectionGroupAction: fhir4.RequestGroupAction[]
     ) => {
       let isMatch = false
@@ -311,7 +321,7 @@ Then(
         .filter(notEmpty)
       isMatch =
         selectionGroupTitles.sort().toString() ===
-        activityDefinitionIdentifiers.sort().toString()
+        selectionActionIdentifiers.sort().toString()
       return isMatch
     }
 
@@ -320,7 +330,7 @@ Then(
       for (let i = 0; i < this.cpgResponse.entry.length && !isMatch; i++) {
         const resource = this.cpgResponse.entry[i]
           .resource as fhir4.RequestGroup
-        isMatch = resource.action ? findSelectionGroup(resource.action) : false
+        isMatch = resource.action ? findSelectionMatch(resource.action) : false
       }
     }
 
@@ -331,8 +341,8 @@ Then(
 
 Then('no activites should have been recommended', function (this: TestContext) {
   assert(
-    isEmpty(this.requestResources),
-    `Found unexpected recommendations:\n- ${this.requestResources?.join(
+    isEmpty(this.recommendations),
+    `Found unexpected recommendations:\n- ${this.recommendations?.join(
       '\n- '
     )}`
   )
@@ -341,8 +351,8 @@ Then('no activites should have been recommended', function (this: TestContext) {
 After(function (this: TestContext, scenario) {
   if (scenario?.result?.status === 'PASSED') {
     assert(
-      isEmpty(this.requestResources),
-      `Found unexpected recommendations:\n- ${this.requestResources?.join(
+      isEmpty(this.recommendations),
+      `Found unexpected recommendations:\n- ${this.recommendations?.join(
         '\n- '
       )}`
     )
