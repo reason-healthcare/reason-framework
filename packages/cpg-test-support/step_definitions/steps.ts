@@ -54,7 +54,7 @@ Given(
 
 When(
   'apply is called with context {string}',
-  {timeout: 3 * 5000},
+  { timeout: 3 * 5000 },
   async function (this: TestContext, patientContextIdentifier: string) {
     this.patientContextIdentifier = patientContextIdentifier
     const reference = `Bundle/${patientContextIdentifier}`
@@ -177,7 +177,9 @@ Then(
       }
     }
 
-    const findSelectionGroup = (action: fhir4.RequestGroupAction[]): boolean => {
+    const findSelectionGroup = (
+      action: fhir4.RequestGroupAction[]
+    ): boolean => {
       let isMatch = false
       for (let i = 0; i < action.length && !isMatch; i++) {
         let subAction = action[i]
@@ -206,18 +208,20 @@ Then(
             ? getInstantiatesCanonical(resource)
             : undefined
           return canonical ? canonical.split('/').pop() : null
-        })  // this is the response from server
+        })
         .filter(notEmpty)
       isMatch =
         selectionGroupActivityIds.sort().toString() ===
         activityDefinitionIdentifiers.sort().toString()
       if (selectionGroupActivityIds.length == 0) {
         const selectionGroupTitles = selectionGroupAction
-        .map((subAction) => {
-          return subAction.title
-        })  // this is the response from server
-        .filter(notEmpty)
-        isMatch = selectionGroupTitles.sort().toString() === activityDefinitionIdentifiers.sort().toString()
+          .map((subAction) => {
+            return subAction.title
+          })
+          .filter(notEmpty)
+        isMatch =
+          selectionGroupTitles.sort().toString() ===
+          activityDefinitionIdentifiers.sort().toString()
       }
       if (isMatch) {
         selectionGroupActivityIds.forEach(
@@ -233,30 +237,24 @@ Then(
 
     let isMatch = false
     if (this.cpgResponse?.entry) {
-      for (
-        let i = 0;
-        i < this.cpgResponse.entry.length && !isMatch;
-        i++
-      ) {
+      for (let i = 0; i < this.cpgResponse.entry.length && !isMatch; i++) {
         const resource = this.cpgResponse.entry[i]
           .resource as fhir4.RequestGroup
-        isMatch = resource.action
-          ? findSelectionGroup(resource.action)
-          : false
+        isMatch = resource.action ? findSelectionGroup(resource.action) : false
       }
     }
 
     const message =
-    // !isSelectionMatch
-    //   ? `Recommendation with selection behavior "${selectionBehaviorCode}" expected, but does not exist`
-    //   :
+      // !isSelectionMatch
+      //   ? `Recommendation with selection behavior "${selectionBehaviorCode}" expected, but does not exist`
+      //   :
       `\nExpected recommendations:\n- ${activityDefinitionIdentifiers.join(
-          '\n- '
-        )} \nBut found:\n- ${
-          isEmpty(this.requestResources)
-            ? 'no recommendations'
-            : this.requestResources?.join('\n- ')
-        }`
+        '\n- '
+      )} \nBut found:\n- ${
+        isEmpty(this.requestResources)
+          ? 'no recommendations'
+          : this.requestResources?.join('\n- ')
+      }`
     assert(isMatch, message)
   }
 )
