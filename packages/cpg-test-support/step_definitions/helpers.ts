@@ -1,4 +1,5 @@
 import fs from 'fs'
+import { TestContext } from './steps'
 
 export type RequestResource =
   | fhir4.MedicationRequest
@@ -52,6 +53,9 @@ export const is = {
   },
   Task: (resource: any): resource is fhir4.Task => {
     return resource?.resourceType === 'Task'
+  },
+  RequestGroup: (resource: any): resource is fhir4.RequestGroup => {
+    return resource?.resourceType === 'RequestGroup'
   },
 }
 
@@ -135,20 +139,26 @@ export const resolveReference = async (
 /**
  * Remove canonical reference from a list of request resource references. This enables checking for requests that have not yet been tested against. Each time a request matches an assertion, it is removed.
  *
- * @param canonical Canonical reference to remove
- * @param resources List of remaining request resource canonicals from the $apply output
+ * @param identifier Canonical reference to remove
+ * @param recommendations List of remaining request resource canonicals from the $apply output
  */
-export const removeFromRequests = (
-  canonical: string | undefined,
-  resources: string[] | undefined
+export const removeFromRecommendations = (
+  identifier: string | undefined,
+  recommendations: string[] | undefined
 ) => {
-  if (typeof canonical === 'string' && resources?.includes(canonical)) {
-    resources = resources.filter((c) => c !== canonical)
-  }
-  return resources
+  recommendations = recommendations?.filter((c) => c !== identifier)
+  return recommendations
 }
 
-export const isEmpty = (requests: string[] | undefined) => {
+export const removeFromSelectionGroups = (selectionBehaviorCode: fhir4.RequestGroupAction["selectionBehavior"], identifiers: string[], selectionGroups: TestContext["selectionGroups"]) => {
+  selectionGroups = selectionGroups.filter(sg => {
+    sg.selectionCode !== selectionBehaviorCode &&
+    sg.definitions.sort().toString() !== identifiers.sort().toString()
+  })
+  return selectionGroups
+}
+
+export const isEmpty = (requests: any[] | undefined) => {
   return !requests || requests.length === 0
 }
 
@@ -185,4 +195,12 @@ export const createEndpoint = (type: string, address: string) => {
       code: endpointType,
     },
   } as fhir4.Endpoint
+}
+
+export const resolveRequestResource = (action: fhir4.RequestGroupAction, bundle: fhir4.Bundle | undefined) => {
+  if (action.resource?.reference) {
+    const id = action.resource.reference.split('/')[1]
+    return bundle?.entry?.find((e) => e.resource?.id === id)
+      ?.resource as fhir4.RequestGroup | RequestResource
+  }
 }
