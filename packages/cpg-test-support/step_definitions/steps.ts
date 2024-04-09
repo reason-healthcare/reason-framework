@@ -259,6 +259,76 @@ Then(
   }
 )
 
+Then(
+  'select {string} of the following actions should be present',
+  function (
+    this: TestContext,
+    selectionBehaviorCode: string,
+    activityDefinitionIdentifierTable: DataTable
+  ) {
+    const activityDefinitionIdentifiers: string[] =
+      activityDefinitionIdentifierTable
+        .raw()
+        .map((i) => i[0])
+        .sort()
+
+    const resolveRequestResource = (action: fhir4.RequestGroupAction) => {
+      if (action.resource?.reference) {
+        const id = action.resource.reference.split('/')[1]
+        return this.cpgResponse?.entry?.find((e) => e.resource?.id === id)
+          ?.resource as fhir4.RequestGroup | RequestResource
+      }
+    }
+
+    const findSelectionGroup = (
+      action: fhir4.RequestGroupAction[]
+    ): boolean => {
+      let isMatch = false
+      for (let i = 0; i < action.length && !isMatch; i++) {
+        let subAction = action[i]
+        if (
+          subAction.selectionBehavior &&
+          subAction.selectionBehavior === selectionBehaviorCode &&
+          subAction.action
+        ) {
+          isMatch = getActionMatch(subAction.action)
+        }
+        if (!isMatch && subAction.action) {
+          isMatch = findSelectionGroup(subAction.action)
+        }
+      }
+      return isMatch
+    }
+
+    const getActionMatch = (
+      selectionGroupAction: fhir4.RequestGroupAction[]
+    ) => {
+      let isMatch = false
+      const selectionGroupTitles = selectionGroupAction
+        .map((subAction) => {
+          return subAction.title
+        })
+        .filter(notEmpty)
+      isMatch =
+        selectionGroupTitles.sort().toString() ===
+        activityDefinitionIdentifiers.sort().toString()
+      return isMatch
+    }
+
+    let isMatch = false
+    if (this.cpgResponse?.entry) {
+      for (let i = 0; i < this.cpgResponse.entry.length && !isMatch; i++) {
+        const resource = this.cpgResponse.entry[i]
+          .resource as fhir4.RequestGroup
+        isMatch = resource.action ? findSelectionGroup(resource.action) : false
+      }
+    }
+
+    const message =
+    assert(isMatch, 'Unable to find a matching selection group')
+  }
+)
+
 Then('no activites should have been recommended', function (this: TestContext) {
   assert(
     isEmpty(this.requestResources),
