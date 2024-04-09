@@ -257,7 +257,6 @@ export const applyPlanDefinitionAction = async (
 
   // DefinitionCanonical...
   if (definitionCanonical != null) {
-
     const definitionResource = await contentResolver.resolveCanonical(
       definitionCanonical,
       ['ActivityDefinition', 'PlanDefinition', 'Questionnaire']
@@ -331,7 +330,6 @@ export const applyPlanDefinitionAction = async (
           ) //callback fn to declare types? Otherwise erroring bc of type 'undefined'
       }
     } else if (is.PlanDefinition(definitionResource)) {
-
       const planDefinitionArgs: ApplyPlanDefinitionArgs = {
         ...args,
         planDefinition: definitionResource
@@ -380,7 +378,7 @@ export const applyPlanDefinitionAction = async (
 
   // Process any children...
   if (!isAtomic(action) && action.action != null) {
-   // Use for loop instead of .map so that actions are processed asynchronously. Otherwise request groups will be assigned to the incorrect actions
+    // Use for loop instead of .map so that actions are processed asynchronously. Otherwise request groups will be assigned to the incorrect actions
     const childActionBundlesRaw = []
     for (const childAction of action.action) {
       const result = await applyPlanDefinitionAction(
