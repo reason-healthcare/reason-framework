@@ -179,7 +179,7 @@ Then(
       instantiatedResource,
       `\nExpected recommendation:\n- ${activityDefinitionIdentifier}\nBut found:\n- ${
         isEmpty(this.recommendations)
-          ? '- No recommendations'
+          ? '- No remaining recommendations'
           : this.recommendations?.join('\n- ')
       }`
     )
@@ -266,12 +266,12 @@ Then(
       }
     }
     const message =
-      `\nExpected:\n - ${selectionBehaviorCode}: ${selectionDefinitionIdentifiers.join(
+      `\nExpected:\n - Select ${selectionBehaviorCode}: ${selectionDefinitionIdentifiers.join(
         ', '
       )}\nBut found:\n ${
         isEmpty(this.selectionGroups)
-          ? '- No selection groups'
-          : this.selectionGroups?.map(sg => `- ${sg.selectionCode}: ${sg.definitions.join(', ')}\n`)
+          ? '- No remaining selection groups'
+          : this.selectionGroups?.map(sg => `- Select ${sg.selectionCode}: ${sg.definitions.join(', ')}\n`)
       }`
     assert(isMatch, message)
   }
@@ -342,7 +342,7 @@ Then(
 Then('no activites should have been recommended', function (this: TestContext) {
   assert(
     isEmpty(this.recommendations),
-    `Found unexpected recommendations:\n- ${this.recommendations?.join(
+    `Found recommendations:\n- ${this.recommendations?.join(
       '\n- '
     )}`
   )
@@ -352,7 +352,7 @@ After(function (this: TestContext, scenario) {
   if (scenario?.result?.status === 'PASSED') {
     assert(
       isEmpty(this.recommendations),
-      `Found unexpected recommendations:\n- ${this.recommendations?.join(
+      `Found remaining recommendations:\n- ${this.recommendations?.join(
         '\n- '
       )}`
     )
