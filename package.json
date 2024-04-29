@@ -8,7 +8,8 @@
   "workspaces": [
     "packages/cpg-execution",
     "packages/cds-service",
-    "packages/cpg-test-support"
+    "packages/cpg-test-support",
+    "packages/cpg-preview"
   ],
   "devDependencies": {
     "concurrently": "^7.6.0",
