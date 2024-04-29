@@ -35,7 +35,7 @@ class Flow {
   private createActionNode(id: string, action: fhir4.PlanDefinitionAction) {
     return {
       id,
-      data: { label: action.title, handle: 'output' },
+      data: { label: action.title },
       position: { x: 0, y: 0 },
       type: 'actionNode',
       className: 'node'

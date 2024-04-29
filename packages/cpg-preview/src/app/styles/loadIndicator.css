@@ -4,11 +4,12 @@
   justify-content: center;
   justify-items: center;
   align-items: center;
-  align-content: center;
   font-size: 1.3rem;
 }
 
 .icon {
   font-size: 1rem;
+  display: 'flex';
+  justify-content: 'center';
 }
 

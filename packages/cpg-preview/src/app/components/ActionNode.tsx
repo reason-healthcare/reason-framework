@@ -5,15 +5,12 @@ import Image from 'next/image'
 
 type NodeData = {
   label: string
-  handle: 'input' | 'output'
+  handle: 'output' | undefined
 }
 const ActionNode = ({ data }: NodeProps<NodeData>) => {
   const { label, handle } = data
 
-  let outputHandle
-  if (handle === 'output') {
-    outputHandle = <Handle type="source" position={Position.Bottom} />
-  }
+  console.log(handle)
 
   return (
     <div className="node-container">
@@ -26,7 +23,7 @@ const ActionNode = ({ data }: NodeProps<NodeData>) => {
           </div>
         </div>
       </div>
-      {outputHandle}
+      {handle !== 'output' ? <Handle type="source" position={Position.Bottom} /> : null}
     </div>
   )
 }
