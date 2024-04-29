@@ -1,0 +1,10 @@
+.details-node-container {
+  height: 100%;
+  width: 150px;
+  padding: 5px 0 5px 0;
+  text-align: center;
+}
+
+.handle {
+  background-color: #fafafa;
+}

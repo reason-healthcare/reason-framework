@@ -42,13 +42,27 @@ class Flow {
     } as Node
   }
 
-  private createEdge(sourceId: string) {
+  private createDetailsNode(label: string) {
     return {
+      id: `${label}-${uuid()}`,
+      data: { label },
+      position: { x: 0, y: 0 },
+      type: 'detailsNode',
+      className: 'node'
+    }
+  }
+
+  private createEdge(sourceId: string, targetId?: string) {
+    const edge = {
       id: `${sourceId}`,
       source: sourceId,
       type: 'smoothstep',
       className: 'edge',
     } as Edge
+    if (targetId) {
+      edge.target = targetId
+    }
+    return edge
   }
 
   /**
@@ -106,7 +120,7 @@ class Flow {
        * Create node for each action
        * ID needs to be unique - definition nodes are deduped, action nodes are not
       */
-      const id = `action-${action.title}-${uuidv4()}`
+      const id = `action-${action.title}-${uuid()}`
       const actionNode = this.createActionNode(id, action)
       this.addNewNode(actionNode)
 
@@ -114,36 +128,38 @@ class Flow {
       const sourceEdge = {...parentEdge, target: id, id: parentEdge.id + id}
       this.addNewEdge(sourceEdge)
 
+      /** If selection or applicability, generate details node */
+      let targetEdge
+      if (action.selectionBehavior || action.condition) {
+        const detailsNode = this.createDetailsNode(action.selectionBehavior ? `Select ${action.selectionBehavior}` : 'Is applicable')
+        this.addNewNode(detailsNode)
+        const detailsEdge = this.createEdge(actionNode.id, detailsNode.id)
+        this.addNewEdge(detailsEdge)
+        targetEdge = this.createEdge(detailsNode.id)
+        targetEdge.animated = true
+      }
+
       /** Handle children */
-      if (action.definitionCanonical || action.action) {
-        const targetEdge = this.createEdge(actionNode.id)
-        if (action.selectionBehavior) {
-          targetEdge.animated = true
-          // add label
-        } else if (action.condition) {
-          targetEdge.animated = true
-          // add label
-        }
-        if (action.definitionCanonical) {
-          const definition = (await resolveCanonical(
-            action.definitionCanonical,
-            content
-          )) as fhir4.ActivityDefinition | fhir4.PlanDefinition | undefined
-          if (definition) {
-            await this.processDefinitionalNode(
-              definition,
-              content,
-              targetEdge
-            )
-          }
-        } else if (action.action) {
-          await this.processActionNodes(
-            action.action,
+      if (action.definitionCanonical) {
+        const definition = (await resolveCanonical(
+          action.definitionCanonical,
+          content
+        )) as fhir4.ActivityDefinition | fhir4.PlanDefinition | undefined
+        if (definition) {
+          await this.processDefinitionalNode(
+            definition,
             content,
-            targetEdge
+            targetEdge ?? this.createEdge(actionNode.id)
           )
         }
-      } else {
+      } else if (action.action) {
+        await this.processActionNodes(
+          action.action,
+          content,
+          targetEdge ?? this.createEdge(actionNode.id)
+        )
+      }
+      if (!action.definitionCanonical && !action.action) {
         actionNode.data.handle = 'output'
       }
     }))

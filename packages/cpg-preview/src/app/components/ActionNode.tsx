@@ -1,4 +1,4 @@
-import { Handle, NodeProps, Node, Position } from 'reactflow'
+import { Handle, NodeProps, Position } from 'reactflow'
 import '@/styles/node.css'
 import diamond from '../../../public/images/diamond.svg'
 import Image from 'next/image'
@@ -9,9 +9,6 @@ type NodeData = {
 }
 const ActionNode = ({ data }: NodeProps<NodeData>) => {
   const { label, handle } = data
-
-  console.log(handle)
-
   return (
     <div className="node-container">
       <Handle type="target" position={Position.Top} />

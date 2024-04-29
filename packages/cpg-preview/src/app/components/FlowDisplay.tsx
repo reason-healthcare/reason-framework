@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from 'react'
 import ReactFlow, { Edge, Node, Background, Controls, MiniMap } from 'reactflow'
 import Flow from '../model/Flow'
 import ActionNode from '@/components/ActionNode'
+import DetailsNode from './DetailsNode'
 import SelectionEdge from '@/components/SelectionEdge'
 import FileResolver from 'resolver/file'
 import ELK, { ElkNode } from 'elkjs'
@@ -19,7 +20,7 @@ export default function FlowDisplay({ resolver, planDefinition }: FlowDisplayPor
   const [nodes, setNodes] = useState<Node[] | undefined>()
   const [edges, setEdges] = useState<Edge[] | undefined>()
 
-  const nodeTypes = useMemo(() => ({ actionNode: ActionNode }), [])
+  const nodeTypes = useMemo(() => ({ actionNode: ActionNode, detailsNode: DetailsNode }), [])
   const edgeTypes = useMemo(() => ({ selectionEdge: SelectionEdge }), [])
 
   useEffect(() => {
