@@ -6,9 +6,11 @@ import Image from 'next/image'
 type NodeData = {
   label: string
   handle: 'output' | undefined
+  details: fhir4.PlanDefinitionAction
+  selected?: boolean
 }
 const ActionNode = ({ data }: NodeProps<NodeData>) => {
-  const { label, handle } = data
+  const { label, handle, details, selected } = data
   return (
     <div className="node-container">
       <Handle type="target" position={Position.Top} />
@@ -21,6 +23,7 @@ const ActionNode = ({ data }: NodeProps<NodeData>) => {
         </div>
       </div>
       {handle !== 'output' ? <Handle type="source" position={Position.Bottom} /> : null}
+      {selected ? 'test' : null}
     </div>
   )
 }

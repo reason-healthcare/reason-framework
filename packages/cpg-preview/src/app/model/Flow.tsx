@@ -35,7 +35,7 @@ class Flow {
   private createActionNode(id: string, action: fhir4.PlanDefinitionAction) {
     return {
       id,
-      data: { label: action.title },
+      data: { label: action.title, details: action, selected: false },
       position: { x: 0, y: 0 },
       type: 'actionNode',
       className: 'node'
@@ -128,10 +128,12 @@ class Flow {
       const sourceEdge = {...parentEdge, target: id, id: parentEdge.id + id}
       this.addNewEdge(sourceEdge)
 
-      /** If selection or applicability, generate details node */
+      /** If selection, generate details node
+       * Alternative method - node with additional label, but positioning might be challenging
+      */
       let targetEdge
-      if (action.selectionBehavior || action.condition) {
-        const detailsNode = this.createDetailsNode(action.selectionBehavior ? `Select ${action.selectionBehavior}` : 'Is applicable')
+      if (action.selectionBehavior) {
+        const detailsNode = this.createDetailsNode(`Select ${action.selectionBehavior}`)
         this.addNewNode(detailsNode)
         const detailsEdge = this.createEdge(actionNode.id, detailsNode.id)
         this.addNewEdge(detailsEdge)

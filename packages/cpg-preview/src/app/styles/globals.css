@@ -28,6 +28,13 @@ body {
   width: 100%;
 }
 
+.content-container {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  justify-content: center;
+}
+
 .flow-container {
   height: 100%;
   width: 100%;
