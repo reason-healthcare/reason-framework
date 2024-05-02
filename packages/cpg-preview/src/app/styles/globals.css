@@ -8,7 +8,7 @@ body {
   background-color: #fafafa;
   min-width: 320px;
   height: 100vh;
-  padding: 0px 20px 30px 20px;
+  padding: 1rem 3rem 3rem 3rem;
 }
 
 .app-container {
@@ -51,6 +51,10 @@ h2 {
 }
 
 p {
+  font-size: 0.8rem;
+}
+
+span {
   font-size: 0.8rem;
 }
 
