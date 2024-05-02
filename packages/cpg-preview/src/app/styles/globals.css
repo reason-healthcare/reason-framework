@@ -24,7 +24,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 15px 0 15px;
+  padding: 0 5rem 0 5rem;
   width: 100%;
 }
 
@@ -33,6 +33,7 @@ body {
   height: 100%;
   width: 100%;
   justify-content: center;
+  gap: 3rem;
 }
 
 .flow-container {
@@ -45,10 +46,15 @@ h1 {
 }
 
 h2 {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: normal;
 }
 
 p {
-  font-size: 0.5rem;
+  font-size: 0.8rem;
 }
+
+li {
+  font-size: 0.8rem;
+}
+

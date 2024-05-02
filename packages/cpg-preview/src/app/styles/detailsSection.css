@@ -1,4 +1,12 @@
-.container {
+.details-container {
   min-width: 300px;
-  height: 100%
+  max-width: 30%;
+  border-left: 5px gray;
+  padding-top: 3rem;
+  padding-right: 1rem;
+}
+
+.details-description {
+  text-decoration: underline;
+  font-weight: 500;
 }

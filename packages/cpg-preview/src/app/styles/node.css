@@ -64,3 +64,7 @@
   white-space: wrap;
   word-break: break-all;
 }
+
+.node p {
+  font-size: 0.5rem;
+}

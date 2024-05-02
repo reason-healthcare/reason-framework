@@ -3,10 +3,9 @@ import { is, notEmpty } from '../helpers'
 import '@/styles/node.css'
 import '@/styles/edge.css'
 import FileResolver from 'resolver/file'
-import { v4 as uuidv4 } from 'uuid'
 import { ElkNode } from 'elkjs'
 import { resolveCanonical } from '../helpers'
-import { uuid } from 'uuidv4'
+import { v4 } from 'uuid'
 
 class Flow {
   nodes: Node[] | undefined
@@ -44,7 +43,7 @@ class Flow {
 
   private createDetailsNode(label: string) {
     return {
-      id: `${label}-${uuid()}`,
+      id: `${label}-${v4()}`,
       data: { label },
       position: { x: 0, y: 0 },
       type: 'detailsNode',
@@ -120,7 +119,7 @@ class Flow {
        * Create node for each action
        * ID needs to be unique - definition nodes are deduped, action nodes are not
       */
-      const id = `action-${action.title}-${uuid()}`
+      const id = `action-${action.title}-${v4()}`
       const actionNode = this.createActionNode(id, action)
       this.addNewNode(actionNode)
 
