@@ -25,10 +25,14 @@ class Flow {
   ): Node {
     return {
       id,
-      data: { label: definition.title ?? definition.id },
+      data: {
+        label: definition.title ?? definition.id,
+        details: definition,
+        selected: false,
+      },
       position: { x: 0, y: 0 },
       className: 'definition-node node',
-    }
+    } as Node
   }
 
   private createActionNode(id: string, action: fhir4.PlanDefinitionAction) {
@@ -37,7 +41,7 @@ class Flow {
       data: { label: action.title, details: action, selected: false },
       position: { x: 0, y: 0 },
       type: 'actionNode',
-      className: 'node'
+      className: 'node',
     } as Node
   }
 
@@ -47,7 +51,7 @@ class Flow {
       data: { label },
       position: { x: 0, y: 0 },
       type: 'detailsNode',
-      className: 'node'
+      className: 'node',
     }
   }
 
@@ -78,7 +82,7 @@ class Flow {
     if (definition) {
       /** Create node if it doesn't exist, find node if it does */
       const id = `definition-${definition.id}`
-      const match = this.nodes?.find(n => n.id === id)
+      const match = this.nodes?.find((n) => n.id === id)
       const node = match ?? this.createDefinitionalNode(id, definition)
       !match ? this.addNewNode(node) : null
 
@@ -114,56 +118,60 @@ class Flow {
     content: FileResolver,
     parentEdge: Edge
   ) {
-    await Promise.all(actions.map(async (action) => {
-      /**
-       * Create node for each action
-       * ID needs to be unique - definition nodes are deduped, action nodes are not
-      */
-      const id = `action-${action.title}-${v4()}`
-      const actionNode = this.createActionNode(id, action)
-      this.addNewNode(actionNode)
+    await Promise.all(
+      actions.map(async (action) => {
+        /**
+         * Create node for each action
+         * ID needs to be unique - definition nodes are deduped, action nodes are not
+         */
+        const id = `action-${action.title}-${v4()}`
+        const actionNode = this.createActionNode(id, action)
+        this.addNewNode(actionNode)
 
-      /** Connect to parent */
-      const sourceEdge = {...parentEdge, target: id, id: parentEdge.id + id}
-      this.addNewEdge(sourceEdge)
+        /** Connect to parent */
+        const sourceEdge = { ...parentEdge, target: id, id: parentEdge.id + id }
+        this.addNewEdge(sourceEdge)
 
-      /** If selection, generate details node
-       * Alternative method - node with additional label, but positioning might be challenging
-      */
-      let targetEdge
-      if (action.selectionBehavior) {
-        const detailsNode = this.createDetailsNode(`Select ${action.selectionBehavior}`)
-        this.addNewNode(detailsNode)
-        const detailsEdge = this.createEdge(actionNode.id, detailsNode.id)
-        this.addNewEdge(detailsEdge)
-        targetEdge = this.createEdge(detailsNode.id)
-        targetEdge.animated = true
-      }
+        /** If selection, generate details node
+         * Alternative method - node with additional label, but positioning might be challenging
+         */
+        let targetEdge
+        if (action.selectionBehavior) {
+          const detailsNode = this.createDetailsNode(
+            `Select ${action.selectionBehavior}`
+          )
+          this.addNewNode(detailsNode)
+          const detailsEdge = this.createEdge(actionNode.id, detailsNode.id)
+          this.addNewEdge(detailsEdge)
+          targetEdge = this.createEdge(detailsNode.id)
+          targetEdge.animated = true
+        }
 
-      /** Handle children */
-      if (action.definitionCanonical) {
-        const definition = (await resolveCanonical(
-          action.definitionCanonical,
-          content
-        )) as fhir4.ActivityDefinition | fhir4.PlanDefinition | undefined
-        if (definition) {
-          await this.processDefinitionalNode(
-            definition,
+        /** Handle children */
+        if (action.definitionCanonical) {
+          const definition = (await resolveCanonical(
+            action.definitionCanonical,
+            content
+          )) as fhir4.ActivityDefinition | fhir4.PlanDefinition | undefined
+          if (definition) {
+            await this.processDefinitionalNode(
+              definition,
+              content,
+              targetEdge ?? this.createEdge(actionNode.id)
+            )
+          }
+        } else if (action.action) {
+          await this.processActionNodes(
+            action.action,
             content,
             targetEdge ?? this.createEdge(actionNode.id)
           )
         }
-      } else if (action.action) {
-        await this.processActionNodes(
-          action.action,
-          content,
-          targetEdge ?? this.createEdge(actionNode.id)
-        )
-      }
-      if (!action.definitionCanonical && !action.action) {
-        actionNode.data.handle = 'output'
-      }
-    }))
+        if (!action.definitionCanonical && !action.action) {
+          actionNode.data.handle = 'output'
+        }
+      })
+    )
   }
 
   /**
@@ -184,11 +192,10 @@ class Flow {
    * Generate final react flow with updated layout positions
    * @param graph
    */
-  public generateFinalFlow(
-    graph: ElkNode
-  ) {
-      if (this.nodes && this.edges) {
-        this.nodes = graph.children?.map((node) => {
+  public generateFinalFlow(graph: ElkNode) {
+    if (this.nodes && this.edges) {
+      this.nodes = graph.children
+        ?.map((node) => {
           const reactNode = this.nodes?.find((n) => n.id === node.id)
           if (node.x && node.y && reactNode) {
             return {
@@ -196,21 +203,23 @@ class Flow {
               position: { x: node.x, y: node.y },
             }
           }
-        }).filter(notEmpty)
+        })
+        .filter(notEmpty)
 
-        this.edges = graph.edges?.map((edge) => {
+      this.edges = graph.edges
+        ?.map((edge) => {
           const reactEdge = this.edges?.find((e) => e.id === edge.id)
           if (edge.sources && edge.targets && reactEdge) {
             return {
               ...reactEdge,
               source: edge.sources[0],
-              target: edge.targets[0]
+              target: edge.targets[0],
             }
           }
-        }).filter(notEmpty)
+        })
+        .filter(notEmpty)
     }
   }
 }
-
 
 export default Flow

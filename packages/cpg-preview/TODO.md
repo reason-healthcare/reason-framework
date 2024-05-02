@@ -1,12 +1,13 @@
 # Next Steps
 
 1. Create selection behavior and applicability nodes that act as labels
-2. Details section should open and close on action/plan click to the side of the diagram
-3. Expandable and collapsable nodes
-4. Highlight selected edge path (currently stroke thickness increases)
-5. Handle overlapping edges
-6. Mini map styling
-7. Support REST endpoint
+2. Handle additional json properies in details section (ie applicability.reference, etc)
+3. Highlight node on click
+4. Expandable and collapsable nodes
+5. Highlight selected edge path (currently stroke thickness increases)
+6. Handle overlapping edges
+7. Mini map styling
+8. Support REST endpoint
 
 # Refactor
 

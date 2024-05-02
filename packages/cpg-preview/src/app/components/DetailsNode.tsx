@@ -9,14 +9,13 @@ const DetailsNode = ({ data }: NodeProps<NodeData>) => {
 
   return (
     <div className="details-node-container">
-      <Handle className='handle' type="target" position={Position.Top} />
+      <Handle className="handle" type="target" position={Position.Top} />
       <div>
         <label>{label}</label>
       </div>
-      <Handle className='handle' type="source" position={Position.Bottom} />
+      <Handle className="handle" type="source" position={Position.Bottom} />
     </div>
   )
 }
 
 export default DetailsNode
-

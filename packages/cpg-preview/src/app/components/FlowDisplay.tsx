@@ -1,6 +1,13 @@
 'use client'
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import ReactFlow, { Edge, Node, Background, Controls, MiniMap, applyNodeChanges } from 'reactflow'
+import ReactFlow, {
+  Edge,
+  Node,
+  Background,
+  Controls,
+  MiniMap,
+  applyNodeChanges,
+} from 'reactflow'
 import Flow from '../model/Flow'
 import ActionNode from '@/components/ActionNode'
 import DetailsNode from './DetailsNode'
@@ -14,16 +21,28 @@ const elk = new ELK()
 interface FlowDisplayProps {
   resolver: FileResolver | undefined
   planDefinition: fhir4.PlanDefinition
-  setDetails: React.Dispatch<React.SetStateAction<fhir4.PlanDefinitionAction | fhir4.PlanDefinition | undefined>>
+  setDetails: React.Dispatch<
+    React.SetStateAction<
+      fhir4.PlanDefinitionAction | fhir4.PlanDefinition | undefined
+    >
+  >
   setSelected: React.Dispatch<React.SetStateAction<Node | undefined>>
 }
 
-export default function FlowDisplay({ resolver, planDefinition, setDetails, setSelected }: FlowDisplayProps) {
+export default function FlowDisplay({
+  resolver,
+  planDefinition,
+  setDetails,
+  setSelected,
+}: FlowDisplayProps) {
   const [nodes, setNodes] = useState<Node[] | undefined>()
   const [edges, setEdges] = useState<Edge[] | undefined>()
   // const [selected, setSelected] = useState<Node | undefined>()
 
-  const nodeTypes = useMemo(() => ({ actionNode: ActionNode, detailsNode: DetailsNode }), [])
+  const nodeTypes = useMemo(
+    () => ({ actionNode: ActionNode, detailsNode: DetailsNode }),
+    []
+  )
   const edgeTypes = useMemo(() => ({ selectionEdge: SelectionEdge }), [])
 
   useEffect(() => {
@@ -56,14 +75,17 @@ export default function FlowDisplay({ resolver, planDefinition, setDetails, setS
     // }
   }, [])
 
-  const handleNodeClick = (event: React.MouseEvent<Element, MouseEvent>, node: Node) => {
+  const handleNodeClick = (
+    event: React.MouseEvent<Element, MouseEvent>,
+    node: Node
+  ) => {
     setSelected(node)
     setDetails(node.data.details)
     console.log(node)
   }
 
   return (
-    <div className='flow-container'>
+    <div className="flow-container">
       <ReactFlow
         nodes={nodes}
         edges={edges}

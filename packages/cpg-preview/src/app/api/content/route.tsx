@@ -32,12 +32,16 @@ export async function GET(req: Request) {
   }
 
   if (!resolver) {
-    throw new Error(`Unable to resolve content from endpoint ${PATH_TO_CONTENT}`)
+    throw new Error(
+      `Unable to resolve content from endpoint ${PATH_TO_CONTENT}`
+    )
   }
 
   let planDefinition
   if (PLAN_DEFINITION_IDENTIFIER) {
-    const rawPlanDefinition = await resolver.resolveCanonical(PLAN_DEFINITION_IDENTIFIER)
+    const rawPlanDefinition = await resolver.resolveCanonical(
+      PLAN_DEFINITION_IDENTIFIER
+    )
     if (is.planDefinition(rawPlanDefinition)) {
       planDefinition = rawPlanDefinition
     }
@@ -46,7 +50,9 @@ export async function GET(req: Request) {
   }
 
   if (!planDefinition) {
-    throw new Error(`Unable to resolve plan definition with URL ${PLAN_DEFINITION_IDENTIFIER}`)
+    throw new Error(
+      `Unable to resolve plan definition with URL ${PLAN_DEFINITION_IDENTIFIER}`
+    )
   }
 
   try {

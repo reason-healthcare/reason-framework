@@ -8,13 +8,14 @@ class Graph {
   edges: ElkExtendedEdge[] | undefined
 
   constructor() {
-    this.id = 'root';
+    this.id = 'root'
     this.layoutOptions = {
       'elk.algorithm': 'layered',
       'elk.direction': 'DOWN',
       'elk.layered.spacing.nodeNodeBetweenLayers': '200',
       'org.eclipse.elk.spacing.nodeNode': '200',
-      'org.eclipse.elk.layered.crossingMinimization.forceNodeModelOrder': 'true',
+      'org.eclipse.elk.layered.crossingMinimization.forceNodeModelOrder':
+        'true',
     }
   }
 
@@ -31,16 +32,15 @@ class Graph {
   private createNewNode(reactNode: Node) {
     return {
       id: reactNode.id,
-      label: reactNode.data.label
+      label: reactNode.data.label,
     }
   }
 
   public generateElkNodes(reactNodes: Node[]) {
-    this.children = reactNodes.map(n => {
+    this.children = reactNodes.map((n) => {
       return this.createNewNode(n)
     })
   }
-
 }
 
 export default Graph

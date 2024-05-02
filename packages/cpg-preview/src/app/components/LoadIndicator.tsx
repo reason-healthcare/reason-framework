@@ -4,12 +4,10 @@ import { Spin } from 'antd'
 import '@/styles/loadindicator.css'
 
 const LoadIndicator = () => (
-  <div className='container'>
+  <div className="load-container">
     <h2>Loading</h2>
-    <div className='icon'>
-      <Spin
-        indicator={<LoadingOutlined spin />}
-      />
+    <div className="load-icon">
+      <Spin indicator={<LoadingOutlined spin />} />
     </div>
   </div>
 )

@@ -1,4 +1,4 @@
-import FileResolver from "resolver/file"
+import FileResolver from 'resolver/file'
 
 export function notEmpty<TValue>(
   value: TValue | null | undefined
@@ -27,4 +27,3 @@ export const resolveCanonical = async (
     ? resolver.resourcesByCanonical[canonical]
     : undefined
 }
-

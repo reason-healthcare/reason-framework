@@ -17,16 +17,16 @@ const ActionNode = ({ data }: NodeProps<NodeData>) => {
       <div className="diamond">
         <Image src={diamond} alt="diamond node" className="icon" />
         <div className="text-outer-container">
-          <div className='text-inner-container'>
+          <div className="text-inner-container">
             <p>{label}</p>
           </div>
         </div>
       </div>
-      {handle !== 'output' ? <Handle type="source" position={Position.Bottom} /> : null}
-      {selected ? 'test' : null}
+      {handle !== 'output' ? (
+        <Handle type="source" position={Position.Bottom} />
+      ) : null}
     </div>
   )
 }
 
 export default ActionNode
-

@@ -3,17 +3,17 @@ import {
   getSmoothStepPath,
   EdgeLabelRenderer,
   EdgeProps,
-  EdgeText
+  EdgeText,
 } from 'reactflow'
 
 interface SelectionEdgeProps {
   data: {
-    x: number,
-    y: number,
-    text: string,
-    sourceX: number,
-    sourceY: number,
-    targetX: number,
+    x: number
+    y: number
+    text: string
+    sourceX: number
+    sourceY: number
+    targetX: number
     targetY: number
   }
 }
@@ -29,7 +29,7 @@ const SelectionEdge = ({ data }: EdgeProps) => {
 
   return (
     <>
-      <BaseEdge id={id} path={edgePath}/>
+      <BaseEdge id={id} path={edgePath} />
       {/* <EdgeText
       x={x}
       y={y}
