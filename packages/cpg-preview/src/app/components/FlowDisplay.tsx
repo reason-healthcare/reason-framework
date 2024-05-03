@@ -7,11 +7,13 @@ import ReactFlow, {
   Controls,
   MiniMap,
   applyNodeChanges,
+  useOnSelectionChange
 } from 'reactflow'
 import Flow from '../model/Flow'
-import ActionNode from '@/components/ActionNode'
+import ActionNode from './ActionNode'
 import DetailsNode from './DetailsNode'
-import SelectionEdge from '@/components/SelectionEdge'
+import DefinitionNode from './DefinitionNode'
+import SelectionEdge from './SelectionEdge'
 import FileResolver from 'resolver/file'
 import ELK, { ElkNode } from 'elkjs'
 import Graph from '../model/Graph'
@@ -21,26 +23,26 @@ const elk = new ELK()
 interface FlowDisplayProps {
   resolver: FileResolver | undefined
   planDefinition: fhir4.PlanDefinition
-  setDetails: React.Dispatch<
-    React.SetStateAction<
-      fhir4.PlanDefinitionAction | fhir4.PlanDefinition | undefined
-    >
-  >
+  // setDetails: React.Dispatch<
+  //   React.SetStateAction<
+  //     fhir4.PlanDefinitionAction | fhir4.PlanDefinition | fhir4.ActivityDefinition | undefined
+  //   >
+  // >
   setSelected: React.Dispatch<React.SetStateAction<Node | undefined>>
+  selected: Node | undefined
 }
 
 export default function FlowDisplay({
   resolver,
   planDefinition,
-  setDetails,
   setSelected,
+  selected
 }: FlowDisplayProps) {
   const [nodes, setNodes] = useState<Node[] | undefined>()
   const [edges, setEdges] = useState<Edge[] | undefined>()
-  // const [selected, setSelected] = useState<Node | undefined>()
 
   const nodeTypes = useMemo(
-    () => ({ actionNode: ActionNode, detailsNode: DetailsNode }),
+    () => ({ actionNode: ActionNode, detailsNode: DetailsNode, definitionNode: DefinitionNode }),
     []
   )
   const edgeTypes = useMemo(() => ({ selectionEdge: SelectionEdge }), [])
@@ -61,27 +63,24 @@ export default function FlowDisplay({
           })
         })
     }
-
-    // if (selected && nodes) {
-    //   const match = nodes.map(e => e.id).indexOf(selected.id)
-    //   console.log(match + 'match')
-    //   const newNodes = nodes
-    //   if (newNodes[match] && newNodes[match].data) {
-    //     newNodes[match].data = {...newNodes[match].data, selected: true}
-    //   }
-    //   console.log(newNodes[match])
-    //   setNodes(newNodes)
-    //   setSelected(undefined)
-    // }
   }, [])
+
+  useEffect(() => {
+    if (!selected && nodes) {
+      setNodes(nodes.map((node) => {
+        return {
+          ...node,
+          selected: false
+        }
+      }))
+    }
+  }, [selected])
 
   const handleNodeClick = (
     event: React.MouseEvent<Element, MouseEvent>,
     node: Node
   ) => {
     setSelected(node)
-    setDetails(node.data.details)
-    console.log(node)
   }
 
   return (
@@ -95,7 +94,6 @@ export default function FlowDisplay({
         fitView={true}
         elevateEdgesOnSelect={true}
         onNodeClick={handleNodeClick}
-        // onNodesChange={onNodesChange}
       >
         <Background color="#ccc" />
         <MiniMap pannable zoomable />

@@ -28,8 +28,8 @@ class Flow {
       data: {
         label: definition.title ?? definition.id,
         details: definition,
-        selected: false,
       },
+      type: 'definitionNode',
       position: { x: 0, y: 0 },
       className: 'definition-node node',
     } as Node
@@ -38,7 +38,7 @@ class Flow {
   private createActionNode(id: string, action: fhir4.PlanDefinitionAction) {
     return {
       id,
-      data: { label: action.title, details: action, selected: false },
+      data: { label: action.title, details: action },
       position: { x: 0, y: 0 },
       type: 'actionNode',
       className: 'node',

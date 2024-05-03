@@ -5,41 +5,49 @@ import { CloseOutlined } from '@ant-design/icons'
 import { Node } from 'reactflow'
 
 interface DetailsSectionProps {
-  details: fhir4.PlanDefinition | fhir4.PlanDefinitionAction | undefined
   setSelected: React.Dispatch<React.SetStateAction<Node | undefined>>
+  selected: Node | undefined
 }
 
-const DetailsSection = ({ details, setSelected }: DetailsSectionProps) => {
+const DetailsSection = ({ selected, setSelected }: DetailsSectionProps) => {
+  const { details } = selected?.data
   if (!details) {
     return <p>Unable to load details</p>
   }
-  const { title, description, action } = details
-  let header
+  const { title, description } = details
+  let header: string
+  let selection: fhir4.PlanDefinitionAction["selectionBehavior"]
+  let applicability: fhir4.PlanDefinitionAction["condition"]
+  let caseFeature: fhir4.PlanDefinitionAction["input"]
+  let children: fhir4.PlanDefinitionAction["action"]
   let evidence
-  let selection
-  let applicability
-  let caseFeature
+
   if (is.planDefinition(details)) {
-    const { name, relatedArtifact } = details
+    const { name, relatedArtifact, action } = details
     header = `Plan Definition: ${title ?? name}`
     evidence = relatedArtifact
+    children = action
+  } else if (is.activityDefinition(details)) {
+    const { name, kind, intent, doNotPerform, productCodeableConcept, productReference, quantity, dosage, dynamicValue } = details
+    header = `Activity Definition: ${title ?? name}`
   } else {
-    const { documentation, selectionBehavior, condition, input } = details
+    const { documentation, selectionBehavior, condition, input, action } = details
     header = `Action: ${title}`
     evidence = documentation
     selection = selectionBehavior
     applicability = condition
     caseFeature = input
+    children = action
   }
 
-  const actionDisplay = action?.map((a) =>
-    a.title ? <li>{a.title}</li> : null
+  const actionDisplay = children?.map((a) =>
+    a.title ? <li key={v4()}>{a.title}</li> : null
   )
 
-  const evidenceDisplay = evidence?.map((e) => {
+  const evidenceDisplay = evidence?.map((e: any) => {
     return (
       <li key={v4()}>
-        {e.type ? e.type.charAt(0).toUpperCase() + e.type.slice(1) : null}
+        {e?.type ? e.type.charAt(0).toUpperCase() + e.type.slice(1) : null}
         {e.display || e.label ? <p>{e.display ?? e.label}</p> : null}
         {e.citation ? <p>{e.citation}</p> : null}
         {e.url ? (
@@ -59,11 +67,11 @@ const DetailsSection = ({ details, setSelected }: DetailsSectionProps) => {
   })
 
   const applicabilities = applicability?.map((a) => {
-    return <li>{a.expression?.expression ?? null}</li>
+    return <li key={v4()}>{a.expression?.expression ?? null}</li>
   })
 
   const caseFeatures = caseFeature?.map((c) => {
-    return <li>{c.profile ?? null}</li>
+    return <li key={v4()}>{c.profile ?? null}</li>
   })
 
   const handleClick = () => {
@@ -89,7 +97,7 @@ const DetailsSection = ({ details, setSelected }: DetailsSectionProps) => {
             <span>: {selection}</span>
           </p>
         ) : undefined}{' '}
-        {action ? (
+        {children ? (
           <p className="details-description">Child Actions:</p>
         ) : undefined}
         {actionDisplay}

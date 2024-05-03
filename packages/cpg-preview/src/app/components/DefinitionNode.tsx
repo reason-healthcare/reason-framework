@@ -7,26 +7,20 @@ import Image from 'next/image'
 type ActionNodeProps = {
   data: {
     label: string
-    handle: 'output' | undefined
+    handle: 'output' | 'input' | undefined
     details: fhir4.PlanDefinitionAction
   }
   selected: boolean
 }
 
-
-const ActionNode = ({data, selected}: ActionNodeProps) => {
+const DefinitionNode = ({data, selected}: ActionNodeProps) => {
   const { label, handle, details } = data
   return (
-    <div className="node-container">
-      <Handle type="target" position={Position.Top} />
-      <div className="diamond-container">
-        <Image src={ selected ? diamondHighlight : diamond} alt="diamond node" className="diamond-icon" />
-        <div className="text-outer-container">
-          <div className="text-inner-container">
-            <p>{label}</p>
-          </div>
-        </div>
-      </div>
+    <div className={selected ? "node-highlight" : "node-unhighlight"}>
+      {handle !== 'input' ? (
+        <Handle type="target" position={Position.Top} />
+      ) : null}
+      <p>{label}</p>
       {handle !== 'output' ? (
         <Handle type="source" position={Position.Bottom} />
       ) : null}
@@ -34,4 +28,4 @@ const ActionNode = ({data, selected}: ActionNodeProps) => {
   )
 }
 
-export default ActionNode
+export default DefinitionNode

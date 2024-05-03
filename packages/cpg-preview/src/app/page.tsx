@@ -11,12 +11,6 @@ export default function Home() {
   const [planDefinition, setPlanDefinition] = useState<
     fhir4.PlanDefinition | undefined
   >()
-  const [details, setDetails] = useState<
-    | fhir4.PlanDefinition
-    | fhir4.PlanDefinitionAction
-    | fhir4.PlanDefinitionAction
-    | undefined
-  >()
   const [selected, setSelected] = useState<Node | undefined>()
 
   useEffect(() => {
@@ -39,7 +33,7 @@ export default function Home() {
           <FlowDisplay
             resolver={resolver}
             planDefinition={planDefinition}
-            setDetails={setDetails}
+            selected={selected}
             setSelected={setSelected}
           />
         ) : (
@@ -47,8 +41,8 @@ export default function Home() {
         )}
         {selected ? (
           <DetailsSection
-            details={details}
             setSelected={setSelected}
+            selected={selected}
           ></DetailsSection>
         ) : null}
       </div>
