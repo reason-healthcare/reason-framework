@@ -1,17 +1,16 @@
 'use client'
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import ReactFlow, {
   Edge,
   Node,
   Background,
   Controls,
   MiniMap,
-  applyNodeChanges,
-  useOnSelectionChange
+  useReactFlow,
+  getOutgoers
 } from 'reactflow'
 import Flow from '../model/Flow'
 import ActionNode from './ActionNode'
-import DetailsNode from './DetailsNode'
 import DefinitionNode from './DefinitionNode'
 import SelectionEdge from './SelectionEdge'
 import FileResolver from 'resolver/file'
@@ -41,8 +40,17 @@ export default function FlowDisplay({
   const [nodes, setNodes] = useState<Node[] | undefined>()
   const [edges, setEdges] = useState<Edge[] | undefined>()
 
+  // Display only some nodes
+  // Find nodes that are descendants
+  // Filter these out from nodes and layout dislay nodes
+  // Alternative: fetch data and do not create nodes for descendats
+
+  // Option 1: filtering - find child edge, remove, find target, remove, find edge, remove
+  // Track which nodes are expanded and collapsed
+  // For each node that is collapsed, remove children
+
   const nodeTypes = useMemo(
-    () => ({ actionNode: ActionNode, detailsNode: DetailsNode, definitionNode: DefinitionNode }),
+    () => ({ actionNode: ActionNode, definitionNode: DefinitionNode }),
     []
   )
   const edgeTypes = useMemo(() => ({ selectionEdge: SelectionEdge }), [])
@@ -75,6 +83,24 @@ export default function FlowDisplay({
       }))
     }
   }, [selected])
+
+  // const { getEdges, getNodes, deleteElements } = useReactFlow()
+
+  // function removeTreeOfOutgoers(id: string) {
+  //   // we get all outgoers of this node
+  //   const outgoers = getOutgoers({ id } as Node, getNodes(), getEdges())
+
+  //   // if there are outgoers we proceed
+  //   if (outgoers.length) {
+  //     // we remove the outgoer nodes
+  //     deleteElements({ nodes: outgoers })
+
+  //     // we loop through the outgoers and try to remove any outgoers of our outgoers
+  //     outgoers.forEach((outgoer) => {
+  //       removeTreeOfOutgoers(outgoer.id)
+  //     })
+  //   }
+  // }
 
   const handleNodeClick = (
     event: React.MouseEvent<Element, MouseEvent>,

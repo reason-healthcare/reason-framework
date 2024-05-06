@@ -50,6 +50,14 @@
   -webkit-box-orient: vertical;
 }
 
+.action-details-label {
+  margin: 0.8rem;
+  padding: 0.1rem;
+  background-color: #fafafa;
+  white-space: nowrap;
+  font-size: 0.5rem;
+}
+
 /* Definition Node */
 .definition-node {
   font-size: 0.5rem;

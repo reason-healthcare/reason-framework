@@ -17,6 +17,7 @@ export default function Home() {
     fetch('/api/content', { cache: 'no-cache' })
       .then((response) => response.json())
       .then((data) => {
+        console.log('fetching data')
         setResolver(data.resolver)
         setPlanDefinition(data.planDefinition)
       })

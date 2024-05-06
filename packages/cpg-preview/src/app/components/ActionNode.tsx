@@ -30,6 +30,9 @@ const ActionNode = ({data, selected}: ActionNodeProps) => {
       {handle !== 'output' ? (
         <Handle type="source" position={Position.Bottom} />
       ) : null}
+      <div className='action-details-label'>
+       {details.selectionBehavior ? `Select ${details.selectionBehavior}` : null}
+      </div>
     </div>
   )
 }

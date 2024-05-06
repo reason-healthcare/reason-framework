@@ -2,6 +2,7 @@
 
 1. Handle additional json properies in details section (ie applicability.reference, etc)
 2. center/pan to node on click / or refresh fitview when details panel displays
+  <!-- setCenter (x: number, y: number, options?: { duration: number, zoom: number; }) => void -->
 3. Expandable and collapsable nodes
 4. Highlight selected edge path (currently stroke thickness increases)
 5. Handle overlapping edges

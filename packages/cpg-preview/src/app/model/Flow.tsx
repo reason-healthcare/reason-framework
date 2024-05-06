@@ -45,16 +45,6 @@ class Flow {
     } as Node
   }
 
-  private createDetailsNode(label: string) {
-    return {
-      id: `${label}-${v4()}`,
-      data: { label },
-      position: { x: 0, y: 0 },
-      type: 'detailsNode',
-      className: 'node',
-    }
-  }
-
   private createEdge(sourceId: string, targetId?: string) {
     const edge = {
       id: `${sourceId}`,
@@ -132,22 +122,11 @@ class Flow {
         const sourceEdge = { ...parentEdge, target: id, id: parentEdge.id + id }
         this.addNewEdge(sourceEdge)
 
-        /** If selection, generate details node
-         * Alternative method - node with additional label, but positioning might be challenging
-         */
-        let targetEdge
+        /** Handle children */
+        const targetEdge = this.createEdge(actionNode.id)
         if (action.selectionBehavior) {
-          const detailsNode = this.createDetailsNode(
-            `Select ${action.selectionBehavior}`
-          )
-          this.addNewNode(detailsNode)
-          const detailsEdge = this.createEdge(actionNode.id, detailsNode.id)
-          this.addNewEdge(detailsEdge)
-          targetEdge = this.createEdge(detailsNode.id)
           targetEdge.animated = true
         }
-
-        /** Handle children */
         if (action.definitionCanonical) {
           const definition = (await resolveCanonical(
             action.definitionCanonical,
@@ -157,14 +136,14 @@ class Flow {
             await this.processDefinitionalNode(
               definition,
               content,
-              targetEdge ?? this.createEdge(actionNode.id)
+              targetEdge
             )
           }
         } else if (action.action) {
           await this.processActionNodes(
             action.action,
             content,
-            targetEdge ?? this.createEdge(actionNode.id)
+            targetEdge
           )
         }
         if (!action.definitionCanonical && !action.action) {
