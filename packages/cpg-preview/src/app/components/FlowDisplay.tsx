@@ -6,8 +6,9 @@ import ReactFlow, {
   Background,
   Controls,
   MiniMap,
-  useReactFlow,
-  getOutgoers
+  getIncomers,
+  getOutgoers,
+  getConnectedEdges
 } from 'reactflow'
 import Flow from '../model/Flow'
 import ActionNode from './ActionNode'
@@ -39,15 +40,9 @@ export default function FlowDisplay({
 }: FlowDisplayProps) {
   const [nodes, setNodes] = useState<Node[] | undefined>()
   const [edges, setEdges] = useState<Edge[] | undefined>()
-
-  // Display only some nodes
-  // Find nodes that are descendants
-  // Filter these out from nodes and layout dislay nodes
-  // Alternative: fetch data and do not create nodes for descendats
-
-  // Option 1: filtering - find child edge, remove, find target, remove, find edge, remove
-  // Track which nodes are expanded and collapsed
-  // For each node that is collapsed, remove children
+  const [displayNodes, setDisplayNodes] = useState<Node[] | undefined>(nodes)
+  const [displayEdges, setDisplayEdges] = useState<Edge[] | undefined>(edges)
+  const [collapsed, setCollapsed] = useState<string[]>([])
 
   const nodeTypes = useMemo(
     () => ({ actionNode: ActionNode, definitionNode: DefinitionNode }),
@@ -66,12 +61,29 @@ export default function FlowDisplay({
           edges ? graph.generateElkEdges(edges) : null
           elk.layout(graph).then((g: ElkNode) => {
             flow.generateFinalFlow(g)
-            setNodes(flow.nodes)
+            const allNodes = flow.nodes?.map(n => {
+              return {...n, data: {...n.data, setCollapsed, collapsed}}
+            })
+            setNodes(allNodes)
+            setDisplayNodes(allNodes)
             setEdges(flow.edges)
+            setDisplayEdges(flow.edges)
           })
         })
     }
   }, [])
+
+  const getNestedNodes = (id: string, nestedNodes: Node[] = []) => {
+    if (nodes && edges) {
+      const outgoers = getOutgoers({ id } as Node, nodes, edges);
+
+      outgoers?.forEach((outgoer) => {
+        nestedNodes.push(outgoer)
+        getNestedNodes(outgoer.id, nestedNodes)
+      })
+    }
+    return nestedNodes
+  }
 
   useEffect(() => {
     if (!selected && nodes) {
@@ -82,25 +94,29 @@ export default function FlowDisplay({
         }
       }))
     }
-  }, [selected])
+    const nested = collapsed.flatMap(c => getNestedNodes(c))
+    // hidden is list of nodes that should be collapsed, excluding parent
+    // if any of these have sources that are not included in collapsed, the node should not be hidden
 
-  // const { getEdges, getNodes, deleteElements } = useReactFlow()
-
-  // function removeTreeOfOutgoers(id: string) {
-  //   // we get all outgoers of this node
-  //   const outgoers = getOutgoers({ id } as Node, getNodes(), getEdges())
-
-  //   // if there are outgoers we proceed
-  //   if (outgoers.length) {
-  //     // we remove the outgoer nodes
-  //     deleteElements({ nodes: outgoers })
-
-  //     // we loop through the outgoers and try to remove any outgoers of our outgoers
-  //     outgoers.forEach((outgoer) => {
-  //       removeTreeOfOutgoers(outgoer.id)
-  //     })
-  //   }
-  // }
+    // get edges that connect outgoing nodes
+    // get incomers, returns list of source nodes - get source nodes - if source is not in collapsed array, do not remove, the node
+    if (edges) {
+      const connections = getConnectedEdges(nested, edges)
+      console.log(JSON.stringify(connections))
+      setDisplayEdges(edges.filter(e => !connections.find(c => c.id === e.id)))
+    }
+    const hidden = nested.filter(n => {
+      let incomers: Node[]
+      if (nodes && edges) {
+        incomers = getIncomers(n, nodes, edges)
+      }
+      return !collapsed.find(c => incomers?.find(i => i.id === c))
+    })
+    if (hidden) {
+      const display = nodes?.filter(node => !hidden.find(n => n.id === node.id))
+      setDisplayNodes(display)
+    }
+  }, [selected, collapsed])
 
   const handleNodeClick = (
     event: React.MouseEvent<Element, MouseEvent>,
@@ -112,8 +128,8 @@ export default function FlowDisplay({
   return (
     <div className="flow-container">
       <ReactFlow
-        nodes={nodes}
-        edges={edges}
+        nodes={displayNodes}
+        edges={displayEdges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         minZoom={0.1}

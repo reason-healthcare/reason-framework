@@ -26,6 +26,7 @@ class Flow {
     return {
       id,
       data: {
+        id,
         label: definition.title ?? definition.id,
         details: definition,
       },
@@ -38,7 +39,7 @@ class Flow {
   private createActionNode(id: string, action: fhir4.PlanDefinitionAction) {
     return {
       id,
-      data: { label: action.title, details: action },
+      data: { id, label: action.title, details: action },
       position: { x: 0, y: 0 },
       type: 'actionNode',
       className: 'node',

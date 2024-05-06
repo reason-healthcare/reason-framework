@@ -3,19 +3,46 @@ import '@/styles/node.css'
 import diamond from '../../../public/images/diamond.svg'
 import diamondHighlight from '../../../public/images/diamond-highlight.svg'
 import Image from 'next/image'
+import { useState, useEffect } from 'react'
 
 type ActionNodeProps = {
   data: {
+    id: string,
     label: string
     handle: 'output' | undefined
     details: fhir4.PlanDefinitionAction
+    setCollapsed: React.Dispatch<React.SetStateAction<string[]>>
+    collapsed: string[]
   }
   selected: boolean
 }
 
-
 const ActionNode = ({data, selected}: ActionNodeProps) => {
-  const { label, handle, details } = data
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(false)
+  const { id, label, handle, details, setCollapsed, collapsed } = data
+
+  useEffect(() => {
+    if (isCollapsed) {
+      setCollapsed([...collapsed, id])
+    } else {
+      setCollapsed(collapsed.filter(c => c !== id))
+    }
+  }, [isCollapsed])
+
+  const handleClick = () => {
+    console.log('test')
+    setIsCollapsed(!isCollapsed)
+  }
+
+  let detailsLabel
+  if (details.selectionBehavior) {
+    detailsLabel = (
+      <div className='action-details-label'>
+       {`Select ${details.selectionBehavior}`}
+      </div>
+    )
+  }
+
   return (
     <div className="node-container">
       <Handle type="target" position={Position.Top} />
@@ -28,11 +55,9 @@ const ActionNode = ({data, selected}: ActionNodeProps) => {
         </div>
       </div>
       {handle !== 'output' ? (
-        <Handle type="source" position={Position.Bottom} />
+        <Handle type="source" position={Position.Bottom} onClick={handleClick}/>
       ) : null}
-      <div className='action-details-label'>
-       {details.selectionBehavior ? `Select ${details.selectionBehavior}` : null}
-      </div>
+      {detailsLabel}
     </div>
   )
 }

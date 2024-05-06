@@ -4,7 +4,7 @@ import FileResolver from './resolver/file'
 import FlowDisplay from './components/FlowDisplay'
 import LoadIndicator from './components/LoadIndicator'
 import DetailsSection from './components/DetailsSection'
-import { Node } from 'reactflow'
+import { Node, ReactFlowProvider } from 'reactflow'
 
 export default function Home() {
   const [resolver, setResolver] = useState<FileResolver | undefined>()
@@ -31,12 +31,14 @@ export default function Home() {
       </div>
       <div className="content-container">
         {resolver && planDefinition ? (
-          <FlowDisplay
-            resolver={resolver}
-            planDefinition={planDefinition}
-            selected={selected}
-            setSelected={setSelected}
-          />
+          <ReactFlowProvider>
+            <FlowDisplay
+              resolver={resolver}
+              planDefinition={planDefinition}
+              selected={selected}
+              setSelected={setSelected}
+            />
+          </ReactFlowProvider>
         ) : (
           <LoadIndicator />
         )}
