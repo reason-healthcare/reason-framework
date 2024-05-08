@@ -8,7 +8,6 @@ import ReactFlow, {
   MiniMap,
   getIncomers,
   getOutgoers,
-  getConnectedEdges
 } from 'reactflow'
 import Flow from '../model/Flow'
 import ActionNode from './ActionNode'
@@ -23,11 +22,6 @@ const elk = new ELK()
 interface FlowDisplayProps {
   resolver: FileResolver | undefined
   planDefinition: fhir4.PlanDefinition
-  // setDetails: React.Dispatch<
-  //   React.SetStateAction<
-  //     fhir4.PlanDefinitionAction | fhir4.PlanDefinition | fhir4.ActivityDefinition | undefined
-  //   >
-  // >
   setSelected: React.Dispatch<React.SetStateAction<Node | undefined>>
   selected: Node | undefined
 }
@@ -73,18 +67,6 @@ export default function FlowDisplay({
     }
   }, [])
 
-  const getNestedNodes = (id: string, nestedNodes: Node[] = []) => {
-    if (nodes && edges) {
-      const outgoers = getOutgoers({ id } as Node, nodes, edges);
-
-      outgoers?.forEach((outgoer) => {
-        nestedNodes.push(outgoer)
-        getNestedNodes(outgoer.id, nestedNodes)
-      })
-    }
-    return nestedNodes
-  }
-
   useEffect(() => {
     if (!selected && nodes) {
       setNodes(nodes.map((node) => {
@@ -94,28 +76,51 @@ export default function FlowDisplay({
         }
       }))
     }
-    const nested = collapsed.flatMap(c => getNestedNodes(c))
-    // hidden is list of nodes that should be collapsed, excluding parent
-    // if any of these have sources that are not included in collapsed, the node should not be hidden
 
-    // get edges that connect outgoing nodes
-    // get incomers, returns list of source nodes - get source nodes - if source is not in collapsed array, do not remove, the node
-    if (edges) {
-      const connections = getConnectedEdges(nested, edges)
-      console.log(JSON.stringify(connections))
-      setDisplayEdges(edges.filter(e => !connections.find(c => c.id === e.id)))
-    }
-    const hidden = nested.filter(n => {
-      let incomers: Node[]
+    const getNestedElements = (id: string, nestedNodes: Node[] = []) => {
       if (nodes && edges) {
-        incomers = getIncomers(n, nodes, edges)
+        const outgoers = getOutgoers({id} as Node, nodes, edges)
+        outgoers?.forEach((outgoer) => {
+          nestedNodes.push(outgoer)
+          getNestedElements(outgoer.id, nestedNodes)
+        })
       }
-      return !collapsed.find(c => incomers?.find(i => i.id === c))
-    })
-    if (hidden) {
-      const display = nodes?.filter(node => !hidden.find(n => n.id === node.id))
-      setDisplayNodes(display)
+      return nestedNodes
     }
+    const getHiddenElements = (id: string, hiddenNodes: Node[] = [], hiddenEdges: Edge[] = []) => {
+      if (nodes && edges) {
+        const outgoers = getOutgoers({ id } as Node, nodes, edges)
+        outgoers?.forEach((outgoer) => {
+          const connection = edges.find(e => e.source === id && e.target === outgoer.id)
+          connection ? hiddenEdges.push(connection) : null
+          // if type = definition, the node may have other incomers
+          if (outgoer.type === 'definitionNode') {
+            const incomers = getIncomers(outgoer, nodes, edges)
+            const nestedNodes = collapsed.flatMap(c => getNestedElements(c))
+            // check each incomer to see if it is included in nested nodes, if there is an incomer that is not accounted for, display the node and stop processing
+            if (incomers.some(i => !nestedNodes.find(n => i.id === n.id) && i.id !== id)) {
+              return {hiddenNodes, hiddenEdges}
+            }
+            // if there is a display node other than the one currently being processed that leads to the outgoer, do not hide it
+            if (hiddenNodes?.find(n => n.id !== id && incomers.find(i => i.id === n.id))) {
+              return {hiddenNodes, hiddenEdges}
+            }
+          }
+          hiddenNodes.push(outgoer)
+          getHiddenElements(outgoer.id, hiddenNodes, hiddenEdges)
+        })
+      }
+      return {hiddenNodes, hiddenEdges}
+    }
+
+    const hiddenNodes = collapsed.flatMap(c => getHiddenElements(c).hiddenNodes)
+    const hiddenEdges = collapsed.flatMap(c => getHiddenElements(c).hiddenEdges)
+    const displayN = nodes?.filter(node => !hiddenNodes.find(n => n.id === node.id))
+    setDisplayNodes(displayN?.map(n => {
+      return {...n, data: {...n.data, collapsed}}
+    }))
+    setDisplayEdges(edges?.filter(e => !hiddenEdges.find(n => e.id === n.id)))
+
   }, [selected, collapsed])
 
   const handleNodeClick = (
