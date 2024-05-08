@@ -8,6 +8,7 @@ import ReactFlow, {
   MiniMap,
   getIncomers,
   getOutgoers,
+  useReactFlow,
 } from 'reactflow'
 import Flow from '../model/Flow'
 import ActionNode from './ActionNode'
@@ -67,6 +68,8 @@ export default function FlowDisplay({
     }
   }, [])
 
+  const reactFlow = useReactFlow()
+
   useEffect(() => {
     if (!selected && displayNodes) {
       setDisplayNodes(displayNodes.map((node) => {
@@ -75,8 +78,12 @@ export default function FlowDisplay({
           selected: false
         }
       }))
+    } else if (selected?.position) {
+      const { x, y } = selected.position
+      const { zoom } = reactFlow.getViewport()
+      const zoomFactor = zoom < 0.3 ? 0.5 : 0
+      reactFlow.setCenter(x + 100, y, {duration: 30, zoom: zoom + zoomFactor})
     }
-    console.log('here')
   }, [selected])
 
   useEffect(() => {

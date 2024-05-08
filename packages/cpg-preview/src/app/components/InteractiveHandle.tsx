@@ -21,7 +21,7 @@ const InteractiveHandle = ({setIsCollapsed, isCollapsed}: InteractiveHandleProps
 
   return (
     <div onMouseEnter={onHover} onMouseLeave={onHover}>
-      {displayIcon && !isCollapsed ? <UpCircleFilled className="collapse-icon" onClick={handleClick}></UpCircleFilled> : displayIcon && isCollapsed ? <DownCircleFilled className="collapse-icon" onClick={handleClick}></DownCircleFilled> : null}
+      {displayIcon && !isCollapsed ? <UpCircleFilled className="collapse-icon" onClick={handleClick}/> : displayIcon && isCollapsed ? <DownCircleFilled className="collapse-icon" onClick={handleClick} /> : null}
       <Handle className={displayIcon ? 'hidden-handle' : ''} type="source" position={Position.Bottom}/>
     </div>
   )

@@ -1,17 +1,16 @@
 # Next Steps
 
 1. Handle additional json properies in details section (ie applicability.reference, etc)
-2. center/pan to node on click / or refresh fitview when details panel displays
-  <!-- setCenter (x: number, y: number, options?: { duration: number, zoom: number; }) => void -->
-3. Expandable and collapsable nodes
+2. Regraph on node collapse
+3. if > n nodes, auto collapse
 4. Highlight selected edge path (currently stroke thickness increases)
-5. Handle overlapping edges
-6. Mini map styling
-7. Support REST endpoint
+5. Mini map styling
+6. Support REST endpoint
 
 # Refactor
 
 1. Custom edge refactor
+2. Collapse/expand node logic
 
 ## Future Items
 

@@ -100,9 +100,11 @@
   position: absolute;
   top: auto;
   left: 50%;
-  bottom: -6px;
+  bottom: -8px;
   transform: translate(-50%, 0);
   z-index: 100;
+  font-size: 1.3rem;
+  color: #0062ff;
  }
 
  .hidden-handle {
