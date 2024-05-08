@@ -1,11 +1,9 @@
 import { Handle, Position } from 'reactflow'
 import { useState, useEffect } from 'react'
 import '@/styles/node.css'
-import diamond from '../../../public/images/diamond.svg'
-import diamondHighlight from '../../../public/images/diamond-highlight.svg'
-import Image from 'next/image'
+import InteractiveHandle from './InteractiveHandle'
 
-type ActionNodeProps = {
+type DefinitionNodeProps = {
   data: {
     id: string
     label: string
@@ -17,7 +15,7 @@ type ActionNodeProps = {
   selected: boolean
 }
 
-const DefinitionNode = ({data, selected}: ActionNodeProps) => {
+const DefinitionNode = ({data, selected}: DefinitionNodeProps) => {
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false)
   const { id, label, handle, details, setCollapsed, collapsed } = data
 
@@ -29,10 +27,6 @@ const DefinitionNode = ({data, selected}: ActionNodeProps) => {
     }
   }, [isCollapsed])
 
-  const handleClick = () => {
-    console.log('test')
-    setIsCollapsed(!isCollapsed)
-  }
   return (
     <div className={selected ? "node-highlight" : "node-unhighlight"}>
       {handle !== 'input' ? (
@@ -40,7 +34,7 @@ const DefinitionNode = ({data, selected}: ActionNodeProps) => {
       ) : null}
       <p>{label}</p>
       {handle !== 'output' ? (
-        <Handle type="source" position={Position.Bottom} onClick={handleClick} />
+        <InteractiveHandle isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       ) : null}
     </div>
   )

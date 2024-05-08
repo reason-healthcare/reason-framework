@@ -4,6 +4,7 @@ import diamond from '../../../public/images/diamond.svg'
 import diamondHighlight from '../../../public/images/diamond-highlight.svg'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
+import InteractiveHandle from './InteractiveHandle'
 
 type ActionNodeProps = {
   data: {
@@ -19,7 +20,7 @@ type ActionNodeProps = {
 
 const ActionNode = ({data, selected}: ActionNodeProps) => {
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false)
-  const { id, label, handle, details, setCollapsed, collapsed } = data
+  const { id, label, handle, details, setCollapsed, collapsed} = data
 
   useEffect(() => {
     if (isCollapsed) {
@@ -28,11 +29,6 @@ const ActionNode = ({data, selected}: ActionNodeProps) => {
       setCollapsed(collapsed.filter(c => c !== id))
     }
   }, [isCollapsed])
-
-  const handleClick = () => {
-    console.log('test')
-    setIsCollapsed(!isCollapsed)
-  }
 
   let detailsLabel
   if (details.selectionBehavior) {
@@ -47,7 +43,7 @@ const ActionNode = ({data, selected}: ActionNodeProps) => {
     <div className="node-container">
       <Handle type="target" position={Position.Top} />
       <div className="diamond-container">
-        <Image src={ selected ? diamondHighlight : diamond} alt="diamond node" className="diamond-icon" />
+        <Image src={ selected ? diamondHighlight : diamond} alt="diamond node" className="diamond-icon"/>
         <div className="text-outer-container">
           <div className="text-inner-container">
             <p>{label}</p>
@@ -55,7 +51,7 @@ const ActionNode = ({data, selected}: ActionNodeProps) => {
         </div>
       </div>
       {handle !== 'output' ? (
-        <Handle type="source" position={Position.Bottom} onClick={handleClick}/>
+        <InteractiveHandle setIsCollapsed={setIsCollapsed} isCollapsed={isCollapsed} />
       ) : null}
       {detailsLabel}
     </div>

@@ -93,3 +93,18 @@
   border-radius: 0.15rem;
   box-shadow: 0px 0px 7px rgb(230, 230, 230), inset 0px 0px 6px rgb(230, 230, 230);
 }
+
+/* Interactive handle */
+
+ .collapse-icon {
+  position: absolute;
+  top: auto;
+  left: 50%;
+  bottom: -6px;
+  transform: translate(-50%, 0);
+  z-index: 100;
+ }
+
+ .hidden-handle {
+  background-color: #fafafa;
+ }

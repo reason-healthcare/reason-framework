@@ -68,15 +68,18 @@ export default function FlowDisplay({
   }, [])
 
   useEffect(() => {
-    if (!selected && nodes) {
-      setNodes(nodes.map((node) => {
+    if (!selected && displayNodes) {
+      setDisplayNodes(displayNodes.map((node) => {
         return {
           ...node,
           selected: false
         }
       }))
     }
+    console.log('here')
+  }, [selected])
 
+  useEffect(() => {
     const getNestedElements = (id: string, nestedNodes: Node[] = []) => {
       if (nodes && edges) {
         const outgoers = getOutgoers({id} as Node, nodes, edges)
@@ -121,7 +124,7 @@ export default function FlowDisplay({
     }))
     setDisplayEdges(edges?.filter(e => !hiddenEdges.find(n => e.id === n.id)))
 
-  }, [selected, collapsed])
+  }, [collapsed])
 
   const handleNodeClick = (
     event: React.MouseEvent<Element, MouseEvent>,
