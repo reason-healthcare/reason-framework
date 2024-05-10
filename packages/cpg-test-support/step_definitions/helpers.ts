@@ -150,10 +150,14 @@ export const removeFromRecommendations = (
   return recommendations
 }
 
-export const removeFromSelectionGroups = (selectionBehaviorCode: fhir4.RequestGroupAction["selectionBehavior"], identifiers: string[], selectionGroups: TestContext["selectionGroups"]) => {
-  selectionGroups = selectionGroups.filter(sg => {
+export const removeFromSelectionGroups = (
+  selectionBehaviorCode: fhir4.RequestGroupAction['selectionBehavior'],
+  identifiers: string[],
+  selectionGroups: TestContext['selectionGroups']
+) => {
+  selectionGroups = selectionGroups.filter((sg) => {
     sg.selectionCode !== selectionBehaviorCode &&
-    sg.definitions.sort().toString() !== identifiers.sort().toString()
+      sg.definitions.sort().toString() !== identifiers.sort().toString()
   })
   return selectionGroups
 }
@@ -197,10 +201,14 @@ export const createEndpoint = (type: string, address: string) => {
   } as fhir4.Endpoint
 }
 
-export const resolveRequestResource = (action: fhir4.RequestGroupAction, bundle: fhir4.Bundle | undefined) => {
+export const resolveRequestResource = (
+  action: fhir4.RequestGroupAction,
+  bundle: fhir4.Bundle | undefined
+) => {
   if (action.resource?.reference) {
     const id = action.resource.reference.split('/')[1]
-    return bundle?.entry?.find((e) => e.resource?.id === id)
-      ?.resource as fhir4.RequestGroup | RequestResource
+    return bundle?.entry?.find((e) => e.resource?.id === id)?.resource as
+      | fhir4.RequestGroup
+      | RequestResource
   }
 }

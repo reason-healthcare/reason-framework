@@ -65,8 +65,8 @@
 }
 
 .node {
-  white-space: wrap;
-  word-break: break-all;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .node p {
@@ -91,12 +91,13 @@
   background-color: #fafafa;
   padding: 5px;
   border-radius: 0.15rem;
-  box-shadow: 0px 0px 7px rgb(230, 230, 230), inset 0px 0px 6px rgb(230, 230, 230);
+  box-shadow: 0px 0px 7px rgb(230, 230, 230),
+    inset 0px 0px 6px rgb(230, 230, 230);
 }
 
 /* Interactive handle */
 
- .collapse-icon {
+.collapse-icon {
   position: absolute;
   top: auto;
   left: 50%;
@@ -105,8 +106,8 @@
   z-index: 100;
   font-size: 1.3rem;
   color: #0062ff;
- }
+}
 
- .hidden-handle {
+.hidden-handle {
   background-color: #fafafa;
- }
+}

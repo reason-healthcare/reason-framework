@@ -65,7 +65,7 @@ class Flow {
    * @param content FHIR content
    * @param parentEdge Edge with source information
    */
-  private async processDefinitionalNode(
+  private processDefinitionalNode(
     definition: fhir4.ActivityDefinition | fhir4.PlanDefinition | undefined,
     content: FileResolver,
     parentEdge?: Edge
@@ -90,10 +90,10 @@ class Flow {
       if (is.planDefinition(definition) && definition.action) {
         const targetEdge = this.createEdge(node.id)
         if (!match) {
-          await this.processActionNodes(definition.action, content, targetEdge)
+          this.processActionNodes(definition.action, content, targetEdge)
         }
       } else {
-        node.type = 'output'
+        node.data.handle = 'output'
       }
     }
   }
@@ -104,54 +104,44 @@ class Flow {
    * @param content FHIR content
    * @param parentEdge Edge with source information
    */
-  private async processActionNodes(
+  private processActionNodes(
     actions: fhir4.PlanDefinitionAction[],
     content: FileResolver,
     parentEdge: Edge
   ) {
-    await Promise.all(
-      actions.map(async (action) => {
-        /**
-         * Create node for each action
-         * ID needs to be unique - definition nodes are deduped, action nodes are not
-         */
-        const id = `action-${action.title}-${v4()}`
-        const actionNode = this.createActionNode(id, action)
-        this.addNewNode(actionNode)
+    actions.map((action) => {
+      /**
+       * Create node for each action
+       * ID needs to be unique - definition nodes are deduped, action nodes are not
+       */
+      const id = `action-${action.title}-${v4()}`
+      const actionNode = this.createActionNode(id, action)
+      this.addNewNode(actionNode)
 
-        /** Connect to parent */
-        const sourceEdge = { ...parentEdge, target: id, id: parentEdge.id + id }
-        this.addNewEdge(sourceEdge)
+      /** Connect to parent */
+      const sourceEdge = { ...parentEdge, target: id, id: parentEdge.id + id }
+      this.addNewEdge(sourceEdge)
 
-        /** Handle children */
-        const targetEdge = this.createEdge(actionNode.id)
-        if (action.selectionBehavior) {
-          targetEdge.animated = true
+      /** Handle children */
+      const targetEdge = this.createEdge(actionNode.id)
+      if (action.selectionBehavior) {
+        targetEdge.animated = true
+      }
+      if (action.definitionCanonical) {
+        const definition = resolveCanonical(
+          action.definitionCanonical,
+          content
+        ) as fhir4.ActivityDefinition | fhir4.PlanDefinition | undefined
+        if (definition) {
+          this.processDefinitionalNode(definition, content, targetEdge)
         }
-        if (action.definitionCanonical) {
-          const definition = (await resolveCanonical(
-            action.definitionCanonical,
-            content
-          )) as fhir4.ActivityDefinition | fhir4.PlanDefinition | undefined
-          if (definition) {
-            await this.processDefinitionalNode(
-              definition,
-              content,
-              targetEdge
-            )
-          }
-        } else if (action.action) {
-          await this.processActionNodes(
-            action.action,
-            content,
-            targetEdge
-          )
-        }
-        if (!action.definitionCanonical && !action.action) {
-          actionNode.data.handle = 'output'
-        }
-      })
-    )
+      } else if (action.action) {
+        this.processActionNodes(action.action, content, targetEdge)
+      }
+      if (!action.definitionCanonical && !action.action) {
+        actionNode.data.handle = 'output'
+      }
+    })
   }
 
   /**
@@ -160,11 +150,11 @@ class Flow {
    * @param content
    * @returns
    */
-  public async generateInitialFlow(
+  public generateInitialFlow(
     planDefinition: fhir4.PlanDefinition,
     content: FileResolver
   ) {
-    await this.processDefinitionalNode(planDefinition, content)
+    this.processDefinitionalNode(planDefinition, content)
     return this
   }
 

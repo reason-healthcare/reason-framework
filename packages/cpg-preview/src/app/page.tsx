@@ -46,6 +46,7 @@ export default function Home() {
           <DetailsSection
             setSelected={setSelected}
             selected={selected}
+            resolver={resolver}
           ></DetailsSection>
         ) : null}
       </div>

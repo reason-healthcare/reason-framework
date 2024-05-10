@@ -1,25 +1,32 @@
 import '@/styles/detailsSection.css'
-import { is } from 'helpers'
+import { is, resolveCanonical } from 'helpers'
 import { v4 } from 'uuid'
 import { CloseOutlined } from '@ant-design/icons'
 import { Node } from 'reactflow'
+import FileResolver from 'resolver/file'
 
 interface DetailsSectionProps {
   setSelected: React.Dispatch<React.SetStateAction<Node | undefined>>
   selected: Node | undefined
+  resolver: FileResolver | undefined
 }
 
-const DetailsSection = ({ selected, setSelected }: DetailsSectionProps) => {
+const DetailsSection = ({
+  selected,
+  setSelected,
+  resolver,
+}: DetailsSectionProps) => {
   const { details } = selected?.data
+
   if (!details) {
     return <p>Unable to load details</p>
   }
   const { title, description } = details
   let header: string
-  let selection: fhir4.PlanDefinitionAction["selectionBehavior"]
-  let applicability: fhir4.PlanDefinitionAction["condition"]
-  let caseFeature: fhir4.PlanDefinitionAction["input"]
-  let children: fhir4.PlanDefinitionAction["action"]
+  let selection: fhir4.PlanDefinitionAction['selectionBehavior']
+  let applicability: fhir4.PlanDefinitionAction['condition']
+  let caseFeature: fhir4.PlanDefinitionAction['input']
+  let children: fhir4.PlanDefinitionAction['action']
   let evidence
 
   if (is.planDefinition(details)) {
@@ -28,10 +35,21 @@ const DetailsSection = ({ selected, setSelected }: DetailsSectionProps) => {
     evidence = relatedArtifact
     children = action
   } else if (is.activityDefinition(details)) {
-    const { name, kind, intent, doNotPerform, productCodeableConcept, productReference, quantity, dosage, dynamicValue } = details
+    const {
+      name,
+      kind,
+      intent,
+      doNotPerform,
+      productCodeableConcept,
+      productReference,
+      quantity,
+      dosage,
+      dynamicValue,
+    } = details
     header = `Activity Definition: ${title ?? name}`
   } else {
-    const { documentation, selectionBehavior, condition, input, action } = details
+    const { documentation, selectionBehavior, condition, input, action } =
+      details
     header = `Action: ${title}`
     evidence = documentation
     selection = selectionBehavior
@@ -70,8 +88,15 @@ const DetailsSection = ({ selected, setSelected }: DetailsSectionProps) => {
     return <li key={v4()}>{a.expression?.expression ?? null}</li>
   })
 
-  const caseFeatures = caseFeature?.map((c) => {
-    return <li key={v4()}>{c.profile ?? null}</li>
+  const caseFeatures = details?.input?.map((i: fhir4.DataRequirement) => {
+    if (i.profile && resolver) {
+      let resource = resolveCanonical(i.profile[0], resolver)
+      if (is.structureDefinition(resource)) {
+        return (
+          <li key={v4()}>{resource.title ?? resource.name ?? resource.url}</li>
+        )
+      }
+    }
   })
 
   const handleClick = () => {
@@ -106,11 +131,11 @@ const DetailsSection = ({ selected, setSelected }: DetailsSectionProps) => {
         ) : undefined}
         {evidenceDisplay}
         {applicability ? (
-          <p className="details-description">Applicabilities:</p>
+          <p className="details-description">Applicability:</p>
         ) : undefined}
         {applicabilities}
         {caseFeature ? (
-          <p className="details-description">Case Features:</p>
+          <p className="details-description">Input:</p>
         ) : undefined}
         {caseFeatures}
       </div>

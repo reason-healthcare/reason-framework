@@ -8,7 +8,7 @@ import InteractiveHandle from './InteractiveHandle'
 
 type ActionNodeProps = {
   data: {
-    id: string,
+    id: string
     label: string
     handle: 'output' | undefined
     details: fhir4.PlanDefinitionAction
@@ -18,23 +18,23 @@ type ActionNodeProps = {
   selected: boolean
 }
 
-const ActionNode = ({data, selected}: ActionNodeProps) => {
+const ActionNode = ({ data, selected }: ActionNodeProps) => {
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false)
-  const { id, label, handle, details, setCollapsed, collapsed} = data
+  const { id, label, handle, details, setCollapsed, collapsed } = data
 
   useEffect(() => {
     if (isCollapsed) {
       setCollapsed([...collapsed, id])
     } else {
-      setCollapsed(collapsed.filter(c => c !== id))
+      setCollapsed(collapsed.filter((c) => c !== id))
     }
   }, [isCollapsed])
 
   let detailsLabel
   if (details.selectionBehavior) {
     detailsLabel = (
-      <div className='action-details-label'>
-       {`Select ${details.selectionBehavior}`}
+      <div className="action-details-label">
+        {`Select ${details.selectionBehavior}`}
       </div>
     )
   }
@@ -43,7 +43,11 @@ const ActionNode = ({data, selected}: ActionNodeProps) => {
     <div className="node-container">
       <Handle type="target" position={Position.Top} />
       <div className="diamond-container">
-        <Image src={ selected ? diamondHighlight : diamond} alt="diamond node" className="diamond-icon"/>
+        <Image
+          src={selected ? diamondHighlight : diamond}
+          alt="diamond node"
+          className="diamond-icon"
+        />
         <div className="text-outer-container">
           <div className="text-inner-container">
             <p>{label}</p>
@@ -51,7 +55,10 @@ const ActionNode = ({data, selected}: ActionNodeProps) => {
         </div>
       </div>
       {handle !== 'output' ? (
-        <InteractiveHandle setIsCollapsed={setIsCollapsed} isCollapsed={isCollapsed} />
+        <InteractiveHandle
+          setIsCollapsed={setIsCollapsed}
+          isCollapsed={isCollapsed}
+        />
       ) : null}
       {detailsLabel}
     </div>

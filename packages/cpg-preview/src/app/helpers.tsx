@@ -16,9 +16,14 @@ export const is = {
   bundle: (resource: any): resource is fhir4.Bundle => {
     return resource?.resourceType === 'Bundle'
   },
+  structureDefinition: (
+    resource: any
+  ): resource is fhir4.StructureDefinition => {
+    return resource?.resourceType === 'StructureDefinition'
+  },
 }
 
-export const resolveCanonical = async (
+export const resolveCanonical = (
   canonical: string | undefined,
   resolver: FileResolver
 ) => {

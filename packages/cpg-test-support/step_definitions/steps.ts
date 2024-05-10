@@ -12,7 +12,7 @@ import {
   removeFromSelectionGroups,
   notEmpty,
   createEndpoint,
-  resolveRequestResource
+  resolveRequestResource,
 } from './helpers'
 
 dotenv.config()
@@ -23,7 +23,7 @@ export interface TestContext {
   cpgResponse: fhir4.Bundle | undefined
   recommendations: string[] | undefined
   selectionGroups: {
-    selectionCode: fhir4.RequestGroupAction["selectionBehavior"],
+    selectionCode: fhir4.RequestGroupAction['selectionBehavior']
     definitions: string[]
   }[]
 }
@@ -138,11 +138,17 @@ When(
       action.forEach((action) => {
         const selectionCode = action.selectionBehavior
         if (selectionCode && action.action) {
-          definitions = action.action.map(a => {
-            const request = resolveRequestResource(a, this.cpgResponse)
-            return request ? getInstantiatesCanonical(request)?.split('/').pop() : null
-          }).filter(notEmpty)
-          definitions.length ? (this.selectionGroups ||=[]).push({selectionCode, definitions}) : null
+          definitions = action.action
+            .map((a) => {
+              const request = resolveRequestResource(a, this.cpgResponse)
+              return request
+                ? getInstantiatesCanonical(request)?.split('/').pop()
+                : null
+            })
+            .filter(notEmpty)
+          definitions.length
+            ? (this.selectionGroups ||= []).push({ selectionCode, definitions })
+            : null
         }
         if (action.action) {
           findSelectionMatchs(action.action)
@@ -154,7 +160,6 @@ When(
         findSelectionMatchs(entry.resource.action)
       }
     })
-
   }
 )
 
@@ -215,7 +220,6 @@ Then(
         if (!isMatch && subAction.action) {
           isMatch = findSelectionMatch(subAction.action)
         } else {
-
         }
       }
       return isMatch
@@ -223,7 +227,7 @@ Then(
 
     const isCanonicalMatch = (
       selectionGroupAction: fhir4.RequestGroupAction[],
-      selectionBehaviorCode: fhir4.RequestGroupAction["selectionBehavior"]
+      selectionBehaviorCode: fhir4.RequestGroupAction['selectionBehavior']
     ) => {
       let isMatch = false
       const selectionGroupDefinitions = selectionGroupAction
@@ -250,9 +254,16 @@ Then(
       }
       if (isMatch) {
         selectionGroupDefinitions.forEach((id) => {
-          this.recommendations = removeFromRecommendations(id, this.recommendations)
+          this.recommendations = removeFromRecommendations(
+            id,
+            this.recommendations
+          )
         })
-        this.selectionGroups = removeFromSelectionGroups(selectionBehaviorCode, selectionGroupDefinitions, this.selectionGroups)
+        this.selectionGroups = removeFromSelectionGroups(
+          selectionBehaviorCode,
+          selectionGroupDefinitions,
+          this.selectionGroups
+        )
       }
       return isMatch
     }
@@ -265,14 +276,16 @@ Then(
         isMatch = resource.action ? findSelectionMatch(resource.action) : false
       }
     }
-    const message =
-      `\nExpected:\n - Select ${selectionBehaviorCode}: ${selectionDefinitionIdentifiers.join(
-        ', '
-      )}\nBut found:\n ${
-        isEmpty(this.selectionGroups)
-          ? '- No remaining selection groups'
-          : this.selectionGroups?.map(sg => `- Select ${sg.selectionCode}: ${sg.definitions.join(', ')}\n`)
-      }`
+    const message = `\nExpected:\n - Select ${selectionBehaviorCode}: ${selectionDefinitionIdentifiers.join(
+      ', '
+    )}\nBut found:\n ${
+      isEmpty(this.selectionGroups)
+        ? '- No remaining selection groups'
+        : this.selectionGroups?.map(
+            (sg) =>
+              `- Select ${sg.selectionCode}: ${sg.definitions.join(', ')}\n`
+          )
+    }`
     assert(isMatch, message)
   }
 )
@@ -284,11 +297,10 @@ Then(
     selectionBehaviorCode: string,
     selectionActionIdentifiersTable: DataTable
   ) {
-    const selectionActionIdentifiers: string[] =
-      selectionActionIdentifiersTable
-        .raw()
-        .map((i) => i[0])
-        .sort()
+    const selectionActionIdentifiers: string[] = selectionActionIdentifiersTable
+      .raw()
+      .map((i) => i[0])
+      .sort()
 
     const findSelectionMatch = (
       action: fhir4.RequestGroupAction[]
@@ -334,17 +346,14 @@ Then(
       }
     }
 
-    const message =
-    assert(isMatch, 'Unable to find a matching selection group')
+    const message = assert(isMatch, 'Unable to find a matching selection group')
   }
 )
 
 Then('no activites should have been recommended', function (this: TestContext) {
   assert(
     isEmpty(this.recommendations),
-    `Found recommendations:\n- ${this.recommendations?.join(
-      '\n- '
-    )}`
+    `Found recommendations:\n- ${this.recommendations?.join('\n- ')}`
   )
 })
 
