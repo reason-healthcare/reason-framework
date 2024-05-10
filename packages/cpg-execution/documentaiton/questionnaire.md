@@ -6,7 +6,8 @@ Elements from the structure definition should be processed to questionnaire item
 2. The element is a part of the snapshot and has a cardinality of at least 1..\* (min >1). Nested child elements with min > 1 should also be included if parent has min > 1.
 3. Optionally, the parameter "supportedOnly" can be supplied. If true, the above applies only to elements with must support flags.
 4. Additionally, if the SD contains inference or assertion logic (CPG feature expressions), and an instantiated case feature is returned based on the data context, each of the case feature properties should be processed to questionnaire items. This will enable conformance with the $extract operation.
-<!-- Consider parameter "useSnapshot" boolean. However, in the case of use with $extract, the snapshot must at least be used as a fallback for element definition properties like "type". -->
+Note: Consider parameter on $questionnaire --> "minimal" as boolean narrows element processing by the criteria specified above as opposed to processing all elements.
+
 
 | elementDefinition                                     | questionnaireItem                                             | notes                                                                                                |
 | ----------------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
@@ -52,17 +53,16 @@ Process elements from the structure definition/feature expression resource:
       - Use pattern[x] or fixed[x]
       - Use defaultValue[x] if the element does not have pattern[x] or fixed[x]
       - Otherwise use featureExpression (if available)
-    - QuestionnaireItem.answerOption => expanded value set binding <!-- how should example binding be handled? open choice? -->
-- Ideally, the snapshot element will be used as a fallback for properties missing on differential elements and feature expression resources.
+    - QuestionnaireItem.answerOption => expanded value set binding <!-- How should example binding be handled? open choice? -->
+- Ideally, the snapshot element will be used as a fallback for properties missing on differential elements and feature expression resources. <!-- How should properties like "type" be handled, where the snapshot element definition may include multiple types -->
 
 ### Use with definition based extraction ($extract)
 
-- If the featureExpression extension is present, the questionnaire-itemExtractionContext extension should be added to the top level item group.
-- During extract, if the QuestionnaireResponse contains a value for the definition, the case feature will be
-  1. Updated if the feature expression was asserted, or
-  2. Created if
-     a. The feature was inferred, or
-     b. The feature expression returned null
+When extracted, if the QuestionnaireResponse supplies a value for the case feature, the feature will be
+1. Updated if the feature expression was asserted; Or
+2. Created if
+    a. The feature was inferred; Or
+    b. The feature expression returned null
 
 See [SDC Definition Based Extraction](https://hl7.org/fhir/uv/sdc/extraction.html#definition-based-extraction)
 
