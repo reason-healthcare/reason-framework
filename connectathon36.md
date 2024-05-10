@@ -1,4 +1,4 @@
-# Reason Framework Connectathon 35 with CPG Starter Example
+# Reason Framework Connectathon 36 with CPG Starter Example
 
 A FHIR + CQL Clinical Reason Framework
 
@@ -39,7 +39,7 @@ npm run dev
 
 ## Content
 
-There is fixture content at [CPG Starter Content](https://github.com/reason-healthcare/interactive-cds-content). Follow the [instructions](https://github.com/reason-healthcare/interactive-cds-content/blob/main/connectathon35.md) there for setup. The content must be built with IG publisher prior to using with CPG engine.
+There is fixture content at [Interactive CDS Content](https://github.com/reason-healthcare/interactive-cds-content). Follow the [instructions](https://github.com/reason-healthcare/interactive-cds-content/blob/main/connectathon36.md) there for setup. The content must be built with IG publisher prior to using with CPG engine.
 
 ## Docker
 

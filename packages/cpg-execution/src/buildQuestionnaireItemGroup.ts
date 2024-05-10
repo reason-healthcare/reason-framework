@@ -201,7 +201,7 @@ export const buildQuestionnaireItemGroup = async (
           )) as fhir4.ValueSet
         } catch (e) {
           console.warn(
-            `Not able to resolve ValueSet ${elementBinding.valueSet} from configurable endpoint. Will try terminology resolver`
+            `Unable to resolve ValueSet ${elementBinding.valueSet} from configurable endpoint. Will try terminology resolver`
           )
         }
       }
@@ -211,7 +211,7 @@ export const buildQuestionnaireItemGroup = async (
             elementBinding?.valueSet
           )
         } catch (e) {
-          console.warn(`Not able to find ValueSet ${elementBinding?.valueSet}`)
+          console.warn(`Unable to find ValueSet ${elementBinding?.valueSet}`)
         }
       }
       // Expansion will be used to resolve codes and to set answerOption
@@ -419,3 +419,4 @@ export const buildQuestionnaireItemGroup = async (
 
   return subGroup
 }
+it
