@@ -6,6 +6,8 @@
 4. Highlight selected edge path (currently stroke thickness increases)
 5. Mini map styling
 6. Support REST endpoint
+7. Pan/zoom to node on click ?
+8. Override user agent sheet
 
 # Refactor
 

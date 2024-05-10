@@ -1,14 +1,13 @@
-.details-container {
-}
-
 .details-section {
   display: flex;
   flex-direction: column;
   min-width: 350px;
-  max-width: 30%;
+  width: 35%;
   border-left: 1px solid lightgray;
-  padding: 1rem 1rem 1rem 3rem;
+  padding: 1rem 2rem 3rem 3rem;
+  margin-bottom: 3rem;
   gap: 2rem;
+  overflow-y: scroll;
 }
 
 .details-description {
@@ -16,10 +15,11 @@
   font-weight: 500;
 }
 
-.close {
-  display: flex;
-  justify-content: end;
+.details-description ul {
+  padding: 0;
 }
 
-button {
+.close {
+  display: flex;
+  justify-content: flex-end;
 }

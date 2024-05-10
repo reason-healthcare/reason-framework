@@ -4,6 +4,8 @@ import { v4 } from 'uuid'
 import { CloseOutlined } from '@ant-design/icons'
 import { Node } from 'reactflow'
 import FileResolver from 'resolver/file'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface DetailsSectionProps {
   setSelected: React.Dispatch<React.SetStateAction<Node | undefined>>
@@ -99,6 +101,23 @@ const DetailsSection = ({
     }
   })
 
+  // "productCodeableConcept" : {
+  //   "coding" : [{
+  //     "system" : "http://loinc.org",
+  //     "code" : "58410-2",
+  //     "display" : "CBC panel - Blood by Automated count"
+  //   }]
+  // }
+
+  const products = details?.productCodeableConcept?.coding.map((c: fhir4.Coding) => {
+    return(
+      <li key={v4()}>
+        {c.display}
+        {c.code ? <p>Coding: {c.code} {c.system}</p> : undefined}
+      </li>
+    )
+  })
+
   const handleClick = () => {
     setSelected(undefined)
   }
@@ -113,7 +132,7 @@ const DetailsSection = ({
         {description ? (
           <p>
             <span className="details-description">Description</span>
-            <span>: {description}</span>
+            <span>:<ReactMarkdown remarkPlugins={[remarkGfm]}>{description}</ReactMarkdown></span>
           </p>
         ) : undefined}{' '}
         {selection ? (
@@ -125,19 +144,41 @@ const DetailsSection = ({
         {children ? (
           <p className="details-description">Child Actions:</p>
         ) : undefined}
-        {actionDisplay}
+        <ul>{actionDisplay}</ul>
         {evidence ? (
           <p className="details-description">Evidence:</p>
         ) : undefined}
-        {evidenceDisplay}
+        <ul>{evidenceDisplay}</ul>
         {applicability ? (
           <p className="details-description">Applicability:</p>
         ) : undefined}
-        {applicabilities}
+        <ul>{applicabilities}</ul>
         {caseFeature ? (
           <p className="details-description">Input:</p>
         ) : undefined}
-        {caseFeatures}
+        <ul>{caseFeatures}</ul>
+        {details.kind ? (
+          <p>
+            <span className="details-description">Kind</span>
+            <span>: {details.kind}</span>
+          </p>
+        ) : undefined}
+        {details.intent ? (
+          <p>
+            <span className="details-description">Intent</span>
+            <span>: {details.intent}</span>
+          </p>
+        ) : undefined}
+        {details.doNotPerform != null ? (
+          <p>
+            <span className="details-description">Do Not Perform</span>
+            <span>: {details.doNotPerform.toString()}</span>
+          </p>
+        ) : undefined}
+        {products ? (
+          <p className="details-description">Product:</p>
+        ) : undefined}
+        <ul>{products}</ul>
       </div>
     </div>
   )
