@@ -44,11 +44,14 @@ export default function FlowDisplay({
   )
   const edgeTypes = useMemo(() => ({ selectionEdge: SelectionEdge }), [])
 
+  const flow = new Flow()
+  const graph = new Graph()
+
   useEffect(() => {
-    const flow = new Flow()
+    // const flow = new Flow()
     if (resolver && resolver.resourcesByCanonical) {
       flow.generateInitialFlow(planDefinition, resolver)
-      const graph = new Graph()
+      // const graph = new Graph()
       flow.nodes ? graph.generateElkNodes(flow.nodes) : null
       flow.edges ? graph.generateElkEdges(flow.edges) : null
       elk.layout(graph).then((g: ElkNode) => {
@@ -82,74 +85,94 @@ export default function FlowDisplay({
     }
   }, [selected])
 
-  useEffect(() => {
-    const getNestedElements = (id: string, nestedNodes: Node[] = []) => {
-      if (nodes && edges) {
-        const outgoers = getOutgoers({ id } as Node, nodes, edges)
-        outgoers?.forEach((outgoer) => {
-          nestedNodes.push(outgoer)
-          getNestedElements(outgoer.id, nestedNodes)
-        })
-      }
-      return nestedNodes
-    }
-    const getHiddenElements = (
-      id: string,
-      hiddenNodes: Node[] = [],
-      hiddenEdges: Edge[] = []
-    ) => {
-      if (nodes && edges) {
-        const outgoers = getOutgoers({ id } as Node, nodes, edges)
-        outgoers?.forEach((outgoer) => {
-          const connection = edges.find(
-            (e) => e.source === id && e.target === outgoer.id
-          )
-          connection ? hiddenEdges.push(connection) : null
-          // if type = definition, the node may have other incomers
-          if (outgoer.type === 'definitionNode') {
-            const incomers = getIncomers(outgoer, nodes, edges)
-            const nestedNodes = collapsed.flatMap((c) => getNestedElements(c))
-            // check each incomer to see if it is included in nested nodes, if there is an incomer that is not accounted for, display the node and stop processing
-            if (
-              incomers.some(
-                (i) => !nestedNodes.find((n) => i.id === n.id) && i.id !== id
-              )
-            ) {
-              return { hiddenNodes, hiddenEdges }
-            }
-            // if there is a display node other than the one currently being processed that leads to the outgoer, do not hide it
-            if (
-              hiddenNodes?.find(
-                (n) => n.id !== id && incomers.find((i) => i.id === n.id)
-              )
-            ) {
-              return { hiddenNodes, hiddenEdges }
-            }
-          }
-          hiddenNodes.push(outgoer)
-          getHiddenElements(outgoer.id, hiddenNodes, hiddenEdges)
-        })
-      }
-      return { hiddenNodes, hiddenEdges }
-    }
+  // const getNestedElements = (id: string, nestedNodes: Node[] = []) => {
+  //   if (nodes && edges) {
+  //     const outgoers = getOutgoers({ id } as Node, nodes, edges)
+  //     outgoers?.forEach((outgoer) => {
+  //       nestedNodes.push(outgoer)
+  //       getNestedElements(outgoer.id, nestedNodes)
+  //     })
+  //   }
+  //   return nestedNodes
+  // }
 
-    const hiddenNodes = collapsed.flatMap(
-      (c) => getHiddenElements(c).hiddenNodes
-    )
-    const hiddenEdges = collapsed.flatMap(
-      (c) => getHiddenElements(c).hiddenEdges
-    )
-    const displayN = nodes?.filter(
-      (node) => !hiddenNodes.find((n) => n.id === node.id)
-    )
-    setDisplayNodes(
-      displayN?.map((n) => {
-        return { ...n, data: { ...n.data, collapsed } }
-      })
-    )
-    setDisplayEdges(
-      edges?.filter((e) => !hiddenEdges.find((n) => e.id === n.id))
-    )
+  // const getHiddenElements = (
+  //   id: string,
+  //   hiddenNodes: Node[] = [],
+  //   hiddenEdges: Edge[] = []
+  // ) => {
+  //   if (nodes && edges) {
+  //     const outgoers = getOutgoers({ id } as Node, nodes, edges)
+  //     outgoers?.forEach((outgoer) => {
+  //       const connection = edges.find(
+  //         (e) => e.source === id && e.target === outgoer.id
+  //       )
+  //       connection ? hiddenEdges.push(connection) : null
+  //       // if type = definition, the node may have other incomers
+  //       if (outgoer.type === 'definitionNode') {
+  //         const incomers = getIncomers(outgoer, nodes, edges)
+  //         const nestedNodes = collapsed.flatMap((c) => getNestedElements(c))
+  //         // check each incomer to see if it is included in nested nodes, if there is an incomer that is not accounted for, display the node and stop processing
+  //         if (
+  //           incomers.some(
+  //             (i) => !nestedNodes.find((n) => i.id === n.id) && i.id !== id
+  //           )
+  //         ) {
+  //           return { hiddenNodes, hiddenEdges }
+  //         }
+  //         // if there is a display node other than the one currently being processed that leads to the outgoer, do not hide it
+  //         if (
+  //           hiddenNodes?.find(
+  //             (n) => n.id !== id && incomers.find((i) => i.id === n.id)
+  //           )
+  //         ) {
+  //           return { hiddenNodes, hiddenEdges }
+  //         }
+  //       }
+  //       hiddenNodes.push(outgoer)
+  //       getHiddenElements(outgoer.id, hiddenNodes, hiddenEdges)
+  //     })
+  //   }
+  //   return { hiddenNodes, hiddenEdges }
+  // }
+
+  useEffect(() => {
+
+    // if (collapsed.length) {
+    //   const hiddenNodes = collapsed.flatMap(
+    //     (c) => getHiddenElements(c).hiddenNodes
+    //   )
+    //   const hiddenEdges = collapsed.flatMap(
+    //     (c) => getHiddenElements(c).hiddenEdges
+    //   )
+    //   const displayN = nodes?.filter(
+    //     (node) => !hiddenNodes.find((n) => n.id === node.id)
+    //   ).map((n) => {
+    //     return { ...n, data: { ...n.data, collapsed } }
+    //   })
+    //   const displayE = edges?.filter((e) => !hiddenEdges.find((n) => e.id === n.id))
+
+    //   // flow.node = displayN ?? flow.node
+    //   // flow.edge = displayE ?? flow.edge
+    //   // flow.nodes ? graph.generateElkNodes(flow.nodes) : null
+    //   //   flow.edges ? graph.generateElkEdges(flow.edges) : null
+    //   //   elk.layout(graph).then((g: ElkNode) => {
+    //   //     flow.generateFinalFlow(g)
+    //   //     const allNodes = flow.nodes?.map((n) => {
+    //   //       return { ...n, data: { ...n.data, setCollapsed, collapsed } }
+    //   //     })
+    //   //     setDisplayNodes(allNodes)
+    //   //     setDisplayEdges(flow.edges)
+    //   //   })
+    //   setDisplayNodes(
+    //     displayN
+    //   )
+    //   setDisplayEdges(
+    //     displayE
+    //   )
+
+    // }
+
   }, [collapsed])
 
   const handleNodeClick = (

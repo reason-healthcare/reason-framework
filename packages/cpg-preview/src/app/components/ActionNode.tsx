@@ -24,8 +24,10 @@ const ActionNode = ({ data, selected }: ActionNodeProps) => {
 
   useEffect(() => {
     if (isCollapsed) {
+      console.log(collapsed + 'collased')
       setCollapsed([...collapsed, id])
     } else {
+      console.log(collapsed.filter((c) => c !== id) + 'filter')
       setCollapsed(collapsed.filter((c) => c !== id))
     }
   }, [isCollapsed])

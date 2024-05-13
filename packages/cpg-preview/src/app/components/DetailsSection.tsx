@@ -67,7 +67,7 @@ const DetailsSection = ({
   const evidenceDisplay = evidence?.map((e: any) => {
     return (
       <li key={v4()}>
-        {e?.type ? e.type.charAt(0).toUpperCase() + e.type.slice(1) : null}
+        {e?.type ? e.type.charAt(0).toUpperCase() + e.type.slice(1) + ':' : null}
         {e.display || e.label ? <p>{e.display ?? e.label}</p> : null}
         {e.citation ? <p>{e.citation}</p> : null}
         {e.url ? (
@@ -101,14 +101,6 @@ const DetailsSection = ({
     }
   })
 
-  // "productCodeableConcept" : {
-  //   "coding" : [{
-  //     "system" : "http://loinc.org",
-  //     "code" : "58410-2",
-  //     "display" : "CBC panel - Blood by Automated count"
-  //   }]
-  // }
-
   const products = details?.productCodeableConcept?.coding.map((c: fhir4.Coding) => {
     return(
       <li key={v4()}>
@@ -130,16 +122,16 @@ const DetailsSection = ({
       <div className="details-container">
         <h2>{header}</h2>
         {description ? (
-          <p>
+          <div>
             <span className="details-description">Description</span>
             <span>:<ReactMarkdown remarkPlugins={[remarkGfm]}>{description}</ReactMarkdown></span>
-          </p>
+          </div>
         ) : undefined}{' '}
         {selection ? (
-          <p>
+          <div>
             <span className="details-description">Selection Behavior</span>
             <span>: {selection}</span>
-          </p>
+          </div>
         ) : undefined}{' '}
         {children ? (
           <p className="details-description">Child Actions:</p>
@@ -158,22 +150,22 @@ const DetailsSection = ({
         ) : undefined}
         <ul>{caseFeatures}</ul>
         {details.kind ? (
-          <p>
+          <div>
             <span className="details-description">Kind</span>
             <span>: {details.kind}</span>
-          </p>
+          </div>
         ) : undefined}
         {details.intent ? (
-          <p>
+          <div>
             <span className="details-description">Intent</span>
             <span>: {details.intent}</span>
-          </p>
+          </div>
         ) : undefined}
         {details.doNotPerform != null ? (
-          <p>
+          <div>
             <span className="details-description">Do Not Perform</span>
             <span>: {details.doNotPerform.toString()}</span>
-          </p>
+          </div>
         ) : undefined}
         {products ? (
           <p className="details-description">Product:</p>

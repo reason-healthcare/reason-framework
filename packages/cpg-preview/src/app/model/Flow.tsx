@@ -11,6 +11,14 @@ class Flow {
   nodes: Node[] | undefined
   edges: Edge[] | undefined
 
+  set node(n: Node[]) {
+    this.nodes = n
+  }
+
+  set edge(e: Edge[]) {
+    this.edges = e
+  }
+
   private addNewNode(node: Node) {
     this.nodes ? this.nodes.push(node) : (this.nodes = [node])
   }
