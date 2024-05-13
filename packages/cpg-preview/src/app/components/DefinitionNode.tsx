@@ -9,23 +9,24 @@ type DefinitionNodeProps = {
     label: string
     handle: 'output' | 'input' | undefined
     details: fhir4.PlanDefinitionAction | fhir4.ActivityDefinition
-    setCollapsed: React.Dispatch<React.SetStateAction<string[]>>
-    collapsed: string[]
+    // setCollapsed: React.Dispatch<React.SetStateAction<string[]>>
+    // collapsed: string[]
+    isCollapsed: boolean
   }
   selected: boolean
 }
 
 const DefinitionNode = ({ data, selected }: DefinitionNodeProps) => {
-  const [isCollapsed, setIsCollapsed] = useState<boolean>(false)
-  const { id, label, handle, details, setCollapsed, collapsed } = data
+  const { id, label, handle, details, isCollapsed } = data
+  const [collapsed, setCollapsed] = useState<boolean>(isCollapsed)
 
-  useEffect(() => {
-    if (isCollapsed) {
-      setCollapsed([...collapsed, id])
-    } else {
-      setCollapsed(collapsed.filter((c) => c !== id))
-    }
-  }, [isCollapsed])
+  // useEffect(() => {
+  //   if (isCollapsed) {
+  //     setCollapsed([...collapsed, id])
+  //   } else {
+  //     setCollapsed(collapsed?.filter((c) => c !== id))
+  //   }
+  // }, [isCollapsed])
 
   return (
     <div className={selected ? 'node-highlight' : 'node-unhighlight'}>
@@ -35,8 +36,8 @@ const DefinitionNode = ({ data, selected }: DefinitionNodeProps) => {
       <p>{label}</p>
       {handle !== 'output' ? (
         <InteractiveHandle
-          isCollapsed={isCollapsed}
-          setIsCollapsed={setIsCollapsed}
+          isCollapsed={collapsed}
+          setIsCollapsed={setCollapsed}
         />
       ) : null}
     </div>

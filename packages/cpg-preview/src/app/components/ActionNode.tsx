@@ -13,24 +13,26 @@ type ActionNodeProps = {
     handle: 'output' | undefined
     details: fhir4.PlanDefinitionAction
     setCollapsed: React.Dispatch<React.SetStateAction<string[]>>
-    collapsed: string[]
+    collapsed: string[],
+    isCollapsed: boolean
   }
   selected: boolean
 }
 
 const ActionNode = ({ data, selected }: ActionNodeProps) => {
-  const [isCollapsed, setIsCollapsed] = useState<boolean>(false)
-  const { id, label, handle, details, setCollapsed, collapsed } = data
+  const { id, label, handle, details, isCollapsed } = data
+  const [collapsed, setCollapsed] = useState<boolean>(isCollapsed)
 
-  useEffect(() => {
-    if (isCollapsed) {
-      console.log(collapsed + 'collased')
-      setCollapsed([...collapsed, id])
-    } else {
-      console.log(collapsed.filter((c) => c !== id) + 'filter')
-      setCollapsed(collapsed.filter((c) => c !== id))
-    }
-  }, [isCollapsed])
+  // useEffect(() => {
+  //   if (isCollapsed) {
+  //     console.log('here from action')
+  //     setCollapsed([...collapsed, id])
+  //   } else {
+  //     setCollapsed(collapsed?.filter((c) => c !== id))
+  //   }
+  // }, [isCollapsed])
+
+  console.log(isCollapsed)
 
   let detailsLabel
   if (details.selectionBehavior) {
@@ -58,8 +60,8 @@ const ActionNode = ({ data, selected }: ActionNodeProps) => {
       </div>
       {handle !== 'output' ? (
         <InteractiveHandle
-          setIsCollapsed={setIsCollapsed}
-          isCollapsed={isCollapsed}
+          setIsCollapsed={setCollapsed}
+          isCollapsed={collapsed}
         />
       ) : null}
       {detailsLabel}

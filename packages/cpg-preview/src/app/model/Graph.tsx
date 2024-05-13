@@ -1,5 +1,6 @@
 import { Edge, Node } from 'reactflow'
-import { ElkExtendedEdge, ElkNode } from 'elkjs'
+import ELK, { ElkExtendedEdge, ElkNode } from 'elkjs'
+import { FlowInstance } from './Flow'
 
 class Graph {
   id: string
@@ -40,6 +41,17 @@ class Graph {
     this.children = reactNodes.map((n) => {
       return this.createNewNode(n)
     })
+  }
+
+  public async generateElkGraph(flow: FlowInstance) {
+    const elk = new ELK()
+    flow.nodes ? this.generateElkNodes(flow.nodes) : null
+    flow.edges ? this.generateElkEdges(flow.edges) : null
+    await elk.layout(this).then((g: ElkNode) => {
+      this.children = g.children
+      this.edges = g.edges
+    })
+    return this
   }
 }
 

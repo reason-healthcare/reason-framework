@@ -1,4 +1,4 @@
-import { Edge, Node, StraightEdge } from 'reactflow'
+import ReactFlow, { Edge, Node, ReactFlowInstance, getOutgoers } from 'reactflow'
 import { is, notEmpty } from '../helpers'
 import '@/styles/node.css'
 import '@/styles/edge.css'
@@ -6,16 +6,27 @@ import FileResolver from 'resolver/file'
 import { ElkNode } from 'elkjs'
 import { resolveCanonical } from '../helpers'
 import { v4 } from 'uuid'
+import Graph from './Graph'
 
-class Flow {
+export interface FlowInstance { // extends ReactFlowInstance {
   nodes: Node[] | undefined
   edges: Edge[] | undefined
+  generateFinalFlow(graph: ElkNode): void
+}
 
-  set node(n: Node[]) {
+class Flow implements FlowInstance {
+  nodes: Node[] | undefined
+  edges: Edge[] | undefined
+  constructor(nodes?: Node[] | undefined, edges?: Edge[] | undefined ) {
+    this.nodes = nodes
+    this.edges = edges
+  }
+
+  set setNodes(n: Node[]) {
     this.nodes = n
   }
 
-  set edge(e: Edge[]) {
+  set setEdges(e: Edge[]) {
     this.edges = e
   }
 
@@ -37,6 +48,7 @@ class Flow {
         id,
         label: definition.title ?? definition.id,
         details: definition,
+        isCollapsed: false,
       },
       type: 'definitionNode',
       position: { x: 0, y: 0 },
@@ -47,7 +59,8 @@ class Flow {
   private createActionNode(id: string, action: fhir4.PlanDefinitionAction) {
     return {
       id,
-      data: { id, label: action.title, details: action },
+      data: { id, label: action.title, details: action, isCollapsed: false,
+      },
       position: { x: 0, y: 0 },
       type: 'actionNode',
       className: 'node',
@@ -91,7 +104,7 @@ class Flow {
         parentEdge.id += node.id
         this.addNewEdge(parentEdge)
       } else {
-        node.type = 'input'
+        node.data.handle = 'input'
       }
 
       /** Handle children */
@@ -170,33 +183,57 @@ class Flow {
    * Generate final react flow with updated layout positions
    * @param graph
    */
-  public generateFinalFlow(graph: ElkNode) {
-    if (this.nodes && this.edges) {
-      this.nodes = graph.children
-        ?.map((node) => {
-          const reactNode = this.nodes?.find((n) => n.id === node.id)
-          if (node.x && node.y && reactNode) {
-            return {
-              ...reactNode,
-              position: { x: node.x, y: node.y },
-            }
-          }
-        })
-        .filter(notEmpty)
+  public async generateFinalFlow(data?: any) {
+    const graph = new Graph()
+    await graph.generateElkGraph(this).then(g => {
 
-      this.edges = graph.edges
-        ?.map((edge) => {
-          const reactEdge = this.edges?.find((e) => e.id === edge.id)
-          if (edge.sources && edge.targets && reactEdge) {
-            return {
-              ...reactEdge,
-              source: edge.sources[0],
-              target: edge.targets[0],
+      if (this.nodes && this.edges) {
+
+        this.nodes = graph.children
+          ?.map((node) => {
+            const reactNode = this.nodes?.find((n) => n.id === node.id)
+            if (node.x && node.y && reactNode) {
+              return {
+                ...reactNode,
+                position: { x: node.x, y: node.y },
+                data: {...reactNode.data, ...data}
+              }
             }
-          }
-        })
-        .filter(notEmpty)
+          })
+          .filter(notEmpty)
+
+        this.edges = graph.edges
+          ?.map((edge) => {
+            const reactEdge = this.edges?.find((e) => e.id === edge.id)
+            if (edge.sources && edge.targets && reactEdge) {
+              return {
+                ...reactEdge,
+                source: edge.sources[0],
+                target: edge.targets[0],
+              }
+            }
+          })
+          .filter(notEmpty)
+      }
+    })
+    return this
+  }
+
+  public collapseAllFromSource(id: string) {
+    let children: Node[] | undefined
+    if (this.nodes && this.edges) {
+      const sourceNode = this.nodes?.find(n => n.id === `definition-${id}`)
+      if (!sourceNode) {
+        console.error('Unable to collapse graph')
+      } else {
+        children = getOutgoers(sourceNode, this.nodes, this.edges)
+        this.setNodes = [...children.map(c => {
+          return {...c, data: {...c.data, isCollapsed: true}}
+        }), sourceNode]
+        this.setEdges = this.edges.filter(e => children?.some(c => c.id === e.target) && e.source === sourceNode.id)
+      }
     }
+  return children
   }
 }
 

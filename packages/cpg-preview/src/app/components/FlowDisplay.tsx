@@ -8,6 +8,8 @@ import ReactFlow, {
   MiniMap,
   getIncomers,
   getOutgoers,
+  ControlButton,
+  applyNodeChanges,
 } from 'reactflow'
 import Flow from '../model/Flow'
 import ActionNode from './ActionNode'
@@ -16,8 +18,7 @@ import SelectionEdge from './SelectionEdge'
 import FileResolver from 'resolver/file'
 import ELK, { ElkNode } from 'elkjs'
 import Graph from '../model/Graph'
-
-const elk = new ELK()
+import {FullscreenOutlined, FullscreenExitOutlined} from '@ant-design/icons'
 
 interface FlowDisplayProps {
   resolver: FileResolver | undefined
@@ -32,11 +33,14 @@ export default function FlowDisplay({
   setSelected,
   selected,
 }: FlowDisplayProps) {
-  const [nodes, setNodes] = useState<Node[] | undefined>()
-  const [edges, setEdges] = useState<Edge[] | undefined>()
-  const [displayNodes, setDisplayNodes] = useState<Node[] | undefined>(nodes)
-  const [displayEdges, setDisplayEdges] = useState<Edge[] | undefined>(edges)
-  const [collapsed, setCollapsed] = useState<string[]>([])
+  // const [flow, setFlow] = useState<any | undefined>()
+  // const [graph, setGraph] = useState<any | undefined>()
+  const [allNodes, setAllNodes] = useState<Node[] | undefined>()
+  const [allEdges, setAllEdges] = useState<Edge[] | undefined>()
+  const [displayNodes, setDisplayNodes] = useState<Node[] | undefined>()
+  const [displayEdges, setDisplayEdges] = useState<Edge[] | undefined>()
+  // const [collapsed, setCollapsed] = useState<string[]>([])
+  const [expandedView, setExpandedView] = useState<boolean>(true)
 
   const nodeTypes = useMemo(
     () => ({ actionNode: ActionNode, definitionNode: DefinitionNode }),
@@ -44,25 +48,16 @@ export default function FlowDisplay({
   )
   const edgeTypes = useMemo(() => ({ selectionEdge: SelectionEdge }), [])
 
-  const flow = new Flow()
-  const graph = new Graph()
-
   useEffect(() => {
-    // const flow = new Flow()
+    const flow = new Flow()
     if (resolver && resolver.resourcesByCanonical) {
       flow.generateInitialFlow(planDefinition, resolver)
-      // const graph = new Graph()
-      flow.nodes ? graph.generateElkNodes(flow.nodes) : null
-      flow.edges ? graph.generateElkEdges(flow.edges) : null
-      elk.layout(graph).then((g: ElkNode) => {
-        flow.generateFinalFlow(g)
-        const allNodes = flow.nodes?.map((n) => {
-          return { ...n, data: { ...n.data, setCollapsed, collapsed } }
-        })
-        setNodes(allNodes)
-        setDisplayNodes(allNodes)
-        setEdges(flow.edges)
-        setDisplayEdges(flow.edges)
+      flow.generateFinalFlow().then(f => {
+        setAllNodes(f.nodes)
+        setAllEdges(f.edges)
+        setDisplayNodes(f.nodes)
+        setDisplayEdges(f.edges)
+
       })
     }
   }, [])
@@ -136,50 +131,35 @@ export default function FlowDisplay({
   //   return { hiddenNodes, hiddenEdges }
   // }
 
+
   useEffect(() => {
 
-    // if (collapsed.length) {
-    //   const hiddenNodes = collapsed.flatMap(
-    //     (c) => getHiddenElements(c).hiddenNodes
-    //   )
-    //   const hiddenEdges = collapsed.flatMap(
-    //     (c) => getHiddenElements(c).hiddenEdges
-    //   )
-    //   const displayN = nodes?.filter(
-    //     (node) => !hiddenNodes.find((n) => n.id === node.id)
-    //   ).map((n) => {
-    //     return { ...n, data: { ...n.data, collapsed } }
-    //   })
-    //   const displayE = edges?.filter((e) => !hiddenEdges.find((n) => e.id === n.id))
+    const flow = new Flow(allNodes, allEdges)
+    if (!expandedView && allNodes && allEdges) {
+      if (planDefinition.id) {
+        flow.collapseAllFromSource(planDefinition.id)
+      }
+    }
+    setDisplayNodes(flow.nodes)
+    setDisplayEdges(flow.edges)
+  }, [expandedView])
 
-    //   // flow.node = displayN ?? flow.node
-    //   // flow.edge = displayE ?? flow.edge
-    //   // flow.nodes ? graph.generateElkNodes(flow.nodes) : null
-    //   //   flow.edges ? graph.generateElkEdges(flow.edges) : null
-    //   //   elk.layout(graph).then((g: ElkNode) => {
-    //   //     flow.generateFinalFlow(g)
-    //   //     const allNodes = flow.nodes?.map((n) => {
-    //   //       return { ...n, data: { ...n.data, setCollapsed, collapsed } }
-    //   //     })
-    //   //     setDisplayNodes(allNodes)
-    //   //     setDisplayEdges(flow.edges)
-    //   //   })
-    //   setDisplayNodes(
-    //     displayN
-    //   )
-    //   setDisplayEdges(
-    //     displayE
-    //   )
-
-    // }
-
-  }, [collapsed])
+  // useEffect(() => {
+  //   console.log(displayNodes?.length)
+  //   console.log('here')
+  //   const flow = new Flow(displayNodes, displayEdges)
+  //   flow.generateFinalFlow(data)
+  // }, [collapsed])
 
   const handleNodeClick = (
     event: React.MouseEvent<Element, MouseEvent>,
     node: Node
   ) => {
     setSelected(node)
+  }
+
+  const handleExpandedViewClick = () => {
+    setExpandedView(!expandedView)
   }
 
   return (
@@ -196,7 +176,11 @@ export default function FlowDisplay({
       >
         <Background color="#ccc" />
         <MiniMap pannable zoomable />
-        <Controls />
+        <Controls>
+          <ControlButton onClick={handleExpandedViewClick}>
+            {expandedView ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
+          </ControlButton>
+        </Controls>
       </ReactFlow>
     </div>
   )
