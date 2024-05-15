@@ -44,8 +44,6 @@ export default function FlowDisplay({
   const edgeTypes = useMemo(() => ({ selectionEdge: SelectionEdge }), [])
 
   const data = {expandNode, setExpandNode, selected, setSelected, setDetails, setShowDetails}
-  const reactFlow = useReactFlow()
-
 
   useEffect(() => {
     const flow = new Flow()

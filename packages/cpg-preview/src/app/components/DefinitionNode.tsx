@@ -24,7 +24,6 @@ const DefinitionNode = ({ data, id }: DefinitionNodeProps) => {
   const [highlight, setHighlight] = useState<boolean>()
 
   useEffect(() => {
-    console.log(selected)
     setCollapsed(isCollapsed)
     if (selected === id) {
       setHighlight(true)

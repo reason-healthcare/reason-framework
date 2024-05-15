@@ -241,7 +241,9 @@ class Flow implements FlowInstance {
       // On node click, find outgoers and add to display nodes then regraph
       const children = getOutgoers(sourceNode, allNodes, allEdges).filter(c => !this.nodes?.includes(c))
       if (children && this.nodes) {
-        this.setNodes = [...this.nodes, ...children.map(c => {
+        this.setNodes = [...this.nodes.map(n => {
+          return {...n, data: {...n.data, isCollapsed: false}}
+        }), ...children.map(c => {
           return {...c, data: {...c.data, isCollapsed: true}}
         })]
       }
