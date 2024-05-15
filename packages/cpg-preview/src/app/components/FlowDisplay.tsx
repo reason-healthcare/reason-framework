@@ -6,41 +6,36 @@ import ReactFlow, {
   Background,
   Controls,
   MiniMap,
-  getIncomers,
-  getOutgoers,
   ControlButton,
-  applyNodeChanges,
+  useReactFlow
 } from 'reactflow'
 import Flow from '../model/Flow'
 import ActionNode from './ActionNode'
 import DefinitionNode from './DefinitionNode'
 import SelectionEdge from './SelectionEdge'
 import FileResolver from 'resolver/file'
-import ELK, { ElkNode } from 'elkjs'
-import Graph from '../model/Graph'
 import {FullscreenOutlined, FullscreenExitOutlined} from '@ant-design/icons'
 
 interface FlowDisplayProps {
   resolver: FileResolver | undefined
   planDefinition: fhir4.PlanDefinition
-  setSelected: React.Dispatch<React.SetStateAction<Node | undefined>>
-  selected: Node | undefined
+  setDetails: React.Dispatch<React.SetStateAction<fhir4.PlanDefinition | fhir4.PlanDefinitionAction | fhir4.ActivityDefinition | undefined>>
+  setShowDetails: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 export default function FlowDisplay({
   resolver,
   planDefinition,
-  setSelected,
-  selected,
+  setDetails,
+  setShowDetails
 }: FlowDisplayProps) {
-  // const [flow, setFlow] = useState<any | undefined>()
-  // const [graph, setGraph] = useState<any | undefined>()
   const [allNodes, setAllNodes] = useState<Node[] | undefined>()
   const [allEdges, setAllEdges] = useState<Edge[] | undefined>()
   const [displayNodes, setDisplayNodes] = useState<Node[] | undefined>()
   const [displayEdges, setDisplayEdges] = useState<Edge[] | undefined>()
-  // const [collapsed, setCollapsed] = useState<string[]>([])
   const [expandedView, setExpandedView] = useState<boolean>(true)
+  const [expandNode, setExpandNode] = useState<string>()
+  const [selected, setSelected] = useState<string>()
 
   const nodeTypes = useMemo(
     () => ({ actionNode: ActionNode, definitionNode: DefinitionNode }),
@@ -48,11 +43,15 @@ export default function FlowDisplay({
   )
   const edgeTypes = useMemo(() => ({ selectionEdge: SelectionEdge }), [])
 
+  const data = {expandNode, setExpandNode, selected, setSelected, setDetails, setShowDetails}
+  const reactFlow = useReactFlow()
+
+
   useEffect(() => {
     const flow = new Flow()
     if (resolver && resolver.resourcesByCanonical) {
       flow.generateInitialFlow(planDefinition, resolver)
-      flow.generateFinalFlow().then(f => {
+      flow.generateFinalFlow(data).then(f => {
         setAllNodes(f.nodes)
         setAllEdges(f.edges)
         setDisplayNodes(f.nodes)
@@ -63,100 +62,61 @@ export default function FlowDisplay({
   }, [])
 
   useEffect(() => {
-    if (!selected && displayNodes) {
+    const flow = new Flow(allNodes, allEdges)
+    if (!expandedView && allNodes && allEdges) {
+      if (planDefinition.id) {
+        flow.collapseAllFromSource(planDefinition.id).then(f => {
+          setDisplayNodes(flow.nodes)
+          setDisplayEdges(flow.edges)
+        })
+      }
+    } else {
+      setDisplayNodes(allNodes)
+      setDisplayEdges(allEdges)
+    }
+  }, [expandedView])
+
+  useEffect(() => {
+    if (selected && displayNodes) {
       setDisplayNodes(
         displayNodes.map((node) => {
           return {
             ...node,
-            selected: false,
+            data: {...node.data, ...data}
           }
         })
       )
-    } else if (selected?.position) {
-      // const { x, y } = selected.position
-      // const { zoom } = reactFlow.getViewport()
-      // const zoomFactor = zoom < 0.3 ? 0.5 : 0
-      // reactFlow.setCenter(x + 100, y, {duration: 30, zoom: zoom + zoomFactor})
+      setDetails(displayNodes.find(n => n.id === selected)?.data.details)
     }
   }, [selected])
 
-  // const getNestedElements = (id: string, nestedNodes: Node[] = []) => {
-  //   if (nodes && edges) {
-  //     const outgoers = getOutgoers({ id } as Node, nodes, edges)
-  //     outgoers?.forEach((outgoer) => {
-  //       nestedNodes.push(outgoer)
-  //       getNestedElements(outgoer.id, nestedNodes)
-  //     })
-  //   }
-  //   return nestedNodes
-  // }
-
-  // const getHiddenElements = (
-  //   id: string,
-  //   hiddenNodes: Node[] = [],
-  //   hiddenEdges: Edge[] = []
-  // ) => {
-  //   if (nodes && edges) {
-  //     const outgoers = getOutgoers({ id } as Node, nodes, edges)
-  //     outgoers?.forEach((outgoer) => {
-  //       const connection = edges.find(
-  //         (e) => e.source === id && e.target === outgoer.id
-  //       )
-  //       connection ? hiddenEdges.push(connection) : null
-  //       // if type = definition, the node may have other incomers
-  //       if (outgoer.type === 'definitionNode') {
-  //         const incomers = getIncomers(outgoer, nodes, edges)
-  //         const nestedNodes = collapsed.flatMap((c) => getNestedElements(c))
-  //         // check each incomer to see if it is included in nested nodes, if there is an incomer that is not accounted for, display the node and stop processing
-  //         if (
-  //           incomers.some(
-  //             (i) => !nestedNodes.find((n) => i.id === n.id) && i.id !== id
-  //           )
-  //         ) {
-  //           return { hiddenNodes, hiddenEdges }
-  //         }
-  //         // if there is a display node other than the one currently being processed that leads to the outgoer, do not hide it
-  //         if (
-  //           hiddenNodes?.find(
-  //             (n) => n.id !== id && incomers.find((i) => i.id === n.id)
-  //           )
-  //         ) {
-  //           return { hiddenNodes, hiddenEdges }
-  //         }
-  //       }
-  //       hiddenNodes.push(outgoer)
-  //       getHiddenElements(outgoer.id, hiddenNodes, hiddenEdges)
-  //     })
-  //   }
-  //   return { hiddenNodes, hiddenEdges }
-  // }
-
-
   useEffect(() => {
-
-    const flow = new Flow(allNodes, allEdges)
-    if (!expandedView && allNodes && allEdges) {
-      if (planDefinition.id) {
-        flow.collapseAllFromSource(planDefinition.id)
-      }
+    const flow = new Flow(displayNodes, displayEdges)
+    if (expandNode) {
+      const sourceNode = allNodes?.find(n => n.id === expandNode)
+      flow.expandChildren(sourceNode, allNodes, allEdges).then(f => {
+        setDisplayNodes(f.nodes)
+        setDisplayEdges(f.edges)
+        // const center = f.nodes?.find(n => n.id === expandNode)?.position
+        // if (center) {
+        //   const { x, y } = center
+        //   const { zoom } = reactFlow.getViewport()
+        //   // const zoomFactor = zoom < 0.3 ? 0.5 : 0
+        //   reactFlow.setCenter(x + 100, y, {duration: 30, zoom: zoom})
+        // }
+        sourceNode ? setSelected(sourceNode.id) : null
+      })
     }
-    setDisplayNodes(flow.nodes)
-    setDisplayEdges(flow.edges)
-  }, [expandedView])
+  }, [expandNode])
 
-  // useEffect(() => {
-  //   console.log(displayNodes?.length)
-  //   console.log('here')
-  //   const flow = new Flow(displayNodes, displayEdges)
-  //   flow.generateFinalFlow(data)
-  // }, [collapsed])
 
-  const handleNodeClick = (
-    event: React.MouseEvent<Element, MouseEvent>,
-    node: Node
-  ) => {
-    setSelected(node)
-  }
+
+  // const handleNodeClick = (
+  //   event: React.MouseEvent<Element, MouseEvent>,
+  //   node: Node
+  // ) => {
+  //   setSelected(node)
+  // }
 
   const handleExpandedViewClick = () => {
     setExpandedView(!expandedView)
@@ -172,11 +132,13 @@ export default function FlowDisplay({
         minZoom={0.1}
         fitView={true}
         elevateEdgesOnSelect={true}
-        onNodeClick={handleNodeClick}
+        // onNodeClick={handleNodeClick}
       >
         <Background color="#ccc" />
         <MiniMap pannable zoomable />
-        <Controls>
+        <Controls
+          showInteractive={false}
+        >
           <ControlButton onClick={handleExpandedViewClick}>
             {expandedView ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
           </ControlButton>

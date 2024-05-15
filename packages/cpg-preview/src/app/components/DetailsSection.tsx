@@ -8,17 +8,17 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
 interface DetailsSectionProps {
-  setSelected: React.Dispatch<React.SetStateAction<Node | undefined>>
-  selected: Node | undefined
+  setShowDetails: React.Dispatch<React.SetStateAction<boolean>>
+  details: fhir4.PlanDefinition | fhir4.PlanDefinitionAction | fhir4.ActivityDefinition | undefined
   resolver: FileResolver | undefined
 }
 
 const DetailsSection = ({
-  selected,
-  setSelected,
+  details,
+  setShowDetails,
   resolver,
 }: DetailsSectionProps) => {
-  const { details } = selected?.data
+  // const { details } = details?.data
 
   if (!details) {
     return <p>Unable to load details</p>
@@ -90,28 +90,28 @@ const DetailsSection = ({
     return <li key={v4()}>{a.expression?.expression ?? null}</li>
   })
 
-  const caseFeatures = details?.input?.map((i: fhir4.DataRequirement) => {
-    if (i.profile && resolver) {
-      let resource = resolveCanonical(i.profile[0], resolver)
-      if (is.structureDefinition(resource)) {
-        return (
-          <li key={v4()}>{resource.title ?? resource.name ?? resource.url}</li>
-        )
-      }
-    }
-  })
+  // const caseFeatures = details?.input?.map((i: fhir4.DataRequirement) => {
+  //   if (i.profile && resolver) {
+  //     let resource = resolveCanonical(i.profile[0], resolver)
+  //     if (is.structureDefinition(resource)) {
+  //       return (
+  //         <li key={v4()}>{resource.title ?? resource.name ?? resource.url}</li>
+  //       )
+  //     }
+  //   }
+  // })
 
-  const products = details?.productCodeableConcept?.coding.map((c: fhir4.Coding) => {
-    return(
-      <li key={v4()}>
-        {c.display}
-        {c.code ? <p>Coding: {c.code} {c.system}</p> : undefined}
-      </li>
-    )
-  })
+  // const products = details?.productCodeableConcept?.coding.map((c: fhir4.Coding) => {
+  //   return(
+  //     <li key={v4()}>
+  //       {c.display}
+  //       {c.code ? <p>Coding: {c.code} {c.system}</p> : undefined}
+  //     </li>
+  //   )
+  // })
 
   const handleClick = () => {
-    setSelected(undefined)
+    setShowDetails(false)
   }
 
   return (
@@ -145,7 +145,7 @@ const DetailsSection = ({
           <p className="details-description">Applicability:</p>
         ) : undefined}
         <ul>{applicabilities}</ul>
-        {caseFeature ? (
+        {/* {caseFeature ? (
           <p className="details-description">Input:</p>
         ) : undefined}
         <ul>{caseFeatures}</ul>
@@ -170,7 +170,7 @@ const DetailsSection = ({
         {products ? (
           <p className="details-description">Product:</p>
         ) : undefined}
-        <ul>{products}</ul>
+        <ul>{products}</ul> */}
       </div>
     </div>
   )

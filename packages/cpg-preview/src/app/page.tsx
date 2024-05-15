@@ -11,7 +11,8 @@ export default function Home() {
   const [planDefinition, setPlanDefinition] = useState<
     fhir4.PlanDefinition | undefined
   >()
-  const [selected, setSelected] = useState<Node | undefined>()
+  const [details, setDetails] = useState<fhir4.PlanDefinition | fhir4.PlanDefinitionAction | fhir4.ActivityDefinition | undefined>()
+  const [showDetails, setShowDetails] = useState<boolean>(false)
 
   useEffect(() => {
     fetch('/api/content', { cache: 'no-cache' })
@@ -35,18 +36,18 @@ export default function Home() {
             <FlowDisplay
               resolver={resolver}
               planDefinition={planDefinition}
-              selected={selected}
-              setSelected={setSelected}
+              setDetails={setDetails}
+              setShowDetails={setShowDetails}
             />
           </ReactFlowProvider>
         ) : (
           <LoadIndicator />
         )}
-        {selected ? (
+        {showDetails ? (
           <DetailsSection
-            setSelected={setSelected}
-            selected={selected}
+            details={details}
             resolver={resolver}
+            setShowDetails={setShowDetails}
           ></DetailsSection>
         ) : null}
       </div>

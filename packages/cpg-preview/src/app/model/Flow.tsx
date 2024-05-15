@@ -45,7 +45,6 @@ class Flow implements FlowInstance {
     return {
       id,
       data: {
-        id,
         label: definition.title ?? definition.id,
         details: definition,
         isCollapsed: false,
@@ -59,7 +58,7 @@ class Flow implements FlowInstance {
   private createActionNode(id: string, action: fhir4.PlanDefinitionAction) {
     return {
       id,
-      data: { id, label: action.title, details: action, isCollapsed: false,
+      data: { label: action.title, details: action, isCollapsed: false,
       },
       position: { x: 0, y: 0 },
       type: 'actionNode',
@@ -219,7 +218,7 @@ class Flow implements FlowInstance {
     return this
   }
 
-  public collapseAllFromSource(id: string) {
+  public async collapseAllFromSource(id: string) {
     let children: Node[] | undefined
     if (this.nodes && this.edges) {
       const sourceNode = this.nodes?.find(n => n.id === `definition-${id}`)
@@ -233,7 +232,27 @@ class Flow implements FlowInstance {
         this.setEdges = this.edges.filter(e => children?.some(c => c.id === e.target) && e.source === sourceNode.id)
       }
     }
-  return children
+    await this.generateFinalFlow()
+    return this
+  }
+
+  public async expandChildren(sourceNode: Node | undefined, allNodes: Node[] | undefined, allEdges: Edge[] | undefined) {
+    if (sourceNode && allNodes && allEdges) {
+      // On node click, find outgoers and add to display nodes then regraph
+      const children = getOutgoers(sourceNode, allNodes, allEdges).filter(c => !this.nodes?.includes(c))
+      if (children && this.nodes) {
+        this.setNodes = [...this.nodes, ...children.map(c => {
+          return {...c, data: {...c.data, isCollapsed: true}}
+        })]
+      }
+      const childEdges = allEdges.filter(e => children?.some(c => c.id === e.target) && e.source === sourceNode.id)
+      if (childEdges && this.edges) {
+        this.setEdges = [...this.edges, ...childEdges]
+      }
+    }
+    await this.generateFinalFlow()
+
+    return this
   }
 }
 

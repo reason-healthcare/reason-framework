@@ -2,20 +2,28 @@ import { Handle, Position } from 'reactflow'
 import '@/styles/node.css'
 import { useState } from 'react'
 import { UpCircleFilled, DownCircleFilled } from '@ant-design/icons'
+import { useEffect } from 'react'
 
 type InteractiveHandleProps = {
-  setIsCollapsed: React.Dispatch<React.SetStateAction<boolean>>
-  isCollapsed: boolean
+  setCollapsed: React.Dispatch<React.SetStateAction<boolean>>
+  collapsed: boolean
+  setExpandNode: React.Dispatch<React.SetStateAction<string>>
+  id: string
 }
 
 const InteractiveHandle = ({
-  setIsCollapsed,
-  isCollapsed,
+  setCollapsed,
+  collapsed,
+  setExpandNode,
+  id,
 }: InteractiveHandleProps) => {
   const [displayIcon, setDisplayIcon] = useState(false)
 
   const handleClick = () => {
-    setIsCollapsed(!isCollapsed)
+    if (collapsed) {
+      setExpandNode(id)
+    }
+    setCollapsed(!collapsed)
   }
 
   const onHover = () => {
@@ -24,9 +32,9 @@ const InteractiveHandle = ({
 
   return (
     <div onMouseEnter={onHover} onMouseLeave={onHover}>
-      {displayIcon && !isCollapsed ? (
+      {displayIcon && !collapsed ? (
         <UpCircleFilled className="collapse-icon" onClick={handleClick} />
-      ) : displayIcon && isCollapsed ? (
+      ) : displayIcon && collapsed ? (
         <DownCircleFilled className="collapse-icon" onClick={handleClick} />
       ) : null}
       <Handle

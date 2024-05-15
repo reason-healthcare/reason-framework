@@ -5,39 +5,54 @@ import InteractiveHandle from './InteractiveHandle'
 
 type DefinitionNodeProps = {
   data: {
-    id: string
     label: string
     handle: 'output' | 'input' | undefined
-    details: fhir4.PlanDefinitionAction | fhir4.ActivityDefinition
-    // setCollapsed: React.Dispatch<React.SetStateAction<string[]>>
-    // collapsed: string[]
+    details: fhir4.PlanDefinitionAction
     isCollapsed: boolean
+    setExpandNode: React.Dispatch<React.SetStateAction<string>>
+    selected: string | undefined
+    setSelected: React.Dispatch<React.SetStateAction<string | undefined>>
+    setDetails: React.Dispatch<React.SetStateAction<fhir4.PlanDefinition | fhir4.PlanDefinitionAction | undefined>>
+    setShowDetails: React.Dispatch<React.SetStateAction<boolean>>
   }
-  selected: boolean
+  id: string
 }
 
-const DefinitionNode = ({ data, selected }: DefinitionNodeProps) => {
-  const { id, label, handle, details, isCollapsed } = data
-  const [collapsed, setCollapsed] = useState<boolean>(isCollapsed)
+const DefinitionNode = ({ data, id }: DefinitionNodeProps) => {
+  const { label, handle, details, isCollapsed, setExpandNode, selected, setSelected, setDetails, setShowDetails } = data
+  const [collapsed, setCollapsed] = useState<boolean>(false)
+  const [highlight, setHighlight] = useState<boolean>()
 
-  // useEffect(() => {
-  //   if (isCollapsed) {
-  //     setCollapsed([...collapsed, id])
-  //   } else {
-  //     setCollapsed(collapsed?.filter((c) => c !== id))
-  //   }
-  // }, [isCollapsed])
+  useEffect(() => {
+    console.log(selected)
+    setCollapsed(isCollapsed)
+    if (selected === id) {
+      setHighlight(true)
+    } else {
+      setHighlight(false)
+    }
+  }, [isCollapsed, selected])
+
+  const handleNodeClick = () => {
+    setSelected(id)
+    setDetails(details)
+    setShowDetails(true)
+  }
 
   return (
-    <div className={selected ? 'node-highlight' : 'node-unhighlight'}>
+    <div className={highlight ? 'node-highlight' : 'node-unhighlight'}>
       {handle !== 'input' ? (
         <Handle type="target" position={Position.Top} />
       ) : null}
-      <p>{label}</p>
+      <div onClick={handleNodeClick}>
+        <p>{label}</p>
+      </div>
       {handle !== 'output' ? (
         <InteractiveHandle
-          isCollapsed={collapsed}
-          setIsCollapsed={setCollapsed}
+          setCollapsed={setCollapsed}
+          collapsed={collapsed}
+          setExpandNode={setExpandNode}
+          id={id}
         />
       ) : null}
     </div>

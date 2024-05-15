@@ -8,34 +8,36 @@ import InteractiveHandle from './InteractiveHandle'
 
 type ActionNodeProps = {
   data: {
-    id: string
     label: string
     handle: 'output' | undefined
     details: fhir4.PlanDefinitionAction
-    setCollapsed: React.Dispatch<React.SetStateAction<string[]>>
-    collapsed: string[],
     isCollapsed: boolean
+    setExpandNode: React.Dispatch<React.SetStateAction<string>>
+    selected: string | undefined
+    setSelected: React.Dispatch<React.SetStateAction<string | undefined>>
+    setDetails: React.Dispatch<React.SetStateAction<fhir4.PlanDefinition | fhir4.PlanDefinitionAction | undefined>>
+    setShowDetails: React.Dispatch<React.SetStateAction<boolean>>
   }
-  selected: boolean
+  id: string
 }
 
-const ActionNode = ({ data, selected }: ActionNodeProps) => {
-  const { id, label, handle, details, isCollapsed } = data
-  const [collapsed, setCollapsed] = useState<boolean>(isCollapsed)
+const ActionNode = ({ data, id }: ActionNodeProps) => {
+  const { label, handle, details, isCollapsed, setExpandNode, selected, setSelected, setDetails, setShowDetails } = data
+  const [collapsed, setCollapsed] = useState<boolean>(false)
+  const [highlight, setHighlight] = useState<boolean>()
 
-  // useEffect(() => {
-  //   if (isCollapsed) {
-  //     console.log('here from action')
-  //     setCollapsed([...collapsed, id])
-  //   } else {
-  //     setCollapsed(collapsed?.filter((c) => c !== id))
-  //   }
-  // }, [isCollapsed])
-
-  console.log(isCollapsed)
+  useEffect(() => {
+    console.log(selected)
+    setCollapsed(isCollapsed)
+    if (selected === id) {
+      setHighlight(true)
+    } else {
+      setHighlight(false)
+    }
+  }, [isCollapsed, selected])
 
   let detailsLabel
-  if (details.selectionBehavior) {
+  if (details.selectionBehavior && !collapsed) {
     detailsLabel = (
       <div className="action-details-label">
         {`Select ${details.selectionBehavior}`}
@@ -43,12 +45,18 @@ const ActionNode = ({ data, selected }: ActionNodeProps) => {
     )
   }
 
+  const handleNodeClick = () => {
+    setSelected(id)
+    setDetails(details)
+    setShowDetails(true)
+  }
+
   return (
     <div className="node-container">
       <Handle type="target" position={Position.Top} />
-      <div className="diamond-container">
+      <div className="diamond-container" onClick={handleNodeClick}>
         <Image
-          src={selected ? diamondHighlight : diamond}
+          src={highlight ? diamondHighlight : diamond}
           alt="diamond node"
           className="diamond-icon"
         />
@@ -60,8 +68,10 @@ const ActionNode = ({ data, selected }: ActionNodeProps) => {
       </div>
       {handle !== 'output' ? (
         <InteractiveHandle
-          setIsCollapsed={setCollapsed}
-          isCollapsed={collapsed}
+          setCollapsed={setCollapsed}
+          collapsed={collapsed}
+          setExpandNode={setExpandNode}
+          id={id}
         />
       ) : null}
       {detailsLabel}
