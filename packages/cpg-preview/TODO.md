@@ -1,6 +1,6 @@
 # Next Steps
 
-1. Handle additional json properies in details section (ie applicability.reference, etc)
+1. Handle additional json properies in details section
 2. Mini map styling
 3. Support REST endpoint
 4. Create input section with content endpoint and plan identifier

@@ -94,10 +94,12 @@ export default function FlowDisplay({
         }
       })
     } else if (expandedView) {
-      setDisplayNodes(allNodes)
-      setDisplayEdges(allEdges)
-      const newKey = key + 1
-      setKey(newKey)
+      // flow.generateFinalFlow(data).then((f) => {
+        setDisplayNodes(allNodes)
+        setDisplayEdges(allEdges)
+        const newKey = key + 1
+        setKey(newKey)
+      // })
     }
   }, [expandedView])
 
@@ -129,11 +131,13 @@ export default function FlowDisplay({
       const newKey = key + 1
       setKey(newKey)
     }
+    setExpandNode(undefined)
   }, [expandNode])
 
   const handleExpandedViewClick = () => {
     setExpandedView(!expandedView)
   }
+
 
   return (
     <div className="flow-container">
