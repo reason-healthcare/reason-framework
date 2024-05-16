@@ -11,5 +11,3 @@
 1. Accept patient data and render applicable pathway
 2. Generate questionnaire based on missing patient data
 3. Highlight selected edge path (currently stroke thickness increases)
-
-

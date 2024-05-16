@@ -8,19 +8,26 @@ import ReactFlow, {
   MiniMap,
   ControlButton,
   useReactFlow,
-  getViewportForBounds
+  getViewportForBounds,
 } from 'reactflow'
 import Flow from '../model/Flow'
 import ActionNode from './ActionNode'
 import DefinitionNode from './DefinitionNode'
 import SelectionEdge from './SelectionEdge'
 import FileResolver from 'resolver/file'
-import {FullscreenOutlined, FullscreenExitOutlined} from '@ant-design/icons'
+import { FullscreenOutlined, FullscreenExitOutlined } from '@ant-design/icons'
 
 interface FlowDisplayProps {
   resolver: FileResolver | undefined
   planDefinition: fhir4.PlanDefinition
-  setDetails: React.Dispatch<React.SetStateAction<fhir4.PlanDefinition | fhir4.PlanDefinitionAction | fhir4.ActivityDefinition | undefined>>
+  setDetails: React.Dispatch<
+    React.SetStateAction<
+      | fhir4.PlanDefinition
+      | fhir4.PlanDefinitionAction
+      | fhir4.ActivityDefinition
+      | undefined
+    >
+  >
   setShowDetails: React.Dispatch<React.SetStateAction<boolean>>
 }
 
@@ -28,7 +35,7 @@ export default function FlowDisplay({
   resolver,
   planDefinition,
   setDetails,
-  setShowDetails
+  setShowDetails,
 }: FlowDisplayProps) {
   const [allNodes, setAllNodes] = useState<Node[] | undefined>()
   const [allEdges, setAllEdges] = useState<Edge[] | undefined>()
@@ -45,19 +52,25 @@ export default function FlowDisplay({
   )
   const edgeTypes = useMemo(() => ({ selectionEdge: SelectionEdge }), [])
 
-  const data = {expandNode, setExpandNode, selected, setSelected, setDetails, setShowDetails}
+  const data = {
+    expandNode,
+    setExpandNode,
+    selected,
+    setSelected,
+    setDetails,
+    setShowDetails,
+  }
   const reactFlow = useReactFlow()
 
   useEffect(() => {
     const flow = new Flow()
     if (resolver && resolver.resourcesByCanonical) {
       flow.generateInitialFlow(planDefinition, resolver)
-      flow.generateFinalFlow(data).then(f => {
+      flow.generateFinalFlow(data).then((f) => {
         setAllNodes(f.nodes)
         setAllEdges(f.edges)
         setDisplayNodes(f.nodes)
         setDisplayEdges(f.edges)
-
       })
     }
   }, [])
@@ -65,15 +78,17 @@ export default function FlowDisplay({
   useEffect(() => {
     const flow = new Flow(allNodes, allEdges)
     if (!expandedView && allNodes && allEdges && planDefinition.id) {
-      flow.collapseAllFromSource(planDefinition.id).then(f => {
+      flow.collapseAllFromSource(planDefinition.id).then((f) => {
         setDisplayNodes(flow.nodes)
         setDisplayEdges(flow.edges)
-        const center = f.nodes?.find(n => n.id === `definition-${planDefinition.id}`)?.position
+        const center = f.nodes?.find(
+          (n) => n.id === `definition-${planDefinition.id}`
+        )?.position
         if (center) {
           const { x, y } = center
           const { zoom } = reactFlow.getViewport()
           // const zoomFactor = zoom < 0.3 ? 10 : 0
-          reactFlow.setCenter(x, y, {zoom: zoom * 10})
+          reactFlow.setCenter(x, y, { zoom: zoom * 10 })
           const newKey = key + 1
           setKey(newKey)
         }
@@ -92,11 +107,11 @@ export default function FlowDisplay({
         displayNodes.map((node) => {
           return {
             ...node,
-            data: {...node.data, ...data}
+            data: { ...node.data, ...data },
           }
         })
       )
-      setDetails(displayNodes.find(n => n.id === selected)?.data.details)
+      setDetails(displayNodes.find((n) => n.id === selected)?.data.details)
       const newKey = key + 1
       setKey(newKey)
     }
@@ -105,8 +120,8 @@ export default function FlowDisplay({
   useEffect(() => {
     const flow = new Flow(displayNodes, displayEdges)
     if (expandNode) {
-      const sourceNode = allNodes?.find(n => n.id === expandNode)
-      flow.expandChildren(sourceNode, allNodes, allEdges).then(f => {
+      const sourceNode = allNodes?.find((n) => n.id === expandNode)
+      flow.expandChildren(sourceNode, allNodes, allEdges).then((f) => {
         setDisplayNodes(f.nodes)
         setDisplayEdges(f.edges)
         sourceNode ? setSelected(sourceNode.id) : null
@@ -134,9 +149,7 @@ export default function FlowDisplay({
       >
         <Background color="#ccc" />
         <MiniMap pannable zoomable />
-        <Controls
-          showInteractive={false}
-        >
+        <Controls showInteractive={false}>
           <ControlButton onClick={handleExpandedViewClick}>
             {expandedView ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
           </ControlButton>

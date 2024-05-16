@@ -11,7 +11,12 @@ export default function Home() {
   const [planDefinition, setPlanDefinition] = useState<
     fhir4.PlanDefinition | undefined
   >()
-  const [details, setDetails] = useState<fhir4.PlanDefinition | fhir4.PlanDefinitionAction | fhir4.ActivityDefinition | undefined>()
+  const [details, setDetails] = useState<
+    | fhir4.PlanDefinition
+    | fhir4.PlanDefinitionAction
+    | fhir4.ActivityDefinition
+    | undefined
+  >()
   const [showDetails, setShowDetails] = useState<boolean>(false)
   const [viewport, setViewport] = useState<boolean>(false)
 

@@ -12,14 +12,28 @@ type DefinitionNodeProps = {
     setExpandNode: React.Dispatch<React.SetStateAction<string>>
     selected: string | undefined
     setSelected: React.Dispatch<React.SetStateAction<string | undefined>>
-    setDetails: React.Dispatch<React.SetStateAction<fhir4.PlanDefinition | fhir4.PlanDefinitionAction | undefined>>
+    setDetails: React.Dispatch<
+      React.SetStateAction<
+        fhir4.PlanDefinition | fhir4.PlanDefinitionAction | undefined
+      >
+    >
     setShowDetails: React.Dispatch<React.SetStateAction<boolean>>
   }
   id: string
 }
 
 const DefinitionNode = ({ data, id }: DefinitionNodeProps) => {
-  const { label, handle, details, isCollapsed, setExpandNode, selected, setSelected, setDetails, setShowDetails } = data
+  const {
+    label,
+    handle,
+    details,
+    isCollapsed,
+    setExpandNode,
+    selected,
+    setSelected,
+    setDetails,
+    setShowDetails,
+  } = data
   const [collapsed, setCollapsed] = useState<boolean>(false)
   const [highlight, setHighlight] = useState<boolean>()
 

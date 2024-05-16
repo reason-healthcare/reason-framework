@@ -8,7 +8,8 @@ import { resolveCanonical } from '../helpers'
 import { v4 } from 'uuid'
 import Graph from './Graph'
 
-export interface FlowInstance { // extends ReactFlowInstance {
+export interface FlowInstance {
+  // extends ReactFlowInstance {
   nodes: Node[] | undefined
   edges: Edge[] | undefined
   generateFinalFlow(graph: ElkNode): void
@@ -17,7 +18,7 @@ export interface FlowInstance { // extends ReactFlowInstance {
 class Flow implements FlowInstance {
   nodes: Node[] | undefined
   edges: Edge[] | undefined
-  constructor(nodes?: Node[] | undefined, edges?: Edge[] | undefined ) {
+  constructor(nodes?: Node[] | undefined, edges?: Edge[] | undefined) {
     this.nodes = nodes
     this.edges = edges
   }
@@ -58,8 +59,7 @@ class Flow implements FlowInstance {
   private createActionNode(id: string, action: fhir4.PlanDefinitionAction) {
     return {
       id,
-      data: { label: action.title, details: action, isCollapsed: false,
-      },
+      data: { label: action.title, details: action, isCollapsed: false },
       position: { x: 0, y: 0 },
       type: 'actionNode',
       className: 'node',
@@ -184,10 +184,8 @@ class Flow implements FlowInstance {
    */
   public async generateFinalFlow(data?: any) {
     const graph = new Graph()
-    await graph.generateElkGraph(this).then(g => {
-
+    await graph.generateElkGraph(this).then((g) => {
       if (this.nodes && this.edges) {
-
         this.nodes = graph.children
           ?.map((node) => {
             const reactNode = this.nodes?.find((n) => n.id === node.id)
@@ -195,7 +193,7 @@ class Flow implements FlowInstance {
               return {
                 ...reactNode,
                 position: { x: node.x, y: node.y },
-                data: {...reactNode.data, ...data}
+                data: { ...reactNode.data, ...data },
               }
             }
           })
@@ -221,37 +219,56 @@ class Flow implements FlowInstance {
   public async collapseAllFromSource(id: string) {
     let children: Node[] | undefined
     if (this.nodes && this.edges) {
-      const sourceNode = this.nodes?.find(n => n.id === `definition-${id}`)
+      const sourceNode = this.nodes?.find((n) => n.id === `definition-${id}`)
       if (!sourceNode) {
         console.error('Unable to collapse graph')
       } else {
         children = getOutgoers(sourceNode, this.nodes, this.edges)
-        this.setNodes = [...children.map(c => {
-          return {...c, data: {...c.data, isCollapsed: true}}
-        }), sourceNode]
-        this.setEdges = this.edges.filter(e => children?.some(c => c.id === e.target) && e.source === sourceNode.id)
+        this.setNodes = [
+          ...children.map((c) => {
+            return { ...c, data: { ...c.data, isCollapsed: true } }
+          }),
+          sourceNode,
+        ]
+        this.setEdges = this.edges.filter(
+          (e) =>
+            children?.some((c) => c.id === e.target) &&
+            e.source === sourceNode.id
+        )
       }
     }
     await this.generateFinalFlow()
     return this
   }
 
-  public async expandChildren(sourceNode: Node | undefined, allNodes: Node[] | undefined, allEdges: Edge[] | undefined) {
+  public async expandChildren(
+    sourceNode: Node | undefined,
+    allNodes: Node[] | undefined,
+    allEdges: Edge[] | undefined
+  ) {
     if (sourceNode && allNodes && allEdges) {
       // On node click, find outgoers and add to display nodes then regraph
-      const children = getOutgoers(sourceNode, allNodes, allEdges).filter(c => !this.nodes?.includes(c))
+      const children = getOutgoers(sourceNode, allNodes, allEdges).filter(
+        (c) => !this.nodes?.includes(c)
+      )
       if (children && this.nodes) {
-        this.setNodes = [...this.nodes.map(n => {
-          let node = n
-          if (n.id === sourceNode.id) {
-            node = {...n, data: {...n.data, isCollapsed: false}}
-          }
-          return node
-        }), ...children.map(c => {
-          return {...c, data: {...c.data, isCollapsed: true}}
-        })]
+        this.setNodes = [
+          ...this.nodes.map((n) => {
+            let node = n
+            if (n.id === sourceNode.id) {
+              node = { ...n, data: { ...n.data, isCollapsed: false } }
+            }
+            return node
+          }),
+          ...children.map((c) => {
+            return { ...c, data: { ...c.data, isCollapsed: true } }
+          }),
+        ]
       }
-      const childEdges = allEdges.filter(e => children?.some(c => c.id === e.target) && e.source === sourceNode.id)
+      const childEdges = allEdges.filter(
+        (e) =>
+          children?.some((c) => c.id === e.target) && e.source === sourceNode.id
+      )
       if (childEdges && this.edges) {
         this.setEdges = [...this.edges, ...childEdges]
       }
