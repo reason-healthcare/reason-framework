@@ -6,6 +6,10 @@
 4. Create input section with content endpoint and plan identifier
 5. Refactors
 
+6. Preserve zoom on select (as opposed to fitview) ??
+  - On details expand: rerender react flow to initialize viewport
+  - Get viewport area and ensure selected is within bounds
+
 # Future Items
 
 1. Accept patient data and render applicable pathway

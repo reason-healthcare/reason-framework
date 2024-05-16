@@ -87,19 +87,16 @@ export default function FlowDisplay({
         if (center) {
           const { x, y } = center
           const { zoom } = reactFlow.getViewport()
-          // const zoomFactor = zoom < 0.3 ? 10 : 0
           reactFlow.setCenter(x, y, { zoom: zoom * 10 })
           const newKey = key + 1
           setKey(newKey)
         }
       })
     } else if (expandedView) {
-      // flow.generateFinalFlow(data).then((f) => {
         setDisplayNodes(allNodes)
         setDisplayEdges(allEdges)
         const newKey = key + 1
         setKey(newKey)
-      // })
     }
   }, [expandedView])
 
@@ -113,9 +110,18 @@ export default function FlowDisplay({
           }
         })
       )
-      setDetails(displayNodes.find((n) => n.id === selected)?.data.details)
+      const selectedNode = displayNodes.find((n) => n.id === selected)
+      setDetails(selectedNode?.data.details)
+      // if (selectedNode?.position) {
+      //   const { x, y } = selectedNode?.position
+      //   const { zoom } = reactFlow.getViewport()
+      //   reactFlow.setCenter(x, y, { zoom: zoom })
+      //   // const newKey = key + 1
+      //   // setKey(newKey)
+      // }
       const newKey = key + 1
       setKey(newKey)
+
     }
   }, [selected])
 
@@ -131,13 +137,13 @@ export default function FlowDisplay({
       const newKey = key + 1
       setKey(newKey)
     }
-    setExpandNode(undefined)
   }, [expandNode])
 
   const handleExpandedViewClick = () => {
     setExpandedView(!expandedView)
+    setSelected(undefined)
+    setExpandNode(undefined)
   }
-
 
   return (
     <div className="flow-container">
@@ -148,6 +154,7 @@ export default function FlowDisplay({
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         minZoom={0.1}
+        // fitView={selected ? false : true}
         fitView={true}
         elevateEdgesOnSelect={true}
       >
