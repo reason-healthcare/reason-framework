@@ -2,7 +2,6 @@ import { Handle, Position } from 'reactflow'
 import '@/styles/node.css'
 import { useState } from 'react'
 import { UpCircleFilled, DownCircleFilled } from '@ant-design/icons'
-import { useEffect } from 'react'
 
 type InteractiveHandleProps = {
   setCollapsed: React.Dispatch<React.SetStateAction<boolean>>
@@ -27,7 +26,10 @@ const InteractiveHandle = ({
   }
 
   const onHover = () => {
-    setDisplayIcon(!displayIcon)
+    // Temp disable collapse on handle click
+    if (collapsed) {
+      setDisplayIcon(!displayIcon)
+    }
   }
 
   return (

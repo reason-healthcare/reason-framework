@@ -1,4 +1,4 @@
-import ReactFlow, { Edge, Node, ReactFlowInstance, getOutgoers } from 'reactflow'
+import ReactFlow, { Edge, Node, useReactFlow, getOutgoers } from 'reactflow'
 import { is, notEmpty } from '../helpers'
 import '@/styles/node.css'
 import '@/styles/edge.css'
@@ -242,7 +242,11 @@ class Flow implements FlowInstance {
       const children = getOutgoers(sourceNode, allNodes, allEdges).filter(c => !this.nodes?.includes(c))
       if (children && this.nodes) {
         this.setNodes = [...this.nodes.map(n => {
-          return {...n, data: {...n.data, isCollapsed: false}}
+          let node = n
+          if (n.id === sourceNode.id) {
+            node = {...n, data: {...n.data, isCollapsed: false}}
+          }
+          return node
         }), ...children.map(c => {
           return {...c, data: {...c.data, isCollapsed: true}}
         })]
@@ -253,7 +257,6 @@ class Flow implements FlowInstance {
       }
     }
     await this.generateFinalFlow()
-
     return this
   }
 }

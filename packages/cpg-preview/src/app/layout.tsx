@@ -6,8 +6,11 @@ import './styles/globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'CPG Preview',
-  description: 'Preview of Clinical Practice Guidelines',
+  title: 'CPG Preview - Reason Healthcare',
+  description: 'Preview of FHIR Clinical Practice Guidelines',
+  icons: {
+    icon: 'favicon/favicon.ico',
+  },
 }
 
 export default function RootLayout({

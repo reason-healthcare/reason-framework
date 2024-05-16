@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, use } from 'react'
 import ReactFlow, {
   Edge,
   Node,
@@ -7,7 +7,8 @@ import ReactFlow, {
   Controls,
   MiniMap,
   ControlButton,
-  useReactFlow
+  useReactFlow,
+  getViewportForBounds
 } from 'reactflow'
 import Flow from '../model/Flow'
 import ActionNode from './ActionNode'
@@ -36,6 +37,7 @@ export default function FlowDisplay({
   const [expandedView, setExpandedView] = useState<boolean>(true)
   const [expandNode, setExpandNode] = useState<string>()
   const [selected, setSelected] = useState<string>()
+  const [key, setKey] = useState<number>(0)
 
   const nodeTypes = useMemo(
     () => ({ actionNode: ActionNode, definitionNode: DefinitionNode }),
@@ -44,6 +46,7 @@ export default function FlowDisplay({
   const edgeTypes = useMemo(() => ({ selectionEdge: SelectionEdge }), [])
 
   const data = {expandNode, setExpandNode, selected, setSelected, setDetails, setShowDetails}
+  const reactFlow = useReactFlow()
 
   useEffect(() => {
     const flow = new Flow()
@@ -61,16 +64,25 @@ export default function FlowDisplay({
 
   useEffect(() => {
     const flow = new Flow(allNodes, allEdges)
-    if (!expandedView && allNodes && allEdges) {
-      if (planDefinition.id) {
-        flow.collapseAllFromSource(planDefinition.id).then(f => {
-          setDisplayNodes(flow.nodes)
-          setDisplayEdges(flow.edges)
-        })
-      }
-    } else {
+    if (!expandedView && allNodes && allEdges && planDefinition.id) {
+      flow.collapseAllFromSource(planDefinition.id).then(f => {
+        setDisplayNodes(flow.nodes)
+        setDisplayEdges(flow.edges)
+        const center = f.nodes?.find(n => n.id === `definition-${planDefinition.id}`)?.position
+        if (center) {
+          const { x, y } = center
+          const { zoom } = reactFlow.getViewport()
+          // const zoomFactor = zoom < 0.3 ? 10 : 0
+          reactFlow.setCenter(x, y, {zoom: zoom * 10})
+          const newKey = key + 1
+          setKey(newKey)
+        }
+      })
+    } else if (expandedView) {
       setDisplayNodes(allNodes)
       setDisplayEdges(allEdges)
+      const newKey = key + 1
+      setKey(newKey)
     }
   }, [expandedView])
 
@@ -85,6 +97,8 @@ export default function FlowDisplay({
         })
       )
       setDetails(displayNodes.find(n => n.id === selected)?.data.details)
+      const newKey = key + 1
+      setKey(newKey)
     }
   }, [selected])
 
@@ -95,26 +109,12 @@ export default function FlowDisplay({
       flow.expandChildren(sourceNode, allNodes, allEdges).then(f => {
         setDisplayNodes(f.nodes)
         setDisplayEdges(f.edges)
-        // const center = f.nodes?.find(n => n.id === expandNode)?.position
-        // if (center) {
-        //   const { x, y } = center
-        //   const { zoom } = reactFlow.getViewport()
-        //   // const zoomFactor = zoom < 0.3 ? 0.5 : 0
-        //   reactFlow.setCenter(x + 100, y, {duration: 30, zoom: zoom})
-        // }
         sourceNode ? setSelected(sourceNode.id) : null
       })
+      const newKey = key + 1
+      setKey(newKey)
     }
   }, [expandNode])
-
-
-
-  // const handleNodeClick = (
-  //   event: React.MouseEvent<Element, MouseEvent>,
-  //   node: Node
-  // ) => {
-  //   setSelected(node)
-  // }
 
   const handleExpandedViewClick = () => {
     setExpandedView(!expandedView)
@@ -123,6 +123,7 @@ export default function FlowDisplay({
   return (
     <div className="flow-container">
       <ReactFlow
+        key={key}
         nodes={displayNodes}
         edges={displayEdges}
         nodeTypes={nodeTypes}
@@ -130,7 +131,6 @@ export default function FlowDisplay({
         minZoom={0.1}
         fitView={true}
         elevateEdgesOnSelect={true}
-        // onNodeClick={handleNodeClick}
       >
         <Background color="#ccc" />
         <MiniMap pannable zoomable />

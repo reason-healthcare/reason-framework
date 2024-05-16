@@ -13,6 +13,7 @@ export default function Home() {
   >()
   const [details, setDetails] = useState<fhir4.PlanDefinition | fhir4.PlanDefinitionAction | fhir4.ActivityDefinition | undefined>()
   const [showDetails, setShowDetails] = useState<boolean>(false)
+  const [viewport, setViewport] = useState<boolean>(false)
 
   useEffect(() => {
     fetch('/api/content', { cache: 'no-cache' })
@@ -23,6 +24,10 @@ export default function Home() {
         setPlanDefinition(data.planDefinition)
       })
   }, [])
+
+  useEffect(() => {
+    setViewport(true)
+  }, [showDetails])
 
   return (
     <div className="app-container">
