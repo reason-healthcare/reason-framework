@@ -80,6 +80,20 @@ const DetailsSection = ({
     }).filter(notEmpty)
   }
 
+  const formatDefinition = (canonical: string) => {
+    let text
+    if (resolver) {
+      const resource = resolveCanonical(canonical, resolver)
+      if (is.planDefinition(resource) || is.activityDefinition(resource)) {
+        text = resource.title ?? resource.name
+      }
+    }
+    if (!text) {
+      text = canonical
+    }
+    return text
+  }
+
   const formatProdcuts = (
     products: fhir4.ActivityDefinition['productCodeableConcept']
   ) => {
@@ -164,6 +178,7 @@ const DetailsSection = ({
       condition,
       input,
       action,
+      definitionCanonical
     } = sourceAction
     return (
       <div>
@@ -189,6 +204,7 @@ const DetailsSection = ({
           />
         )}
         {input && <ListDisplay header="Input" content={formatInputs(input)} />}
+        {definitionCanonical && <SingleDisplay header='Definition' content={formatDefinition(definitionCanonical)}/>}
       </div>
     )
   }

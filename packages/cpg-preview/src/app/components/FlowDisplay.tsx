@@ -159,8 +159,8 @@ export default function FlowDisplay({
         elevateEdgesOnSelect={true}
       >
         <Background color="#ccc" />
-        <MiniMap pannable zoomable />
-        <Controls showInteractive={false}>
+        <MiniMap pannable zoomable position='bottom-left'/>
+        <Controls showInteractive={false} position='bottom-right'>
           <ControlButton onClick={handleExpandedViewClick}>
             {expandedView ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
           </ControlButton>
