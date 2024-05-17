@@ -6,9 +6,9 @@
 4. Create input section with content endpoint and plan identifier
 5. Refactors
 
-6. Preserve zoom on select (as opposed to fitview) ??
-  - On details expand: rerender react flow to initialize viewport
-  - Get viewport area and ensure selected is within bounds
+6. When a user "expands node", without pan/zoom behavior, the node may be out of view due to regraph. Consider:
+  - maintain current zoom
+  - center on source node
 
 # Future Items
 

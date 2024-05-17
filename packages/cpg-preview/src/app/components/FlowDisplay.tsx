@@ -29,6 +29,7 @@ interface FlowDisplayProps {
     >
   >
   setShowDetails: React.Dispatch<React.SetStateAction<boolean>>
+  showDetails: boolean
 }
 
 export default function FlowDisplay({
@@ -36,6 +37,7 @@ export default function FlowDisplay({
   planDefinition,
   setDetails,
   setShowDetails,
+  showDetails
 }: FlowDisplayProps) {
   const [allNodes, setAllNodes] = useState<Node[] | undefined>()
   const [allEdges, setAllEdges] = useState<Edge[] | undefined>()
@@ -112,15 +114,6 @@ export default function FlowDisplay({
       )
       const selectedNode = displayNodes.find((n) => n.id === selected)
       setDetails(selectedNode?.data.details)
-      // if (selectedNode?.position) {
-      //   const { x, y } = selectedNode?.position
-      //   const { zoom } = reactFlow.getViewport()
-      //   reactFlow.setCenter(x, y, { zoom: zoom })
-      //   // const newKey = key + 1
-      //   // setKey(newKey)
-      // }
-      const newKey = key + 1
-      setKey(newKey)
 
     }
   }, [selected])
@@ -133,11 +126,23 @@ export default function FlowDisplay({
         setDisplayNodes(f.nodes)
         setDisplayEdges(f.edges)
         sourceNode ? setSelected(sourceNode.id) : null
+        // const newKey = key + 1
+        // setKey(newKey)
+        const node = f.nodes?.find((n) => n.id === expandNode)
+        if (node?.position) {
+          const { x, y } = node?.position
+          const { zoom } = reactFlow.getViewport()
+          reactFlow.setCenter(x, y + 60, {zoom})
+        }
       })
-      const newKey = key + 1
-      setKey(newKey)
     }
   }, [expandNode])
+
+  useEffect(() => {
+    const newKey = key + 1
+    setKey(newKey)
+  }, [showDetails])
+
 
   const handleExpandedViewClick = () => {
     setExpandedView(!expandedView)
@@ -154,7 +159,6 @@ export default function FlowDisplay({
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         minZoom={0.1}
-        // fitView={selected ? false : true}
         fitView={true}
         elevateEdgesOnSelect={true}
       >

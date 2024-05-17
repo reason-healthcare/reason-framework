@@ -159,7 +159,7 @@ const DetailsSection = ({
           />
         )}
         {action && (
-          <ListDisplay header="Child Actions" content={formatActions(action)} />
+          <ListDisplay header="Actions" content={formatActions(action)} />
         )}
       </div>
     )

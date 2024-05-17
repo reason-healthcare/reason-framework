@@ -28,17 +28,17 @@ const InteractiveHandle = ({
   const onHover = () => {
     // Temp disable collapse on handle click
     if (collapsed) {
-      setDisplayIcon(!displayIcon)
+      setDisplayIcon(true)
+    } else {
+      setDisplayIcon(false)
     }
   }
 
   return (
     <div onMouseEnter={onHover} onMouseLeave={onHover}>
-      {displayIcon && !collapsed ? (
-        <UpCircleFilled className="collapse-icon" onClick={handleClick} />
-      ) : displayIcon && collapsed ? (
+      {displayIcon && collapsed &&
         <DownCircleFilled className="collapse-icon" onClick={handleClick} />
-      ) : null}
+      }
       <Handle
         className={displayIcon ? 'hidden-handle' : ''}
         type="source"

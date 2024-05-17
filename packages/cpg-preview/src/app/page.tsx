@@ -4,7 +4,7 @@ import FileResolver from './resolver/file'
 import FlowDisplay from './components/FlowDisplay'
 import LoadIndicator from './components/LoadIndicator'
 import DetailsSection from './components/DetailsSection'
-import { Node, ReactFlowProvider } from 'reactflow'
+import { ReactFlowProvider } from 'reactflow'
 
 export default function Home() {
   const [resolver, setResolver] = useState<FileResolver | undefined>()
@@ -18,7 +18,6 @@ export default function Home() {
     | undefined
   >()
   const [showDetails, setShowDetails] = useState<boolean>(false)
-  const [viewport, setViewport] = useState<boolean>(false)
 
   useEffect(() => {
     fetch('/api/content', { cache: 'no-cache' })
@@ -29,10 +28,6 @@ export default function Home() {
         setPlanDefinition(data.planDefinition)
       })
   }, [])
-
-  useEffect(() => {
-    setViewport(true)
-  }, [showDetails])
 
   return (
     <div className="app-container">
@@ -48,6 +43,7 @@ export default function Home() {
               planDefinition={planDefinition}
               setDetails={setDetails}
               setShowDetails={setShowDetails}
+              showDetails={showDetails}
             />
           </ReactFlowProvider>
         ) : (
