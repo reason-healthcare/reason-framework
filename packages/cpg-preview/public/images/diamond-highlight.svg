@@ -13,10 +13,10 @@
         </filter>
     </defs>
     <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#0062ff" stroke-width="2"></g>
+    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#65009a" stroke-width="2"></g>
     <g id="SVGRepo_iconCarrier">
         <defs>
-            <style>.a{fill:none;stroke:#0062ff;stroke-linecap:round;stroke-linejoin:round;}</style>
+            <style>.a{fill:none;stroke:#65009a;stroke-linecap:round;stroke-linejoin:round;}</style>
         </defs>
         <path class="a" d="M40.5,5.5H7.5a2,2,0,0,0-2,2v33a2,2,0,0,0,2,2h33a2,2,0,0,0,2-2V7.5A2,2,0,0,0,40.5,5.5Z" style="stroke-dasharray: 0.5, 2;" filter="url(#drop-shadow)"></path>
     </g>

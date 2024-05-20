@@ -84,7 +84,7 @@
 }
 
 .node-highlight {
-  border: 3px dotted #0062ff;
+  border: 3px dotted #65009a;
   font-size: 12px;
   text-align: center;
   background-color: #fafafa;
@@ -104,7 +104,7 @@
   transform: translate(-50%, 0);
   z-index: 100;
   font-size: 1.3rem;
-  color: #0062ff;
+  color: #65009a;
 }
 
 .hidden-handle {

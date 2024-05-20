@@ -4,6 +4,9 @@
 2. Mini map styling
 3. Support REST endpoint
 4. Create input section with content endpoint and plan identifier
+  - If there is no content, display input form
+  - Hambruger menu displays input form / closes action section
+  - On content load, the menu collapses
 5. Refactors
 
 # Future Items
