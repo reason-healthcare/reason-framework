@@ -40,7 +40,7 @@ const InteractiveHandle = ({
         <DownCircleFilled className="collapse-icon" onClick={handleClick} />
       }
       <Handle
-        className={displayIcon ? 'hidden-handle' : ''}
+        className={displayIcon && collapsed ? 'hidden-handle' : ''}
         type="source"
         position={Position.Bottom}
       />

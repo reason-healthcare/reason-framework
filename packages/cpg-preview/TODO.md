@@ -6,10 +6,6 @@
 4. Create input section with content endpoint and plan identifier
 5. Refactors
 
-6. When a user "expands node", without pan/zoom behavior, the node may be out of view due to regraph. Consider:
-  - maintain current zoom
-  - center on source node
-
 # Future Items
 
 1. Accept patient data and render applicable pathway

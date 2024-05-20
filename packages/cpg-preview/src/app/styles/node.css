@@ -67,6 +67,7 @@
 .node {
   white-space: normal;
   word-break: break-word;
+  width: 150px;
 }
 
 .node p {
@@ -75,7 +76,6 @@
 
 .node-unhighlight {
   border: 0.2px solid black;
-  width: 138px;
   font-size: 12px;
   text-align: center;
   background-color: #fafafa;
@@ -85,7 +85,6 @@
 
 .node-highlight {
   border: 3px dotted #0062ff;
-  width: 134px;
   font-size: 12px;
   text-align: center;
   background-color: #fafafa;

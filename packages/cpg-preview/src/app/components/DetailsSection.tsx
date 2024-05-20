@@ -111,9 +111,19 @@ const DetailsSection = ({
     })
   }
 
+  const formatDosageText = (
+    text: fhir4.Dosage['text']
+  ) => {
+    return(
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+        {text}
+      </ReactMarkdown>
+    )
+  }
+
   interface SingleDisplayProps {
     header: string
-    content: string
+    content: string | JSX.Element
   }
 
   const SingleDisplay = ({ header, content }: SingleDisplayProps) => {
@@ -246,6 +256,12 @@ const DetailsSection = ({
             content={formatProdcuts(productCodeableConcept)}
           />
         )}
+        {/* {dosage?.length && dosage[0].text && (
+          <SingleDisplay
+            header="Dosage"
+            content={formatDosageText(dosage[0].text)}
+          />
+        )} */}
       </div>
     )
   }
