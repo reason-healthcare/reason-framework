@@ -1,7 +1,5 @@
 import { Handle, Position } from 'reactflow'
 import '@/styles/node.css'
-import diamond from '../../../public/images/diamond.svg'
-import diamondHighlight from '../../../public/images/diamond-highlight.svg'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import InteractiveHandle from './InteractiveHandle'
@@ -69,9 +67,11 @@ const ActionNode = ({ data, id }: ActionNodeProps) => {
       <Handle type="target" position={Position.Top} />
       <div className="diamond-container" onClick={handleNodeClick}>
         <Image
-          src={highlight ? diamondHighlight : diamond}
+          src={highlight ? 'images/diamond-highlight.svg' : '/images/diamond.svg'}
           alt="diamond node"
           className="diamond-icon"
+          width='150'
+          height='150'
         />
         <div className="text-outer-container">
           <div className="text-inner-container">
