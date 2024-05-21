@@ -60,13 +60,14 @@ export const is = {
 }
 
 /**
- * Return instantiates canonical reference from the request resource which points back to definition.
+ * Return instantiates canonical from request resource without version.
  *
  * Communication and Immunization use instantiates canonical extension.
  *
  * Other request resources use instantiatesCanonical which is an array. Expect there to be only 1 definition when calling $apply.
  *
  * @param resource Request Resource
+ * @returns canonical
  */
 export const getInstantiatesCanonical = (resource: RequestResource) => {
   let canonical
@@ -94,6 +95,99 @@ export const getInstantiatesCanonical = (resource: RequestResource) => {
       : null
   }
   return canonical
+}
+
+/**
+ * Given action.resource, find matching request resource
+ * @param action
+ * @param bundle
+ * @returns fhir4.RequestGroup | RequestResource | undefined
+ */
+export const resolveRequestResource = (action: fhir4.RequestGroupAction, bundle: fhir4.Bundle | undefined) => {
+  if (action.resource?.reference) {
+    const id = action.resource.reference.split('/')[1]
+    return bundle?.entry?.find((e) => e.resource?.id === id)
+      ?.resource as fhir4.RequestGroup | RequestResource
+  }
+}
+
+/**
+ * Remove canonical reference from a list of request resource references. This enables checking for requests that have not yet been tested against. Each time a request matches an assertion, it is removed.
+ *
+ * @param identifier Canonical reference to remove
+ * @param recommendations List of remaining request resource canonicals from the $apply output
+ */
+export const removeFromRecommendations = (
+  identifier: string | undefined,
+  recommendations: string[] | undefined
+) => {
+  return recommendations?.filter((c) => c !== identifier)
+}
+
+export const findRecommendation = (
+  identifier: string,
+  recommendations: string[] | undefined
+) => {
+  return recommendations?.find(r => r === identifier)
+}
+
+export const removeFromSelectionGroups = (selectionBehaviorCode: fhir4.RequestGroupAction["selectionBehavior"], identifiers: string[], selectionGroups: TestContext["selectionGroups"]) => {
+  return selectionGroups.filter(sg => {
+    sg.selectionCode !== selectionBehaviorCode &&
+    sg.definitions.sort().toString() !== identifiers.sort().toString()
+  })
+}
+
+export const findSelectionGroup = (selectionBehaviorCode: fhir4.RequestGroupAction["selectionBehavior"], identifiers: string[], selectionGroups: TestContext["selectionGroups"]) => {
+  return selectionGroups.find(sg => {
+    return (sg.selectionCode === selectionBehaviorCode &&
+    sg.definitions.sort().toString() === identifiers.sort().toString())
+  })
+}
+
+//TODO resolve ID from canonical helper
+
+export const findNestedRecommendations = (action: fhir4.RequestGroupAction, bundle: fhir4.Bundle) => {
+  // Initialize an array to hold all matches
+  let recommendations: (string | undefined)[] = []
+
+  // Inner function to handle recursion and collecting matches
+  const findRecommendations = (action: fhir4.RequestGroupAction, bundle: fhir4.Bundle, recommendations: (string | undefined)[]) => {
+    const requestResource = resolveRequestResource(action, bundle)
+    if (requestResource) {
+      const canonical = getInstantiatesCanonical(requestResource)
+      recommendations.push(getInstantiatesCanonical(requestResource)?.split('/').pop())
+    }
+
+    if (is.RequestGroup(requestResource) && requestResource.action) {
+      requestResource.action.forEach(a => findRecommendations(a, bundle, recommendations))
+    }
+
+    if (action.action) {
+      action.action.forEach(a => findRecommendations(a, bundle, recommendations))
+    }
+
+  }
+
+  findRecommendations(action, bundle, recommendations)
+
+  return recommendations.filter(notEmpty)
+
+}
+
+export const resolveAction = (identifier: string, action: fhir4.RequestGroupAction[], bundle: fhir4.Bundle) => {
+  let match = action.find(a => {
+    const id = resolveRequestResource(a, bundle) ?? a.title
+    return (id === identifier)
+  })
+  if (!match) {
+    action.forEach(a => {
+      if (a.action) {
+        match = resolveAction(identifier, a.action, bundle)
+      }
+    })
+  }
+  return match
 }
 
 /**
@@ -136,32 +230,6 @@ export const resolveReference = async (
   return resource
 }
 
-/**
- * Remove canonical reference from a list of request resource references. This enables checking for requests that have not yet been tested against. Each time a request matches an assertion, it is removed.
- *
- * @param identifier Canonical reference to remove
- * @param recommendations List of remaining request resource canonicals from the $apply output
- */
-export const removeFromRecommendations = (
-  identifier: string | undefined,
-  recommendations: string[] | undefined
-) => {
-  recommendations = recommendations?.filter((c) => c !== identifier)
-  return recommendations
-}
-
-export const removeFromSelectionGroups = (
-  selectionBehaviorCode: fhir4.RequestGroupAction['selectionBehavior'],
-  identifiers: string[],
-  selectionGroups: TestContext['selectionGroups']
-) => {
-  selectionGroups = selectionGroups.filter((sg) => {
-    sg.selectionCode !== selectionBehaviorCode &&
-      sg.definitions.sort().toString() !== identifiers.sort().toString()
-  })
-  return selectionGroups
-}
-
 export const isEmpty = (requests: any[] | undefined) => {
   return !requests || requests.length === 0
 }
@@ -199,16 +267,4 @@ export const createEndpoint = (type: string, address: string) => {
       code: endpointType,
     },
   } as fhir4.Endpoint
-}
-
-export const resolveRequestResource = (
-  action: fhir4.RequestGroupAction,
-  bundle: fhir4.Bundle | undefined
-) => {
-  if (action.resource?.reference) {
-    const id = action.resource.reference.split('/')[1]
-    return bundle?.entry?.find((e) => e.resource?.id === id)?.resource as
-      | fhir4.RequestGroup
-      | RequestResource
-  }
 }

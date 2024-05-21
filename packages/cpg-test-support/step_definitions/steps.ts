@@ -1,7 +1,7 @@
 import assert from 'assert'
 import path from 'path'
 import dotenv from 'dotenv'
-import { Given, When, Then, DataTable, After } from '@cucumber/cucumber'
+import { Given, When, Then, DataTable, After, AfterStep } from '@cucumber/cucumber'
 import {
   RequestResource,
   isEmpty,
@@ -13,6 +13,10 @@ import {
   notEmpty,
   createEndpoint,
   resolveRequestResource,
+  findRecommendation,
+  findSelectionGroup,
+  resolveAction,
+  findNestedRecommendations
 } from './helpers'
 
 dotenv.config()
@@ -117,7 +121,8 @@ When(
         throw response
       }
     } catch (e) {
-      console.log(e)
+      console.error(e)
+      throw new Error('Unable to call $apply. Check that CPG engine is running and that environment variables are set')
     }
 
     // Create list of recomendations. Each asserted recommendation will be removed from the list. After all assertions, this array should be empty.
@@ -133,55 +138,94 @@ When(
       .filter(notEmpty) as string[]
 
     // Create list of selection groups. Used for test failure logging.
-    const findSelectionMatchs = (action: fhir4.RequestGroupAction[]) => {
+    const findSelectionGroups = (action: fhir4.RequestGroupAction[]) => {
       let definitions: string[]
       action.forEach((action) => {
         const selectionCode = action.selectionBehavior
         if (selectionCode && action.action) {
-          definitions = action.action
-            .map((a) => {
-              const request = resolveRequestResource(a, this.cpgResponse)
-              return request
-                ? getInstantiatesCanonical(request)?.split('/').pop()
-                : null
-            })
-            .filter(notEmpty)
-          definitions.length
-            ? (this.selectionGroups ||= []).push({ selectionCode, definitions })
-            : null
+          definitions = action.action.map(a => {
+            const requestResource = resolveRequestResource(a, this.cpgResponse)
+            return requestResource ? getInstantiatesCanonical(requestResource)?.split('/').pop() : null
+          }).filter(notEmpty)
+          definitions.length ? (this.selectionGroups ||=[]).push({selectionCode, definitions}) : null
         }
         if (action.action) {
-          findSelectionMatchs(action.action)
+          findSelectionGroups(action.action)
         }
       })
     }
     this.cpgResponse?.entry?.forEach((entry) => {
       if (is.RequestGroup(entry.resource) && entry.resource.action) {
-        findSelectionMatchs(entry.resource.action)
+        findSelectionGroups(entry.resource.action)
       }
     })
   }
 )
 
+// This will not work if multiple actions share the same title, unless these actions are identical
+When('{string} is selected', function (this: TestContext, selectedActionIdentifier: string) {
+  // Filter out selection groups and corresponding recommendations
+  /**
+   * Find selection action in RG
+   * If more than one, throw error
+   * Otherwise, use same selection/recommendatin logic to get nested items
+   */
+  const selectionMatch = this.cpgResponse?.entry?.map(e => {
+    let match
+    const resource = e.resource
+    if (is.RequestGroup(resource) && resource.action && this.cpgResponse) {
+      match = resolveAction(selectedActionIdentifier, resource.action, this.cpgResponse)
+    }
+    return match
+  }).filter(notEmpty)
+
+  // definition/recommendation selection does not need to be unique, but titles should be
+
+  if (!selectionMatch || isEmpty(selectionMatch)) {
+    throw new Error(`Unable to find selection match for ${selectedActionIdentifier}`)
+  } else if (selectionMatch.length > 1) {
+    console.error(`Found more than one action with selection ${selectedActionIdentifier}`)
+  } else if (this.cpgResponse){
+    this.selectionGroups = []
+    this.recommendations = []
+    // const findSelectionGroups = (action: fhir4.RequestGroupAction[]) => {
+    //   let definitions: string[]
+    //   action.forEach((action) => {
+    //     const selectionCode = action.selectionBehavior
+    //     if (selectionCode && action.action) {
+    //       definitions = action.action.map(a => {
+    //         const requestResource = resolveRequestResource(a, this.cpgResponse)
+    //         return requestResource ? getInstantiatesCanonical(requestResource)?.split('/').pop() : null
+    //       }).filter(notEmpty)
+    //       definitions.length ? (this.selectionGroups ||=[]).push({selectionCode, definitions}) : null
+    //     }
+    //     if (action.action) {
+    //       findSelectionGroups(action.action)
+    //     }
+    //   })
+    // }
+
+    // selectionMatch.forEach((action) => {
+    //   if (action.action) {
+    //     findSelectionGroups(action.action)
+    //   }
+    // })
+
+
+
+    this.recommendations = findNestedRecommendations(selectionMatch[0], this.cpgResponse)
+
+  }
+
+})
+
 Then(
   '{string} should have been recommended',
   function (this: TestContext, activityDefinitionIdentifier: string) {
-    const instantiatedResource = this.cpgResponse?.entry?.find((entry) => {
-      // Custom type RequestResource does not currently include communication request because CPG v1.0 excludes instantiates canonical from this resource. v2.0 will include instantiates canonical, so the server should be updated.
-      const resource = entry.resource as fhir4.RequestGroup | RequestResource
-      const instantiatesCanonical = getInstantiatesCanonical(resource)
-      const isMatch =
-        instantiatesCanonical?.split('/').pop() === activityDefinitionIdentifier
-      isMatch
-        ? (this.recommendations = removeFromRecommendations(
-            instantiatesCanonical.split('/').pop(),
-            this.recommendations
-          ))
-        : null
-      return isMatch
-    })
+    const recommendationMatch = findRecommendation(activityDefinitionIdentifier, this.recommendations)
+    this.recommendations = removeFromRecommendations(activityDefinitionIdentifier, this.recommendations)
     assert(
-      instantiatedResource,
+      recommendationMatch,
       `\nExpected recommendation:\n- ${activityDefinitionIdentifier}\nBut found:\n- ${
         isEmpty(this.recommendations)
           ? '- No remaining recommendations'
@@ -195,7 +239,7 @@ Then(
   'select {string} of the following should have been recommended',
   function (
     this: TestContext,
-    selectionBehaviorCode: string,
+    selectionBehaviorCode: "any" | "all" | "all-or-none" | "exactly-one" | "at-most-one" | "one-or-more",
     selectionDefinitionIdentifiersTable: DataTable
   ) {
     const selectionDefinitionIdentifiers: string[] =
@@ -204,151 +248,84 @@ Then(
         .map((i) => i[0])
         .sort()
 
-    const findSelectionMatch = (
-      action: fhir4.RequestGroupAction[]
-    ): boolean => {
-      let isMatch = false
-      for (let i = 0; i < action.length && !isMatch; i++) {
-        let subAction = action[i]
-        if (
-          subAction.selectionBehavior &&
-          subAction.selectionBehavior === selectionBehaviorCode &&
-          subAction.action
-        ) {
-          isMatch = isCanonicalMatch(subAction.action, selectionBehaviorCode)
-        }
-        if (!isMatch && subAction.action) {
-          isMatch = findSelectionMatch(subAction.action)
-        } else {
-        }
-      }
-      return isMatch
-    }
+    const selectionGroupMatch = findSelectionGroup(selectionBehaviorCode, selectionDefinitionIdentifiers, this.selectionGroups)
+    this.selectionGroups = removeFromSelectionGroups(selectionBehaviorCode, selectionDefinitionIdentifiers, this.selectionGroups)
+    this.recommendations = this.recommendations?.filter(r => !selectionDefinitionIdentifiers.includes(r))
 
-    const isCanonicalMatch = (
-      selectionGroupAction: fhir4.RequestGroupAction[],
-      selectionBehaviorCode: fhir4.RequestGroupAction['selectionBehavior']
-    ) => {
-      let isMatch = false
-      const selectionGroupDefinitions = selectionGroupAction
-        .map((subAction) => {
-          const resource = resolveRequestResource(subAction, this.cpgResponse)
-          const canonical = is.RequestResource(resource)
-            ? getInstantiatesCanonical(resource)
-            : undefined
-          return canonical ? canonical.split('/').pop() : null
-        })
-        .filter(notEmpty)
-      isMatch =
-        selectionGroupDefinitions.sort().toString() ===
-        selectionDefinitionIdentifiers.sort().toString()
-      if (selectionGroupDefinitions.length == 0) {
-        const selectionGroupTitles = selectionGroupAction
-          .map((subAction) => {
-            return subAction.title
-          })
-          .filter(notEmpty)
-        isMatch =
-          selectionGroupTitles.sort().toString() ===
-          selectionDefinitionIdentifiers.sort().toString()
-      }
-      if (isMatch) {
-        selectionGroupDefinitions.forEach((id) => {
-          this.recommendations = removeFromRecommendations(
-            id,
-            this.recommendations
-          )
-        })
-        this.selectionGroups = removeFromSelectionGroups(
-          selectionBehaviorCode,
-          selectionGroupDefinitions,
-          this.selectionGroups
-        )
-      }
-      return isMatch
-    }
+    const message =
+      `\nExpected:\n - Select ${selectionBehaviorCode}: ${selectionDefinitionIdentifiers.join(
+        ', '
+      )}\nBut found:\n ${
+        isEmpty(this.selectionGroups)
+          ? '- No remaining selection groups'
+          : this.selectionGroups?.map(sg => `- Select ${sg.selectionCode}: ${sg.definitions.join(', ')}\n`)
+      }`
 
-    let isMatch = false
-    if (this.cpgResponse?.entry) {
-      for (let i = 0; i < this.cpgResponse.entry.length && !isMatch; i++) {
-        const resource = this.cpgResponse.entry[i]
-          .resource as fhir4.RequestGroup
-        isMatch = resource.action ? findSelectionMatch(resource.action) : false
-      }
-    }
-    const message = `\nExpected:\n - Select ${selectionBehaviorCode}: ${selectionDefinitionIdentifiers.join(
-      ', '
-    )}\nBut found:\n ${
-      isEmpty(this.selectionGroups)
-        ? '- No remaining selection groups'
-        : this.selectionGroups?.map(
-            (sg) =>
-              `- Select ${sg.selectionCode}: ${sg.definitions.join(', ')}\n`
-          )
-    }`
-    assert(isMatch, message)
+    assert(selectionGroupMatch, message)
   }
 )
 
-Then(
-  'select {string} of the following actions should be present',
-  function (
-    this: TestContext,
-    selectionBehaviorCode: string,
-    selectionActionIdentifiersTable: DataTable
-  ) {
-    const selectionActionIdentifiers: string[] = selectionActionIdentifiersTable
-      .raw()
-      .map((i) => i[0])
-      .sort()
+// Then(
+//   'select {string} of the following actions should be present',
+//   function (
+//     this: TestContext,
+//     selectionBehaviorCode: string,
+//     selectionActionIdentifiersTable: DataTable
+//   ) {
+//     const selectionActionIdentifiers: string[] =
+//       selectionActionIdentifiersTable
+//         .raw()
+//         .map((i) => i[0])
+//         .sort()
 
-    const findSelectionMatch = (
-      action: fhir4.RequestGroupAction[]
-    ): boolean => {
-      let isMatch = false
-      for (let i = 0; i < action.length && !isMatch; i++) {
-        let subAction = action[i]
-        if (
-          subAction.selectionBehavior &&
-          subAction.selectionBehavior === selectionBehaviorCode &&
-          subAction.action
-        ) {
-          isMatch = isActionMatch(subAction.action)
-        }
-        if (!isMatch && subAction.action) {
-          isMatch = findSelectionMatch(subAction.action)
-        }
-      }
-      return isMatch
-    }
+//     const findSelectionMatch = (
+//       action: fhir4.RequestGroupAction[]
+//     ): boolean => {
+//       let isMatch = false
+//       for (let i = 0; i < action.length && !isMatch; i++) {
+//         let subAction = action[i]
+//         if (
+//           subAction.selectionBehavior &&
+//           subAction.selectionBehavior === selectionBehaviorCode &&
+//           subAction.action
+//         ) {
+//           isMatch = isActionMatch(subAction.action)
+//         }
+//         if (!isMatch && subAction.action) {
+//           isMatch = findSelectionMatch(subAction.action)
+//         }
+//       }
+//       return isMatch
+//     }
 
-    const isActionMatch = (
-      selectionGroupAction: fhir4.RequestGroupAction[]
-    ) => {
-      let isMatch = false
-      const selectionGroupTitles = selectionGroupAction
-        .map((subAction) => {
-          return subAction.title
-        })
-        .filter(notEmpty)
-      isMatch =
-        selectionGroupTitles.sort().toString() ===
-        selectionActionIdentifiers.sort().toString()
-      return isMatch
-    }
+//     const isActionMatch = (
+//       selectionGroupAction: fhir4.RequestGroupAction[]
+//     ) => {
+//       let isMatch = false
+//       const selectionGroupTitles = selectionGroupAction
+//         .map((subAction) => {
+//           return subAction.title
+//         })
+//         .filter(notEmpty)
+//       isMatch =
+//         selectionGroupTitles.sort().toString() ===
+//         selectionActionIdentifiers.sort().toString()
+//       return isMatch
+//     }
 
-    let isMatch = false
-    if (this.cpgResponse?.entry) {
-      for (let i = 0; i < this.cpgResponse.entry.length && !isMatch; i++) {
-        const resource = this.cpgResponse.entry[i]
-          .resource as fhir4.RequestGroup
-        isMatch = resource.action ? findSelectionMatch(resource.action) : false
-      }
-    }
+//     let isMatch = false
+//     if (this.cpgResponse?.entry) {
+//       for (let i = 0; i < this.cpgResponse.entry.length && !isMatch; i++) {
+//         const resource = this.cpgResponse.entry[i]
+//           .resource as fhir4.RequestGroup
+//         isMatch = resource.action ? findSelectionMatch(resource.action) : false
+//       }
+//     }
 
-    const message = assert(isMatch, 'Unable to find a matching selection group')
-  }
-)
+//     const message =
+//     assert(isMatch, 'Unable to find a matching selection group')
+//   }
+// )
 
 Then('no activites should have been recommended', function (this: TestContext) {
   assert(

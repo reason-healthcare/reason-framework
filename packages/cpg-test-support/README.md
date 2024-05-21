@@ -25,3 +25,45 @@ Ensure the @reason-framework/cpg-test-support package is installed. Then, execut
 npm install
 npx cucumber-js
 ```
+
+## Gherkin Expressions
+```
+Given {{PlanDefinitionIdentifier}} is loaded
+When apply is called with context {{DataBundleIdentifier}}
+# Specify user selection of an action (optional)
+  When {{action.title | ActivityDefinitionIdentifier}} is selected
+# Check for recommendation
+  Then {{ActivityDefinitionIdentifier}} should have been recommended
+# Check for selection between recommendations
+  Then select {{action.selectionBehavior.code}} of the following should have been recommended
+  |{{ActivityDefinitionIdentifier1}}|
+  |{{ActivityDefinitionIdentifier2}}|
+<!-- # Check for selection between actions
+  Then select {{action.selectionBehavior.code}} of the following should be present
+  |action.title 1|
+  |action.title 2| -->
+```
+
+## Request Group Mappings
+
+| Identifier | Request Group Property |
+|----------|----------------------|
+| Activity Definition Identifier | Request.intantiatesCanonical |
+
+### Assertion of stand alone recommendation
+
+Request exists where request.instantiatesCanonical = activity definition identifier
+
+### Assertion of selection group match
+
+Selection group must match by:
+  - action.selectionBehavior.code; And
+  - action.resource where request.instantiatesCanonical = activity definition identifier; And
+  - there must be no additional actions on the group
+
+### Selection of specific action, followed by assertions
+
+When specifying selection of a specific action, the asserted recommendations and selection groups must be children of the specified action.
+
+
+
