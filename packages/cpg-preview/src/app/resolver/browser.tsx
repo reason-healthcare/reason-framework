@@ -16,6 +16,7 @@ class BrowserResolver {
       const zipFile = await zip.loadAsync(this.localFile.split(',')[1], {
         base64: true,
       })
+      // TODO use only JSON
       const files = Object.keys(zipFile.files)
       for (const filename of files) {
         const fileContent = await zipFile.file(filename)?.async('string')

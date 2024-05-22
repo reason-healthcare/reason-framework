@@ -42,13 +42,13 @@ const UploadSection = ({setResolver}: UploadSectionProps) => {
       const reader = new FileReader()
       reader.onload = async (event) => {
         const zipData = JSON.stringify(event.target?.result)
-        localStorage.setItem('uploadedZip', zipData)
+        // localStorage.setItem('uploadedZip', zipData)
         setLocalContent(zipData)
         let resolver = new BrowserResolver(zipData)
         resolver.handleProcessZip().then((r) => {
           setResolver(resolver)
         })
-        message.success('Files have been saved to local storage')
+        // message.success('Processing uploaded files')
       }
       reader.readAsDataURL(file)
     } else {

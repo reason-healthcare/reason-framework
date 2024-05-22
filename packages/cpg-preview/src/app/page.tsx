@@ -7,6 +7,7 @@ import LoadIndicator from './components/LoadIndicator'
 import DetailsSection from './components/DetailsSection'
 import { ReactFlowProvider } from 'reactflow'
 import UploadSection from './components/UploadSection'
+import { UploadOutlined } from '@ant-design/icons'
 
 export default function Home() {
   const [resolver, setResolver] = useState<FileResolver | BrowserResolver | undefined>()
@@ -36,7 +37,7 @@ export default function Home() {
     if (resolver && resolver instanceof BrowserResolver) {
       setPlanDefinition(resolver.pathway)
       setShowUpload(false)
-      console.log(resolver.pathway)
+      setShowDetails(false)
     }
   }, [resolver])
 
@@ -44,6 +45,7 @@ export default function Home() {
     <>
       <div className="header">
         <h1>{planDefinition?.title}</h1>
+        <UploadOutlined className='upload-icon' onClick={() => setShowUpload(true)}/>
       </div>
       <div className="content-container">
         {resolver && planDefinition ? (
