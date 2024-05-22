@@ -36,9 +36,9 @@ const InteractiveHandle = ({
 
   return (
     <div onMouseEnter={onHover} onMouseLeave={onHover}>
-      {displayIcon && collapsed &&
+      {displayIcon && collapsed && (
         <DownCircleFilled className="collapse-icon" onClick={handleClick} />
-      }
+      )}
       <Handle
         className={displayIcon && collapsed ? 'hidden-handle' : ''}
         type="source"

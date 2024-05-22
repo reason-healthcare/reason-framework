@@ -16,9 +16,10 @@ import DefinitionNode from './DefinitionNode'
 import SelectionEdge from './SelectionEdge'
 import FileResolver from 'resolver/file'
 import { FullscreenOutlined, FullscreenExitOutlined } from '@ant-design/icons'
+import BrowserResolver from 'resolver/browser'
 
 interface FlowDisplayProps {
-  resolver: FileResolver | undefined
+  resolver: FileResolver | BrowserResolver | undefined
   planDefinition: fhir4.PlanDefinition
   setDetails: React.Dispatch<
     React.SetStateAction<
@@ -37,7 +38,7 @@ export default function FlowDisplay({
   planDefinition,
   setDetails,
   setShowDetails,
-  showDetails
+  showDetails,
 }: FlowDisplayProps) {
   const [allNodes, setAllNodes] = useState<Node[] | undefined>()
   const [allEdges, setAllEdges] = useState<Edge[] | undefined>()
@@ -95,10 +96,10 @@ export default function FlowDisplay({
         }
       })
     } else if (expandedView) {
-        setDisplayNodes(allNodes)
-        setDisplayEdges(allEdges)
-        const newKey = key + 1
-        setKey(newKey)
+      setDisplayNodes(allNodes)
+      setDisplayEdges(allEdges)
+      const newKey = key + 1
+      setKey(newKey)
     }
   }, [expandedView])
 
@@ -114,7 +115,6 @@ export default function FlowDisplay({
       )
       const selectedNode = displayNodes.find((n) => n.id === selected)
       setDetails(selectedNode?.data.details)
-
     }
   }, [selected])
 
@@ -132,7 +132,7 @@ export default function FlowDisplay({
         if (node?.position) {
           const { x, y } = node?.position
           const { zoom } = reactFlow.getViewport()
-          reactFlow.setCenter(x, y + 60, {zoom})
+          reactFlow.setCenter(x, y + 60, { zoom })
         }
       })
     }
@@ -142,7 +142,6 @@ export default function FlowDisplay({
     const newKey = key + 1
     setKey(newKey)
   }, [showDetails])
-
 
   const handleExpandedViewClick = () => {
     setExpandedView(!expandedView)
@@ -163,8 +162,8 @@ export default function FlowDisplay({
         elevateEdgesOnSelect={true}
       >
         <Background color="#ccc" />
-        <MiniMap pannable zoomable position='bottom-left'/>
-        <Controls showInteractive={false} position='bottom-right'>
+        <MiniMap pannable zoomable position="bottom-left" />
+        <Controls showInteractive={false} position="bottom-right">
           <ControlButton onClick={handleExpandedViewClick}>
             {expandedView ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
           </ControlButton>

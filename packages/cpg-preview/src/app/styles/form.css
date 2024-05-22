@@ -1,0 +1,16 @@
+.form {
+  max-width: 85%;
+  width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.form-item {
+  width: 100%;
+}
+
+.form-title {
+  padding: 1rem;
+}

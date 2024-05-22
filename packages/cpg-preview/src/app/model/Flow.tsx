@@ -7,6 +7,7 @@ import { ElkNode } from 'elkjs'
 import { resolveCanonical } from '../helpers'
 import { v4 } from 'uuid'
 import Graph from './Graph'
+import BrowserResolver from 'resolver/browser'
 
 export interface FlowInstance {
   // extends ReactFlowInstance {
@@ -87,7 +88,7 @@ class Flow implements FlowInstance {
    */
   private processDefinitionalNode(
     definition: fhir4.ActivityDefinition | fhir4.PlanDefinition | undefined,
-    content: FileResolver,
+    content: FileResolver | BrowserResolver,
     parentEdge?: Edge
   ) {
     if (definition) {
@@ -126,7 +127,7 @@ class Flow implements FlowInstance {
    */
   private processActionNodes(
     actions: fhir4.PlanDefinitionAction[],
-    content: FileResolver,
+    content: FileResolver | BrowserResolver,
     parentEdge: Edge
   ) {
     actions.map((action) => {
@@ -172,7 +173,7 @@ class Flow implements FlowInstance {
    */
   public generateInitialFlow(
     planDefinition: fhir4.PlanDefinition,
-    content: FileResolver
+    content: FileResolver | BrowserResolver
   ) {
     this.processDefinitionalNode(planDefinition, content)
     return this

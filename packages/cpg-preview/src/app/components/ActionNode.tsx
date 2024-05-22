@@ -67,11 +67,13 @@ const ActionNode = ({ data, id }: ActionNodeProps) => {
       <Handle type="target" position={Position.Top} />
       <div className="diamond-container" onClick={handleNodeClick}>
         <Image
-          src={highlight ? 'images/diamond-highlight.svg' : '/images/diamond.svg'}
+          src={
+            highlight ? 'images/diamond-highlight.svg' : '/images/diamond.svg'
+          }
           alt="diamond node"
           className="diamond-icon"
-          width='150'
-          height='150'
+          width="150"
+          height="150"
         />
         <div className="text-outer-container">
           <div className="text-inner-container">

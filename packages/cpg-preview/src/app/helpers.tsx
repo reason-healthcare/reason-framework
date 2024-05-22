@@ -1,3 +1,4 @@
+import BrowserResolver from 'resolver/browser'
 import FileResolver from 'resolver/file'
 
 export function notEmpty<TValue>(
@@ -25,7 +26,7 @@ export const is = {
 
 export const resolveCanonical = (
   canonical: string | undefined,
-  resolver: FileResolver
+  resolver: FileResolver | BrowserResolver
 ) => {
   canonical = canonical?.split('|').shift()
   return canonical != null && resolver.resourcesByCanonical

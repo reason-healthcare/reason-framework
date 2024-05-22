@@ -5,6 +5,7 @@ import { CloseOutlined } from '@ant-design/icons'
 import FileResolver from 'resolver/file'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import BrowserResolver from 'resolver/browser'
 
 interface DetailsSectionProps {
   setShowDetails: React.Dispatch<React.SetStateAction<boolean>>
@@ -13,7 +14,7 @@ interface DetailsSectionProps {
     | fhir4.PlanDefinitionAction
     | fhir4.ActivityDefinition
     | undefined
-  resolver: FileResolver | undefined
+  resolver: FileResolver | BrowserResolver | undefined
 }
 
 const DetailsSection = ({
@@ -66,18 +67,20 @@ const DetailsSection = ({
   }
 
   const formatInputs = (inputs: fhir4.PlanDefinitionAction['input']) => {
-    return inputs?.map((i: fhir4.DataRequirement) => {
-      if (i.profile && resolver) {
-        let resource = resolveCanonical(i.profile[0], resolver)
-        if (is.structureDefinition(resource)) {
-          return (
-            <li key={v4()}>
-              {resource.title ?? resource.name ?? resource.url}
-            </li>
-          )
+    return inputs
+      ?.map((i: fhir4.DataRequirement) => {
+        if (i.profile && resolver) {
+          let resource = resolveCanonical(i.profile[0], resolver)
+          if (is.structureDefinition(resource)) {
+            return (
+              <li key={v4()}>
+                {resource.title ?? resource.name ?? resource.url}
+              </li>
+            )
+          }
         }
-      }
-    }).filter(notEmpty)
+      })
+      .filter(notEmpty)
   }
 
   const formatDefinition = (canonical: string) => {
@@ -111,14 +114,8 @@ const DetailsSection = ({
     })
   }
 
-  const formatDosageText = (
-    text: fhir4.Dosage['text']
-  ) => {
-    return(
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-        {text}
-      </ReactMarkdown>
-    )
+  const formatDosageText = (text: fhir4.Dosage['text']) => {
+    return <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
   }
 
   interface SingleDisplayProps {
@@ -154,12 +151,9 @@ const DetailsSection = ({
   }
 
   const PlanDefinitionDisplay = ({
-    definition
+    definition,
   }: PlanDefinitionDisplayProps) => {
-    const {
-      relatedArtifact,
-      action,
-    } = definition
+    const { relatedArtifact, action } = definition
     return (
       <div>
         {relatedArtifact && (
@@ -179,16 +173,14 @@ const DetailsSection = ({
     sourceAction: fhir4.PlanDefinitionAction
   }
 
-  const ActionDisplay = ({
-    sourceAction
-  }: ActionDisplayProps) => {
+  const ActionDisplay = ({ sourceAction }: ActionDisplayProps) => {
     const {
       documentation,
       selectionBehavior,
       condition,
       input,
       action,
-      definitionCanonical
+      definitionCanonical,
     } = sourceAction
     return (
       <div>
@@ -214,7 +206,12 @@ const DetailsSection = ({
           />
         )}
         {input && <ListDisplay header="Input" content={formatInputs(input)} />}
-        {definitionCanonical && <SingleDisplay header='Definition' content={formatDefinition(definitionCanonical)}/>}
+        {definitionCanonical && (
+          <SingleDisplay
+            header="Definition"
+            content={formatDefinition(definitionCanonical)}
+          />
+        )}
       </div>
     )
   }
@@ -223,9 +220,7 @@ const DetailsSection = ({
     definition: fhir4.ActivityDefinition
   }
 
-  const ActivityDefinitionDisplay = ({
-    definition
-  }: ActivityDisplayProps) => {
+  const ActivityDefinitionDisplay = ({ definition }: ActivityDisplayProps) => {
     const {
       kind,
       intent,
@@ -242,7 +237,10 @@ const DetailsSection = ({
         {kind && <SingleDisplay header="Kind" content={kind} />}
         {intent && <SingleDisplay header="Intent" content={intent} />}
         {doNotPerform && (
-          <SingleDisplay header="Do Not Perform" content={doNotPerform.toString()} />
+          <SingleDisplay
+            header="Do Not Perform"
+            content={doNotPerform.toString()}
+          />
         )}
         {relatedArtifact && (
           <ListDisplay
@@ -270,7 +268,6 @@ const DetailsSection = ({
     setShowDetails(false)
   }
 
-
   const { title, description } = details
 
   const descriptionDisplay = (
@@ -278,9 +275,7 @@ const DetailsSection = ({
       <span className="details-description">Description</span>
       <span>
         :
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-          {description}
-        </ReactMarkdown>
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>{description}</ReactMarkdown>
       </span>
     </div>
   )
@@ -290,7 +285,7 @@ const DetailsSection = ({
     if (is.planDefinition(details)) {
       const { name } = details
       header = `Plan Definition: ${title ?? name}`
-      return(
+      return (
         <div>
           <h2>{header}</h2>
           {descriptionDisplay}
@@ -300,7 +295,7 @@ const DetailsSection = ({
     } else if (is.activityDefinition(details)) {
       const { name } = details
       header = `Activity Definition: ${title ?? name}`
-      return(
+      return (
         <div>
           <h2>{header}</h2>
           {descriptionDisplay}
@@ -309,7 +304,7 @@ const DetailsSection = ({
       )
     } else {
       header = `Action: ${title}`
-      return(
+      return (
         <div>
           <h2>{header}</h2>
           {descriptionDisplay}
@@ -325,7 +320,7 @@ const DetailsSection = ({
         <CloseOutlined onClick={handleClick} />
       </div>
       <div className="details-container">
-        <DetailsDisplay/>
+        <DetailsDisplay />
       </div>
     </div>
   )
