@@ -8,13 +8,15 @@ import FileResolver from 'resolver/file'
 import BrowserResolver from 'resolver/browser'
 
 interface UploadSectionProps {
-  setResolver: React.Dispatch<React.SetStateAction<FileResolver | BrowserResolver | undefined>>
+  setResolver: React.Dispatch<
+    React.SetStateAction<FileResolver | BrowserResolver | undefined>
+  >
   // setPlanDefinition: React.Dispatch<React.SetStateAction<fhir4.PlanDefinition | undefined>>
 }
 
-const UploadSection = ({setResolver}: UploadSectionProps) => {
-  const [file, setFile] = useState<RcFile>();
-  const [localContent, setLocalContent]=useState<string | undefined>()
+const UploadSection = ({ setResolver }: UploadSectionProps) => {
+  const [file, setFile] = useState<RcFile>()
+  const [localContent, setLocalContent] = useState<string | undefined>()
   // const [planDefinitionIdentifier, setPlanDefinitionIdentifier]=useState<string>()
 
   const { Dragger } = Upload
@@ -42,13 +44,14 @@ const UploadSection = ({setResolver}: UploadSectionProps) => {
       const reader = new FileReader()
       reader.onload = async (event) => {
         const zipData = JSON.stringify(event.target?.result)
-        // localStorage.setItem('uploadedZip', zipData)
         setLocalContent(zipData)
-        let resolver = new BrowserResolver(zipData)
-        resolver.handleProcessZip().then((r) => {
+        let resolver = new BrowserResolver()
+        resolver.handleProcessZip(zipData).then((r) => {
           setResolver(resolver)
+          localStorage.clear()
+          localStorage.setItem('resolver', JSON.stringify(resolver))
+          message.success('Saved content to local storage')
         })
-        // message.success('Processing uploaded files')
       }
       reader.readAsDataURL(file)
     } else {
@@ -63,14 +66,12 @@ const UploadSection = ({setResolver}: UploadSectionProps) => {
     beforeUpload: beforeUpload,
     onChange: handleFileChange,
     onRemove: () => setFile(undefined),
-    onDrop(e) {
-      // console.log('Dropped files', e.dataTransfer.files)
-    },
+    onDrop(e) {},
   }
 
   return (
     <>
-      <h1 className="form-title">Upload Content</h1>
+      <h1 className="form-title">Upload FHIR Content</h1>
       <Form
         onFinish={handleSubmit}
         form={form}
@@ -81,7 +82,7 @@ const UploadSection = ({setResolver}: UploadSectionProps) => {
           name="upload"
           valuePropName="fileList"
           getValueFromEvent={(e) => e.fileList}
-          className='form-item'
+          className="form-item"
         >
           <Dragger {...props} className="form-item">
             <p className="ant-upload-drag-icon">
@@ -93,22 +94,9 @@ const UploadSection = ({setResolver}: UploadSectionProps) => {
             <p className="ant-upload-hint">Provide only one zipped file.</p>
           </Dragger>
         </Form.Item>
-        {/* <Form.Item
-          // label="Plan Definition"
-          name="planDefinition"
-          rules={[
-            {
-              required: true,
-              message: 'Please specify plan definition canonical',
-            },
-          ]}
-          className="form-item"
-        >
-          <Input placeholder="Plan Definition URL" />
-        </Form.Item> */}
         <Form.Item>
           <Button type="primary" htmlType="submit">
-            Submit
+            Add Content
           </Button>
         </Form.Item>
       </Form>

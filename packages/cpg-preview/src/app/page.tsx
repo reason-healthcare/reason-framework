@@ -7,10 +7,13 @@ import LoadIndicator from './components/LoadIndicator'
 import DetailsSection from './components/DetailsSection'
 import { ReactFlowProvider } from 'reactflow'
 import UploadSection from './components/UploadSection'
-import { UploadOutlined } from '@ant-design/icons'
+// import { UploadOutlined } from '@ant-design/icons'
+import { InboxOutlined } from '@ant-design/icons'
 
 export default function Home() {
-  const [resolver, setResolver] = useState<FileResolver | BrowserResolver | undefined>()
+  const [resolver, setResolver] = useState<
+    FileResolver | BrowserResolver | undefined
+  >()
   const [planDefinition, setPlanDefinition] = useState<
     fhir4.PlanDefinition | undefined
   >()
@@ -21,7 +24,7 @@ export default function Home() {
     | undefined
   >()
   const [showDetails, setShowDetails] = useState<boolean>(false)
-  const [showUpload, setShowUpload] = useState<boolean>(true)
+  const [showUpload, setShowUpload] = useState<boolean>(false)
 
   // useEffect(() => {
   //   fetch('/api/content', { cache: 'no-cache' })
@@ -33,7 +36,17 @@ export default function Home() {
   //     })
   // }, [])
 
-   useEffect(() => {
+  useEffect(() => {
+    const storedContent = localStorage.getItem('resolver')
+    if (storedContent) {
+      const content = JSON.parse(storedContent)
+      setResolver(
+        new BrowserResolver(content.resourcesByCanonical, content.pathway)
+      )
+    }
+  }, [])
+
+  useEffect(() => {
     if (resolver && resolver instanceof BrowserResolver) {
       setPlanDefinition(resolver.pathway)
       setShowUpload(false)
@@ -45,7 +58,10 @@ export default function Home() {
     <>
       <div className="header">
         <h1>{planDefinition?.title}</h1>
-        <UploadOutlined className='upload-icon' onClick={() => setShowUpload(true)}/>
+        <InboxOutlined
+          className="upload-icon"
+          onClick={() => setShowUpload(true)}
+        />
       </div>
       <div className="content-container">
         {resolver && planDefinition ? (
@@ -74,7 +90,11 @@ export default function Home() {
 
   return (
     <div className="app-container">
-      {!showUpload ? contentDisplay : <UploadSection setResolver={setResolver}/>}
+      {!showUpload ? (
+        contentDisplay
+      ) : (
+        <UploadSection setResolver={setResolver} />
+      )}
     </div>
   )
 }

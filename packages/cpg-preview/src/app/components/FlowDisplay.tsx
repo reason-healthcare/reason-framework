@@ -126,8 +126,6 @@ export default function FlowDisplay({
         setDisplayNodes(f.nodes)
         setDisplayEdges(f.edges)
         sourceNode ? setSelected(sourceNode.id) : null
-        // const newKey = key + 1
-        // setKey(newKey)
         const node = f.nodes?.find((n) => n.id === expandNode)
         if (node?.position) {
           const { x, y } = node?.position

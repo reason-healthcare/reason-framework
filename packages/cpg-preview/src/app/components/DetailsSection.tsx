@@ -1,11 +1,12 @@
 import '@/styles/detailsSection.css'
-import { is, notEmpty, resolveCanonical } from 'helpers'
+import { is, notEmpty } from '../helpers'
 import { v4 } from 'uuid'
 import { CloseOutlined } from '@ant-design/icons'
 import FileResolver from 'resolver/file'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import BrowserResolver from 'resolver/browser'
+import { useEffect, useState } from 'react'
 
 interface DetailsSectionProps {
   setShowDetails: React.Dispatch<React.SetStateAction<boolean>>
@@ -22,6 +23,10 @@ const DetailsSection = ({
   setShowDetails,
   resolver,
 }: DetailsSectionProps) => {
+  const [profiles, setProfiles] = useState<fhir4.Resource[]>([])
+  const [definition, setDefinition] = useState<
+    fhir4.PlanDefinition | fhir4.ActivityDefinition
+  >()
   if (!details) {
     return <p>Unable to load details</p>
   }
@@ -66,35 +71,51 @@ const DetailsSection = ({
     })
   }
 
-  const formatInputs = (inputs: fhir4.PlanDefinitionAction['input']) => {
-    return inputs
-      ?.map((i: fhir4.DataRequirement) => {
-        if (i.profile && resolver) {
-          let resource = resolveCanonical(i.profile[0], resolver)
-          if (is.structureDefinition(resource)) {
-            return (
-              <li key={v4()}>
-                {resource.title ?? resource.name ?? resource.url}
-              </li>
-            )
+  useEffect(() => {
+    if (!is.planDefinition(details) && !is.activityDefinition(details)) {
+      const { input, definitionCanonical } = details
+      if (input?.length) {
+        Promise.all(
+          input.map((i) => {
+            if (i.profile) {
+              return resolver?.resolveCanonical(i.profile[0])
+            }
+          })
+        ).then((resolvedInputs) => {
+          setProfiles(resolvedInputs.filter(notEmpty))
+        })
+      } else {
+        setProfiles([])
+      }
+
+      if (definitionCanonical) {
+        resolver?.resolveCanonical(definitionCanonical).then(definition => {
+          if (is.planDefinition(definition) || is.activityDefinition(definition)) {
+            setDefinition(definition)
           }
-        }
+        })
+      } else {
+        setDefinition(undefined)
+      }
+    }
+  }, [details])
+
+  const formatInputs = (inputs: fhir4.Resource[]) => {
+    return inputs.map((i: fhir4.Resource) => {
+      if (is.structureDefinition(i)) {
+        console.log('here')
+        return (
+          <li key={v4()}>
+            {i.title ?? i.name ?? i.url}
+          </li>
+        )
+      }
       })
       .filter(notEmpty)
   }
 
-  const formatDefinition = (canonical: string) => {
-    let text
-    if (resolver) {
-      const resource = resolveCanonical(canonical, resolver)
-      if (is.planDefinition(resource) || is.activityDefinition(resource)) {
-        text = resource.title ?? resource.name
-      }
-    }
-    if (!text) {
-      text = canonical
-    }
-    return text
+  const formatDefinition = (definition: fhir4.ActivityDefinition | fhir4.PlanDefinition) => {
+    return definition.title ?? definition.name
   }
 
   const formatProdcuts = (
@@ -148,6 +169,20 @@ const DetailsSection = ({
 
   interface PlanDefinitionDisplayProps {
     definition: fhir4.PlanDefinition
+  }
+
+  let definitionDisplay: JSX.Element | undefined
+  if (definition && (definition.title || definition.name || definition.url)) {
+    const {title, name, url} = definition
+    const display = title ?? name ?? url
+    if (display) {
+      definitionDisplay = (
+        <SingleDisplay
+          header={'Definition'}
+          content={display}
+        />
+      )
+    }
   }
 
   const PlanDefinitionDisplay = ({
@@ -205,13 +240,10 @@ const DetailsSection = ({
             content={formatApplicabilities(condition)}
           />
         )}
-        {input && <ListDisplay header="Input" content={formatInputs(input)} />}
-        {definitionCanonical && (
-          <SingleDisplay
-            header="Definition"
-            content={formatDefinition(definitionCanonical)}
-          />
-        )}
+        {profiles.length > 0 ? (
+          <ListDisplay header="Input" content={formatInputs(profiles)} />
+        ): null}
+        {definitionDisplay}
       </div>
     )
   }
@@ -272,9 +304,8 @@ const DetailsSection = ({
 
   const descriptionDisplay = (
     <div>
-      <span className="details-description">Description</span>
+      <span className="details-description">Description:</span>
       <span>
-        :
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{description}</ReactMarkdown>
       </span>
     </div>

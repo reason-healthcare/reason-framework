@@ -1,36 +1,46 @@
-import glob from 'fast-glob'
 import JSZip from 'jszip'
 
 class BrowserResolver {
   resourcesByCanonical: Record<string, fhir4.FhirResource> = {}
-  localFile: string
+  // rawData: string
   pathway: fhir4.PlanDefinition | undefined
 
-  constructor(localFile: string, pathway?: fhir4.PlanDefinition) {
-    this.localFile = localFile
+  constructor(
+    resourcesByCanonical?: Record<string, fhir4.FhirResource>,
+    planDefinition?: fhir4.PlanDefinition
+  ) {
+    if (resourcesByCanonical) {
+      this.resourcesByCanonical = resourcesByCanonical
+    }
+    if (planDefinition) {
+      this.pathway = planDefinition
+    }
   }
 
-  public async handleProcessZip() {
+  public async handleProcessZip(rawData: string) {
     const zip = new JSZip()
     try {
-      const zipFile = await zip.loadAsync(this.localFile.split(',')[1], {
+      const zipFile = await zip.loadAsync(rawData.split(',')[1], {
         base64: true,
       })
-      // TODO use only JSON
       const files = Object.keys(zipFile.files)
       for (const filename of files) {
         const fileContent = await zipFile.file(filename)?.async('string')
-        if (fileContent) {
+        if (fileContent && filename.endsWith('json')) {
           try {
             const rawResource = JSON.parse(fileContent)
             if (rawResource.url != null && rawResource.resourceType != null) {
               this.resourcesByCanonical[rawResource.url] = rawResource
             }
-            if (rawResource.meta.profile.includes('http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-pathwaydefinition')) {
+            if (
+              rawResource.meta.profile.includes(
+                'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-pathwaydefinition'
+              )
+            ) {
               this.pathway = rawResource
             }
           } catch (error) {
-            console.warn(`problem with ${filename}`)
+            // console.warn(`problem with ${filename}`)
           }
         }
       }
