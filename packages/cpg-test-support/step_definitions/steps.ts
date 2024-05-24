@@ -1,35 +1,40 @@
 import assert from 'assert'
 import path from 'path'
 import dotenv from 'dotenv'
-import { Given, When, Then, DataTable, After, AfterStep } from '@cucumber/cucumber'
 import {
-  RequestResource,
+  Given,
+  When,
+  Then,
+  DataTable,
+  After,
+  AfterStep,
+} from '@cucumber/cucumber'
+import {
   isEmpty,
   is,
-  getInstantiatesCanonical,
   resolveReference,
-  removeFromRecommendations,
-  removeFromSelectionGroups,
   notEmpty,
   createEndpoint,
-  resolveRequestResource,
   findRecommendation,
   findSelectionGroup,
   resolveAction,
-  findNestedRecommendations
+  getNestedRecommendations,
+  getNestedSelectionGroups,
 } from './helpers'
 
 dotenv.config()
+
+export interface SelectionGroup {
+  selectionCode: fhir4.RequestGroupAction['selectionBehavior']
+  definitions: string[]
+}
 
 export interface TestContext {
   planDefinition: fhir4.PlanDefinition
   patientContextIdentifier: string
   cpgResponse: fhir4.Bundle | undefined
   recommendations: string[] | undefined
-  selectionGroups: {
-    selectionCode: fhir4.RequestGroupAction['selectionBehavior']
-    definitions: string[]
-  }[]
+  selectionGroups: SelectionGroup[]
 }
 
 const { CONTENT_ENDPOINT, TERMINOLOGY_ENDPOINT, DATA_ENDPOINT, CPG_ENDPOINT } =
@@ -122,108 +127,76 @@ When(
       }
     } catch (e) {
       console.error(e)
-      throw new Error('Unable to call $apply. Check that CPG engine is running and that environment variables are set')
+      throw new Error(
+        'Unable to call $apply. Check that CPG engine is running and that environment variables are set'
+      )
     }
 
-    // Create list of recomendations. Each asserted recommendation will be removed from the list. After all assertions, this array should be empty.
-    this.recommendations = this.cpgResponse?.entry
-      ?.map((entry) => {
-        const canonical = is.RequestResource(entry.resource)
-          ? getInstantiatesCanonical(entry.resource)
-          : undefined
-        return canonical && canonical != this.planDefinition.url
-          ? canonical.split('/').pop()
-          : null
-      })
-      .filter(notEmpty) as string[]
-
-    // Create list of selection groups. Used for test failure logging.
-    const findSelectionGroups = (action: fhir4.RequestGroupAction[]) => {
-      let definitions: string[]
-      action.forEach((action) => {
-        const selectionCode = action.selectionBehavior
-        if (selectionCode && action.action) {
-          definitions = action.action.map(a => {
-            const requestResource = resolveRequestResource(a, this.cpgResponse)
-            return requestResource ? getInstantiatesCanonical(requestResource)?.split('/').pop() : null
-          }).filter(notEmpty)
-          definitions.length ? (this.selectionGroups ||=[]).push({selectionCode, definitions}) : null
-        }
-        if (action.action) {
-          findSelectionGroups(action.action)
-        }
-      })
-    }
     this.cpgResponse?.entry?.forEach((entry) => {
       if (is.RequestGroup(entry.resource) && entry.resource.action) {
-        findSelectionGroups(entry.resource.action)
+        entry.resource.action.forEach(a => {
+          if (this.cpgResponse) {
+            const recommendations = getNestedRecommendations(a, this.cpgResponse)
+            const selectionGroups = getNestedSelectionGroups(a, this.cpgResponse)
+            this.selectionGroups = this.selectionGroups ? this.selectionGroups.concat(selectionGroups) : selectionGroups
+            this.recommendations = this.recommendations ? this.recommendations.concat(recommendations) : recommendations
+          }
+        })
       }
     })
   }
 )
 
 // This will not work if multiple actions share the same title, unless these actions are identical
-When('{string} is selected', function (this: TestContext, selectedActionIdentifier: string) {
-  // Filter out selection groups and corresponding recommendations
-  /**
-   * Find selection action in RG
-   * If more than one, throw error
-   * Otherwise, use same selection/recommendatin logic to get nested items
-   */
-  const selectionMatch = this.cpgResponse?.entry?.map(e => {
-    let match
-    const resource = e.resource
-    if (is.RequestGroup(resource) && resource.action && this.cpgResponse) {
-      match = resolveAction(selectedActionIdentifier, resource.action, this.cpgResponse)
+When(
+  '{string} is selected',
+  function (this: TestContext, selectedActionIdentifier: string) {
+    const selectedAction = this.cpgResponse?.entry
+      ?.map((e) => {
+        let match
+        const resource = e.resource
+        if (is.RequestGroup(resource) && resource.action && this.cpgResponse) {
+          match = resolveAction(
+            selectedActionIdentifier,
+            resource.action,
+            this.cpgResponse
+          )
+        }
+        return match
+      })
+      .filter(notEmpty)
+
+    // definition/recommendation selection does not need to be unique, but titles should be
+
+    if (!selectedAction || isEmpty(selectedAction)) {
+      throw new Error(
+        `Unable to find selection match for ${selectedActionIdentifier}`
+      )
+    } else if (selectedAction.length > 1) {
+      console.error(
+        `Found more than one action with selection ${selectedActionIdentifier}`
+      )
+    } else if (this.cpgResponse) {
+      this.selectionGroups = getNestedSelectionGroups(
+        selectedAction[0],
+        this.cpgResponse
+      )
+      this.recommendations = getNestedRecommendations(
+        selectedAction[0],
+        this.cpgResponse
+      )
     }
-    return match
-  }).filter(notEmpty)
-
-  // definition/recommendation selection does not need to be unique, but titles should be
-
-  if (!selectionMatch || isEmpty(selectionMatch)) {
-    throw new Error(`Unable to find selection match for ${selectedActionIdentifier}`)
-  } else if (selectionMatch.length > 1) {
-    console.error(`Found more than one action with selection ${selectedActionIdentifier}`)
-  } else if (this.cpgResponse){
-    this.selectionGroups = []
-    this.recommendations = []
-    // const findSelectionGroups = (action: fhir4.RequestGroupAction[]) => {
-    //   let definitions: string[]
-    //   action.forEach((action) => {
-    //     const selectionCode = action.selectionBehavior
-    //     if (selectionCode && action.action) {
-    //       definitions = action.action.map(a => {
-    //         const requestResource = resolveRequestResource(a, this.cpgResponse)
-    //         return requestResource ? getInstantiatesCanonical(requestResource)?.split('/').pop() : null
-    //       }).filter(notEmpty)
-    //       definitions.length ? (this.selectionGroups ||=[]).push({selectionCode, definitions}) : null
-    //     }
-    //     if (action.action) {
-    //       findSelectionGroups(action.action)
-    //     }
-    //   })
-    // }
-
-    // selectionMatch.forEach((action) => {
-    //   if (action.action) {
-    //     findSelectionGroups(action.action)
-    //   }
-    // })
-
-
-
-    this.recommendations = findNestedRecommendations(selectionMatch[0], this.cpgResponse)
-
   }
-
-})
+)
 
 Then(
   '{string} should have been recommended',
   function (this: TestContext, activityDefinitionIdentifier: string) {
-    const recommendationMatch = findRecommendation(activityDefinitionIdentifier, this.recommendations)
-    this.recommendations = removeFromRecommendations(activityDefinitionIdentifier, this.recommendations)
+    const recommendationMatch = findRecommendation(
+      activityDefinitionIdentifier,
+      this.recommendations
+    )
+    this.recommendations = this.recommendations?.filter(r => r !== activityDefinitionIdentifier)
     assert(
       recommendationMatch,
       `\nExpected recommendation:\n- ${activityDefinitionIdentifier}\nBut found:\n- ${
@@ -239,7 +212,13 @@ Then(
   'select {string} of the following should have been recommended',
   function (
     this: TestContext,
-    selectionBehaviorCode: "any" | "all" | "all-or-none" | "exactly-one" | "at-most-one" | "one-or-more",
+    selectionBehaviorCode:
+      | 'any'
+      | 'all'
+      | 'all-or-none'
+      | 'exactly-one'
+      | 'at-most-one'
+      | 'one-or-more',
     selectionDefinitionIdentifiersTable: DataTable
   ) {
     const selectionDefinitionIdentifiers: string[] =
@@ -248,18 +227,30 @@ Then(
         .map((i) => i[0])
         .sort()
 
-    const selectionGroupMatch = findSelectionGroup(selectionBehaviorCode, selectionDefinitionIdentifiers, this.selectionGroups)
-    this.selectionGroups = removeFromSelectionGroups(selectionBehaviorCode, selectionDefinitionIdentifiers, this.selectionGroups)
-    this.recommendations = this.recommendations?.filter(r => !selectionDefinitionIdentifiers.includes(r))
+    console.log(JSON.stringify(this.selectionGroups))
+    const selectionGroupMatch = findSelectionGroup(
+      selectionBehaviorCode,
+      selectionDefinitionIdentifiers,
+      this.selectionGroups
+    )
+    console.log(JSON.stringify(selectionGroupMatch) + 'match')
+    this.selectionGroups = this.selectionGroups.filter(sg => sg !== selectionGroupMatch)
+    this.recommendations = this.recommendations?.filter(
+      (r) => !selectionDefinitionIdentifiers.includes(r)
+    )
+    console.log(JSON.stringify(this.selectionGroups) + 'after')
 
-    const message =
-      `\nExpected:\n - Select ${selectionBehaviorCode}: ${selectionDefinitionIdentifiers.join(
-        ', '
-      )}\nBut found:\n ${
-        isEmpty(this.selectionGroups)
-          ? '- No remaining selection groups'
-          : this.selectionGroups?.map(sg => `- Select ${sg.selectionCode}: ${sg.definitions.join(', ')}\n`)
-      }`
+
+    const message = `\nExpected:\n - Select ${selectionBehaviorCode}: ${selectionDefinitionIdentifiers.join(
+      ', '
+    )}\nBut found:\n ${
+      isEmpty(this.selectionGroups)
+        ? '- No remaining selection groups'
+        : this.selectionGroups?.map(
+            (sg) =>
+              `- Select ${sg.selectionCode}: ${sg.definitions.join(', ')}\n`
+          )
+    }`
 
     assert(selectionGroupMatch, message)
   }
@@ -270,15 +261,15 @@ Then(
 //   function (
 //     this: TestContext,
 //     selectionBehaviorCode: string,
-//     selectionActionIdentifiersTable: DataTable
+//     selectedActionIdentifiersTable: DataTable
 //   ) {
-//     const selectionActionIdentifiers: string[] =
-//       selectionActionIdentifiersTable
+//     const selectedActionIdentifiers: string[] =
+//       selectedActionIdentifiersTable
 //         .raw()
 //         .map((i) => i[0])
 //         .sort()
 
-//     const findSelectionMatch = (
+//     const findSelectedAction = (
 //       action: fhir4.RequestGroupAction[]
 //     ): boolean => {
 //       let isMatch = false
@@ -292,7 +283,7 @@ Then(
 //           isMatch = isActionMatch(subAction.action)
 //         }
 //         if (!isMatch && subAction.action) {
-//           isMatch = findSelectionMatch(subAction.action)
+//           isMatch = findSelectedAction(subAction.action)
 //         }
 //       }
 //       return isMatch
@@ -309,7 +300,7 @@ Then(
 //         .filter(notEmpty)
 //       isMatch =
 //         selectionGroupTitles.sort().toString() ===
-//         selectionActionIdentifiers.sort().toString()
+//         selectedActionIdentifiers.sort().toString()
 //       return isMatch
 //     }
 
@@ -318,7 +309,7 @@ Then(
 //       for (let i = 0; i < this.cpgResponse.entry.length && !isMatch; i++) {
 //         const resource = this.cpgResponse.entry[i]
 //           .resource as fhir4.RequestGroup
-//         isMatch = resource.action ? findSelectionMatch(resource.action) : false
+//         isMatch = resource.action ? findSelectedAction(resource.action) : false
 //       }
 //     }
 
@@ -330,6 +321,7 @@ Then(
 Then('no activites should have been recommended', function (this: TestContext) {
   assert(
     isEmpty(this.recommendations),
+    `Found recommendations:\n- ${this.recommendations?.join('\n- ')}`
     `Found recommendations:\n- ${this.recommendations?.join('\n- ')}`
   )
 })

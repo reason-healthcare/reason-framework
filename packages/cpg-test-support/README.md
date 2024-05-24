@@ -27,6 +27,7 @@ npx cucumber-js
 ```
 
 ## Gherkin Expressions
+
 ```
 Given {{PlanDefinitionIdentifier}} is loaded
 When apply is called with context {{DataBundleIdentifier}}
@@ -46,8 +47,8 @@ When apply is called with context {{DataBundleIdentifier}}
 
 ## Request Group Mappings
 
-| Identifier | Request Group Property |
-|----------|----------------------|
+| Identifier                     | Request Group Property       |
+| ------------------------------ | ---------------------------- |
 | Activity Definition Identifier | Request.intantiatesCanonical |
 
 ### Assertion of stand alone recommendation
@@ -57,13 +58,11 @@ Request exists where request.instantiatesCanonical = activity definition identif
 ### Assertion of selection group match
 
 Selection group must match by:
-  - action.selectionBehavior.code; And
-  - action.resource where request.instantiatesCanonical = activity definition identifier; And
-  - there must be no additional actions on the group
+
+- action.selectionBehavior.code; And
+- action.resource where request.instantiatesCanonical = activity definition identifier; And
+- there must be no additional actions on the group
 
 ### Selection of specific action, followed by assertions
 
 When specifying selection of a specific action, the asserted recommendations and selection groups must be children of the specified action.
-
-
-
