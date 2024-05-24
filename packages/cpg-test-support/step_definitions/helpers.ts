@@ -1,5 +1,6 @@
 import fs from 'fs'
 import { TestContext } from './steps'
+import { SelectionGroup } from './steps'
 
 export type RequestResource =
   | fhir4.MedicationRequest
@@ -103,91 +104,125 @@ export const getInstantiatesCanonical = (resource: RequestResource) => {
  * @param bundle
  * @returns fhir4.RequestGroup | RequestResource | undefined
  */
-export const resolveRequestResource = (action: fhir4.RequestGroupAction, bundle: fhir4.Bundle | undefined) => {
+export const resolveRequestResource = (
+  action: fhir4.RequestGroupAction,
+  bundle: fhir4.Bundle | undefined
+) => {
   if (action.resource?.reference) {
     const id = action.resource.reference.split('/')[1]
-    return bundle?.entry?.find((e) => e.resource?.id === id)
-      ?.resource as fhir4.RequestGroup | RequestResource
+    return bundle?.entry?.find((e) => e.resource?.id === id)?.resource as
+      | fhir4.RequestGroup
+      | RequestResource
   }
-}
-
-/**
- * Remove canonical reference from a list of request resource references. This enables checking for requests that have not yet been tested against. Each time a request matches an assertion, it is removed.
- *
- * @param identifier Canonical reference to remove
- * @param recommendations List of remaining request resource canonicals from the $apply output
- */
-export const removeFromRecommendations = (
-  identifier: string | undefined,
-  recommendations: string[] | undefined
-) => {
-  return recommendations?.filter((c) => c !== identifier)
 }
 
 export const findRecommendation = (
   identifier: string,
   recommendations: string[] | undefined
 ) => {
-  return recommendations?.find(r => r === identifier)
+  return recommendations?.find((r) => r === identifier)
 }
 
-export const removeFromSelectionGroups = (selectionBehaviorCode: fhir4.RequestGroupAction["selectionBehavior"], identifiers: string[], selectionGroups: TestContext["selectionGroups"]) => {
-  return selectionGroups.filter(sg => {
-    sg.selectionCode !== selectionBehaviorCode &&
-    sg.definitions.sort().toString() !== identifiers.sort().toString()
-  })
-}
-
-export const findSelectionGroup = (selectionBehaviorCode: fhir4.RequestGroupAction["selectionBehavior"], identifiers: string[], selectionGroups: TestContext["selectionGroups"]) => {
-  return selectionGroups.find(sg => {
-    return (sg.selectionCode === selectionBehaviorCode &&
-    sg.definitions.sort().toString() === identifiers.sort().toString())
+export const findSelectionGroup = (
+  selectionBehaviorCode: fhir4.RequestGroupAction['selectionBehavior'],
+  identifiers: string[],
+  selectionGroups: TestContext['selectionGroups']
+) => {
+  return selectionGroups.find((sg) => {
+    return (
+      sg.selectionCode === selectionBehaviorCode &&
+      sg.definitions.sort().toString() === identifiers.sort().toString()
+    )
   })
 }
 
 //TODO resolve ID from canonical helper
 
-export const findNestedRecommendations = (action: fhir4.RequestGroupAction, bundle: fhir4.Bundle) => {
-  // Initialize an array to hold all matches
+export const getNestedRecommendations = (
+  action: fhir4.RequestGroupAction,
+  bundle: fhir4.Bundle
+) => {
   let recommendations: (string | undefined)[] = []
 
-  // Inner function to handle recursion and collecting matches
-  const findRecommendations = (action: fhir4.RequestGroupAction, bundle: fhir4.Bundle, recommendations: (string | undefined)[]) => {
+  const getRecommendations = (
+    action: fhir4.RequestGroupAction,
+    bundle: fhir4.Bundle,
+    recommendations: (string | undefined)[]
+  ) => {
     const requestResource = resolveRequestResource(action, bundle)
     if (requestResource) {
-      const canonical = getInstantiatesCanonical(requestResource)
-      recommendations.push(getInstantiatesCanonical(requestResource)?.split('/').pop())
+      recommendations.push(
+        getInstantiatesCanonical(requestResource)?.split('/').pop()
+      )
     }
-
     if (is.RequestGroup(requestResource) && requestResource.action) {
-      requestResource.action.forEach(a => findRecommendations(a, bundle, recommendations))
+      requestResource.action.forEach((a) =>
+        getRecommendations(a, bundle, recommendations)
+      )
     }
-
     if (action.action) {
-      action.action.forEach(a => findRecommendations(a, bundle, recommendations))
+      action.action.forEach((a) =>
+        getRecommendations(a, bundle, recommendations)
+      )
     }
-
   }
-
-  findRecommendations(action, bundle, recommendations)
-
+  getRecommendations(action, bundle, recommendations)
   return recommendations.filter(notEmpty)
-
 }
 
-export const resolveAction = (identifier: string, action: fhir4.RequestGroupAction[], bundle: fhir4.Bundle) => {
-  let match = action.find(a => {
+export const resolveAction = (
+  identifier: string,
+  action: fhir4.RequestGroupAction[],
+  bundle: fhir4.Bundle
+) => {
+  let match = action.find((a) => {
     const id = resolveRequestResource(a, bundle) ?? a.title
-    return (id === identifier)
+    return id === identifier
   })
   if (!match) {
-    action.forEach(a => {
+    action.forEach((a) => {
       if (a.action) {
         match = resolveAction(identifier, a.action, bundle)
       }
     })
   }
   return match
+}
+
+export const getNestedSelectionGroups = (
+  action: fhir4.RequestGroupAction,
+  bundle: fhir4.Bundle
+) => {
+  let selectionGroups: (SelectionGroup | undefined)[] = []
+
+  const getSelectionGroups = (
+    action: fhir4.RequestGroupAction,
+    bundle: fhir4.Bundle,
+    selectionGroups: (SelectionGroup | undefined)[]
+  ) => {
+    if (action.selectionBehavior && action.action) {
+      const definitions = action.action
+        .map((a) => {
+          const requestResource = resolveRequestResource(a, bundle)
+          return requestResource
+            ? getInstantiatesCanonical(requestResource)?.split('/').pop()
+            : null
+        })
+        .filter(notEmpty)
+      ;(selectionGroups ||= []).push({
+        selectionCode: action.selectionBehavior,
+        definitions,
+      })
+    }
+    if (action.action) {
+      action.action.forEach((a) =>
+        getSelectionGroups(a, bundle, selectionGroups)
+      )
+    }
+  }
+
+  getSelectionGroups(action, bundle, selectionGroups)
+  return selectionGroups.filter(notEmpty)
 }
 
 /**
