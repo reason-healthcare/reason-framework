@@ -7,7 +7,6 @@ import {
   Then,
   DataTable,
   After,
-  AfterStep,
 } from '@cucumber/cucumber'
 import {
   isEmpty,
@@ -20,6 +19,9 @@ import {
   resolveAction,
   getNestedRecommendations,
   getNestedSelectionGroups,
+  removeRecommendation,
+  removeRecommendations,
+  findRecommendationResources,
 } from './helpers'
 
 dotenv.config()
@@ -196,7 +198,7 @@ Then(
       activityDefinitionIdentifier,
       this.recommendations
     )
-    this.recommendations = this.recommendations?.filter(r => r !== activityDefinitionIdentifier)
+    this.recommendations = removeRecommendation(activityDefinitionIdentifier, this.recommendations)
     assert(
       recommendationMatch,
       `\nExpected recommendation:\n- ${activityDefinitionIdentifier}\nBut found:\n- ${
@@ -227,19 +229,13 @@ Then(
         .map((i) => i[0])
         .sort()
 
-    console.log(JSON.stringify(this.selectionGroups))
     const selectionGroupMatch = findSelectionGroup(
       selectionBehaviorCode,
       selectionDefinitionIdentifiers,
       this.selectionGroups
     )
-    console.log(JSON.stringify(selectionGroupMatch) + 'match')
     this.selectionGroups = this.selectionGroups.filter(sg => sg !== selectionGroupMatch)
-    this.recommendations = this.recommendations?.filter(
-      (r) => !selectionDefinitionIdentifiers.includes(r)
-    )
-    console.log(JSON.stringify(this.selectionGroups) + 'after')
-
+    this.recommendations = removeRecommendations(selectionDefinitionIdentifiers, this.recommendations)
 
     const message = `\nExpected:\n - Select ${selectionBehaviorCode}: ${selectionDefinitionIdentifiers.join(
       ', '
@@ -319,18 +315,19 @@ Then(
 // )
 
 Then('no activites should have been recommended', function (this: TestContext) {
+  const activityRecommendations = findRecommendationResources(this.recommendations)
   assert(
-    isEmpty(this.recommendations),
-    `Found recommendations:\n- ${this.recommendations?.join('\n- ')}`
-    `Found recommendations:\n- ${this.recommendations?.join('\n- ')}`
+    isEmpty(activityRecommendations),
+    `Found recommendations:\n- ${activityRecommendations?.join('\n- ')}`
   )
 })
 
 After(function (this: TestContext, scenario) {
   if (scenario?.result?.status === 'PASSED') {
+    const activityRecommendations = findRecommendationResources(this.recommendations)
     assert(
-      isEmpty(this.recommendations),
-      `Found remaining recommendations:\n- ${this.recommendations?.join(
+      isEmpty(activityRecommendations),
+      `Found remaining recommendations:\n- ${activityRecommendations?.join(
         '\n- '
       )}`
     )

@@ -22,6 +22,11 @@ const requestResourceTypes = [
 type RequestResourceType = typeof requestResourceTypes[number]
 
 export const is = {
+  ActivityDefinition: (
+    resource: any
+  ): resource is fhir4.ActivityDefinition => {
+    return resource?.resourceType === 'ActivityDefinition'
+  },
   CommunicationRequest: (
     resource: any
   ): resource is fhir4.CommunicationRequest => {
@@ -110,8 +115,7 @@ export const resolveRequestResource = (
 ) => {
   if (action.resource?.reference) {
     const id = action.resource.reference.split('/')[1]
-    return bundle?.entry?.find((e) => e.resource?.id === id)?.resource as
-      | fhir4.RequestGroup
+    return bundle?.entry?.find((e) => e.resource?.id === id)?.resource as fhir4.RequestGroup
       | RequestResource
   }
 }
@@ -121,6 +125,24 @@ export const findRecommendation = (
   recommendations: string[] | undefined
 ) => {
   return recommendations?.find((r) => r === identifier)
+}
+
+export const removeRecommendation = (identifier: string, recommendations: string[] | undefined) => {
+  const index = recommendations?.indexOf(identifier)
+  if (index != null) {
+    recommendations?.splice(index, 1)
+  }
+  return recommendations
+}
+
+export const removeRecommendations = (identifiers: string[] | undefined, recommendations: string[] | undefined) => {
+  return recommendations?.map(r => {
+    const exists = identifiers?.includes(r)
+    if (exists) {
+      identifiers = removeRecommendation(r, identifiers)
+    }
+    return exists ? null : r
+  }).filter(notEmpty)
 }
 
 export const findSelectionGroup = (
@@ -189,6 +211,7 @@ export const resolveAction = (
   return match
 }
 
+// TODOFor now, do not create selection group if not definitional
 export const getNestedSelectionGroups = (
   action: fhir4.RequestGroupAction,
   bundle: fhir4.Bundle
@@ -214,6 +237,14 @@ export const getNestedSelectionGroups = (
         definitions,
       })
     }
+    if (action.resource?.reference) {
+      const resource = resolveRequestResource(action, bundle)
+      if (is.RequestGroup(resource) && resource.action) {
+        resource.action.forEach(a => {
+          getSelectionGroups(a, bundle, selectionGroups)
+        })
+      }
+    }
     if (action.action) {
       action.action.forEach((a) =>
         getSelectionGroups(a, bundle, selectionGroups)
@@ -223,6 +254,13 @@ export const getNestedSelectionGroups = (
 
   getSelectionGroups(action, bundle, selectionGroups)
   return selectionGroups.filter(notEmpty)
+}
+
+export const findRecommendationResources = (canonicals: string[] | undefined) => {
+  return canonicals?.filter(c => {
+    // const recommendationTypes = ["order-set", "eca-rule"]
+    c.split("/")[-2] === "ActivityDefinition"
+  })
 }
 
 /**
