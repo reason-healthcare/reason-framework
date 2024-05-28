@@ -8,5 +8,8 @@ Feature: $apply operation
     # | Order Medication 4 |
 
     When "Recommend Medication 3" is selected
-    Then "RecommendMedication3" should have been recommended
+    Then "PatientEducation" should have been recommended
     And "OrderMedication3" should have been recommended
+    And select "all" of the following should have been recommended
+    | SendWrittenEducation |
+    | ProvideVerbalEducation |
