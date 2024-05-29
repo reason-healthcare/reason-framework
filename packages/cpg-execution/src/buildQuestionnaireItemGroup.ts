@@ -419,4 +419,3 @@ export const buildQuestionnaireItemGroup = async (
 
   return subGroup
 }
-it
