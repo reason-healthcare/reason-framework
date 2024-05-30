@@ -26,25 +26,25 @@ export default function Home() {
   const [showDetails, setShowDetails] = useState<boolean>(false)
   const [showUpload, setShowUpload] = useState<boolean>(false)
 
-  // useEffect(() => {
-  //   fetch('/api/content', { cache: 'no-cache' })
-  //     .then((response) => response.json())
-  //     .then((data) => {
-  //       console.log('fetching data')
-  //       setResolver(data.resolver)
-  //       setPlanDefinition(data.planDefinition)
-  //     })
-  // }, [])
-
   useEffect(() => {
-    const storedContent = localStorage.getItem('resolver')
-    if (storedContent) {
-      const content = JSON.parse(storedContent)
-      setResolver(
-        new BrowserResolver(content.resourcesByCanonical, content.pathway)
-      )
-    }
+    fetch('/api/content', { cache: 'no-cache' })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log('fetching data')
+        setResolver(data.resolver)
+        setPlanDefinition(data.planDefinition)
+      })
   }, [])
+
+  // useEffect(() => {
+  //   const storedContent = localStorage.getItem('resolver')
+  //   if (storedContent) {
+  //     const content = JSON.parse(storedContent)
+  //     setResolver(
+  //       new BrowserResolver(content.resourcesByCanonical, content.pathway)
+  //     )
+  //   }
+  // }, [])
 
   useEffect(() => {
     if (resolver && resolver instanceof BrowserResolver) {
@@ -58,10 +58,10 @@ export default function Home() {
     <>
       <div className="header">
         <h1>{planDefinition?.title}</h1>
-        <InboxOutlined
+        {/* <InboxOutlined
           className="upload-icon"
           onClick={() => setShowUpload(true)}
-        />
+        /> */}
       </div>
       <div className="content-container">
         {resolver && planDefinition ? (

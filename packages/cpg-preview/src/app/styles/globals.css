@@ -8,7 +8,7 @@ body {
   background-color: #fafafa;
   min-width: 320px;
   height: 100vh;
-  padding: 1rem 3rem 3rem 3rem;
+  padding: 0.5rem 3rem 3rem 3rem;
   margin-top: 1rem;
 }
 
@@ -24,9 +24,8 @@ body {
 .header {
   display: flex;
   justify-content: flex-start;
-  /* align-items: center; */
   align-items: center;
-  padding: 0 5rem 0 5rem;
+  padding: 0 5rem 1rem 5rem;
   width: 100%;
   gap: 0.8rem;
   margin-top: 0.2rem;

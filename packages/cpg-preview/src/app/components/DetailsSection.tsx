@@ -1,5 +1,5 @@
 import '@/styles/detailsSection.css'
-import { is, notEmpty } from '../helpers'
+import { is, notEmpty, resolveCanonical } from '../helpers'
 import { v4 } from 'uuid'
 import { CloseOutlined } from '@ant-design/icons'
 import FileResolver from 'resolver/file'
@@ -77,8 +77,9 @@ const DetailsSection = ({
       if (input?.length) {
         Promise.all(
           input.map((i) => {
-            if (i.profile) {
-              return resolver?.resolveCanonical(i.profile[0])
+            if (i.profile && resolver) {
+              return resolveCanonical(i.profile[0], resolver)
+              // return resolver?.resolveCanonical(i.profile[0])
             }
           })
         ).then((resolvedInputs) => {
@@ -88,12 +89,16 @@ const DetailsSection = ({
         setProfiles([])
       }
 
-      if (definitionCanonical) {
-        resolver?.resolveCanonical(definitionCanonical).then(definition => {
-          if (is.planDefinition(definition) || is.activityDefinition(definition)) {
-            setDefinition(definition)
-          }
-        })
+      if (definitionCanonical && resolver) {
+        const definition = resolveCanonical(definitionCanonical, resolver)
+        if (is.planDefinition(definition) || is.activityDefinition(definition)) {
+          setDefinition(definition)
+        }
+        // resolver?.resolveCanonical(definitionCanonical).then(definition => {
+        //   if (is.planDefinition(definition) || is.activityDefinition(definition)) {
+        //     setDefinition(definition)
+        //   }
+        // })
       } else {
         setDefinition(undefined)
       }
