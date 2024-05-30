@@ -43,7 +43,7 @@ const { CONTENT_ENDPOINT, TERMINOLOGY_ENDPOINT, DATA_ENDPOINT, CPG_ENDPOINT } =
   process.env
 const DEFAULT_SERVER = 'http://127.0.0.1:9001' // Default server is cds-service localhost 9001
 const filePath = path.join(process.cwd(), 'output')
-const DEFAULT_ENDPOINT = `file:///${filePath}` // Default endpoint assumes package is being used at root of IG with an output package
+const DEFAULT_ENDPOINT = `file://${filePath}` // Default endpoint assumes package is being used at root of IG with an output package
 const contentEndpointAddress = CONTENT_ENDPOINT ?? DEFAULT_ENDPOINT
 const terminologyEndpointAddress =
   TERMINOLOGY_ENDPOINT ?? CONTENT_ENDPOINT ?? DEFAULT_ENDPOINT
