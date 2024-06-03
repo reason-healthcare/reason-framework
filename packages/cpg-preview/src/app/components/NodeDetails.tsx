@@ -106,7 +106,6 @@ const NodeDetails = ({details, resolver}: NodeDetailsProps) => {
   const formatInputs = (inputs: fhir4.Resource[]) => {
     return inputs.map((i: fhir4.Resource) => {
       if (is.structureDefinition(i)) {
-        console.log(i.url)
         return (
           <li key={i.id}>
             <Link onClick={() => navigate(`/${i.id}`)} to={`/${i.id}`}>{i.title ?? i.name ?? i.url ?? i.id}</Link>

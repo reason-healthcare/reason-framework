@@ -1,15 +1,13 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 body {
   box-sizing: border-box;
   font-size: 0.5rem;
   background-color: #fafafa;
   min-width: 320px;
   height: 100vh;
-  padding: 0.5rem 3rem 3rem 3rem;
+  padding: 3rem;
+  padding-top: 1rem;
   margin-top: 1rem;
+  display: flex;
 }
 
 .app-container {
@@ -25,7 +23,7 @@ body {
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  padding: 0 5rem 1rem 5rem;
+  padding: 1rem 2rem 1rem 2rem;
   width: 100%;
   gap: 0.8rem;
   margin-top: 0.2rem;
