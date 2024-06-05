@@ -4,12 +4,15 @@ interface ListDisplayProps {
 }
 
 const ListDisplayItem = ({ header, content }: ListDisplayProps) => {
-  return (
-    <div>
-      <p className="details-description">{header}:</p>
-      <ul>{content}</ul>
-    </div>
-  )
+  if (content) {
+    return (
+      <div>
+        <p className="details-description">{header}:</p>
+        <ul>{content}</ul>
+      </div>
+    )
+  }
+  return <></>
 }
 
 export default ListDisplayItem

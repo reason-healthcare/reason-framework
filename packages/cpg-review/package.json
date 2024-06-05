@@ -1,5 +1,5 @@
 {
-  "name": "@reason-framework/cpg-preview",
+  "name": "@reason-framework/cpg-review",
   "version": "1.0.0",
   "description": "Reason Framework CPG Preview Tool",
   "scripts": {
@@ -10,14 +10,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/reason-healthcare/cpg-preview.git"
+    "url": "git+https://github.com/reason-healthcare/cpg-review.git"
   },
   "author": "Vermonster LLC",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/reason-healthcare/cpg-preview/issues"
+    "url": "https://github.com/reason-healthcare/cpg-review/issues"
   },
-  "homepage": "https://github.com/reason-healthcare/cpg-preview#readme",
+  "homepage": "https://github.com/reason-healthcare/cpg-review#readme",
   "dependencies": {
     "antd": "^5.16.4",
     "dotenv": "^16.4.5",

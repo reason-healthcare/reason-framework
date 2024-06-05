@@ -9,7 +9,7 @@
     "packages/cpg-execution",
     "packages/cds-service",
     "packages/cpg-test-support",
-    "packages/cpg-preview"
+    "packages/cpg-review"
   ],
   "devDependencies": {
     "concurrently": "^7.6.0",

@@ -17,6 +17,7 @@ const BackButton = () => {
       </button>
     )
   }
+  return <></>
 }
 
 export default BackButton

@@ -23,9 +23,6 @@ const InputDetails = ({ resolver }: InputDetailsProps) => {
   const [resource, setResource] = useState<
     fhir4.StructureDefinition | undefined
   >()
-  const [featureLibrary, setFeatureLibrary] = useState<
-    fhir4.Library | undefined
-  >()
 
   // Get pathname and format as resource reference
   const path = useLocation().pathname.split('')
@@ -70,7 +67,7 @@ const InputDetails = ({ resolver }: InputDetailsProps) => {
         }
         if (extensionName && e.valueExpression) {
           const { expression, language, reference } = e.valueExpression
-          let library
+          let library: fhir4.Library | undefined
           if (resolver) {
             const rawResource = resolveCanonical(reference, resolver)
             if (is.Library(rawResource)) {
@@ -80,12 +77,12 @@ const InputDetails = ({ resolver }: InputDetailsProps) => {
           return (
             <li key={e.url}>
               {extensionName}: {expression} from{' '}
-              {library ? (
+              {library != null ? (
                 <Link
-                  onClick={() => navigate(`/Library/${library.id}`)}
-                  to={`/Library/${library.id}`}
+                  onClick={() => navigate(`/Library/${library?.id}`)}
+                  to={`/Library/${library?.id}`}
                 >
-                  {library?.title ?? library.name}
+                  {library?.title ?? library?.name}
                 </Link>
               ) : (
                 reference
@@ -96,25 +93,6 @@ const InputDetails = ({ resolver }: InputDetailsProps) => {
         return null
       })
       .filter(notEmpty)
-
-    if (caseFeatureExtensions) {
-      const featureExtension = extension?.find(
-        (e) =>
-          (e.url =
-            'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-featureExpression')
-      )
-      if (
-        featureExtension &&
-        featureExtension.valueExpression?.reference &&
-        resolver
-      ) {
-        const library = resolveCanonical(
-          featureExtension.valueExpression.reference,
-          resolver
-        )
-        setFeatureLibrary
-      }
-    }
 
     const differentialDisplay = differential?.element
       ?.map((e) => {

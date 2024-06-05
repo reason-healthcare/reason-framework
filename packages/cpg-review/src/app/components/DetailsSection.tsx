@@ -3,11 +3,7 @@ import { CloseOutlined } from '@ant-design/icons'
 import FileResolver from 'resolver/file'
 import BrowserResolver from 'resolver/browser'
 import NodeDetails from './NodeDetails'
-import {
-  Route,
-  Routes,
-  MemoryRouter,
-} from 'react-router-dom'
+import { Route, Routes, MemoryRouter } from 'react-router-dom'
 import InputDetails from './InputDetails'
 import LibraryDetails from './LibraryDetails'
 

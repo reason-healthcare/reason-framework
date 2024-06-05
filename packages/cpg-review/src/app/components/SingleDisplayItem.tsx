@@ -12,7 +12,7 @@ const SingleDisplayItem = ({ header, content }: SingleDisplayProps) => {
       </div>
     )
   }
-  return ''
+  return <></>
 }
 
 export default SingleDisplayItem
