@@ -101,11 +101,6 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
         ) {
           setDefinition(definition)
         }
-        // resolver?.resolveCanonical(definitionCanonical).then(definition => {
-        //   if (is.planDefinition(definition) || is.activityDefinition(definition)) {
-        //     setDefinition(definition)
-        //   }
-        // })
       } else {
         setDefinition(undefined)
       }
@@ -170,7 +165,27 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
   const PlanDefinitionDisplay = ({
     definition,
   }: PlanDefinitionDisplayProps) => {
-    const { relatedArtifact, action } = definition
+    const { relatedArtifact, action, library } = definition
+    let libraryDisplay: JSX.Element[] | JSX.Element | undefined
+    if (resolver && library && library.length > 1) {
+      libraryDisplay = library?.map(l => {
+        resolveCanonical(l, resolver)
+        if (is.Library(l)) {
+          return(
+            <li>
+              <Link onClick={() => navigate(`/Library/${l.id}`)}
+                to={`/Library/${l.id}`}>{l.title ?? l.name ?? l.url ?? l.id}</Link>
+            </li>
+          )
+        }
+      }).filter(notEmpty)
+    } else if (resolver && library) {
+      const rawResource = resolveCanonical(library[0], resolver)
+      if (is.Library(rawResource)) {
+        libraryDisplay = <Link onClick={() => navigate(`/Library/${rawResource.id}`)}
+        to={`/Library/${rawResource.id}`}>{rawResource.title ?? rawResource.name ?? rawResource.url ?? rawResource.id}</Link>
+      }
+    }
     return (
       <div>
         {relatedArtifact && (
@@ -179,8 +194,14 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
             content={formatDocumentation(relatedArtifact)}
           />
         )}
+        {Array.isArray(libraryDisplay) && (
+          <ListDisplayItem header="Libraries" content={libraryDisplay}/>
+        )}
         {action && (
           <ListDisplayItem header="Actions" content={formatActions(action)} />
+        )}
+        {libraryDisplay && !Array.isArray(libraryDisplay) && (
+          <SingleDisplayItem header='Library' content={libraryDisplay} />
         )}
       </div>
     )

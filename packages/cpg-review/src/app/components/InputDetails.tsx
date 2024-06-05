@@ -98,7 +98,6 @@ const InputDetails = ({ resolver }: InputDetailsProps) => {
       ?.map((e) => {
         if (e.path.split('.').length > 1) {
           if (e.patternCodeableConcept) {
-            console.log(formatCodeableConcept(e.patternCodeableConcept))
           }
           return (
             <li key={e.path}>
