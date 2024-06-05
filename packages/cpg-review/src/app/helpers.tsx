@@ -1,5 +1,8 @@
+import { Link, NavigateFunction, useNavigate } from 'react-router-dom'
 import BrowserResolver from 'resolver/browser'
 import FileResolver from 'resolver/file'
+import {v4} from 'uuid'
+import SingleDisplayItem from './components/SingleDisplayItem'
 
 export function notEmpty<TValue>(
   value: TValue | null | undefined
@@ -65,6 +68,43 @@ export const formatCodeableConcept = (
             Coding: {c.code} from {c.system}
           </p>
         ) : undefined}
+      </li>
+    )
+  })
+}
+
+export const formatRelatedArtifact = (artifact: fhir4.RelatedArtifact[], resolver?: FileResolver | BrowserResolver | undefined, navigate?: NavigateFunction) => {
+  return artifact.map((e: any) => {
+    let resourceDisplay
+    if (e.resource && resolver) {
+      const rawResource = resolveCanonical(e.resource, resolver)
+      if (is.Library(rawResource) && navigate) {
+        console.log('here')
+        resourceDisplay = (
+          <Link onClick={() => navigate(`/Library/${rawResource.id}`)}
+          to={`/Library/${rawResource.id}`}>{rawResource.title ?? rawResource.name ?? rawResource.url ?? rawResource.id}</Link>
+        )
+      }
+    }
+    return (
+      <li key={v4()}>
+        {e?.type
+          && e.type.charAt(0).toUpperCase() + e.type.slice(1) + ': '}
+        {(e.display || e.label) && <p>{e.display ?? e.label}</p>}
+        {e.citation && <p>{e.citation}</p>}
+        {e.url && (
+          <p>
+            <Link to={e.url} target="blank">
+              {e.url}
+            </Link>
+          </p>
+        )}
+        {e.document?.title && (
+          <p>
+            <Link to="">{e.document.title}</Link>
+          </p>
+        )}{' '}
+        {/* {resourceDisplay} */}
       </li>
     )
   })

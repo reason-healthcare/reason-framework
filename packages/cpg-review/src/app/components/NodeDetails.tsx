@@ -1,6 +1,7 @@
 import '@/styles/detailsSection.css'
 import {
   formatCodeableConcept,
+  formatRelatedArtifact,
   is,
   notEmpty,
   resolveCanonical,
@@ -39,32 +40,6 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
     return actions
       .map((a) => (a.title ? <li key={v4()}>{a.title}</li> : null))
       .filter(notEmpty)
-  }
-
-  const formatDocumentation = (evidence: fhir4.RelatedArtifact[]) => {
-    return evidence.map((e: any) => {
-      return (
-        <li key={v4()}>
-          {e?.type
-            ? e.type.charAt(0).toUpperCase() + e.type.slice(1) + ':'
-            : null}
-          {e.display || e.label ? <p>{e.display ?? e.label}</p> : null}
-          {e.citation ? <p>{e.citation}</p> : null}
-          {e.url ? (
-            <p>
-              <a href={e.url} target="blank">
-                {e.url}
-              </a>
-            </p>
-          ) : null}
-          {e.document?.title ? (
-            <p>
-              <a href="">{e.document.title}</a>
-            </p>
-          ) : null}{' '}
-        </li>
-      )
-    })
   }
 
   const formatApplicabilities = (
@@ -191,7 +166,7 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
         {relatedArtifact && (
           <ListDisplayItem
             header="Documentation"
-            content={formatDocumentation(relatedArtifact)}
+            content={formatRelatedArtifact(relatedArtifact)}
           />
         )}
         {Array.isArray(libraryDisplay) && (
@@ -231,7 +206,7 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
         {documentation && (
           <ListDisplayItem
             header="Documentation"
-            content={formatDocumentation(documentation)}
+            content={formatRelatedArtifact(documentation)}
           />
         )}
         {action && (
@@ -283,7 +258,7 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
         {relatedArtifact && (
           <ListDisplayItem
             header="Documentation"
-            content={formatDocumentation(relatedArtifact)}
+            content={formatRelatedArtifact(relatedArtifact)}
           />
         )}
         {productCodeableConcept && (

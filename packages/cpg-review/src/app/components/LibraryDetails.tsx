@@ -1,5 +1,6 @@
 import { FhirResource } from 'fhir/r2'
 import {
+  formatRelatedArtifact,
   is,
   notEmpty,
   resolveCanonical,
@@ -14,6 +15,8 @@ import SingleDisplayItem from './SingleDisplayItem'
 import hljs from 'highlight.js'
 import { ArrowLeftOutlined } from '@ant-design/icons'
 import BackButton from './BackButton'
+import { format } from 'path'
+import ListDisplayItem from './ListDisplayItem'
 
 interface LibraryDetailsProps {
   resolver: FileResolver | BrowserResolver | undefined
@@ -42,13 +45,16 @@ const LibraryDetails = ({ resolver }: LibraryDetailsProps) => {
     }
   }, [])
 
+  let navigate = useNavigate()
+
   if (resource) {
-    const { description } = resource
+    const { description, relatedArtifact } = resource
 
     return (
       <>
         <h2>{resource.title ?? resource.name ?? resource.id}</h2>
         <SingleDisplayItem content={description} header="Description" />
+        {/* {relatedArtifact && <ListDisplayItem content={formatRelatedArtifact(relatedArtifact, resolver, navigate)} header="Related Artifacts" />} */}
         {cql && (
           <div className="cql-container">
             <pre
