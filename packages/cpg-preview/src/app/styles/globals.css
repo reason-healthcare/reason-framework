@@ -4,7 +4,7 @@ body {
   background-color: #fafafa;
   min-width: 320px;
   height: 100vh;
-  padding: 3rem;
+  padding: 1rem 1rem 3rem 3rem;
   padding-top: 1rem;
   margin-top: 1rem;
   display: flex;
@@ -43,25 +43,26 @@ body {
 }
 
 h1 {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   margin: 0;
 }
 
 h2 {
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   font-weight: normal;
 }
 
 p {
-  font-size: 0.8rem;
+  font-size: 1rem;
 }
 
 span {
-  font-size: 0.8rem;
+  font-size: 1rem;
 }
 
 li {
-  font-size: 0.8rem;
+  font-size: 1rem;
+  line-height: 1.4rem;
 }
 
 .upload-icon {

@@ -1,19 +1,26 @@
 import JSZip from 'jszip'
-
+// interface referenceObject {
+//   json: fhir4.Resource
+//   html: string
+// }
 class BrowserResolver {
   resourcesByCanonical: Record<string, fhir4.FhirResource> = {}
-  // rawData: string
+  resourcesByReference: Record<string, fhir4.FhirResource> = {}
+  cqlByReference: Record<string, string> = {}
   pathway: fhir4.PlanDefinition | undefined
 
-  constructor(
-    resourcesByCanonical?: Record<string, fhir4.FhirResource>,
-    planDefinition?: fhir4.PlanDefinition
-  ) {
-    if (resourcesByCanonical) {
+  constructor(storedContent?: string | undefined) {
+    let parsedContent
+    if (storedContent) {
+      console.log('here from const')
+      parsedContent = JSON.parse(storedContent)
+      const { resourcesByCanonical, resourcesByReference, pathway } =
+        parsedContent
+      console.log(!!pathway + 'ispathway')
+
       this.resourcesByCanonical = resourcesByCanonical
-    }
-    if (planDefinition) {
-      this.pathway = planDefinition
+      this.resourcesByReference = resourcesByReference
+      this.pathway = pathway
     }
   }
 
@@ -27,22 +34,37 @@ class BrowserResolver {
       for (const filename of files) {
         const fileContent = await zipFile.file(filename)?.async('string')
         if (fileContent && filename.endsWith('json')) {
-          try {
-            const rawResource = JSON.parse(fileContent)
-            if (rawResource.url != null && rawResource.resourceType != null) {
-              this.resourcesByCanonical[rawResource.url] = rawResource
-            }
-            if (
-              rawResource.meta.profile.includes(
-                'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-pathwaydefinition'
-              )
-            ) {
-              this.pathway = rawResource
-            }
-          } catch (error) {
-            // console.warn(`problem with ${filename}`)
+          const rawResource = JSON.parse(fileContent)
+          if (rawResource.url != null && rawResource.resourceType != null) {
+            this.resourcesByCanonical[rawResource.url] = rawResource
           }
+          if (rawResource.id && rawResource.resourceType) {
+            this.resourcesByReference[
+              `${rawResource.resourceType}/${rawResource.id}`
+            ] = rawResource
+          }
+          if (
+            rawResource.meta?.profile?.includes(
+              'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-pathwaydefinition'
+            )
+          ) {
+            this.pathway = rawResource
+          }
+        } else if (fileContent && filename.endsWith('cql')) {
+          const id = filename.split('.')[0].split('-')
+          const type = id.shift()
+          const reference = `${type}/${id}`.replace('output/', '')
+          this.cqlByReference[reference] = fileContent
         }
+        // else if (fileContent && filename.endsWith('html') && filename.split('.').length == 2) {
+        //   const resourceType = filename.split("/").pop()?.split("-")[0]
+        //   const id = filename.split("/").pop()?.split("-")[1]?.split('.')[0]
+        //   if (this.resourcesByReference[`${resourceType}/${id}`]) {
+        //     this.resourcesByReference[`${resourceType}/${id}`] = {
+        //       ...this.resourcesByReference[`${resourceType}/${id}`], html: fileContent
+        //     }
+        //   }
+        // }
       }
     } catch (error) {
       console.error('Error reading ZIP file:', error)

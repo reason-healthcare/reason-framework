@@ -1,13 +1,21 @@
 .details-section {
   display: flex;
   flex-direction: column;
-  min-width: 350px;
-  width: 35%;
+  min-width: 35%;
+  max-width: 50%;
   border-left: 1px solid lightgray;
   padding-left: 3rem;
+  padding-right: 2rem;
   margin-bottom: 3rem;
   gap: 2rem;
   overflow-y: scroll;
+  line-height: 1.2rem;
+}
+
+.details-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .details-description {
@@ -24,6 +32,26 @@
   justify-content: flex-end;
 }
 
+.back-button {
+  color: rgb(0, 0, 238);
+  background-color: #fafafa;
+  border: 0px;
+  font-size: 0.9rem;
+  /* align-self: flex-start; */
+  padding: 0;
+  margin-top: 1.5rem;
+}
+
 .single-item {
   margin: 1rem 0 1rem 0;
+}
+
+.cql-container {
+  background-color: #f2f2f2;
+  padding: 2rem;
+}
+
+code {
+  font-size: 1rem;
+  color: #800080;
 }

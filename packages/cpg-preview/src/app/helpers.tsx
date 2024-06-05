@@ -17,6 +17,9 @@ export const is = {
   bundle: (resource: any): resource is fhir4.Bundle => {
     return resource?.resourceType === 'Bundle'
   },
+  Library: (resource: any): resource is fhir4.Library => {
+    return resource?.resourceType === 'Library'
+  },
   structureDefinition: (
     resource: any
   ): resource is fhir4.StructureDefinition => {
@@ -32,4 +35,37 @@ export const resolveCanonical = (
   return canonical != null && resolver.resourcesByCanonical
     ? resolver.resourcesByCanonical[canonical]
     : undefined
+}
+
+export const resolveReference = (
+  reference: string | undefined,
+  resolver: BrowserResolver
+) => {
+  return reference != null
+    ? resolver.resourcesByReference[reference]
+    : undefined
+}
+
+export const resolveCql = (
+  reference: string | undefined,
+  resolver: BrowserResolver
+) => {
+  return reference != null ? resolver.cqlByReference[reference] : undefined
+}
+
+export const formatCodeableConcept = (
+  codeableConcept: fhir4.CodeableConcept
+) => {
+  return codeableConcept?.coding?.map((c: fhir4.Coding) => {
+    return (
+      <li key={c.code}>
+        {c.display}
+        {c.code ? (
+          <p>
+            Coding: {c.code} from {c.system}
+          </p>
+        ) : undefined}
+      </li>
+    )
+  })
 }

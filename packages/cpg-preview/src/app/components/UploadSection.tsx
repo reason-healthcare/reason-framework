@@ -16,7 +16,6 @@ interface UploadSectionProps {
 
 const UploadSection = ({ setResolver }: UploadSectionProps) => {
   const [file, setFile] = useState<RcFile>()
-  const [localContent, setLocalContent] = useState<string | undefined>()
   // const [planDefinitionIdentifier, setPlanDefinitionIdentifier]=useState<string>()
 
   const { Dragger } = Upload
@@ -44,13 +43,17 @@ const UploadSection = ({ setResolver }: UploadSectionProps) => {
       const reader = new FileReader()
       reader.onload = async (event) => {
         const zipData = JSON.stringify(event.target?.result)
-        setLocalContent(zipData)
         let resolver = new BrowserResolver()
         resolver.handleProcessZip(zipData).then((r) => {
           setResolver(resolver)
-          localStorage.clear()
-          localStorage.setItem('resolver', JSON.stringify(resolver))
-          message.success('Saved content to local storage')
+          try {
+            localStorage.clear()
+            localStorage.setItem('resolver', JSON.stringify(resolver))
+            message.success('Saved content to local storage')
+          } catch (e) {
+            console.error(e)
+            message.info('Unable to save content to local storage')
+          }
         })
       }
       reader.readAsDataURL(file)

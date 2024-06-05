@@ -53,7 +53,10 @@ const DefinitionNode = ({ data, id }: DefinitionNodeProps) => {
   }
 
   return (
-    <div className={highlight ? 'node-highlight' : 'node-unhighlight'} onClick={handleNodeClick}>
+    <div
+      className={highlight ? 'node-highlight' : 'node-unhighlight'}
+      onClick={handleNodeClick}
+    >
       {handle !== 'input' ? (
         <Handle type="target" position={Position.Top} />
       ) : null}

@@ -1,5 +1,11 @@
 import '@/styles/detailsSection.css'
-import { is, notEmpty, resolveCanonical } from '../helpers'
+import {
+  formatCodeableConcept,
+  is,
+  notEmpty,
+  resolveCanonical,
+  resolveReference,
+} from '../helpers'
 import { v4 } from 'uuid'
 import { CloseOutlined } from '@ant-design/icons'
 import FileResolver from 'resolver/file'
@@ -8,6 +14,8 @@ import remarkGfm from 'remark-gfm'
 import BrowserResolver from 'resolver/browser'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import SingleDisplayItem from './SingleDisplayItem'
+import ListDisplayItem from './ListDisplayItem'
 
 interface NodeDetailsProps {
   details:
@@ -18,7 +26,7 @@ interface NodeDetailsProps {
   resolver: FileResolver | BrowserResolver | undefined
 }
 
-const NodeDetails = ({details, resolver}: NodeDetailsProps) => {
+const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
   const [profiles, setProfiles] = useState<fhir4.Resource[]>([])
   const [definition, setDefinition] = useState<
     fhir4.PlanDefinition | fhir4.ActivityDefinition
@@ -87,7 +95,10 @@ const NodeDetails = ({details, resolver}: NodeDetailsProps) => {
 
       if (definitionCanonical && resolver) {
         const definition = resolveCanonical(definitionCanonical, resolver)
-        if (is.planDefinition(definition) || is.activityDefinition(definition)) {
+        if (
+          is.planDefinition(definition) ||
+          is.activityDefinition(definition)
+        ) {
           setDefinition(definition)
         }
         // resolver?.resolveCanonical(definitionCanonical).then(definition => {
@@ -102,20 +113,24 @@ const NodeDetails = ({details, resolver}: NodeDetailsProps) => {
   }, [details])
 
   let navigate = useNavigate()
-
   const formatInputs = (inputs: fhir4.Resource[]) => {
-    return inputs.map((i: fhir4.Resource) => {
-      if (is.structureDefinition(i)) {
-        return (
-          <li key={i.id}>
-            <Link onClick={() => navigate(`/${i.id}`)} to={`/${i.id}`}>{i.title ?? i.name ?? i.url ?? i.id}</Link>
-          </li>
-        )
-      }
+    return inputs
+      .map((i: fhir4.Resource) => {
+        if (is.structureDefinition(i)) {
+          return (
+            <li key={i.id}>
+              <Link
+                onClick={() => navigate(`/${i.resourceType}/${i.id}`)}
+                to={`/${i.resourceType}/${i.id}`}
+              >
+                {i.title ?? i.name ?? i.url ?? i.id}
+              </Link>
+            </li>
+          )
+        }
       })
       .filter(notEmpty)
   }
-
   const formatProdcuts = (
     products: fhir4.ActivityDefinition['productCodeableConcept']
   ) => {
@@ -137,48 +152,17 @@ const NodeDetails = ({details, resolver}: NodeDetailsProps) => {
     return <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
   }
 
-  interface SingleDisplayProps {
-    header: string
-    content: string | JSX.Element
-  }
-
-  const SingleDisplay = ({ header, content }: SingleDisplayProps) => {
-    return (
-      <div className="single-item">
-        <span className="details-description">{header}</span>
-        <span>: {content}</span>
-      </div>
-    )
-  }
-
-  interface ListDisplayProps {
-    header: string
-    content: JSX.Element[] | undefined
-  }
-
-  const ListDisplay = ({ header, content }: ListDisplayProps) => {
-    return (
-      <div>
-        <p className="details-description">{header}:</p>
-        <ul>{content}</ul>
-      </div>
-    )
-  }
-
   interface PlanDefinitionDisplayProps {
     definition: fhir4.PlanDefinition
   }
 
   let definitionDisplay: JSX.Element | undefined
   if (definition && (definition.title || definition.name || definition.url)) {
-    const {title, name, url} = definition
+    const { title, name, url } = definition
     const display = title ?? name ?? url
     if (display) {
       definitionDisplay = (
-        <SingleDisplay
-          header={'Definition'}
-          content={display}
-        />
+        <SingleDisplayItem header={'Definition'} content={display} />
       )
     }
   }
@@ -190,13 +174,13 @@ const NodeDetails = ({details, resolver}: NodeDetailsProps) => {
     return (
       <div>
         {relatedArtifact && (
-          <ListDisplay
+          <ListDisplayItem
             header="Documentation"
             content={formatDocumentation(relatedArtifact)}
           />
         )}
         {action && (
-          <ListDisplay header="Actions" content={formatActions(action)} />
+          <ListDisplayItem header="Actions" content={formatActions(action)} />
         )}
       </div>
     )
@@ -218,29 +202,32 @@ const NodeDetails = ({details, resolver}: NodeDetailsProps) => {
     return (
       <div>
         {selectionBehavior && (
-          <SingleDisplay
+          <SingleDisplayItem
             header="SelectionBehavior"
             content={selectionBehavior}
           />
         )}
         {documentation && (
-          <ListDisplay
+          <ListDisplayItem
             header="Documentation"
             content={formatDocumentation(documentation)}
           />
         )}
         {action && (
-          <ListDisplay header="Child Actions" content={formatActions(action)} />
+          <ListDisplayItem
+            header="Child Actions"
+            content={formatActions(action)}
+          />
         )}
         {condition && (
-          <ListDisplay
+          <ListDisplayItem
             header="Applicability"
             content={formatApplicabilities(condition)}
           />
         )}
         {profiles.length > 0 ? (
-          <ListDisplay header="Input" content={formatInputs(profiles)} />
-        ): null}
+          <ListDisplayItem header="Input" content={formatInputs(profiles)} />
+        ) : null}
         {definitionDisplay}
       </div>
     )
@@ -264,28 +251,28 @@ const NodeDetails = ({details, resolver}: NodeDetailsProps) => {
     } = definition
     return (
       <div>
-        {kind && <SingleDisplay header="Kind" content={kind} />}
-        {intent && <SingleDisplay header="Intent" content={intent} />}
+        {kind && <SingleDisplayItem header="Kind" content={kind} />}
+        {intent && <SingleDisplayItem header="Intent" content={intent} />}
         {doNotPerform && (
-          <SingleDisplay
+          <SingleDisplayItem
             header="Do Not Perform"
             content={doNotPerform.toString()}
           />
         )}
         {relatedArtifact && (
-          <ListDisplay
+          <ListDisplayItem
             header="Documentation"
             content={formatDocumentation(relatedArtifact)}
           />
         )}
         {productCodeableConcept && (
-          <ListDisplay
+          <ListDisplayItem
             header="Product"
-            content={formatProdcuts(productCodeableConcept)}
+            content={formatCodeableConcept(productCodeableConcept)}
           />
         )}
         {/* {dosage?.length && dosage[0].text && (
-          <SingleDisplay
+          <SingleDisplayItem
             header="Dosage"
             content={formatDosageText(dosage[0].text)}
           />
@@ -304,40 +291,39 @@ const NodeDetails = ({details, resolver}: NodeDetailsProps) => {
     </div>
   )
 
-  const DetailsDisplay = () => {
-    let header
-    if (is.planDefinition(details)) {
-      const { name } = details
-      header = `Plan Definition: ${title ?? name}`
-      return (
-        <div>
-          <h2>{header}</h2>
-          {descriptionDisplay}
-          <PlanDefinitionDisplay definition={details} />
-        </div>
-      )
-    } else if (is.activityDefinition(details)) {
-      const { name } = details
-      header = `Activity Definition: ${title ?? name}`
-      return (
-        <div>
-          <h2>{header}</h2>
-          {descriptionDisplay}
-          <ActivityDefinitionDisplay definition={details} />
-        </div>
-      )
-    } else {
-      header = `Action: ${title}`
-      return (
-        <div>
-          <h2>{header}</h2>
-          {descriptionDisplay}
-          <ActionDisplay sourceAction={details} />
-        </div>
-      )
-    }
-  }
-
+  // const DetailsDisplay = () => {
+  //   let header
+  //   if (is.planDefinition(details)) {
+  //     const { name } = details
+  //     header = `Plan Definition: ${title ?? name}`
+  //     return (
+  //       <div>
+  //         <h2>{header}</h2>
+  //         {descriptionDisplay}
+  //         <PlanDefinitionDisplay definition={details} />
+  //       </div>
+  //     )
+  //   } else if (is.activityDefinition(details)) {
+  //     const { name } = details
+  //     header = `Activity Definition: ${title ?? name}`
+  //     return (
+  //       <div>
+  //         <h2>{header}</h2>
+  //         {descriptionDisplay}
+  //         <ActivityDefinitionDisplay definition={details} />
+  //       </div>
+  //     )
+  //   } else {
+  //     header = `Action: ${title}`
+  //     return (
+  //       <div>
+  //         <h2>{header}</h2>
+  //         {descriptionDisplay}
+  //         <ActionDisplay sourceAction={details} />
+  //       </div>
+  //     )
+  //   }
+  // }
 
   let header
   if (is.planDefinition(details)) {
