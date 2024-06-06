@@ -264,7 +264,7 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
         {productCodeableConcept && (
           <ListDisplayItem
             header="Product"
-            content={formatCodeableConcept(productCodeableConcept)}
+            content={formatCodeableConcept(productCodeableConcept, resolver)}
           />
         )}
         {/* {dosage?.length && dosage[0].text && (

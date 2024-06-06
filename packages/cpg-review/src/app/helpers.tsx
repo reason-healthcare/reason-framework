@@ -23,6 +23,9 @@ export const is = {
   Library: (resource: any): resource is fhir4.Library => {
     return resource?.resourceType === 'Library'
   },
+  CodeSystem: (resource: any): resource is fhir4.CodeSystem => {
+    return resource?.resourceType === 'CodeSystem'
+  },
   structureDefinition: (
     resource: any
   ): resource is fhir4.StructureDefinition => {
@@ -57,15 +60,24 @@ export const resolveCql = (
 }
 
 export const formatCodeableConcept = (
-  codeableConcept: fhir4.CodeableConcept
+  codeableConcept: fhir4.CodeableConcept,
+  resolver?: FileResolver | BrowserResolver | undefined
 ) => {
   return codeableConcept?.coding?.map((c: fhir4.Coding) => {
+    let systemDisplay
+    if (c.system && resolver) {
+      const resource = resolveCanonical(c.system, resolver)
+      if (is.CodeSystem(resource)) {
+        systemDisplay = resource?.title ?? resource.name ?? resource.url ?? resource.id
+
+      }
+    }
     return (
       <li key={c.code}>
         {c.display}
         {c.code ? (
           <p>
-            Coding: {c.code} from {c.system}
+            Coding: {c.code} from {systemDisplay ?? c.system}
           </p>
         ) : undefined}
       </li>

@@ -3,9 +3,10 @@ import { CloseOutlined } from '@ant-design/icons'
 import FileResolver from 'resolver/file'
 import BrowserResolver from 'resolver/browser'
 import NodeDetails from './NodeDetails'
-import { Route, Routes, MemoryRouter } from 'react-router-dom'
+import { Route, Routes, MemoryRouter, useNavigate } from 'react-router-dom'
 import InputDetails from './InputDetails'
 import LibraryDetails from './LibraryDetails'
+import { useEffect } from 'react'
 
 interface DetailsSectionProps {
   setShowDetails: React.Dispatch<React.SetStateAction<boolean>>
@@ -22,6 +23,12 @@ const DetailsSection = ({
   setShowDetails,
   resolver,
 }: DetailsSectionProps) => {
+
+  let navigate = useNavigate()
+  useEffect(() => {
+    navigate('/')
+  }, [details])
+
   const handleClick = () => {
     setShowDetails(false)
   }
@@ -31,24 +38,22 @@ const DetailsSection = ({
       <div className="close">
         <CloseOutlined onClick={handleClick} />
       </div>
-      <MemoryRouter>
-        <div className="details-container">
-          <Routes>
-            <Route
-              path="/"
-              element={<NodeDetails details={details} resolver={resolver} />}
-            />
-            <Route
-              path="/StructureDefinition/:id"
-              element={<InputDetails resolver={resolver} />}
-            />
-            <Route
-              path="/Library/:id"
-              element={<LibraryDetails resolver={resolver} />}
-            />
-          </Routes>
-        </div>
-      </MemoryRouter>
+      <div className="details-container">
+        <Routes>
+          <Route
+            path="/"
+            element={<NodeDetails details={details} resolver={resolver} />}
+          />
+          <Route
+            path="/StructureDefinition/:id"
+            element={<InputDetails resolver={resolver} />}
+          />
+          <Route
+            path="/Library/:id"
+            element={<LibraryDetails resolver={resolver} />}
+          />
+        </Routes>
+      </div>
     </div>
   )
 }

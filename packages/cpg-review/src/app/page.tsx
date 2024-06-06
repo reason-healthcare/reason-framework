@@ -9,6 +9,7 @@ import { ReactFlowProvider } from 'reactflow'
 import UploadSection from './components/UploadSection'
 // import { UploadOutlined } from '@ant-design/icons'
 import { InboxOutlined } from '@ant-design/icons'
+import { MemoryRouter } from 'react-router-dom'
 
 export default function Home() {
   const [resolver, setResolver] = useState<
@@ -77,13 +78,15 @@ export default function Home() {
         ) : (
           <LoadIndicator />
         )}
-        {showDetails && (
-          <DetailsSection
-            details={details}
-            resolver={resolver}
-            setShowDetails={setShowDetails}
-          ></DetailsSection>
-        )}
+        <MemoryRouter>
+          {showDetails && (
+            <DetailsSection
+              details={details}
+              resolver={resolver}
+              setShowDetails={setShowDetails}
+            ></DetailsSection>
+          )}
+        </MemoryRouter>
       </div>
     </>
   )

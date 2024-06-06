@@ -109,7 +109,7 @@ const InputDetails = ({ resolver }: InputDetailsProps) => {
                 ? ` as codeableConcept`
                 : null}
               {e.patternCodeableConcept && (
-                <ul>{formatCodeableConcept(e.patternCodeableConcept)}</ul>
+                <ul>{formatCodeableConcept(e.patternCodeableConcept, resolver)}</ul>
               )}
             </li>
           )
