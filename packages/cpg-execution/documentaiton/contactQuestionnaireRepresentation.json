@@ -12,7 +12,6 @@
         {
           "linkId": "ContactPoint.value",
           "type": "string",
-          "initialValueString": "123-317-1234",
           "extension": [
             {
               "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
