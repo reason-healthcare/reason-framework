@@ -1,13 +1,18 @@
+/* colors light purple rgba(186, 41, 169, 0.13), purple rgb(149, 32, 135) gray rgb(97, 97, 97) light blue rgba(38, 159, 175, 0.2), teal blue rgb(27, 79, 100) light grey rgb(231, 231, 231) background rgb(235, 235, 235)*/
+
+/* gray blue CDD9E7 light gray blue EBF0F7 dark gray blue 9BB1C8 */
+
 body {
   box-sizing: border-box;
   font-size: 0.5rem;
-  background-color: #fafafa;
+  background-color: #F5F5F5;
   min-width: 320px;
   height: 100vh;
   padding: 1rem 1rem 3rem 3rem;
   padding-top: 1rem;
   margin-top: 1rem;
   display: flex;
+  color: #444444;
 }
 
 .app-container {
@@ -40,6 +45,7 @@ body {
 .flow-container {
   height: 100%;
   width: 100%;
+  /* display: flex; */
 }
 
 h1 {
@@ -63,6 +69,14 @@ span {
 li {
   font-size: 1rem;
   line-height: 1.4rem;
+}
+
+a {
+  color: rgb(27, 79, 100)
+}
+
+a:hover {
+  color: rgba(38, 159, 175)
 }
 
 .upload-icon {

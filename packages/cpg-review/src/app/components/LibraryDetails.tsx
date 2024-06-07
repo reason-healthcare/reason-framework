@@ -45,8 +45,6 @@ const LibraryDetails = ({ resolver }: LibraryDetailsProps) => {
     }
   }, [])
 
-  let navigate = useNavigate()
-
   if (resource) {
     const { description, relatedArtifact } = resource
 

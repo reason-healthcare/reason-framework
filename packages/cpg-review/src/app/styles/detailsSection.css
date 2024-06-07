@@ -33,12 +33,22 @@
 }
 
 .back-button {
-  color: rgb(0, 0, 238);
-  background-color: #fafafa;
-  border: 0px;
+  color:  rgb(68, 68, 68);
+  background-color: rgba(186, 41, 169, 0.13);
   font-size: 0.9rem;
-  margin-top: 3rem;
-  padding-right: 2rem;
+  margin-top: 5rem;
+  border: 0px;
+  border-radius: 6px;
+  width: 90px;
+  padding: 0.6rem;
+  font-weight: bold;
+  align-self: center;
+  /* padding-right: 2rem; */
+}
+
+.back-button:hover {
+  background-color: rgb(27, 79, 100);
+  color: #fff;
 }
 
 .single-item {
@@ -46,7 +56,7 @@
 }
 
 .cql-container {
-  background-color: #f2f2f2;
+  background-color: #EBEBEB;
   padding: 2rem;
 }
 

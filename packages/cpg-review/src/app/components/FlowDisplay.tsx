@@ -147,6 +147,17 @@ export default function FlowDisplay({
     setExpandNode(undefined)
   }
 
+  const nodeColor = (node: Node) => {
+    switch(node.type) {
+      case 'definitionNode':
+        return "rgb(149, 32, 135)"
+      case 'actionNode':
+        return "rgba(186, 41, 169, 0.1)"
+      default:
+        return "rgb(149, 32, 135)"
+    }
+  }
+
   return (
     <div className="flow-container">
       <ReactFlow
@@ -159,8 +170,8 @@ export default function FlowDisplay({
         fitView={true}
         elevateEdgesOnSelect={true}
       >
-        <Background color="#ccc" />
-        <MiniMap pannable zoomable position="bottom-left" />
+        <Background color="#fafafa" />
+        <MiniMap pannable zoomable position="bottom-left" nodeColor={nodeColor} />
         <Controls showInteractive={false} position="bottom-right">
           <ControlButton onClick={handleExpandedViewClick}>
             {expandedView ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
