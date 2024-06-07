@@ -150,11 +150,11 @@ export default function FlowDisplay({
   const nodeColor = (node: Node) => {
     switch(node.type) {
       case 'definitionNode':
-        return "rgb(149, 32, 135)"
+        return "var(--teal)"
       case 'actionNode':
-        return "rgba(186, 41, 169, 0.1)"
+        return "var(--ltTeal)"
       default:
-        return "rgb(149, 32, 135)"
+        return "var(--blueGray)"
     }
   }
 

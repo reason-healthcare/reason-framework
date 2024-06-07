@@ -2,17 +2,34 @@
 
 /* gray blue CDD9E7 light gray blue EBF0F7 dark gray blue 9BB1C8 */
 
+:root {
+  --blueGray: #CDD9E7;
+  --ltBlueGray: #EBF0F7;
+  --drBlueGray: #9BB1C8;
+  --teal: rgb(27, 79, 100);
+  --ltTeal: rgba(38, 159, 175, 0.2);
+  --brTeal: rgba(38, 159, 175);
+  --purple: rgb(149, 32, 135);
+  --ltPurple: rgba(186, 41, 169, 0.2);
+  --yellow: #c69e06;
+  --ltYellow: #fef7dc;
+  --drBlue: #084174;
+  --drGray: #444444;
+  --background: #F5F5F5;
+  --secondary-background: #EBEBEB;
+}
+
 body {
   box-sizing: border-box;
   font-size: 0.5rem;
-  background-color: #F5F5F5;
+  background-color: var(--background);
   min-width: 320px;
   height: 100vh;
-  padding: 1rem 1rem 3rem 3rem;
+  padding: 1rem 2rem 2rem 3rem;
   padding-top: 1rem;
   margin-top: 1rem;
   display: flex;
-  color: #444444;
+  color: var(--drGray);
 }
 
 .app-container {
@@ -28,7 +45,7 @@ body {
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  padding: 1rem 2rem 1rem 2rem;
+  padding: 1rem 2rem 2rem 2rem;
   width: 100%;
   gap: 0.8rem;
   margin-top: 0.2rem;
@@ -36,16 +53,15 @@ body {
 
 .content-container {
   display: flex;
-  height: 100%;
+  height: 95%;
   width: 100%;
   justify-content: center;
   gap: 3rem;
 }
 
 .flow-container {
-  height: 100%;
+  height: 95%;
   width: 100%;
-  /* display: flex; */
 }
 
 h1 {
@@ -72,11 +88,11 @@ li {
 }
 
 a {
-  color: rgb(27, 79, 100)
+  color: var(--teal)
 }
 
 a:hover {
-  color: rgba(38, 159, 175)
+  color: var(--brTeal)
 }
 
 .upload-icon {

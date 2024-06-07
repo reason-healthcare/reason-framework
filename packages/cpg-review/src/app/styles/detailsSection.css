@@ -6,7 +6,7 @@
   border-left: 1px solid lightgray;
   padding-left: 3rem;
   padding-right: 2rem;
-  margin-bottom: 3rem;
+  margin-bottom: 5rem;
   gap: 2rem;
   overflow-y: scroll;
   line-height: 1.2rem;
@@ -33,8 +33,8 @@
 }
 
 .back-button {
-  color:  rgb(68, 68, 68);
-  background-color: rgba(186, 41, 169, 0.13);
+  background-color: var(--teal);
+  color: #fff;
   font-size: 0.9rem;
   margin-top: 5rem;
   border: 0px;
@@ -43,12 +43,10 @@
   padding: 0.6rem;
   font-weight: bold;
   align-self: center;
-  /* padding-right: 2rem; */
 }
 
 .back-button:hover {
-  background-color: rgb(27, 79, 100);
-  color: #fff;
+  background-color: var(--brTeal);
 }
 
 .single-item {
@@ -56,11 +54,11 @@
 }
 
 .cql-container {
-  background-color: #EBEBEB;
+  background-color: var(--secondary-background);
   padding: 2rem;
 }
 
 code {
   font-size: 1rem;
-  color: #800080;
+  color: var(--purple)
 }
