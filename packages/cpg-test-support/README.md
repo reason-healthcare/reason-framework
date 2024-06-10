@@ -17,7 +17,7 @@ cd DevIG
 ./_genonce.sh
 ```
 
-Additionally, the step definitions must be configured to use a CPG engine capable of $apply, and the server must be running. Set environment variables as specified in `./.env.example`.
+Additionally, the step definitions must be configured to use a CPG engine capable of $apply, and the server must be running. Set environment variables as specified in `.env.example`.
 
 Ensure the @reason-framework/cpg-test-support package is installed. Then, execute tests.
 
