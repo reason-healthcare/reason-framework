@@ -6,7 +6,7 @@ import './styles/globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'CPG Preview - Reason Healthcare',
+  title: 'CPG Review - Reason Healthcare',
   description: 'Preview of FHIR Clinical Practice Guidelines',
   icons: {
     icon: 'favicon/favicon.ico',
