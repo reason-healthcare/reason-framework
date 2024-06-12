@@ -14,8 +14,8 @@ Optionally, the parameter "supportedOnly" may be supplied. If true, the above ap
 
 | elementDefinition                                     | questionnaireItem                                             | notes                                                                                                |
 | ----------------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| pattern[x]                                            | hidden true                                  |              |
-| fixed[x]                                              | hidden true                                  |                |
+| pattern[x]                                            | sets initial[x], hidden true                                  | Because questionnaire.item.initial.value[x] is a subset of pattern[x], we have rules to coerce             |
+| fixed[x]                                              | sets initial[x], hidden true                                  | Because questionnaire.item.initial.value[x] is a subset of fixed[x], we have rules to coerce               |
 | defaultValue[x]                                       | sets inital[x], hidden false                                  |                                                                                                      |
 | {structureDefinition.url}#{element.path}              | definition                                                    | for choice type paths, replace [x] with element type.code[0]                                         |
 | short description; element label; or stringified path | text                                                          |                                                                                                      |
@@ -29,7 +29,8 @@ Optionally, the parameter "supportedOnly" may be supplied. If true, the above ap
 Process elements from the structure definition resource:
 
 - For each element to process, create a questionnaire item
-  - If the element has pattern[x] or fixed[x], make the item hidden
+  - If the element has pattern[x], fixed[x], or a featureExpression value make the item hidden and set initial[x]
+  - If the element does not have pattern[x] or fixed[x] or the element corresponds to the case feature value, make the item visible
   - For the rest of questionnaire item properties:
     - QuestionnaireItem.linkId => generate some unique id
     - QuestionnaireItem.definition => "{structureDefinition.url}#{full element path}", where:

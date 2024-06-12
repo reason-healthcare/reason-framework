@@ -17,7 +17,8 @@
               "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
               "valueBoolean": true
             }
-          ]
+          ],
+          "initialValueString": "123-317-1234"
         },
         {
           "linkId": "ContactPoint.use",
