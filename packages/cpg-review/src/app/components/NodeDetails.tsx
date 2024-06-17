@@ -1,14 +1,17 @@
 import '@/styles/detailsSection.css'
 import {
+  formatActions,
+  formatApplicabilities,
   formatCodeableConcept,
+  formatDescription,
+  formatDosageText,
   formatRelatedArtifact,
+  formatTitle,
   is,
   notEmpty,
   resolveCanonical,
-  resolveReference,
-} from '../helpers'
+} from '../helpers/helpers'
 import { v4 } from 'uuid'
-import { CloseOutlined } from '@ant-design/icons'
 import FileResolver from 'resolver/file'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -36,31 +39,8 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
     return <p>Unable to load details</p>
   }
 
-  const formatActions = (actions: fhir4.PlanDefinitionAction[]) => {
-    let index = 0
-    return actions
-      .map((a) => {
-        const header = a.title ?? a.id
-        index += 1
-        return (
-          <li key={v4()}>
-            {header ?? `Action ${index} (no identifier available)`}
-          </li>
-        )
-      })
-      .filter(notEmpty)
-  }
-
-  const formatApplicabilities = (
-    condition: fhir4.PlanDefinitionAction['condition']
-  ) => {
-    return condition?.map((c) => {
-      return <li key={v4()}>{c.expression?.expression ?? null}</li>
-    })
-  }
-
   useEffect(() => {
-    if (!is.planDefinition(details) && !is.activityDefinition(details)) {
+    if (!is.PlanDefinition(details) && !is.ActivityDefinition(details)) {
       const { input, definitionCanonical } = details
       if (input?.length) {
         Promise.all(
@@ -80,8 +60,8 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
       if (definitionCanonical && resolver) {
         const definition = resolveCanonical(definitionCanonical, resolver)
         if (
-          is.planDefinition(definition) ||
-          is.activityDefinition(definition)
+          is.PlanDefinition(definition) ||
+          is.ActivityDefinition(definition)
         ) {
           setDefinition(definition)
         }
@@ -95,40 +75,20 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
   const formatInputs = (inputs: fhir4.Resource[]) => {
     return inputs
       .map((i: fhir4.Resource) => {
-        if (is.structureDefinition(i)) {
+        if (is.StructureDefinition(i)) {
           return (
             <li key={i.id}>
               <Link
                 onClick={() => navigate(`/${i.resourceType}/${i.id}`)}
                 to={`/${i.resourceType}/${i.id}`}
               >
-                {i.title ?? i.name ?? i.url ?? i.id}
+                {formatTitle(i)}
               </Link>
             </li>
           )
         }
       })
       .filter(notEmpty)
-  }
-  const formatProdcuts = (
-    products: fhir4.ActivityDefinition['productCodeableConcept']
-  ) => {
-    return products?.coding?.map((c: fhir4.Coding) => {
-      return (
-        <li key={v4()}>
-          {c.display}
-          {c.code ? (
-            <p>
-              Coding: {c.code} {c.system}
-            </p>
-          ) : undefined}
-        </li>
-      )
-    })
-  }
-
-  const formatDosageText = (text: fhir4.Dosage['text']) => {
-    return <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
   }
 
   interface PlanDefinitionDisplayProps {
@@ -137,8 +97,7 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
 
   let definitionDisplay: JSX.Element | undefined
   if (definition && (definition.title || definition.name || definition.url)) {
-    const { title, name, url, id } = definition
-    const display = title ?? name ?? url ?? id
+    const display = formatTitle(definition)
     if (display) {
       definitionDisplay = (
         <SingleDisplayItem header={'Definition'} content={display} />
@@ -162,7 +121,7 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
                   onClick={() => navigate(`/Library/${l.id}`)}
                   to={`/Library/${l.id}`}
                 >
-                  {l.title ?? l.name ?? l.url ?? l.id}
+                  {formatTitle(l)}
                 </Link>
               </li>
             )
@@ -177,10 +136,7 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
             onClick={() => navigate(`/Library/${rawResource.id}`)}
             to={`/Library/${rawResource.id}`}
           >
-            {rawResource.title ??
-              rawResource.name ??
-              rawResource.url ??
-              rawResource.id}
+            {formatTitle(rawResource)}
           </Link>
         )
       }
@@ -300,83 +256,31 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
       </div>
     )
   }
-  const { title, description, id } = details
 
-  let descriptionDisplay
-  if (description) {
-    descriptionDisplay = (
-      <div>
-        <span className="details-description">Description:</span>
-        <span>
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {description}
-          </ReactMarkdown>
-        </span>
-      </div>
-    )
-  }
+  const titleDisplay = formatTitle(details)
+  const { description} = details
 
-  // const DetailsDisplay = () => {
-  //   let header
-  //   if (is.planDefinition(details)) {
-  //     const { name } = details
-  //     header = `Plan Definition: ${title ?? name}`
-  //     return (
-  //       <div>
-  //         <h2>{header}</h2>
-  //         {descriptionDisplay}
-  //         <PlanDefinitionDisplay definition={details} />
-  //       </div>
-  //     )
-  //   } else if (is.activityDefinition(details)) {
-  //     const { name } = details
-  //     header = `Activity Definition: ${title ?? name}`
-  //     return (
-  //       <div>
-  //         <h2>{header}</h2>
-  //         {descriptionDisplay}
-  //         <ActivityDefinitionDisplay definition={details} />
-  //       </div>
-  //     )
-  //   } else {
-  //     header = `Action: ${title}`
-  //     return (
-  //       <div>
-  //         <h2>{header}</h2>
-  //         {descriptionDisplay}
-  //         <ActionDisplay sourceAction={details} />
-  //       </div>
-  //     )
-  //   }
-  // }
-
-  let header
-  if (is.planDefinition(details)) {
-    const { name, url } = details
-    header = `Plan Definition: ${title ?? name ?? url ?? id ?? ''}`
+  if (is.PlanDefinition(details)) {
     return (
       <div>
-        <h2>{header}</h2>
-        {descriptionDisplay}
+        <h2>{`Plan Definition: ${titleDisplay}`}</h2>
+        <SingleDisplayItem header='Description' content={formatDescription(description)} />
         <PlanDefinitionDisplay definition={details} />
       </div>
     )
-  } else if (is.activityDefinition(details)) {
-    const { name, url } = details
-    header = `Activity Definition: ${title ?? name ?? url ?? id ?? ''}`
+  } else if (is.ActivityDefinition(details)) {
     return (
       <div>
-        <h2>{header}</h2>
-        {descriptionDisplay}
+        <h2>{`Activity Definition: ${titleDisplay}`}</h2>
+        <SingleDisplayItem header='Description' content={formatDescription(description)} />
         <ActivityDefinitionDisplay definition={details} />
       </div>
     )
   } else {
-    header = `Action: ${title ?? id ?? ''}`
     return (
       <div>
-        <h2>{header}</h2>
-        {descriptionDisplay}
+        <h2>{`Action: ${titleDisplay}`}</h2>
+        <SingleDisplayItem header='Description' content={formatDescription(description)} />
         <ActionDisplay sourceAction={details} />
       </div>
     )

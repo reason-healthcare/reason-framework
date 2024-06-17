@@ -2,7 +2,8 @@ import { Link, NavigateFunction, useNavigate } from 'react-router-dom'
 import BrowserResolver from 'resolver/browser'
 import FileResolver from 'resolver/file'
 import { v4 } from 'uuid'
-import SingleDisplayItem from './components/SingleDisplayItem'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 export function notEmpty<TValue>(
   value: TValue | null | undefined
@@ -10,14 +11,20 @@ export function notEmpty<TValue>(
   return value !== null && value !== undefined
 }
 
+export type KnowledgeArtifact =
+  | fhir4.PlanDefinition
+  | fhir4.ActivityDefinition
+  | fhir4.Library
+export type TerminologyArtifact = fhir4.ValueSet | fhir4.CodeSystem
+
 export const is = {
-  planDefinition: (resource: any): resource is fhir4.PlanDefinition => {
+  PlanDefinition: (resource: any): resource is fhir4.PlanDefinition => {
     return resource?.resourceType === 'PlanDefinition'
   },
-  activityDefinition: (resource: any): resource is fhir4.ActivityDefinition => {
+  ActivityDefinition: (resource: any): resource is fhir4.ActivityDefinition => {
     return resource?.resourceType === 'ActivityDefinition'
   },
-  bundle: (resource: any): resource is fhir4.Bundle => {
+  Bundle: (resource: any): resource is fhir4.Bundle => {
     return resource?.resourceType === 'Bundle'
   },
   Library: (resource: any): resource is fhir4.Library => {
@@ -26,10 +33,23 @@ export const is = {
   CodeSystem: (resource: any): resource is fhir4.CodeSystem => {
     return resource?.resourceType === 'CodeSystem'
   },
-  structureDefinition: (
+  ValueSet: (resource: any): resource is fhir4.ValueSet => {
+    return resource?.resourceType === 'ValueSet'
+  },
+  StructureDefinition: (
     resource: any
   ): resource is fhir4.StructureDefinition => {
     return resource?.resourceType === 'StructureDefinition'
+  },
+  KnowledgeArtifact: (resource: any): resource is KnowledgeArtifact => {
+    return (
+      is.PlanDefinition(resource) ||
+      is.ActivityDefinition(resource) ||
+      is.Library(resource)
+    )
+  },
+  TerminologyArtifact: (resource: any): resource is TerminologyArtifact => {
+    return is.ValueSet(resource) || is.CodeSystem(resource)
   },
 }
 
@@ -57,6 +77,28 @@ export const resolveCql = (
   resolver: BrowserResolver
 ) => {
   return reference != null ? resolver.cqlByReference[reference] : undefined
+}
+
+export const formatTitle = (
+  resource:
+    | fhir4.StructureDefinition
+    | TerminologyArtifact
+    | KnowledgeArtifact
+    | fhir4.PlanDefinitionAction
+) => {
+  let header
+  if (
+    is.KnowledgeArtifact(resource) ||
+    is.StructureDefinition(resource) ||
+    is.TerminologyArtifact(resource)
+  ) {
+    const { title, name, url, id } = resource
+    header = title ?? name ?? url ?? id
+  } else {
+    const { title, id } = resource
+    header = title ?? id
+  }
+  return header
 }
 
 export const formatCodeableConcept = (
@@ -130,4 +172,61 @@ export const formatRelatedArtifact = (
       </li>
     )
   })
+}
+
+export const formatProdcuts = (
+  products: fhir4.ActivityDefinition['productCodeableConcept']
+) => {
+  return products?.coding?.map((c: fhir4.Coding) => {
+    return (
+      <li key={v4()}>
+        {c.display}
+        {c.code ? (
+          <p>
+            Coding: {c.code} {c.system}
+          </p>
+        ) : undefined}
+      </li>
+    )
+  })
+}
+
+export const formatDosageText = (text: fhir4.Dosage['text']) => {
+  return <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
+}
+
+export const formatActions = (actions: fhir4.PlanDefinitionAction[]) => {
+  let index = 0
+  return actions
+    .map((a) => {
+      const header = formatTitle(a)
+      index += 1
+      return (
+        <li key={v4()}>
+          {header ?? `Action ${index} (no identifier available)`}
+        </li>
+      )
+    })
+    .filter(notEmpty)
+}
+
+export const formatApplicabilities = (
+  condition: fhir4.PlanDefinitionAction['condition']
+) => {
+  return condition?.map((c) => {
+    return <li key={v4()}>{c.expression?.expression ?? null}</li>
+  })
+}
+
+export const formatDescription = (description: string | undefined) => {
+  if (!description) {
+    return undefined
+  }
+  return (
+    <ReactMarkdown remarkPlugins={[remarkGfm]}>{description}</ReactMarkdown>
+  )
+}
+
+export const isMarkdown = (content: any) => {
+  return /^[\s\S]+$/.test(content)
 }

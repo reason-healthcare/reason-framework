@@ -6,7 +6,7 @@ import {
   resolveCanonical,
   resolveCql,
   resolveReference,
-} from 'helpers'
+} from '../helpers'
 import { useEffect, useState, useRef } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import BrowserResolver from 'resolver/browser'
