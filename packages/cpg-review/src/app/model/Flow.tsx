@@ -47,7 +47,12 @@ class Flow implements FlowInstance {
     return {
       id,
       data: {
-        label: definition.title ?? definition.id,
+        label:
+          definition.title ??
+          definition.name ??
+          definition.url ??
+          definition.id ??
+          definition.description,
         details: definition,
         isCollapsed: false,
       },
@@ -60,7 +65,11 @@ class Flow implements FlowInstance {
   private createActionNode(id: string, action: fhir4.PlanDefinitionAction) {
     return {
       id,
-      data: { label: action.title, details: action, isCollapsed: false },
+      data: {
+        label: action.title ?? action.id ?? action.description,
+        details: action,
+        isCollapsed: false,
+      },
       position: { x: 0, y: 0 },
       type: 'actionNode',
       className: 'node',

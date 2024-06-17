@@ -1,7 +1,7 @@
 import { Link, NavigateFunction, useNavigate } from 'react-router-dom'
 import BrowserResolver from 'resolver/browser'
 import FileResolver from 'resolver/file'
-import {v4} from 'uuid'
+import { v4 } from 'uuid'
 import SingleDisplayItem from './components/SingleDisplayItem'
 
 export function notEmpty<TValue>(
@@ -68,8 +68,8 @@ export const formatCodeableConcept = (
     if (c.system && resolver) {
       const resource = resolveCanonical(c.system, resolver)
       if (is.CodeSystem(resource)) {
-        systemDisplay = resource?.title ?? resource.name ?? resource.url ?? resource.id
-
+        systemDisplay =
+          resource?.title ?? resource.name ?? resource.url ?? resource.id
       }
     }
     return (
@@ -85,7 +85,11 @@ export const formatCodeableConcept = (
   })
 }
 
-export const formatRelatedArtifact = (artifact: fhir4.RelatedArtifact[], resolver?: FileResolver | BrowserResolver | undefined, navigate?: NavigateFunction) => {
+export const formatRelatedArtifact = (
+  artifact: fhir4.RelatedArtifact[],
+  resolver?: FileResolver | BrowserResolver | undefined,
+  navigate?: NavigateFunction
+) => {
   return artifact.map((e: any) => {
     let resourceDisplay
     if (e.resource && resolver) {
@@ -93,15 +97,21 @@ export const formatRelatedArtifact = (artifact: fhir4.RelatedArtifact[], resolve
       if (is.Library(rawResource) && navigate) {
         console.log('here')
         resourceDisplay = (
-          <Link onClick={() => navigate(`/Library/${rawResource.id}`)}
-          to={`/Library/${rawResource.id}`}>{rawResource.title ?? rawResource.name ?? rawResource.url ?? rawResource.id}</Link>
+          <Link
+            onClick={() => navigate(`/Library/${rawResource.id}`)}
+            to={`/Library/${rawResource.id}`}
+          >
+            {rawResource.title ??
+              rawResource.name ??
+              rawResource.url ??
+              rawResource.id}
+          </Link>
         )
       }
     }
     return (
       <li key={v4()}>
-        {e?.type
-          && e.type.charAt(0).toUpperCase() + e.type.slice(1) + ': '}
+        {e?.type && e.type.charAt(0).toUpperCase() + e.type.slice(1) + ': '}
         {(e.display || e.label) && <p>{e.display ?? e.label}</p>}
         {e.citation && <p>{e.citation}</p>}
         {e.url && (

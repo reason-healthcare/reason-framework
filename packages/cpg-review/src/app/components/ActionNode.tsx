@@ -3,6 +3,8 @@ import '@/styles/node.css'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import InteractiveHandle from './InteractiveHandle'
+import { InfoCircleFilled } from '@ant-design/icons'
+import { Tooltip } from 'antd'
 
 type ActionNodeProps = {
   data: {
@@ -64,7 +66,7 @@ const ActionNode = ({ data, id }: ActionNodeProps) => {
 
   return (
     <div className="node-container">
-      <Handle type="target" position={Position.Top} />
+      <Handle type="target" position={Position.Top} style={{ zIndex: 100 }} />
       <div className="diamond-container" onClick={handleNodeClick}>
         <Image
           src={
@@ -76,9 +78,18 @@ const ActionNode = ({ data, id }: ActionNodeProps) => {
           height="150"
         />
         <div className="text-outer-container">
-          <div className="text-inner-container">
-            <p>{label}</p>
-          </div>
+          {label ? (
+            <div className="text-inner-container">
+              <p>{label}</p>
+            </div>
+          ) : (
+            <Tooltip
+              title="Missing identifiers. Click for details."
+              color="var(--drGray)"
+            >
+              <InfoCircleFilled width={50} className="info-icon" />
+            </Tooltip>
+          )}
         </div>
       </div>
       {handle !== 'output' ? (

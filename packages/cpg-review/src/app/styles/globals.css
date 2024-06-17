@@ -3,9 +3,9 @@
 /* gray blue CDD9E7 light gray blue EBF0F7 dark gray blue 9BB1C8 */
 
 :root {
-  --blueGray: #CDD9E7;
-  --ltBlueGray: #EBF0F7;
-  --drBlueGray: #9BB1C8;
+  --blueGray: #cdd9e7;
+  --ltBlueGray: #ebf0f7;
+  --drBlueGray: #9bb1c8;
   --teal: rgb(27, 79, 100);
   --ltTeal: rgba(38, 159, 175, 0.2);
   --brTeal: rgba(38, 159, 175);
@@ -15,8 +15,8 @@
   --ltYellow: #fef7dc;
   --drBlue: #084174;
   --drGray: #444444;
-  --background: #F5F5F5;
-  --secondary-background: #EBEBEB;
+  --background: #f5f5f5;
+  --secondary-background: #ebebeb;
 }
 
 body {
@@ -30,6 +30,7 @@ body {
   margin-top: 1rem;
   display: flex;
   color: var(--drGray);
+  line-height: 1.2rem;
 }
 
 .app-container {
@@ -67,11 +68,13 @@ body {
 h1 {
   font-size: 1.3rem;
   margin: 0;
+  line-height: 1.6rem;
 }
 
 h2 {
   font-size: 1.3rem;
   font-weight: normal;
+  line-height: 1.6rem;
 }
 
 p {
@@ -88,11 +91,11 @@ li {
 }
 
 a {
-  color: var(--teal)
+  color: var(--teal);
 }
 
 a:hover {
-  color: var(--brTeal)
+  color: var(--brTeal);
 }
 
 .upload-icon {

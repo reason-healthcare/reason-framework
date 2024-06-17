@@ -23,7 +23,6 @@ const DetailsSection = ({
   setShowDetails,
   resolver,
 }: DetailsSectionProps) => {
-
   let navigate = useNavigate()
   useEffect(() => {
     navigate('/')

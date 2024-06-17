@@ -54,20 +54,22 @@ const DefinitionNode = ({ data, id }: DefinitionNodeProps) => {
 
   return (
     <div className={highlight ? 'node-highlight' : 'node-unhighlight'}>
-      {handle !== 'input' ? (
-        <Handle type="target" position={Position.Top} />
-      ) : null}
-      <div onClick={handleNodeClick}>
-        <p>{label}</p>
+      <div className="inner-container">
+        {handle !== 'input' ? (
+          <Handle type="target" position={Position.Top} />
+        ) : null}
+        <div onClick={handleNodeClick}>
+          <p>{label}</p>
+        </div>
+        {handle !== 'output' ? (
+          <InteractiveHandle
+            setCollapsed={setCollapsed}
+            collapsed={collapsed}
+            setExpandNode={setExpandNode}
+            id={id}
+          />
+        ) : null}
       </div>
-      {handle !== 'output' ? (
-        <InteractiveHandle
-          setCollapsed={setCollapsed}
-          collapsed={collapsed}
-          setExpandNode={setExpandNode}
-          id={id}
-        />
-      ) : null}
     </div>
   )
 }

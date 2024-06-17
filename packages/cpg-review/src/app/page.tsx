@@ -7,7 +7,6 @@ import LoadIndicator from './components/LoadIndicator'
 import DetailsSection from './components/DetailsSection'
 import { ReactFlowProvider } from 'reactflow'
 import UploadSection from './components/UploadSection'
-// import { UploadOutlined } from '@ant-design/icons'
 import { InboxOutlined } from '@ant-design/icons'
 import { MemoryRouter } from 'react-router-dom'
 
@@ -58,7 +57,13 @@ export default function Home() {
   const contentDisplay = (
     <>
       <div className="header">
-        <h1>{planDefinition?.title}</h1>
+        <h1>
+          {planDefinition?.title ??
+            planDefinition?.name ??
+            planDefinition?.url ??
+            planDefinition?.id ??
+            ''}
+        </h1>
         <InboxOutlined
           className="upload-icon"
           onClick={() => setShowUpload(true)}

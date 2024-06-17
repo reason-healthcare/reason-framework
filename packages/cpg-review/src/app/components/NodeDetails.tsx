@@ -37,8 +37,17 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
   }
 
   const formatActions = (actions: fhir4.PlanDefinitionAction[]) => {
+    let index = 0
     return actions
-      .map((a) => (a.title ? <li key={v4()}>{a.title}</li> : null))
+      .map((a) => {
+        const header = a.title ?? a.id
+        index += 1
+        return (
+          <li key={v4()}>
+            {header ?? `Action ${index} (no identifier available)`}
+          </li>
+        )
+      })
       .filter(notEmpty)
   }
 
@@ -128,8 +137,8 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
 
   let definitionDisplay: JSX.Element | undefined
   if (definition && (definition.title || definition.name || definition.url)) {
-    const { title, name, url } = definition
-    const display = title ?? name ?? url
+    const { title, name, url, id } = definition
+    const display = title ?? name ?? url ?? id
     if (display) {
       definitionDisplay = (
         <SingleDisplayItem header={'Definition'} content={display} />
@@ -143,22 +152,37 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
     const { relatedArtifact, action, library } = definition
     let libraryDisplay: JSX.Element[] | JSX.Element | undefined
     if (resolver && library && library.length > 1) {
-      libraryDisplay = library?.map(l => {
-        resolveCanonical(l, resolver)
-        if (is.Library(l)) {
-          return(
-            <li>
-              <Link onClick={() => navigate(`/Library/${l.id}`)}
-                to={`/Library/${l.id}`}>{l.title ?? l.name ?? l.url ?? l.id}</Link>
-            </li>
-          )
-        }
-      }).filter(notEmpty)
+      libraryDisplay = library
+        ?.map((l) => {
+          resolveCanonical(l, resolver)
+          if (is.Library(l)) {
+            return (
+              <li>
+                <Link
+                  onClick={() => navigate(`/Library/${l.id}`)}
+                  to={`/Library/${l.id}`}
+                >
+                  {l.title ?? l.name ?? l.url ?? l.id}
+                </Link>
+              </li>
+            )
+          }
+        })
+        .filter(notEmpty)
     } else if (resolver && library) {
       const rawResource = resolveCanonical(library[0], resolver)
       if (is.Library(rawResource)) {
-        libraryDisplay = <Link onClick={() => navigate(`/Library/${rawResource.id}`)}
-        to={`/Library/${rawResource.id}`}>{rawResource.title ?? rawResource.name ?? rawResource.url ?? rawResource.id}</Link>
+        libraryDisplay = (
+          <Link
+            onClick={() => navigate(`/Library/${rawResource.id}`)}
+            to={`/Library/${rawResource.id}`}
+          >
+            {rawResource.title ??
+              rawResource.name ??
+              rawResource.url ??
+              rawResource.id}
+          </Link>
+        )
       }
     }
     return (
@@ -170,13 +194,13 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
           />
         )}
         {Array.isArray(libraryDisplay) && (
-          <ListDisplayItem header="Libraries" content={libraryDisplay}/>
+          <ListDisplayItem header="Libraries" content={libraryDisplay} />
         )}
         {action && (
           <ListDisplayItem header="Actions" content={formatActions(action)} />
         )}
         {libraryDisplay && !Array.isArray(libraryDisplay) && (
-          <SingleDisplayItem header='Library' content={libraryDisplay} />
+          <SingleDisplayItem header="Library" content={libraryDisplay} />
         )}
       </div>
     )
@@ -276,16 +300,21 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
       </div>
     )
   }
-  const { title, description } = details
+  const { title, description, id } = details
 
-  const descriptionDisplay = (
-    <div>
-      <span className="details-description">Description:</span>
-      <span>
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>{description}</ReactMarkdown>
-      </span>
-    </div>
-  )
+  let descriptionDisplay
+  if (description) {
+    descriptionDisplay = (
+      <div>
+        <span className="details-description">Description:</span>
+        <span>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {description}
+          </ReactMarkdown>
+        </span>
+      </div>
+    )
+  }
 
   // const DetailsDisplay = () => {
   //   let header
@@ -323,8 +352,8 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
 
   let header
   if (is.planDefinition(details)) {
-    const { name } = details
-    header = `Plan Definition: ${title ?? name}`
+    const { name, url } = details
+    header = `Plan Definition: ${title ?? name ?? url ?? id ?? ''}`
     return (
       <div>
         <h2>{header}</h2>
@@ -333,8 +362,8 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
       </div>
     )
   } else if (is.activityDefinition(details)) {
-    const { name } = details
-    header = `Activity Definition: ${title ?? name}`
+    const { name, url } = details
+    header = `Activity Definition: ${title ?? name ?? url ?? id ?? ''}`
     return (
       <div>
         <h2>{header}</h2>
@@ -343,7 +372,7 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
       </div>
     )
   } else {
-    header = `Action: ${title}`
+    header = `Action: ${title ?? id ?? ''}`
     return (
       <div>
         <h2>{header}</h2>

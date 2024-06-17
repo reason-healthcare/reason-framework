@@ -148,13 +148,13 @@ export default function FlowDisplay({
   }
 
   const nodeColor = (node: Node) => {
-    switch(node.type) {
+    switch (node.type) {
       case 'definitionNode':
-        return "var(--teal)"
+        return 'var(--teal)'
       case 'actionNode':
-        return "var(--ltTeal)"
+        return 'var(--ltTeal)'
       default:
-        return "var(--blueGray)"
+        return 'var(--blueGray)'
     }
   }
 
@@ -171,7 +171,12 @@ export default function FlowDisplay({
         elevateEdgesOnSelect={true}
       >
         <Background color="#fafafa" />
-        <MiniMap pannable zoomable position="bottom-left" nodeColor={nodeColor} />
+        <MiniMap
+          pannable
+          zoomable
+          position="bottom-left"
+          nodeColor={nodeColor}
+        />
         <Controls showInteractive={false} position="bottom-right">
           <ControlButton onClick={handleExpandedViewClick}>
             {expandedView ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
