@@ -3,6 +3,7 @@ import {
   formatActions,
   formatApplicabilities,
   formatCodeableConcept,
+  formatProperty,
   formatRelatedArtifact,
   formatTitle,
   is,
@@ -254,47 +255,24 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
   }
 
   const titleDisplay = formatTitle(details)
-  const formatPrimitiveProperties = () => {
-    return Object.entries(details)
+  const formatedProperties = (
+    Object.entries(details)
       .map((e: [string, any]) => {
         const [k, v] = e
-        return typeof v === 'string' ? (
-          <SingleDisplayItem header={k} content={v} />
-        ) : null
+        return formatProperty(v, k)
       })
       .filter(notEmpty)
+    )
+  let resourceTypeFormatted
+  if (is.KnowledgeArtifact(details) || is.StructureDefinition(details)) {
+    resourceTypeFormatted = details.resourceType.split(/(?=[A-Z])/).join(' ')
   }
 
   return (
     <div>
-      <h2>{`Plan Definition: ${titleDisplay}`}</h2>
-      {formatPrimitiveProperties()}
+      <h2>{`${resourceTypeFormatted ?? 'Action'}: ${titleDisplay}`}</h2>
+      {formatedProperties}
     </div>
   )
-  // if (is.PlanDefinition(details)) {
-  //   return (
-  //     <div>
-  //       <h2>{`Plan Definition: ${titleDisplay}`}</h2>
-  //       <SingleDisplayItem header='Description' content={formatDescription(description)} />
-  //       <PlanDefinitionDisplay definition={details} />
-  //     </div>
-  //   )
-  // } else if (is.ActivityDefinition(details)) {
-  //   return (
-  //     <div>
-  //       <h2>{`Activity Definition: ${titleDisplay}`}</h2>
-  //       <SingleDisplayItem header='Description' content={formatDescription(description)} />
-  //       <ActivityDefinitionDisplay definition={details} />
-  //     </div>
-  //   )
-  // } else {
-  //   return (
-  //     <div>
-  //       <h2>{`Action: ${titleDisplay}`}</h2>
-  //       <SingleDisplayItem header='Description' content={formatDescription(description)} />
-  //       <ActionDisplay sourceAction={details} />
-  //     </div>
-  //   )
-  // }
 }
 export default NodeDetails
