@@ -3,18 +3,14 @@ import {
   formatActions,
   formatApplicabilities,
   formatCodeableConcept,
-  formatDescription,
-  formatDosageText,
   formatRelatedArtifact,
   formatTitle,
   is,
   notEmpty,
   resolveCanonical,
-} from '../helpers/helpers'
+} from '../helpers'
 import { v4 } from 'uuid'
 import FileResolver from 'resolver/file'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
 import BrowserResolver from 'resolver/browser'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
@@ -258,32 +254,47 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
   }
 
   const titleDisplay = formatTitle(details)
-  const { description} = details
-
-  if (is.PlanDefinition(details)) {
-    return (
-      <div>
-        <h2>{`Plan Definition: ${titleDisplay}`}</h2>
-        <SingleDisplayItem header='Description' content={formatDescription(description)} />
-        <PlanDefinitionDisplay definition={details} />
-      </div>
-    )
-  } else if (is.ActivityDefinition(details)) {
-    return (
-      <div>
-        <h2>{`Activity Definition: ${titleDisplay}`}</h2>
-        <SingleDisplayItem header='Description' content={formatDescription(description)} />
-        <ActivityDefinitionDisplay definition={details} />
-      </div>
-    )
-  } else {
-    return (
-      <div>
-        <h2>{`Action: ${titleDisplay}`}</h2>
-        <SingleDisplayItem header='Description' content={formatDescription(description)} />
-        <ActionDisplay sourceAction={details} />
-      </div>
-    )
+  const formatPrimitiveProperties = () => {
+    return Object.entries(details)
+      .map((e: [string, any]) => {
+        const [k, v] = e
+        return typeof v === 'string' ? (
+          <SingleDisplayItem header={k} content={v} />
+        ) : null
+      })
+      .filter(notEmpty)
   }
+
+  return (
+    <div>
+      <h2>{`Plan Definition: ${titleDisplay}`}</h2>
+      {formatPrimitiveProperties()}
+    </div>
+  )
+  // if (is.PlanDefinition(details)) {
+  //   return (
+  //     <div>
+  //       <h2>{`Plan Definition: ${titleDisplay}`}</h2>
+  //       <SingleDisplayItem header='Description' content={formatDescription(description)} />
+  //       <PlanDefinitionDisplay definition={details} />
+  //     </div>
+  //   )
+  // } else if (is.ActivityDefinition(details)) {
+  //   return (
+  //     <div>
+  //       <h2>{`Activity Definition: ${titleDisplay}`}</h2>
+  //       <SingleDisplayItem header='Description' content={formatDescription(description)} />
+  //       <ActivityDefinitionDisplay definition={details} />
+  //     </div>
+  //   )
+  // } else {
+  //   return (
+  //     <div>
+  //       <h2>{`Action: ${titleDisplay}`}</h2>
+  //       <SingleDisplayItem header='Description' content={formatDescription(description)} />
+  //       <ActionDisplay sourceAction={details} />
+  //     </div>
+  //   )
+  // }
 }
 export default NodeDetails
