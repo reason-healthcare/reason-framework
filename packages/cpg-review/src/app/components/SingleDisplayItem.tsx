@@ -10,14 +10,8 @@ const SingleDisplayItem = ({ content, header }: SingleDisplayProps) => {
     return (
       <div className="single-item">
         {header != null && <span className="details-description">{header}:</span>}
-        <span>
-          {' '}
-          {typeof content === 'string' && isMarkdown(content) ? (
-            formatMarkdown(content)
-          ) : (
-            content
-          )}
-        </span>
+        {' '}
+        <span>{content}</span>
       </div>
     )
   }

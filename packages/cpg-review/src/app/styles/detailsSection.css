@@ -9,6 +9,8 @@
   margin-bottom: 5rem;
   gap: 2rem;
   overflow-y: scroll;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .details-container {
