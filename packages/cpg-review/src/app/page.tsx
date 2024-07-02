@@ -45,14 +45,13 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    if (resolver && resolver instanceof BrowserResolver && resolver.pathway) {
-      setPlanDefinition(resolver.pathway)
+    if (resolver && resolver instanceof BrowserResolver && planDefinition) {
       setShowUpload(false)
       setShowDetails(false)
     } else {
       setShowUpload(true)
     }
-  }, [resolver])
+  }, [resolver, planDefinition])
 
   const contentDisplay = (
     <>
@@ -101,7 +100,7 @@ export default function Home() {
       {!showUpload ? (
         contentDisplay
       ) : (
-        <UploadSection setResolver={setResolver} />
+        <UploadSection setResolver={setResolver} setPlanDefinition={setPlanDefinition} resolver={resolver} />
       )}
     </div>
   )

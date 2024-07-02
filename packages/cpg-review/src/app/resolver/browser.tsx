@@ -1,8 +1,5 @@
 import JSZip from 'jszip'
-// interface referenceObject {
-//   json: fhir4.Resource
-//   html: string
-// }
+
 class BrowserResolver {
   resourcesByCanonical: Record<string, fhir4.FhirResource> = {}
   resourcesByReference: Record<string, fhir4.FhirResource> = {}
@@ -12,12 +9,9 @@ class BrowserResolver {
   constructor(storedContent?: string | undefined) {
     let parsedContent
     if (storedContent) {
-      console.log('here from const')
       parsedContent = JSON.parse(storedContent)
       const { resourcesByCanonical, resourcesByReference, pathway } =
         parsedContent
-      console.log(!!pathway + 'ispathway')
-
       this.resourcesByCanonical = resourcesByCanonical
       this.resourcesByReference = resourcesByReference
       this.pathway = pathway
@@ -43,13 +37,13 @@ class BrowserResolver {
               `${rawResource.resourceType}/${rawResource.id}`
             ] = rawResource
           }
-          if (
-            rawResource.meta?.profile?.includes(
-              'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-pathwaydefinition'
-            )
-          ) {
-            this.pathway = rawResource
-          }
+          // if (
+          //   rawResource.meta?.profile?.includes(
+          //     'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-pathwaydefinition'
+          //   )
+          // ) {
+          //   this.pathway = rawResource
+          // }
         } else if (fileContent && filename.endsWith('cql')) {
           const id = filename.split('.')[0].split('-')
           const type = id.shift()
