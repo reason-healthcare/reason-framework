@@ -5,7 +5,7 @@ import {
   notEmpty,
   resolveCanonical,
   resolveReference,
-} from 'helpers'
+} from '../helpers'
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import BrowserResolver from 'resolver/browser'
@@ -32,7 +32,7 @@ const InputDetails = ({ resolver }: InputDetailsProps) => {
   useEffect(() => {
     if (resolver instanceof BrowserResolver) {
       const result = resolveReference(reference, resolver)
-      if (is.structureDefinition(result)) {
+      if (is.StructureDefinition(result)) {
         setResource(result)
       }
     }
@@ -123,8 +123,8 @@ const InputDetails = ({ resolver }: InputDetailsProps) => {
       <>
         <h2>{resource.title ?? resource.name ?? resource.id}</h2>
         <SingleDisplayItem content={description} header="Description" />
-        <ListDisplayItem header="Extensions" content={caseFeatureExtensions} />
-        <ListDisplayItem header="Differential" content={differentialDisplay} />
+        <ListDisplayItem heading="Extensions" content={caseFeatureExtensions} />
+        <ListDisplayItem heading="Differential" content={differentialDisplay} />
         <BackButton />
       </>
     )

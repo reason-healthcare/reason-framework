@@ -1,14 +1,15 @@
 interface SingleDisplayProps {
-  header: string
   content: string | JSX.Element | undefined
+  heading?: string | undefined
 }
 
-const SingleDisplayItem = ({ header, content }: SingleDisplayProps) => {
+const SingleDisplayItem = ({ content, heading }: SingleDisplayProps) => {
   if (content) {
     return (
       <div className="single-item">
-        <span className="details-description">{header}</span>
-        <span>: {content}</span>
+        {heading != null && <><span className="details-description">{heading}</span><span>: </span></>}
+        {/* <br></br> */}
+        <span>{content}</span>
       </div>
     )
   }

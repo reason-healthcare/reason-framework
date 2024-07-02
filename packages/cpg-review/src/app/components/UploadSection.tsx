@@ -104,7 +104,7 @@ const UploadSection = ({
               } else {
                 type = 'Plan'
               }
-              if (is.planDefinition(resource)) {
+              if (is.PlanDefinition(resource)) {
                 return `${resource.url} ${type ? `(${type})` : null}`
               }
             })
@@ -125,7 +125,7 @@ const UploadSection = ({
   const handleSubmit = (e: Event) => {
     if (resolver instanceof BrowserResolver) {
       const plan = resolveCanonical(planDefinitionSelection, resolver)
-      if (is.planDefinition(plan)) {
+      if (is.PlanDefinition(plan)) {
         setPlanDefinition(plan)
       }
     }
@@ -173,7 +173,7 @@ const UploadSection = ({
               placeholder="Select a plan definition"
             >
               {planDefinitions.map((p) => {
-                return <Option value={p.split(' ').shift()}>{p}</Option>
+                return <Option key={p} value={p.split(' ').shift()}>{p}</Option>
               })}
             </Select>
           </Form.Item>

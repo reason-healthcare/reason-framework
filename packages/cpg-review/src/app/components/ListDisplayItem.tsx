@@ -1,13 +1,13 @@
 interface ListDisplayProps {
-  header: string
   content: JSX.Element[] | undefined
+  heading?: string | undefined
 }
 
-const ListDisplayItem = ({ header, content }: ListDisplayProps) => {
+const ListDisplayItem = ({ content, heading }: ListDisplayProps) => {
   if (content) {
     return (
       <div>
-        <p className="details-description">{header}:</p>
+        {heading != null && <><span className="details-description">{heading}</span><span>:</span></>}
         <ul>{content}</ul>
       </div>
     )

@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { NextResponse, NextRequest } from 'next/server'
 import FileResolver from 'resolver/file'
 import Resolver from 'resolver/resolver'
-import { is } from 'helpers'
+import { is } from '../../helpers'
 
 export async function GET(req: Request) {
   // TODO this should be middleware
@@ -42,7 +42,7 @@ export async function GET(req: Request) {
     const rawPlanDefinition = await resolver.resolveCanonical(
       PLAN_DEFINITION_IDENTIFIER
     )
-    if (is.planDefinition(rawPlanDefinition)) {
+    if (is.PlanDefinition(rawPlanDefinition)) {
       planDefinition = rawPlanDefinition
     }
   } else {
