@@ -4,12 +4,12 @@
   justify-content: center;
   justify-items: center;
   align-items: center;
-  font-size: 1.3rem;
+  font-size: 0.6rem;
   text-align: center;
 }
 
 .load-icon {
-  font-size: 1rem;
+  font-size: 0.8rem;
   display: flex;
   justify-content: center;
 }

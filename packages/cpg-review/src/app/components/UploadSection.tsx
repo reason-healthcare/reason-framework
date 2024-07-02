@@ -1,24 +1,33 @@
 import { useState, useEffect } from 'react'
 import { Form, Button, message, Upload, Select } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
-import type { UploadFile, UploadProps } from 'antd'
+import type { UploadProps } from 'antd'
 import '@/styles/form.css'
 import type { RcFile } from 'antd/es/upload'
 import FileResolver from 'resolver/file'
 import BrowserResolver from 'resolver/browser'
 import { is, notEmpty, resolveCanonical } from 'helpers'
+import LoadIndicator from './LoadIndicator'
 
 interface UploadSectionProps {
   setResolver: React.Dispatch<
     React.SetStateAction<FileResolver | BrowserResolver | undefined>
   >
-  setPlanDefinition: React.Dispatch<React.SetStateAction<fhir4.PlanDefinition | undefined>>
+  setPlanDefinition: React.Dispatch<
+    React.SetStateAction<fhir4.PlanDefinition | undefined>
+  >
   resolver: BrowserResolver | FileResolver | undefined
 }
 
-const UploadSection = ({ setResolver, setPlanDefinition, resolver }: UploadSectionProps) => {
+const UploadSection = ({
+  setResolver,
+  setPlanDefinition,
+  resolver,
+}: UploadSectionProps) => {
   const [planDefinitions, setPlanDefinitions] = useState<string[]>()
-  const [planDefinitionSelection, setPlanDefinitionSelection]=useState<string>()
+  const [planDefinitionSelection, setPlanDefinitionSelection] =
+    useState<string>()
+  const [isLoading, setIsLoading] = useState(false)
 
   const { Option } = Select
   const { Dragger } = Upload
@@ -47,6 +56,7 @@ const UploadSection = ({ setResolver, setPlanDefinition, resolver }: UploadSecti
   }
 
   const handleUpload = async (file: RcFile) => {
+    setIsLoading(true)
     if (file) {
       const reader = new FileReader()
       reader.onload = async (event) => {
@@ -62,23 +72,43 @@ const UploadSection = ({ setResolver, setPlanDefinition, resolver }: UploadSecti
             console.error(e)
             message.info('Unable to save content to local storage')
           }
-          const {resourcesByCanonical} = resolver
-          const plans = Object.keys(resourcesByCanonical).map((k: string) => {
-            const resource = resourcesByCanonical[k]
-            let type
-            if (resource.meta?.profile?.find(p => p === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-pathwaydefinition")) {
-              type = 'Pathway'
-            } else if (resource.meta?.profile?.find(p => p === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-strategydefinition")) {
-              type = 'Strategy'
-            } else if (resource.meta?.profile?.find(p => p === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-recommendationdefinition")) {
-              type = 'Recommendation'
-            } else {
-              type = 'Plan'
-            }
-            if (is.planDefinition(resource)) {
-              return `${resource.url} ${type ? `(${type})` : null}`
-            }
-          }).filter(notEmpty)
+          const { resourcesByCanonical } = resolver
+          const plans = Object.keys(resourcesByCanonical)
+            .map((k: string) => {
+              const resource = resourcesByCanonical[k]
+              let type
+              if (
+                resource.meta?.profile?.find(
+                  (p) =>
+                    p ===
+                    'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-pathwaydefinition'
+                )
+              ) {
+                type = 'Pathway'
+              } else if (
+                resource.meta?.profile?.find(
+                  (p) =>
+                    p ===
+                    'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-strategydefinition'
+                )
+              ) {
+                type = 'Strategy'
+              } else if (
+                resource.meta?.profile?.find(
+                  (p) =>
+                    p ===
+                    'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-recommendationdefinition'
+                )
+              ) {
+                type = 'Recommendation'
+              } else {
+                type = 'Plan'
+              }
+              if (is.planDefinition(resource)) {
+                return `${resource.url} ${type ? `(${type})` : null}`
+              }
+            })
+            .filter(notEmpty)
           setPlanDefinitions(plans)
         })
       }
@@ -136,15 +166,26 @@ const UploadSection = ({ setResolver, setPlanDefinition, resolver }: UploadSecti
             <p className="ant-upload-hint">Provide only one zipped file.</p>
           </Dragger>
         </Form.Item>
-        {planDefinitions && <Form.Item name={"select"} className='form-item'>
-          <Select onChange={handleChange} placeholder="Select a plan definition">
-            {planDefinitions.map(p => {return(
-              <Option value={p.split(' ').shift()}>{p}</Option>
-            )})}
-          </Select>
-        </Form.Item>}
+        {planDefinitions ? (
+          <Form.Item name={'select'} className="form-item">
+            <Select
+              onChange={handleChange}
+              placeholder="Select a plan definition"
+            >
+              {planDefinitions.map((p) => {
+                return <Option value={p.split(' ').shift()}>{p}</Option>
+              })}
+            </Select>
+          </Form.Item>
+        ) : isLoading ? (
+          <LoadIndicator />
+        ) : null}
         <Form.Item>
-          <Button type="primary" htmlType="submit"  disabled={planDefinitionSelection == undefined}>
+          <Button
+            type="primary"
+            htmlType="submit"
+            disabled={planDefinitionSelection == undefined}
+          >
             View Content
           </Button>
         </Form.Item>

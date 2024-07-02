@@ -100,7 +100,11 @@ export default function Home() {
       {!showUpload ? (
         contentDisplay
       ) : (
-        <UploadSection setResolver={setResolver} setPlanDefinition={setPlanDefinition} resolver={resolver} />
+        <UploadSection
+          setResolver={setResolver}
+          setPlanDefinition={setPlanDefinition}
+          resolver={resolver}
+        />
       )}
     </div>
   )
