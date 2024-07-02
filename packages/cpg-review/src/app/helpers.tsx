@@ -77,7 +77,7 @@ export const formatCodeableConcept = (
         {c.display}
         {c.code ? (
           <p>
-            Coding: {c.code} from {systemDisplay ?? c.system}
+            Coding: "{c.code}" from {systemDisplay ?? c.system}
           </p>
         ) : undefined}
       </li>

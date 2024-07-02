@@ -127,7 +127,7 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
     })
   }
 
-  const formatDosageText = (text: fhir4.Dosage['text']) => {
+  const formatMarkdown = (text: string) => {
     return <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
   }
 
@@ -149,7 +149,7 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
   const PlanDefinitionDisplay = ({
     definition,
   }: PlanDefinitionDisplayProps) => {
-    const { relatedArtifact, action, library } = definition
+    const { relatedArtifact, action, library, type } = definition
     let libraryDisplay: JSX.Element[] | JSX.Element | undefined
     if (resolver && library && library.length > 1) {
       libraryDisplay = library
@@ -187,6 +187,9 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
     }
     return (
       <div>
+        {type && (
+          <ListDisplayItem header="Type" content={formatCodeableConcept(type)}/>
+        )}
         {relatedArtifact && (
           <ListDisplayItem
             header="Documentation"
@@ -218,25 +221,22 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
       input,
       action,
       definitionCanonical,
+      code,
+      type, extension
     } = sourceAction
+    const rationaleExtension = extension?.find(e => e.url === "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-rationale")
     return (
       <div>
-        {selectionBehavior && (
-          <SingleDisplayItem
-            header="SelectionBehavior"
-            content={selectionBehavior}
-          />
+        {rationaleExtension && rationaleExtension.valueMarkdown && (
+          <SingleDisplayItem header="CPG Rationale Extension" content={formatMarkdown(rationaleExtension.valueMarkdown)}/>
+        )}
+        {code && (
+          <ListDisplayItem header="Code" content={formatCodeableConcept(code[0])}/>
         )}
         {documentation && (
           <ListDisplayItem
-            header="Documentation"
-            content={formatRelatedArtifact(documentation)}
-          />
-        )}
-        {action && (
-          <ListDisplayItem
-            header="Child Actions"
-            content={formatActions(action)}
+          header="Documentation"
+          content={formatRelatedArtifact(documentation)}
           />
         )}
         {condition && (
@@ -248,7 +248,22 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
         {profiles.length > 0 ? (
           <ListDisplayItem header="Input" content={formatInputs(profiles)} />
         ) : null}
+        {type && (
+          <ListDisplayItem header="Type" content={formatCodeableConcept(type)}/>
+        )}
+        {selectionBehavior && (
+          <SingleDisplayItem
+            header="SelectionBehavior"
+            content={selectionBehavior}
+          />
+        )}
         {definitionDisplay}
+        {action && (
+          <ListDisplayItem
+            header="Actions"
+            content={formatActions(action)}
+          />
+        )}
       </div>
     )
   }
