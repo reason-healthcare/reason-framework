@@ -117,7 +117,7 @@ class Flow implements FlowInstance {
       }
 
       /** Handle children */
-      if (is.planDefinition(definition) && definition.action) {
+      if (is.PlanDefinition(definition) && definition.action) {
         const targetEdge = this.createEdge(node.id)
         if (!match) {
           this.processActionNodes(definition.action, content, targetEdge)

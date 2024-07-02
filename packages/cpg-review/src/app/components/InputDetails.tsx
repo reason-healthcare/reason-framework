@@ -5,7 +5,7 @@ import {
   notEmpty,
   resolveCanonical,
   resolveReference,
-} from 'helpers'
+} from '../helpers'
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import BrowserResolver from 'resolver/browser'
@@ -32,7 +32,7 @@ const InputDetails = ({ resolver }: InputDetailsProps) => {
   useEffect(() => {
     if (resolver instanceof BrowserResolver) {
       const result = resolveReference(reference, resolver)
-      if (is.structureDefinition(result)) {
+      if (is.StructureDefinition(result)) {
         setResource(result)
       }
     }

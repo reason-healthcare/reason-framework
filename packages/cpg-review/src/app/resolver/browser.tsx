@@ -12,12 +12,9 @@ class BrowserResolver {
   constructor(storedContent?: string | undefined) {
     let parsedContent
     if (storedContent) {
-      console.log('here from const')
       parsedContent = JSON.parse(storedContent)
       const { resourcesByCanonical, resourcesByReference, pathway } =
         parsedContent
-      console.log(!!pathway + 'ispathway')
-
       this.resourcesByCanonical = resourcesByCanonical
       this.resourcesByReference = resourcesByReference
       this.pathway = pathway

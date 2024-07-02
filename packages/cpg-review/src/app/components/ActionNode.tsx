@@ -84,7 +84,7 @@ const ActionNode = ({ data, id }: ActionNodeProps) => {
             </div>
           ) : (
             <Tooltip
-              title="Missing identifiers. Click for details."
+              title="Missing identifier. Click for details."
               color="var(--drGray)"
             >
               <InfoCircleFilled width={50} className="info-icon" />

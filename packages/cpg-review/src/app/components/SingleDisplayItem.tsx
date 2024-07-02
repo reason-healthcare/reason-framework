@@ -1,14 +1,17 @@
+import { formatMarkdown, isMarkdown } from '../helpers'
+
 interface SingleDisplayProps {
-  header: string
   content: string | JSX.Element | undefined
+  header?: string | undefined
 }
 
-const SingleDisplayItem = ({ header, content }: SingleDisplayProps) => {
+const SingleDisplayItem = ({ content, header }: SingleDisplayProps) => {
   if (content) {
     return (
       <div className="single-item">
-        <span className="details-description">{header}</span>
-        <span>: {content}</span>
+        {header != null && <span className="details-description">{header}:</span>}
+        {' '}
+        <span>{content}</span>
       </div>
     )
   }
