@@ -92,6 +92,9 @@ const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {
     'text',
     'meta',
     'url',
+    'contact',
+    'name',
+    'version'
   ]
 
   const formatedProperties = (

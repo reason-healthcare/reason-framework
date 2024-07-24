@@ -218,6 +218,14 @@ export const isPrimitive = (content: any) => {
   return types.includes(typeof content)
 }
 
+export const isUrl = (content: any) => {
+  return typeof content === 'string' && (content.startsWith('http') || content.startsWith('https'))
+}
+
+export const capitalize = (string: any) => {
+  return string.charAt(0).toUpperCase() + string.slice(1)
+}
+
 export const formatTitle = (
   resource:
     | fhir4.StructureDefinition
@@ -307,7 +315,7 @@ export const formatExtension = (extension: fhir4.Extension) => {
   if (value != null) {
     return(
       <>
-        <span>{`${title}`}</span> = <span>{formatValue(value)}</span>
+        <span>{`${title}`}</span>: <span>{formatValue(value)}</span>
       </>
     )
   }
@@ -341,10 +349,10 @@ export const formatRelatedArtifact = (
     const {type, display, label, url, document, citation} = artifact
     return (
       // <li key={v4()}>
-      <div>
-        {type && type.charAt(0).toUpperCase() + type.slice(1) + ': '}
-        {(display || label) && <p>{display ?? label}</p>}
-        {citation && <p>{citation}</p>}
+      <>
+        {type && <span>{`${capitalize(type)}: `}</span>}
+        {(display || label) && <span>{display ?? label}</span>}
+        {citation && <span>{citation}</span>}
         {url && (
           <p>
             <Link to={url} target="blank">
@@ -358,11 +366,19 @@ export const formatRelatedArtifact = (
           </p>
         )}{' '}
         {/* {resourceDisplay} */}
-      </div>
+      </>
        //{/* </li> */}
     )
   // })
 }
+
+export const formatUrl = (url: string) => {
+  return(
+    <Link to={url}>{url}</Link>
+  )
+}
+
+// TODO format canonical, reference, trigger definition, quantity, duration, period, range, dosage
 
 export const formatActions = (actions: fhir4.PlanDefinitionAction[]) => {
   let index = 0
@@ -397,6 +413,8 @@ export const formatValue = (value: any): JSX.Element | undefined => {
   let formattedValue
   if (isMarkdown(value)) {
     formattedValue = formatMarkdown(value.toString())
+  } else if (isUrl(value)) {
+    formattedValue = formatUrl(value)
   } else if (isPrimitive(value)) {
     formattedValue = value.toString()
   } else if (is.Coding(value)) {
@@ -418,41 +436,28 @@ export const formatValue = (value: any): JSX.Element | undefined => {
 }
 
 export const formatProperty = (value: any, heading?: string | undefined) => {
-  // const meta = [
-  //   'id',
-  //   'version',
-  //   'publisher',
-  //   'title',
-  //   'status',
-  //   'date',
-  //   'resourceType',
-  //   'text',
-  //   'meta'
-  // ]
-  // if (heading == null || (heading && !meta.includes(heading))) {
-    let content
-    if (heading === 'action') {
-      content = formatActions(value)
-    } else if (Array.isArray(value) && value.length > 1) {
-      content = value.map((v) => {
-        return <li key={v4()}>{formatValue(v)}</li>
+  let content
+  if (heading === 'action') {
+    content = formatActions(value)
+  } else if (Array.isArray(value) && value.length > 1) {
+    content = value.map((v) => {
+      return <li key={v4()}>{formatValue(v)}</li>
+    })
+  } else {
+    const singleValue = Array.isArray(value) ? value[0] : value
+    content = formatValue(singleValue)
+    if (content == null && typeof value === 'object') {
+      content = Object.entries(singleValue).map((e: [string, any]) => {
+        const [k, v] = e
+        return formatProperty(v, k)
       })
-    } else {
-      const singleValue = Array.isArray(value) ? value[0] : value
-      content = formatValue(singleValue)
-      if (content == null && typeof value === 'object') {
-        content = Object.entries(singleValue).map((e: [string, any]) => {
-          const [k, v] = e
-          return formatProperty(v, k)
-        })
-        .filter(notEmpty)
-      }
+      .filter(notEmpty)
     }
-    const headingFormatted = typeof heading === 'string' ? heading.charAt(0).toUpperCase() + heading.slice(1) : undefined
-    if (Array.isArray(content)) {
-      return <ListDisplayItem heading={headingFormatted} content={content} />
-    } else {
-      return <SingleDisplayItem heading={headingFormatted} content={content} />
-    }
-  // }
+  }
+  const headingFormatted = heading != null ? capitalize(heading) : undefined
+  if (Array.isArray(content)) {
+    return <ListDisplayItem heading={headingFormatted} content={content} />
+  } else {
+    return <SingleDisplayItem heading={headingFormatted} content={content} />
+  }
 }
