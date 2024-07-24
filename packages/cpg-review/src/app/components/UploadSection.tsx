@@ -84,7 +84,7 @@ const UploadSection = ({
                     'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-pathwaydefinition'
                 )
               ) {
-                type = 'Pathway'
+                type = 'CPG Pathway'
               } else if (
                 resource.meta?.profile?.find(
                   (p) =>
@@ -92,7 +92,7 @@ const UploadSection = ({
                     'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-strategydefinition'
                 )
               ) {
-                type = 'Strategy'
+                type = 'CPG Strategy'
               } else if (
                 resource.meta?.profile?.find(
                   (p) =>
@@ -100,7 +100,7 @@ const UploadSection = ({
                     'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-recommendationdefinition'
                 )
               ) {
-                type = 'Recommendation'
+                type = 'CPG Recommendation'
               } else {
                 type = 'Plan'
               }
