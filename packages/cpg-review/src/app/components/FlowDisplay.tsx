@@ -19,7 +19,7 @@ import { FullscreenOutlined, FullscreenExitOutlined } from '@ant-design/icons'
 import BrowserResolver from 'resolver/browser'
 
 interface FlowDisplayProps {
-  resolver: FileResolver | BrowserResolver | undefined
+  resolver: BrowserResolver | undefined
   planDefinition: fhir4.PlanDefinition
   setDetails: React.Dispatch<
     React.SetStateAction<

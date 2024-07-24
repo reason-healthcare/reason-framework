@@ -16,7 +16,7 @@ import ListDisplayItem from './ListDisplayItem'
 import BackButton from './BackButton'
 
 interface InputDetailsProps {
-  resolver: FileResolver | BrowserResolver | undefined
+  resolver: BrowserResolver | undefined
 }
 
 const InputDetails = ({ resolver }: InputDetailsProps) => {

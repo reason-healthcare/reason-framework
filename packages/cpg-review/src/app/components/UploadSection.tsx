@@ -11,12 +11,12 @@ import LoadIndicator from './LoadIndicator'
 
 interface UploadSectionProps {
   setResolver: React.Dispatch<
-    React.SetStateAction<FileResolver | BrowserResolver | undefined>
+    React.SetStateAction<BrowserResolver | undefined>
   >
   setPlanDefinition: React.Dispatch<
     React.SetStateAction<fhir4.PlanDefinition | undefined>
   >
-  resolver: BrowserResolver | FileResolver | undefined
+  resolver: BrowserResolver | undefined
 }
 
 const UploadSection = ({

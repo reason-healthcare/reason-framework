@@ -182,7 +182,7 @@ export const is = {
 
 export const resolveCanonical = (
   canonical: string | undefined,
-  resolver: FileResolver | BrowserResolver
+  resolver: BrowserResolver
 ) => {
   canonical = canonical?.split('|').shift()
   return canonical != null && resolver.resourcesByCanonical
@@ -265,7 +265,7 @@ export const formatResourceType = (
 
 export const formatCodeableConcept = (
   codeableConcept: fhir4.CodeableConcept,
-  resolver?: FileResolver | BrowserResolver | undefined
+  resolver?: BrowserResolver | undefined
 ) => {
   const {coding, text} = codeableConcept
   if (coding?.length && coding.length >1) {
@@ -282,7 +282,7 @@ export const formatCodeableConcept = (
 }
 
 export const formatCoding = (  coding: fhir4.Coding,
-  resolver?: FileResolver | BrowserResolver | undefined) => {
+  resolver?: BrowserResolver | undefined) => {
   const {system, code, display, version} = coding
   let systemDisplay
   if (system && resolver) {
@@ -328,7 +328,7 @@ export const formatExpression = (exp: fhir4.Expression) => {
 
 export const formatRelatedArtifact = (
   artifact: fhir4.RelatedArtifact,
-  resolver?: FileResolver | BrowserResolver | undefined,
+  resolver?: BrowserResolver | undefined,
   navigate?: NavigateFunction
 ) => {
   // return artifact.map((e: any) => {

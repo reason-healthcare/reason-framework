@@ -97,7 +97,7 @@ class Flow implements FlowInstance {
    */
   private processDefinitionalNode(
     definition: fhir4.ActivityDefinition | fhir4.PlanDefinition | undefined,
-    content: FileResolver | BrowserResolver,
+    content: BrowserResolver,
     parentEdge?: Edge
   ) {
     if (definition) {
@@ -136,7 +136,7 @@ class Flow implements FlowInstance {
    */
   private processActionNodes(
     actions: fhir4.PlanDefinitionAction[],
-    content: FileResolver | BrowserResolver,
+    content: BrowserResolver,
     parentEdge: Edge
   ) {
     actions.map((action) => {
@@ -182,7 +182,7 @@ class Flow implements FlowInstance {
    */
   public generateInitialFlow(
     planDefinition: fhir4.PlanDefinition,
-    content: FileResolver | BrowserResolver
+    content: BrowserResolver
   ) {
     this.processDefinitionalNode(planDefinition, content)
     return this

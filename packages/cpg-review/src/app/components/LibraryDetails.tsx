@@ -19,7 +19,7 @@ import { format } from 'path'
 import ListDisplayItem from './ListDisplayItem'
 
 interface LibraryDetailsProps {
-  resolver: FileResolver | BrowserResolver | undefined
+  resolver: BrowserResolver | undefined
 }
 
 const LibraryDetails = ({ resolver }: LibraryDetailsProps) => {

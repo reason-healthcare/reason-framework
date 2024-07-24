@@ -18,7 +18,7 @@ interface NodeDetailsProps {
     | fhir4.PlanDefinitionAction
     | fhir4.ActivityDefinition
     | undefined
-  resolver: FileResolver | BrowserResolver | undefined
+  resolver: BrowserResolver | undefined
 }
 
 const NodeDetails = ({ details, resolver }: NodeDetailsProps) => {

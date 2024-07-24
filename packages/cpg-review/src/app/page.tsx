@@ -12,7 +12,7 @@ import { MemoryRouter } from 'react-router-dom'
 
 export default function Home() {
   const [resolver, setResolver] = useState<
-    FileResolver | BrowserResolver | undefined
+    BrowserResolver | undefined
   >()
   const [planDefinition, setPlanDefinition] = useState<
     fhir4.PlanDefinition | undefined

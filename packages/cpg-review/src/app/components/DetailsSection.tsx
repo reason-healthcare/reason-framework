@@ -15,7 +15,7 @@ interface DetailsSectionProps {
     | fhir4.PlanDefinitionAction
     | fhir4.ActivityDefinition
     | undefined
-  resolver: FileResolver | BrowserResolver | undefined
+  resolver: BrowserResolver | undefined
 }
 
 const DetailsSection = ({
