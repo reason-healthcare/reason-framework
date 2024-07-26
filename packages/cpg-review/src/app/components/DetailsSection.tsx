@@ -1,12 +1,9 @@
 import '@/styles/detailsSection.css'
 import { CloseOutlined } from '@ant-design/icons'
-import FileResolver from 'resolver/file'
 import BrowserResolver from 'resolver/browser'
-import NodeDetails from './NodeDetails'
-import { Route, Routes, MemoryRouter, useNavigate } from 'react-router-dom'
-import InputDetails from './InputDetails'
-import LibraryDetails from './LibraryDetails'
+import { Route, Routes, useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
+import ResourceDetails from './ResourceDetails'
 
 interface DetailsSectionProps {
   setShowDetails: React.Dispatch<React.SetStateAction<boolean>>
@@ -41,15 +38,11 @@ const DetailsSection = ({
         <Routes>
           <Route
             path="/"
-            element={<NodeDetails details={details} resolver={resolver} />}
+            element={<ResourceDetails resolver={resolver} nodeDetails={details} />}
           />
           <Route
-            path="/StructureDefinition/:id"
-            element={<InputDetails resolver={resolver} />}
-          />
-          <Route
-            path="/Library/:id"
-            element={<LibraryDetails resolver={resolver} />}
+            path="/:resourceType/:id"
+            element={<ResourceDetails resolver={resolver} />}
           />
         </Routes>
       </div>

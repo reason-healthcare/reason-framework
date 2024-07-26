@@ -5,16 +5,16 @@ class BrowserResolver {
   resourcesByReference: Record<string, fhir4.FhirResource> = {}
   cqlByReference: Record<string, string> = {}
   pathway: fhir4.PlanDefinition | undefined
+  baseUrl: string | undefined
 
   constructor(storedContent?: string | undefined) {
     let parsedContent
     if (storedContent) {
       parsedContent = JSON.parse(storedContent)
-      const { resourcesByCanonical, resourcesByReference, pathway } =
+      const { resourcesByCanonical, resourcesByReference } =
         parsedContent
       this.resourcesByCanonical = resourcesByCanonical
       this.resourcesByReference = resourcesByReference
-      this.pathway = pathway
     }
   }
 
@@ -33,17 +33,14 @@ class BrowserResolver {
             this.resourcesByCanonical[rawResource.url] = rawResource
           }
           if (rawResource.id && rawResource.resourceType) {
+            const reference = `${rawResource.resourceType}/${rawResource.id}`
             this.resourcesByReference[
               `${rawResource.resourceType}/${rawResource.id}`
             ] = rawResource
+            if (rawResource.resourceType === 'ImplementationGuide' && rawResource.url) {
+              this.baseUrl = rawResource.url.replace(`/${reference}`, '')
+            }
           }
-          // if (
-          //   rawResource.meta?.profile?.includes(
-          //     'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-pathwaydefinition'
-          //   )
-          // ) {
-          //   this.pathway = rawResource
-          // }
         } else if (fileContent && filename.endsWith('cql')) {
           const id = filename.split('.')[0].split('-')
           const type = id.shift()
@@ -66,9 +63,17 @@ class BrowserResolver {
     return this
   }
 
-  public async resolveCanonical(canonical: string | undefined) {
+  public resolveCanonical(canonical: string | undefined) {
     canonical = canonical?.split('|').shift()
     return canonical != null ? this.resourcesByCanonical[canonical] : undefined
+  }
+
+  public resolveReference(reference: string | undefined) {
+    return reference != null ? this.resourcesByReference[reference] : undefined
+  }
+
+  public resolveCql(reference: string | undefined) {
+    return reference != null ? this.cqlByReference[reference] : undefined
   }
 }
 

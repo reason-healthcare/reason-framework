@@ -23,6 +23,83 @@ export const is = {
   PlanDefinition: (resource: any): resource is fhir4.PlanDefinition => {
     return resource?.resourceType === 'PlanDefinition'
   },
+  PlanDefinitionAction: (object: any): object is fhir4.PlanDefinitionAction => {
+    const keys = [
+      'action',
+      'cardinalityBehavior', '_cardinalityBehavior',
+      'code',
+      'condition',
+      'definitionCanonical', '_definitionCanonical',
+      'definitionUri', '_definitionUri',
+      'description', '_description',
+      'documentation',
+      'dynamicValue',
+      'goalId', '_goalId',
+      'groupingBehavior', '_groupingBehavior',
+      'input',
+      'output',
+      'participant',
+      'precheckBehavior', '_precheckBehavior',
+      'prefix', '_prefix',
+      'priority', '_priority',
+      'reason',
+      'relatedAction',
+      'requiredBehavior', '_requiredBehavior',
+      'selectionBehavior', '_selectionBehavior',
+      'subjectCodeableConcept',
+      'subjectReference',
+      'textEquivalent', '_textEquivalent',
+      'timingDateTime', '_timingDateTime',
+      'timingAge',
+      'timingPeriod',
+      'timingDuration',
+      'timingRange',
+      'timingTiming',
+      'title', '_title',
+      'transform', '_transform',
+      'trigger',
+      'type'
+    ];
+
+    return (
+      object &&
+      Object.keys(object).every(key => keys.includes(key)) &&
+      (Array.isArray(object.action) || object.action === undefined) &&
+      (typeof object.cardinalityBehavior === 'string' || object.cardinalityBehavior === undefined) &&
+      (Array.isArray(object.code) || object.code === undefined) &&
+      (Array.isArray(object.condition) || object.condition === undefined) &&
+      (typeof object.definitionCanonical === 'string' || object.definitionCanonical === undefined) &&
+      (typeof object.definitionUri === 'string' || object.definitionUri === undefined) &&
+      (typeof object.description === 'string' || object.description === undefined) &&
+      (Array.isArray(object.documentation) || object.documentation === undefined) &&
+      (Array.isArray(object.dynamicValue) || object.dynamicValue === undefined) &&
+      (Array.isArray(object.goalId) || object.goalId === undefined) &&
+      (typeof object.groupingBehavior === 'string' || object.groupingBehavior === undefined) &&
+      (Array.isArray(object.input) || object.input === undefined) &&
+      (Array.isArray(object.output) || object.output === undefined) &&
+      (Array.isArray(object.participant) || object.participant === undefined) &&
+      (typeof object.precheckBehavior === 'string' || object.precheckBehavior === undefined) &&
+      (typeof object.prefix === 'string' || object.prefix === undefined) &&
+      (typeof object.priority === 'string' || object.priority === undefined) &&
+      (Array.isArray(object.reason) || object.reason === undefined) &&
+      (Array.isArray(object.relatedAction) || object.relatedAction === undefined) &&
+      (typeof object.requiredBehavior === 'string' || object.requiredBehavior === undefined) &&
+      (typeof object.selectionBehavior === 'string' || object.selectionBehavior === undefined) &&
+      (typeof object.subjectCodeableConcept === 'object' || object.subjectCodeableConcept === undefined) &&
+      (typeof object.subjectReference === 'object' || object.subjectReference === undefined) &&
+      (typeof object.textEquivalent === 'string' || object.textEquivalent === undefined) &&
+      (typeof object.timingDateTime === 'string' || object.timingDateTime === undefined) &&
+      (typeof object.timingAge === 'object' || object.timingAge === undefined) &&
+      (typeof object.timingPeriod === 'object' || object.timingPeriod === undefined) &&
+      (typeof object.timingDuration === 'object' || object.timingDuration === undefined) &&
+      (typeof object.timingRange === 'object' || object.timingRange === undefined) &&
+      (typeof object.timingTiming === 'object' || object.timingTiming === undefined) &&
+      (typeof object.title === 'string' || object.title === undefined) &&
+      (typeof object.transform === 'string' || object.transform === undefined) &&
+      (Array.isArray(object.trigger) || object.trigger === undefined) &&
+      (typeof object.type === 'object' || object.type === undefined)
+    )
+  },
   ActivityDefinition: (resource: any): resource is fhir4.ActivityDefinition => {
     return resource?.resourceType === 'ActivityDefinition'
   },
@@ -226,6 +303,8 @@ export const capitalize = (string: any) => {
   return string.charAt(0).toUpperCase() + string.slice(1)
 }
 
+/** General purpose */
+
 export const formatTitle = (
   resource:
     | fhir4.StructureDefinition
@@ -263,16 +342,19 @@ export const formatResourceType = (
   }
 }
 
+/** Datatypes */
+
 export const formatCodeableConcept = (
   codeableConcept: fhir4.CodeableConcept,
-  resolver?: BrowserResolver | undefined
+  resolver?: BrowserResolver | undefined,
+  navigate?: NavigateFunction
 ) => {
   const {coding, text} = codeableConcept
   if (coding?.length && coding.length >1) {
     return codeableConcept?.coding?.map((c: fhir4.Coding) => {
       return (
         <li key={c.code}>
-          {formatCoding(c, resolver)}
+          {formatCoding(c)}
         </li>
       )
     })
@@ -282,22 +364,20 @@ export const formatCodeableConcept = (
 }
 
 export const formatCoding = (  coding: fhir4.Coding,
-  resolver?: BrowserResolver | undefined) => {
+  resolver?: BrowserResolver | undefined,
+  navigate?: NavigateFunction
+) => {
   const {system, code, display, version} = coding
-  let systemDisplay
-  if (system && resolver) {
-    const resource = resolveCanonical(system, resolver)
-    if (is.CodeSystem(resource)) {
-      systemDisplay =
-        formatTitle(resource)
-    }
-  }
   return (
     <>
-      {code && system ? (
+      {system != null ? (
+        <>
         <span>
-          "{code}" from {systemDisplay ?? system}{version ? `|${version}` : ''}{display ? ` (${display})`: ''}
+          {`"${code}" from `}
         </span>
+        <span>{formatUrl(system, resolver, navigate)}</span>
+        <span>{version ? `|${version}` : ''}{display ? ` (${display})`: ''}</span>
+        </>
       ): <span>{code}</span>}
     </>
   )
@@ -307,7 +387,7 @@ export const formatMarkdown = (markdown: string) => {
   return <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
 }
 
-export const formatExtension = (extension: fhir4.Extension) => {
+export const formatExtension = (extension: fhir4.Extension, resolver?: BrowserResolver | undefined, navigate?: NavigateFunction) => {
   const { url } = extension
   const title = url.split("/").pop()
   const valueKey = Object.keys(extension).find(k => k.includes("value")) as keyof fhir4.Extension
@@ -315,13 +395,13 @@ export const formatExtension = (extension: fhir4.Extension) => {
   if (value != null) {
     return(
       <>
-        <span>{`${title}`}</span>: <span>{formatValue(value)}</span>
+        <span>{`${title}`}</span>: <span>{formatValue(value, resolver, navigate)}</span>
       </>
     )
   }
 }
 
-export const formatExpression = (exp: fhir4.Expression) => {
+export const formatExpression = (exp: fhir4.Expression, resolver?: BrowserResolver | undefined, navigate?: NavigateFunction) => {
   const {language, expression, reference} = exp
   return `${expression}${language ? ` as ${language}` : ''}${reference ? ` from ${reference}`: ''}`
 }
@@ -331,54 +411,52 @@ export const formatRelatedArtifact = (
   resolver?: BrowserResolver | undefined,
   navigate?: NavigateFunction
 ) => {
-  // return artifact.map((e: any) => {
-    // let resourceDisplay
-    // if (e.resource && resolver) {
-    //   const rawResource = resolveCanonical(e.resource, resolver)
-    //   if (is.Library(rawResource) && navigate) {
-    //     resourceDisplay = (
-    //       <Link
-    //         onClick={() => navigate(`/Library/${rawResource.id}`)}
-    //         to={`/Library/${rawResource.id}`}
-    //       >
-    //         {formatTitle(rawResource)}
-    //       </Link>
-    //     )
-    //   }
-    // }
-    const {type, display, label, url, document, citation} = artifact
+    const {type, display, label, resource, document, citation} = artifact
+    console.log(artifact)
     return (
-      // <li key={v4()}>
       <>
         {type && <span>{`${capitalize(type)}: `}</span>}
         {(display || label) && <span>{display ?? label}</span>}
         {citation && <span>{citation}</span>}
-        {url && (
-          <p>
-            <Link to={url} target="blank">
-              {url}
-            </Link>
-          </p>
+        {resource && (
+          <>
+            {' '}
+            {formatValue(resource, resolver, navigate)}
+          </>
         )}
-        {document?.title && (
-          <p>
-            <Link to="">{document.title}</Link>
-          </p>
-        )}{' '}
-        {/* {resourceDisplay} */}
+        {document && (
+          <>
+            {' '}
+            {formatValue(document, resolver, navigate)}
+          </>
+        )}
       </>
-       //{/* </li> */}
     )
-  // })
 }
 
-export const formatUrl = (url: string) => {
+export const formatUrl = (url: string, resolver?: BrowserResolver | undefined, navigate?: NavigateFunction) => {
+  if (resolver?.baseUrl != null && url.startsWith(resolver.baseUrl) && navigate != null) {
+    const [canonical, version] = url.split("|")
+    const resource = resolver.resolveCanonical(canonical)
+    if (is.KnowledgeArtifact(resource) || is.TerminologyArtifact(resource)) {
+      const {title, name, id} = resource
+      const path = canonical.split("/").slice(-2).join("/")
+      return(
+        <Link onClick={() => navigate(`/${path}`)} to={`/${path}`} >
+          {title ?? name ?? url ?? id}
+        </Link>
+      )
+
+    }
+  }
   return(
-    <Link to={url}>{url}</Link>
+    <Link to={url} target='blank'>{url}</Link>
   )
 }
 
-// TODO format canonical, reference, trigger definition, quantity, duration, period, range, dosage
+// TODO format canonical, reference, trigger definition, quantity, duration, period, range, dosage, attachment, parameter
+
+/** Plan Definitions */
 
 export const formatActions = (actions: fhir4.PlanDefinitionAction[]) => {
   let index = 0
@@ -395,69 +473,83 @@ export const formatActions = (actions: fhir4.PlanDefinitionAction[]) => {
     .filter(notEmpty)
 }
 
+/** Structure Definition: differential */
+
+/** Library: cql */
+
 export const formatCondition = (
-  condition: any
+  condition: any,
 ) => {
   const {kind, expression} = condition
   return <span>{`${expression ? formatExpression(expression) + ' ': ''}${kind ? `(${kind})`: ''}`}</span>
 }
 
 export const formatDataRequirement = (
-  dataRequirement: fhir4.DataRequirement
+  dataRequirement: fhir4.DataRequirement,
+  resolver?: BrowserResolver | undefined,
+  navigate?: NavigateFunction
 ) => {
   const {type, profile} = dataRequirement
-  return <span>{`${profile ? profile + ' ': ''}${type ? `(${type})`: ''}`}</span>
+  const profileDisplay = profile?.length && profile.length > 1 ? profile.map(p => <li key={p}>{formatValue(p, resolver, navigate)}</li>) : profile ? <span>{formatValue(profile[0], resolver, navigate)}</span> : null
+  return (
+    <>
+    {profileDisplay}
+    {profileDisplay ? ` (${type})` : <span>{type}</span>}
+    </>
+  )
 }
 
-export const formatValue = (value: any): JSX.Element | undefined => {
+// coding, et needs resolver and navigate to pass to formatValue/ formatUrl
+export const formatValue = (value: any, resolver?: BrowserResolver | undefined, navigate?: NavigateFunction): JSX.Element | undefined => {
   let formattedValue
   if (isMarkdown(value)) {
     formattedValue = formatMarkdown(value.toString())
   } else if (isUrl(value)) {
-    formattedValue = formatUrl(value)
+    formattedValue = formatUrl(value, resolver, navigate)
   } else if (isPrimitive(value)) {
     formattedValue = value.toString()
   } else if (is.Coding(value)) {
-    formattedValue = formatCoding(value)
+    formattedValue = formatCoding(value, resolver, navigate)
   } else if (is.Extension(value)) {
-    formattedValue = formatExtension(value)
+    formattedValue = formatExtension(value, resolver, navigate)
   } else if (is.Expression(value)) {
-    formattedValue = formatExpression(value)
+    formattedValue = formatExpression(value, resolver, navigate)
   } else if (is.CodeableConcept(value)) {
-    formattedValue = formatCodeableConcept(value)
+    formattedValue = formatCodeableConcept(value, resolver, navigate)
   } else if (is.Condition(value)) {
-    formattedValue = formatCondition(value)
+    formattedValue = formatCondition(value, resolver, navigate)
   } else if (is.DataRequirement(value)) {
-    formattedValue = formatDataRequirement(value)
+    formattedValue = formatDataRequirement(value, resolver, navigate)
   } else if (is.RelatedArtifact(value)) {
-    formattedValue = formatRelatedArtifact(value)
+    formattedValue = formatRelatedArtifact(value, resolver, navigate)
   }
   return formattedValue
 }
 
-export const formatProperty = (value: any, heading?: string | undefined) => {
+export const formatProperty = (value: any, resolver?: BrowserResolver | undefined, navigate?: NavigateFunction, key?: string | undefined
+) => {
   let content
-  if (heading === 'action') {
+  if (key === 'action') {
     content = formatActions(value)
   } else if (Array.isArray(value) && value.length > 1) {
     content = value.map((v) => {
-      return <li key={v4()}>{formatValue(v)}</li>
+      return <li key={v4()}>{formatProperty(v, resolver, navigate)}</li>
     })
   } else {
     const singleValue = Array.isArray(value) ? value[0] : value
-    content = formatValue(singleValue)
+    content = formatValue(singleValue, resolver, navigate)
     if (content == null && typeof value === 'object') {
       content = Object.entries(singleValue).map((e: [string, any]) => {
         const [k, v] = e
-        return formatProperty(v, k)
+        return formatProperty(v, resolver, navigate, k)
       })
       .filter(notEmpty)
     }
   }
-  const headingFormatted = heading != null ? capitalize(heading) : undefined
+  const keyFormatted = key != null ? capitalize(key) : undefined
   if (Array.isArray(content)) {
-    return <ListDisplayItem heading={headingFormatted} content={content} />
+    return <ListDisplayItem heading={keyFormatted} content={content} />
   } else {
-    return <SingleDisplayItem heading={headingFormatted} content={content} />
+    return <SingleDisplayItem heading={keyFormatted} content={content} />
   }
 }
