@@ -11,8 +11,7 @@ class BrowserResolver {
     let parsedContent
     if (storedContent) {
       parsedContent = JSON.parse(storedContent)
-      const { resourcesByCanonical, resourcesByReference } =
-        parsedContent
+      const { resourcesByCanonical, resourcesByReference } = parsedContent
       this.resourcesByCanonical = resourcesByCanonical
       this.resourcesByReference = resourcesByReference
     }
@@ -37,7 +36,10 @@ class BrowserResolver {
             this.resourcesByReference[
               `${rawResource.resourceType}/${rawResource.id}`
             ] = rawResource
-            if (rawResource.resourceType === 'ImplementationGuide' && rawResource.url) {
+            if (
+              rawResource.resourceType === 'ImplementationGuide' &&
+              rawResource.url
+            ) {
               this.baseUrl = rawResource.url.replace(`/${reference}`, '')
             }
           }

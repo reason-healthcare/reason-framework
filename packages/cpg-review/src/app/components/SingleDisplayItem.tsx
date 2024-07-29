@@ -7,7 +7,12 @@ const SingleDisplayItem = ({ content, heading }: SingleDisplayProps) => {
   if (content) {
     return (
       <div className="single-item">
-        {heading != null && <><span className="details-description">{heading}</span><span>: </span></>}
+        {heading != null && (
+          <>
+            <span className="details-description">{heading}</span>
+            <span>: </span>
+          </>
+        )}
         {/* <br></br> */}
         <span>{content}</span>
       </div>

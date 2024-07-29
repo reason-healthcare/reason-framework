@@ -7,7 +7,12 @@ const ListDisplayItem = ({ content, heading }: ListDisplayProps) => {
   if (content) {
     return (
       <div>
-        {heading != null && <><span className="details-description">{heading}</span><span>:</span></>}
+        {heading != null && (
+          <>
+            <span className="details-description">{heading}</span>
+            <span>:</span>
+          </>
+        )}
         <ul>{content}</ul>
       </div>
     )

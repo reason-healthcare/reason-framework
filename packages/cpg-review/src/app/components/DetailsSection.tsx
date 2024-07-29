@@ -38,7 +38,9 @@ const DetailsSection = ({
         <Routes>
           <Route
             path="/"
-            element={<ResourceDetails resolver={resolver} nodeDetails={details} />}
+            element={
+              <ResourceDetails resolver={resolver} nodeDetails={details} />
+            }
           />
           <Route
             path="/:resourceType/:id"

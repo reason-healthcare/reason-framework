@@ -10,9 +10,7 @@ import { is, notEmpty, resolveCanonical } from 'helpers'
 import LoadIndicator from './LoadIndicator'
 
 interface UploadSectionProps {
-  setResolver: React.Dispatch<
-    React.SetStateAction<BrowserResolver | undefined>
-  >
+  setResolver: React.Dispatch<React.SetStateAction<BrowserResolver | undefined>>
   setPlanDefinition: React.Dispatch<
     React.SetStateAction<fhir4.PlanDefinition | undefined>
   >
@@ -173,7 +171,11 @@ const UploadSection = ({
               placeholder="Select a plan definition"
             >
               {planDefinitions.map((p) => {
-                return <Option key={p} value={p.split(' ').shift()}>{p}</Option>
+                return (
+                  <Option key={p} value={p.split(' ').shift()}>
+                    {p}
+                  </Option>
+                )
               })}
             </Select>
           </Form.Item>

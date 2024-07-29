@@ -11,9 +11,7 @@ import { InboxOutlined } from '@ant-design/icons'
 import { MemoryRouter } from 'react-router-dom'
 
 export default function Home() {
-  const [resolver, setResolver] = useState<
-    BrowserResolver | undefined
-  >()
+  const [resolver, setResolver] = useState<BrowserResolver | undefined>()
   const [planDefinition, setPlanDefinition] = useState<
     fhir4.PlanDefinition | undefined
   >()

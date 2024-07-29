@@ -13,12 +13,18 @@ import '@/styles/detailsSection.css'
 import { useEffect, useState } from 'react'
 
 interface ResourceDetailsProps {
-  resolver: BrowserResolver | undefined,
-  nodeDetails?: fhir4.PlanDefinition | fhir4.PlanDefinitionAction | fhir4.ActivityDefinition | undefined
+  resolver: BrowserResolver | undefined
+  nodeDetails?:
+    | fhir4.PlanDefinition
+    | fhir4.PlanDefinitionAction
+    | fhir4.ActivityDefinition
+    | undefined
 }
 
 const ResourceDetails = ({ resolver, nodeDetails }: ResourceDetailsProps) => {
-  const [resource, setResource] = useState<fhir4.FhirResource | fhir4.PlanDefinitionAction | undefined>()
+  const [resource, setResource] = useState<
+    fhir4.FhirResource | fhir4.PlanDefinitionAction | undefined
+  >()
   const [cql, setCql] = useState<string | undefined>()
 
   const navigate = useNavigate()
@@ -31,7 +37,11 @@ const ResourceDetails = ({ resolver, nodeDetails }: ResourceDetailsProps) => {
       path.pathname.split('/')
       const reference = path.pathname.split('/').slice(-2).join('/')
       const rawResource = resolver.resolveReference(reference)
-      if (is.KnowledgeArtifact(rawResource) || is.StructureDefinition(rawResource) || is.TerminologyArtifact(rawResource)) {
+      if (
+        is.KnowledgeArtifact(rawResource) ||
+        is.StructureDefinition(rawResource) ||
+        is.TerminologyArtifact(rawResource)
+      ) {
         setResource(rawResource)
       }
       if (is.Library(rawResource)) {
@@ -43,7 +53,6 @@ const ResourceDetails = ({ resolver, nodeDetails }: ResourceDetailsProps) => {
   }, [path])
 
   if (resource != null) {
-
     const meta = [
       'id',
       'publisher',
@@ -57,26 +66,27 @@ const ResourceDetails = ({ resolver, nodeDetails }: ResourceDetailsProps) => {
       'contact',
       'name',
       'version',
-      'content'
+      'content',
+      'mapping',
+      'snapshot',
     ]
 
-    const formatedProperties = (
-      Object.entries(resource)
-        .map((e: [string, any]) => {
-          const [k, v] = e
-          if (!meta.includes(k)) {
-            return formatProperty(v, resolver, navigate, k)
-          }
-        })
-        .filter(notEmpty)
-      )
+    const formatedProperties = Object.entries(resource)
+      .map((e: [string, any]) => {
+        const [k, v] = e
+        if (!meta.includes(k)) {
+          return formatProperty(v, resolver, navigate, k)
+        }
+      })
+      .filter(notEmpty)
 
     return (
       <div>
-        <h2>{`${formatResourceType(resource) ?? 'Action'}: ${formatTitle(resource)}`}</h2>
+        <h2>{`${formatResourceType(resource) ?? 'Action'}: ${formatTitle(
+          resource
+        )}`}</h2>
         {formatedProperties}
-        {cql != null &&
-        <CQLDisplay cql={cql}/>}
+        {cql != null && <CQLDisplay cql={cql} />}
         <BackButton />
       </div>
     )
@@ -86,7 +96,7 @@ const ResourceDetails = ({ resolver, nodeDetails }: ResourceDetailsProps) => {
     <>
       <p>Unable to load details</p>
       <BackButton />
-      </>
+    </>
   )
 }
 
