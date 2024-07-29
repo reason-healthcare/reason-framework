@@ -555,7 +555,7 @@ export const formatExpression = (
 ) => {
   const { language, expression, reference } = exp
   return `${expression}${language ? ` as ${language}` : ''}${
-    reference ? ` from ${reference}` : ''
+    reference ? ` from ${formatValue(reference, resolver, navigate)}` : ''
   }`
 }
 
@@ -656,6 +656,8 @@ export const formatCondition = (
 /** TODO Structure Definition Types: differential */
 
 /** TODO Code System Types: concept */
+
+/** TODO Activity Definition Types: dynamic value */
 
 export const formatValue = (
   value: any,
