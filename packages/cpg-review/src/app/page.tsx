@@ -23,16 +23,7 @@ export default function Home() {
   >()
   const [showDetails, setShowDetails] = useState<boolean>(false)
   const [showUpload, setShowUpload] = useState<boolean>(false)
-
-  // useEffect(() => {
-  //   fetch('/api/content', { cache: 'no-cache' })
-  //     .then((response) => response.json())
-  //     .then((data) => {
-  //       console.log('fetching data')
-  //       setResolver(data.resolver)
-  //       setPlanDefinition(data.planDefinition)
-  //     })
-  // }, [])
+  const [selected, setSelected] = useState<string>()
 
   useEffect(() => {
     const storedContent = localStorage.getItem('resolver')
@@ -75,6 +66,8 @@ export default function Home() {
               setDetails={setDetails}
               setShowDetails={setShowDetails}
               showDetails={showDetails}
+              selected={selected}
+              setSelected={setSelected}
             />
           </ReactFlowProvider>
         ) : (
@@ -86,6 +79,7 @@ export default function Home() {
               details={details}
               resolver={resolver}
               setShowDetails={setShowDetails}
+              setSelected={setSelected}
             ></DetailsSection>
           )}
         </MemoryRouter>

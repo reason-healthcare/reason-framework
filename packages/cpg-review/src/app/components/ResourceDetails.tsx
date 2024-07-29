@@ -3,17 +3,20 @@ import {
   formatResourceType,
   formatTitle,
   is,
+  KnowledgeArtifact,
   notEmpty,
+  TerminologyArtifact,
 } from '../helpers'
 import { useLocation, useNavigate } from 'react-router-dom'
 import BrowserResolver from 'resolver/browser'
 import BackButton from './BackButton'
-import CQLDisplay from './CQLDisplay'
+import CodeDisplay from './CodeDisplay'
 import '@/styles/detailsSection.css'
 import { useEffect, useState } from 'react'
 
 interface ResourceDetailsProps {
   resolver: BrowserResolver | undefined
+  setSelected: React.Dispatch<React.SetStateAction<string | undefined>>
   nodeDetails?:
     | fhir4.PlanDefinition
     | fhir4.PlanDefinitionAction
@@ -21,27 +24,45 @@ interface ResourceDetailsProps {
     | undefined
 }
 
-const ResourceDetails = ({ resolver, nodeDetails }: ResourceDetailsProps) => {
+const ResourceDetails = ({
+  resolver,
+  setSelected,
+  nodeDetails,
+}: ResourceDetailsProps) => {
   const [resource, setResource] = useState<
-    fhir4.FhirResource | fhir4.PlanDefinitionAction | undefined
+    | fhir4.StructureDefinition
+    | KnowledgeArtifact
+    | TerminologyArtifact
+    | fhir4.PlanDefinitionAction
+    | undefined
   >()
   const [cql, setCql] = useState<string | undefined>()
+  const [displayJson, setDisplayJson] = useState<boolean>(false)
 
   const navigate = useNavigate()
-  const path = useLocation()
+  const path = useLocation().pathname
   useEffect(() => {
     if (nodeDetails != null) {
+      if (is.KnowledgeArtifact(nodeDetails)) {
+        delete nodeDetails.text
+      }
       setResource(nodeDetails)
       setCql(undefined)
     } else if (resolver != null) {
-      path.pathname.split('/')
-      const reference = path.pathname.split('/').slice(-2).join('/')
+      const reference = path.split('/').slice(-2).join('/')
       const rawResource = resolver.resolveReference(reference)
+      if (
+        is.PlanDefinition(rawResource) ||
+        is.ActivityDefinition(rawResource)
+      ) {
+        setSelected(`definition-${rawResource.id}`)
+      }
       if (
         is.KnowledgeArtifact(rawResource) ||
         is.StructureDefinition(rawResource) ||
         is.TerminologyArtifact(rawResource)
       ) {
+        delete rawResource.text
         setResource(rawResource)
       }
       if (is.Library(rawResource)) {
@@ -50,7 +71,7 @@ const ResourceDetails = ({ resolver, nodeDetails }: ResourceDetailsProps) => {
         setCql(undefined)
       }
     }
-  }, [path])
+  }, [path, nodeDetails])
 
   if (resource != null) {
     const meta = [
@@ -69,6 +90,7 @@ const ResourceDetails = ({ resolver, nodeDetails }: ResourceDetailsProps) => {
       'content',
       'mapping',
       'snapshot',
+      'parameter',
     ]
 
     const formatedProperties = Object.entries(resource)
@@ -85,9 +107,29 @@ const ResourceDetails = ({ resolver, nodeDetails }: ResourceDetailsProps) => {
         <h2>{`${formatResourceType(resource) ?? 'Action'}: ${formatTitle(
           resource
         )}`}</h2>
-        {formatedProperties}
-        {cql != null && <CQLDisplay cql={cql} />}
-        <BackButton />
+        {!displayJson && cql != null ? (
+          <>
+            {formatedProperties}
+            <CodeDisplay cql={cql} />
+          </>
+        ) : displayJson ? (
+          <CodeDisplay cql={JSON.stringify(resource, null, 1)} />
+        ) : (
+          <>{formatedProperties}</>
+        )}
+        <div
+          className={
+            path === '/' ? 'buttons-container center' : 'buttons-container'
+          }
+        >
+          <BackButton />
+          <button
+            className="format-button"
+            onClick={() => setDisplayJson(!displayJson)}
+          >
+            {displayJson ? 'Text' : 'JSON'}
+          </button>
+        </div>
       </div>
     )
   }

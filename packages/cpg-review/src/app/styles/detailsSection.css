@@ -37,13 +37,11 @@
   background-color: var(--teal);
   color: #fff;
   font-size: 0.9rem;
-  margin-top: 5rem;
   border: 0px;
   border-radius: 6px;
   width: 90px;
   padding: 0.6rem;
   font-weight: bold;
-  align-self: center;
 }
 
 .back-button:hover {
@@ -62,4 +60,24 @@
 code {
   font-size: 1rem;
   color: var(--purple);
+}
+
+.buttons-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 5rem;
+}
+
+.buttons-container.center {
+  justify-content: center;
+  margin-top: 3rem;
+}
+
+.format-button {
+  border: none;
+  background: none;
+  color: var(--teal);
+  text-decoration: underline;
+  font-size: 1rem;
 }

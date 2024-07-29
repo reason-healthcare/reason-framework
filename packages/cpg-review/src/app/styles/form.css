@@ -1,6 +1,6 @@
 .form {
   max-width: 85%;
-  width: 600px;
+  width: 850px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -9,6 +9,10 @@
 
 .form-item {
   width: 100%;
+}
+
+.form-item.upload {
+  width: 600px;
 }
 
 .form-title {

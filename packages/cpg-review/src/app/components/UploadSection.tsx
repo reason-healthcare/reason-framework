@@ -4,7 +4,6 @@ import { InboxOutlined } from '@ant-design/icons'
 import type { UploadProps } from 'antd'
 import '@/styles/form.css'
 import type { RcFile } from 'antd/es/upload'
-import FileResolver from 'resolver/file'
 import BrowserResolver from 'resolver/browser'
 import { is, notEmpty, resolveCanonical } from 'helpers'
 import LoadIndicator from './LoadIndicator'
@@ -26,6 +25,7 @@ const UploadSection = ({
   const [planDefinitionSelection, setPlanDefinitionSelection] =
     useState<string>()
   const [isLoading, setIsLoading] = useState(false)
+  const [uploaded, setUploaded] = useState<RcFile | undefined>()
 
   const { Option } = Select
   const { Dragger } = Upload
@@ -34,20 +34,30 @@ const UploadSection = ({
   useEffect(() => {
     setPlanDefinitionSelection(undefined)
     setPlanDefinition(undefined)
+    setUploaded(undefined)
   }, [])
 
   const beforeUpload = (file: RcFile) => {
     const isZip = file.type === 'application/zip'
-    if (!isZip) {
-      message.error('You can only upload zipped files')
+    if (uploaded != null) {
+      message.error('May only upload one zipped file')
+    } else if (!isZip) {
+      message.error('May only upload zipped files')
     }
-    return isZip || Upload.LIST_IGNORE
+    if (isZip && uploaded == null) {
+      setUploaded(file)
+    } else {
+      return Upload.LIST_IGNORE
+    }
   }
 
   const handleFileChange = (info: any) => {
     const { status, originFileObj } = info.file
+    const { fileList } = info
     if (status === 'removed') {
       localStorage.clear()
+    } else if (fileList.length > 1) {
+      message.error('May only upload one zipped file')
     } else if (status === 'done') {
       handleUpload(originFileObj)
     }
@@ -100,7 +110,7 @@ const UploadSection = ({
               ) {
                 type = 'CPG Recommendation'
               } else {
-                type = 'Plan'
+                type = 'Plan Definition'
               }
               if (is.PlanDefinition(resource)) {
                 return `${resource.url} ${type ? `(${type})` : null}`
@@ -129,14 +139,18 @@ const UploadSection = ({
     }
   }
 
+  const onRemove = () => {
+    localStorage.clear()
+    setUploaded(undefined)
+  }
+
   const props: UploadProps = {
     name: 'file',
     multiple: false,
     accept: 'zip',
-    beforeUpload: beforeUpload,
+    beforeUpload,
     onChange: handleFileChange,
-    onRemove: () => localStorage.clear(),
-    onDrop(e) {},
+    onRemove,
   }
 
   return (
@@ -152,7 +166,7 @@ const UploadSection = ({
           name="upload"
           valuePropName="fileList"
           getValueFromEvent={(e) => e.fileList}
-          className="form-item"
+          className="form-item upload"
         >
           <Dragger {...props} className="form-item">
             <p className="ant-upload-drag-icon">
@@ -169,6 +183,7 @@ const UploadSection = ({
             <Select
               onChange={handleChange}
               placeholder="Select a plan definition"
+              popupMatchSelectWidth={true}
             >
               {planDefinitions.map((p) => {
                 return (

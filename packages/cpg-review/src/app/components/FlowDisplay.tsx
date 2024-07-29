@@ -8,13 +8,11 @@ import ReactFlow, {
   MiniMap,
   ControlButton,
   useReactFlow,
-  getViewportForBounds,
 } from 'reactflow'
 import Flow from '../model/Flow'
 import ActionNode from './ActionNode'
 import DefinitionNode from './DefinitionNode'
 import SelectionEdge from './SelectionEdge'
-import FileResolver from 'resolver/file'
 import { FullscreenOutlined, FullscreenExitOutlined } from '@ant-design/icons'
 import BrowserResolver from 'resolver/browser'
 
@@ -31,6 +29,8 @@ interface FlowDisplayProps {
   >
   setShowDetails: React.Dispatch<React.SetStateAction<boolean>>
   showDetails: boolean
+  selected: string | undefined
+  setSelected: React.Dispatch<React.SetStateAction<string | undefined>>
 }
 
 export default function FlowDisplay({
@@ -39,6 +39,8 @@ export default function FlowDisplay({
   setDetails,
   setShowDetails,
   showDetails,
+  selected,
+  setSelected,
 }: FlowDisplayProps) {
   const [allNodes, setAllNodes] = useState<Node[] | undefined>()
   const [allEdges, setAllEdges] = useState<Edge[] | undefined>()
@@ -46,7 +48,6 @@ export default function FlowDisplay({
   const [displayEdges, setDisplayEdges] = useState<Edge[] | undefined>()
   const [expandedView, setExpandedView] = useState<boolean>(true)
   const [expandNode, setExpandNode] = useState<string>()
-  const [selected, setSelected] = useState<string>()
   const [key, setKey] = useState<number>(0)
 
   const nodeTypes = useMemo(

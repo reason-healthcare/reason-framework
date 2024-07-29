@@ -2,11 +2,11 @@ import hljs from 'highlight.js'
 import { FC, useEffect, useRef } from 'react'
 import '@/styles/detailsSection.css'
 
-interface CQLDisplay {
+interface CodeDisplay {
   cql: string
 }
 
-const CQLDisplay: FC<CQLDisplay> = ({ cql }) => {
+const CodeDisplay: FC<CodeDisplay> = ({ cql }) => {
   const codeRef = useRef(null)
 
   useEffect(() => {
@@ -24,4 +24,4 @@ const CQLDisplay: FC<CQLDisplay> = ({ cql }) => {
   )
 }
 
-export default CQLDisplay
+export default CodeDisplay

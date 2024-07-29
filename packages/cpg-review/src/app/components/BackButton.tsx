@@ -1,4 +1,3 @@
-import { LeftOutlined } from '@ant-design/icons'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 const BackButton = () => {

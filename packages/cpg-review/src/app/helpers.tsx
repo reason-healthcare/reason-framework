@@ -565,7 +565,6 @@ export const formatRelatedArtifact = (
   navigate?: NavigateFunction
 ) => {
   const { type, display, label, resource, document, citation } = artifact
-  console.log(artifact)
   return (
     <>
       {type && <span>{`${capitalize(type)}: `}</span>}

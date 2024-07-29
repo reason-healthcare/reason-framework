@@ -13,14 +13,17 @@ interface DetailsSectionProps {
     | fhir4.ActivityDefinition
     | undefined
   resolver: BrowserResolver | undefined
+  setSelected: React.Dispatch<React.SetStateAction<string | undefined>>
 }
 
 const DetailsSection = ({
   details,
   setShowDetails,
   resolver,
+  setSelected,
 }: DetailsSectionProps) => {
-  let navigate = useNavigate()
+  const navigate = useNavigate()
+
   useEffect(() => {
     navigate('/')
   }, [details])
@@ -39,12 +42,18 @@ const DetailsSection = ({
           <Route
             path="/"
             element={
-              <ResourceDetails resolver={resolver} nodeDetails={details} />
+              <ResourceDetails
+                resolver={resolver}
+                setSelected={setSelected}
+                nodeDetails={details}
+              />
             }
           />
           <Route
             path="/:resourceType/:id"
-            element={<ResourceDetails resolver={resolver} />}
+            element={
+              <ResourceDetails resolver={resolver} setSelected={setSelected} />
+            }
           />
         </Routes>
       </div>
