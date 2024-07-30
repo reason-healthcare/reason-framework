@@ -353,6 +353,390 @@ export const is = {
         object.valueReference === undefined)
     )
   },
+  Quantity: (object: any): object is fhir4.Quantity => {
+    const keys = [
+      'code',
+      '_code',
+      'comparator',
+      '_comparator',
+      'system',
+      '_system',
+      'unit',
+      '_unit',
+      'value',
+    ]
+    return (
+      object !== null &&
+      typeof object === 'object' &&
+      (typeof object.code === 'string' || typeof object.code === 'undefined') &&
+      (typeof object._code === 'object' ||
+        typeof object._code === 'undefined') &&
+      (typeof object.comparator === 'string' ||
+        typeof object.comparator === 'undefined') &&
+      (typeof object._comparator === 'object' ||
+        typeof object._comparator === 'undefined') &&
+      (typeof object.system === 'string' ||
+        typeof object.system === 'undefined') &&
+      (typeof object._system === 'object' ||
+        typeof object._system === 'undefined') &&
+      (typeof object.unit === 'string' || typeof object.unit === 'undefined') &&
+      (typeof object._unit === 'object' ||
+        typeof object._unit === 'undefined') &&
+      (typeof object.value === 'number' ||
+        typeof object.value === 'undefined') &&
+      Object.keys(object).every((key) => keys.includes(key))
+    )
+  },
+  Range: (object: any): object is fhir4.Range => {
+    const keys = ['high', 'low']
+    return (
+      object !== null &&
+      typeof object === 'object' &&
+      (is.Quantity(object.high) || typeof object.high === 'undefined') &&
+      (is.Quantity(object.low) || typeof object.low === 'undefined') &&
+      Object.keys(object).every((key) => keys.includes(key))
+    )
+  },
+  Ratio: (object: any): object is fhir4.Ratio => {
+    const keys = ['denominator', 'numerator']
+    return (
+      object !== null &&
+      typeof object === 'object' &&
+      (is.Quantity(object.denominator) ||
+        typeof object.denominator === 'undefined') &&
+      (is.Quantity(object.numerator) ||
+        typeof object.numerator === 'undefined') &&
+      Object.keys(object).every((key) => keys.includes(key))
+    )
+  },
+  Timing: (object: any): object is fhir4.Timing => {
+    const keys = ['code', 'event', '_event', 'repeat']
+    return (
+      object !== null &&
+      typeof object === 'object' &&
+      (is.CodeableConcept(object.code) || typeof object.code === 'undefined') &&
+      ((Array.isArray(object.event) &&
+        object.event.every((item: any) => typeof item === 'string')) ||
+        typeof object.event === 'undefined') &&
+      (Array.isArray(object._event) || typeof object._event === 'undefined') &&
+      (is.TimingRepeat(object.repeat) ||
+        typeof object.repeat === 'undefined') &&
+      Object.keys(object).every((key) => keys.includes(key))
+    )
+  },
+  TimingRepeat: (object: any): object is fhir4.TimingRepeat => {
+    const keys = [
+      'boundsDuration',
+      'boundsRange',
+      'boundsPeriod',
+      'count',
+      'countMax',
+      'dayOfWeek',
+      '_dayOfWeek',
+      'duration',
+      'durationMax',
+      'durationUnit',
+      '_durationUnit',
+      'frequency',
+      'frequencyMax',
+      'offset',
+      'period',
+      'periodMax',
+      'periodUnit',
+      '_periodUnit',
+      'timeOfDay',
+      '_timeOfDay',
+      'when',
+      '_when',
+    ]
+    return (
+      object !== null &&
+      typeof object === 'object' &&
+      (typeof object.boundsDuration === 'object' ||
+        typeof object.boundsDuration === 'undefined') &&
+      (is.Range(object.boundsRange) ||
+        typeof object.boundsRange === 'undefined') &&
+      (typeof object.boundsPeriod === 'object' ||
+        typeof object.boundsPeriod === 'undefined') &&
+      (typeof object.count === 'number' ||
+        typeof object.count === 'undefined') &&
+      (typeof object.countMax === 'number' ||
+        typeof object.countMax === 'undefined') &&
+      ((Array.isArray(object.dayOfWeek) &&
+        object.dayOfWeek.every((item: any) =>
+          ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].includes(item)
+        )) ||
+        typeof object.dayOfWeek === 'undefined') &&
+      (Array.isArray(object._dayOfWeek) ||
+        typeof object._dayOfWeek === 'undefined') &&
+      (typeof object.duration === 'number' ||
+        typeof object.duration === 'undefined') &&
+      (typeof object.durationMax === 'number' ||
+        typeof object.durationMax === 'undefined') &&
+      (['s', 'min', 'h', 'd', 'wk', 'mo', 'a'].includes(object.durationUnit) ||
+        typeof object.durationUnit === 'undefined') &&
+      (typeof object._durationUnit === 'object' ||
+        typeof object._durationUnit === 'undefined') &&
+      (typeof object.frequency === 'number' ||
+        typeof object.frequency === 'undefined') &&
+      (typeof object.frequencyMax === 'number' ||
+        typeof object.frequencyMax === 'undefined') &&
+      (typeof object.offset === 'number' ||
+        typeof object.offset === 'undefined') &&
+      (typeof object.period === 'number' ||
+        typeof object.period === 'undefined') &&
+      (typeof object.periodMax === 'number' ||
+        typeof object.periodMax === 'undefined') &&
+      (['s', 'min', 'h', 'd', 'wk', 'mo', 'a'].includes(object.periodUnit) ||
+        typeof object.periodUnit === 'undefined') &&
+      (typeof object._periodUnit === 'object' ||
+        typeof object._periodUnit === 'undefined') &&
+      ((Array.isArray(object.timeOfDay) &&
+        object.timeOfDay.every((item: any) => typeof item === 'string')) ||
+        typeof object.timeOfDay === 'undefined') &&
+      (Array.isArray(object._timeOfDay) ||
+        typeof object._timeOfDay === 'undefined') &&
+      ((Array.isArray(object.when) &&
+        object.when.every((item: any) => typeof item === 'string')) ||
+        typeof object.when === 'undefined') &&
+      (Array.isArray(object._when) || typeof object._when === 'undefined') &&
+      Object.keys(object).every((key) => keys.includes(key))
+    )
+  },
+  Period: (object: any): object is fhir4.Period => {
+    const keys = ['end', '_end', 'start', '_start']
+    return (
+      object !== null &&
+      typeof object === 'object' &&
+      (typeof object.end === 'string' || typeof object.end === 'undefined') &&
+      (typeof object._end === 'object' || typeof object._end === 'undefined') &&
+      (typeof object.start === 'string' ||
+        typeof object.start === 'undefined') &&
+      (typeof object._start === 'object' ||
+        typeof object._start === 'undefined') &&
+      Object.keys(object).every((key) => keys.includes(key))
+    )
+  },
+  Duration: (object: any): object is fhir4.Duration => {
+    const keys = ['value', 'comparator', 'unit', 'system', 'code']
+    return (
+      object !== null &&
+      typeof object === 'object' &&
+      (typeof object.value === 'number' ||
+        typeof object.value === 'undefined') &&
+      (typeof object.comparator === 'string' ||
+        typeof object.comparator === 'undefined') &&
+      (typeof object.unit === 'string' || typeof object.unit === 'undefined') &&
+      (typeof object.system === 'string' ||
+        typeof object.system === 'undefined') &&
+      (typeof object.code === 'string' || typeof object.code === 'undefined') &&
+      Object.keys(object).every((key) => keys.includes(key))
+    )
+  },
+  Reference: (object: any): object is fhir4.Reference => {
+    const keys = [
+      'display',
+      '_display',
+      'identifier',
+      'reference',
+      '_reference',
+      'type',
+      '_type',
+    ]
+    return (
+      object !== null &&
+      typeof object === 'object' &&
+      (typeof object.display === 'string' ||
+        typeof object.display === 'undefined') &&
+      (typeof object._display === 'object' ||
+        typeof object._display === 'undefined') &&
+      (typeof object.identifier === 'object' ||
+        typeof object.identifier === 'undefined') &&
+      (typeof object.reference === 'string' ||
+        typeof object.reference === 'undefined') &&
+      (typeof object._reference === 'object' ||
+        typeof object._reference === 'undefined') &&
+      (typeof object.type === 'string' || typeof object.type === 'undefined') &&
+      (typeof object._type === 'object' ||
+        typeof object._type === 'undefined') &&
+      Object.keys(object).every((key) => keys.includes(key))
+    )
+  },
+  TriggerDefinition: (object: any): object is fhir4.TriggerDefinition => {
+    const keys = [
+      'condition',
+      'data',
+      'name',
+      '_name',
+      'timingTiming',
+      'timingReference',
+      'timingDate',
+      '_timingDate',
+      'timingDateTime',
+      '_timingDateTime',
+      'type',
+      '_type',
+    ]
+    return (
+      object !== null &&
+      typeof object === 'object' &&
+      (is.Expression(object.condition) ||
+        typeof object.condition === 'undefined') &&
+      ((Array.isArray(object.data) && object.data.every(is.DataRequirement)) ||
+        typeof object.data === 'undefined') &&
+      (typeof object.name === 'string' || typeof object.name === 'undefined') &&
+      (typeof object._name === 'object' ||
+        typeof object._name === 'undefined') &&
+      (is.Timing(object.timingTiming) ||
+        typeof object.timingTiming === 'undefined') &&
+      (is.Reference(object.timingReference) ||
+        typeof object.timingReference === 'undefined') &&
+      (typeof object.timingDate === 'string' ||
+        typeof object.timingDate === 'undefined') &&
+      (typeof object._timingDate === 'object' ||
+        typeof object._timingDate === 'undefined') &&
+      (typeof object.timingDateTime === 'string' ||
+        typeof object.timingDateTime === 'undefined') &&
+      (typeof object._timingDateTime === 'object' ||
+        typeof object._timingDateTime === 'undefined') &&
+      [
+        'named-event',
+        'periodic',
+        'data-changed',
+        'data-added',
+        'data-modified',
+        'data-removed',
+        'data-accessed',
+        'data-access-ended',
+      ].includes(object.type) &&
+      (typeof object._type === 'object' ||
+        typeof object._type === 'undefined') &&
+      Object.keys(object).every((key) => keys.includes(key))
+    )
+  },
+  ParameterDefinition: (object: any): object is fhir4.ParameterDefinition => {
+    const keys = [
+      'documentation',
+      '_documentation',
+      'max',
+      '_max',
+      'min',
+      'name',
+      '_name',
+      'profile',
+      '_profile',
+      'type',
+      '_type',
+      'use',
+      '_use',
+    ]
+    return (
+      object !== null &&
+      typeof object === 'object' &&
+      (typeof object.documentation === 'string' ||
+        typeof object.documentation === 'undefined') &&
+      (typeof object._documentation === 'object' ||
+        typeof object._documentation === 'undefined') &&
+      (typeof object.max === 'string' || typeof object.max === 'undefined') &&
+      (typeof object._max === 'object' || typeof object._max === 'undefined') &&
+      (typeof object.min === 'number' || typeof object.min === 'undefined') &&
+      (typeof object.name === 'string' || typeof object.name === 'undefined') &&
+      (typeof object._name === 'object' ||
+        typeof object._name === 'undefined') &&
+      (typeof object.profile === 'string' ||
+        typeof object.profile === 'undefined') &&
+      (typeof object._profile === 'object' ||
+        typeof object._profile === 'undefined') &&
+      typeof object.type === 'string' &&
+      (typeof object._type === 'object' ||
+        typeof object._type === 'undefined') &&
+      ['in', 'out'].includes(object.use) &&
+      (typeof object._use === 'object' || typeof object._use === 'undefined') &&
+      Object.keys(object).every((key) => keys.includes(key))
+    )
+  },
+  DosageDoseAndRate: (object: any): object is fhir4.DosageDoseAndRate => {
+    const keys = [
+      'doseRange',
+      'doseQuantity',
+      'rateRatio',
+      'rateRange',
+      'rateQuantity',
+      'type',
+    ]
+    return (
+      object !== null &&
+      typeof object === 'object' &&
+      (is.Range(object.doseRange) || typeof object.doseRange === 'undefined') &&
+      (is.Quantity(object.doseQuantity) ||
+        typeof object.doseQuantity === 'undefined') &&
+      (is.Ratio(object.rateRatio) || typeof object.rateRatio === 'undefined') &&
+      (is.Range(object.rateRange) || typeof object.rateRange === 'undefined') &&
+      (is.Quantity(object.rateQuantity) ||
+        typeof object.rateQuantity === 'undefined') &&
+      (is.CodeableConcept(object.type) || typeof object.type === 'undefined') &&
+      Object.keys(object).every((key) => keys.includes(key))
+    )
+  },
+  Dosage: (object: any): object is fhir4.Dosage => {
+    const keys = [
+      'additionalInstruction',
+      'asNeededBoolean',
+      '_asNeededBoolean',
+      'asNeededCodeableConcept',
+      'doseAndRate',
+      'maxDosePerAdministration',
+      'maxDosePerLifetime',
+      'maxDosePerPeriod',
+      'method',
+      'patientInstruction',
+      '_patientInstruction',
+      'route',
+      'sequence',
+      'site',
+      'text',
+      '_text',
+      'timing',
+    ]
+    return (
+      object !== null &&
+      typeof object === 'object' &&
+      ((Array.isArray(object.additionalInstruction) &&
+        object.additionalInstruction.every(is.CodeableConcept)) ||
+        typeof object.additionalInstruction === 'undefined') &&
+      (typeof object.asNeededBoolean === 'boolean' ||
+        typeof object.asNeededBoolean === 'undefined') &&
+      (typeof object._asNeededBoolean === 'object' ||
+        typeof object._asNeededBoolean === 'undefined') &&
+      (is.CodeableConcept(object.asNeededCodeableConcept) ||
+        typeof object.asNeededCodeableConcept === 'undefined') &&
+      ((Array.isArray(object.doseAndRate) &&
+        object.doseAndRate.every(is.DosageDoseAndRate)) ||
+        typeof object.doseAndRate === 'undefined') &&
+      (is.Quantity(object.maxDosePerAdministration) ||
+        typeof object.maxDosePerAdministration === 'undefined') &&
+      (is.Quantity(object.maxDosePerLifetime) ||
+        typeof object.maxDosePerLifetime === 'undefined') &&
+      (is.Ratio(object.maxDosePerPeriod) ||
+        typeof object.maxDosePerPeriod === 'undefined') &&
+      (is.CodeableConcept(object.method) ||
+        typeof object.method === 'undefined') &&
+      (typeof object.patientInstruction === 'string' ||
+        typeof object.patientInstruction === 'undefined') &&
+      (typeof object._patientInstruction === 'object' ||
+        typeof object._patientInstruction === 'undefined') &&
+      (is.CodeableConcept(object.route) ||
+        typeof object.route === 'undefined') &&
+      (typeof object.sequence === 'number' ||
+        typeof object.sequence === 'undefined') &&
+      (is.CodeableConcept(object.site) || typeof object.site === 'undefined') &&
+      (typeof object.text === 'string' || typeof object.text === 'undefined') &&
+      (typeof object._text === 'object' ||
+        typeof object._text === 'undefined') &&
+      (is.Timing(object.timing) || typeof object.timing === 'undefined') &&
+      Object.keys(object).every((key) => keys.includes(key))
+    )
+  },
 }
 
 export const resolveCanonical = (
@@ -522,8 +906,55 @@ export const formatCoding = (
     </>
   )
 }
+export const formatRatio = (ratio: fhir4.Ratio) => {
+  const { numerator, denominator } = ratio
+  return `${numerator} : ${denominator}`
+}
+export const formatQuntity = (quantity: fhir4.Quantity) => {
+  const { value, comparator, unit, system, code } = quantity
+  return `${comparator ?? ''} ${value} ${unit} ${code ? `as ${code}` : ''} ${
+    system ? `from ${system}` : ''
+  }`
+}
+export const formatRange = (range: fhir4.Range) => {
+  const { low, high } = range
+  return `${low} to ${high}`
+}
+export const formatPeriod = (period: fhir4.Period) => {
+  const { start, end } = period
+  return `From ${start} to ${end}`
+}
 
-// TODO: Format attachment, ratio, period, timing, duration, quantity
+export const formatTimingRepeat = (repeat: fhir4.TimingRepeat) => {
+  const {
+    boundsDuration,
+    boundsRange,
+    boundsPeriod,
+    count,
+    countMax,
+    duration,
+    durationMax,
+    durationUnit,
+    frequency,
+    frequencyMax,
+    period,
+    periodMax,
+    periodUnit,
+    dayOfWeek,
+    timeOfDay,
+    when,
+    offset,
+  } = repeat
+  return `${boundsDuration ?? boundsRange ?? boundsPeriod ?? ''} ${
+    count ? `${count} times` : ''
+  } ${countMax ? `to at most ${countMax} times` : ''} ${
+    duration ? `for ${duration}${durationUnit ?? ''}` : ''
+  } ${frequency ? `${frequency} times` : null} ${
+    period ? `per ${period}${periodUnit ?? ''}` : ''
+  } ${dayOfWeek ? `on ${formatValue(dayOfWeek)}` : ''} ${
+    timeOfDay ? `at ${formatValue(timeOfDay)}` : ''
+  } ${when ? `when ${formatValue(when)}` : ''}`
+}
 
 export const formatExtension = (
   extension: fhir4.Extension,
@@ -545,7 +976,6 @@ export const formatExtension = (
     )
   }
 }
-
 // TODO: Format Reference, Dosage
 
 export const formatExpression = (
@@ -619,7 +1049,6 @@ export const formatUsageContext = (
     </>
   )
 }
-
 // TODO: Format Trigger Def, parameter
 
 /** Plan Definition Types */
@@ -686,7 +1115,18 @@ export const formatValue = (
     formattedValue = formatRelatedArtifact(value, resolver, navigate)
   } else if (is.UsageContext(value)) {
     formattedValue = formatUsageContext(value, resolver, navigate)
+  } else if (is.Ratio(value)) {
+    formattedValue = formatRatio(value)
+  } else if (is.Quantity(value)) {
+    formattedValue = formatQuntity(value)
+  } else if (is.Period(value)) {
+    formattedValue = formatPeriod(value)
+  } else if (is.Range(value)) {
+    formattedValue = formatRange(value)
+  } else if (is.TimingRepeat(value)) {
+    formattedValue = formatTimingRepeat(value)
   }
+
   return formattedValue
 }
 
@@ -715,7 +1155,12 @@ export const formatProperty = (
         .filter(notEmpty)
     }
   }
-  const keyFormatted = key != null ? capitalize(key) : undefined
+  const keyFormatted =
+    key != null
+      ? capitalize(key)
+          .split(/(?=[A-Z])/)
+          .join(' ')
+      : undefined
   if (Array.isArray(content)) {
     return <ListDisplayItem heading={keyFormatted} content={content} />
   } else {

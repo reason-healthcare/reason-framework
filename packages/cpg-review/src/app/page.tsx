@@ -1,6 +1,5 @@
 'use client'
 import { useState, useEffect } from 'react'
-import FileResolver from './resolver/file'
 import BrowserResolver from 'resolver/browser'
 import FlowDisplay from './components/FlowDisplay'
 import LoadIndicator from './components/LoadIndicator'
@@ -45,17 +44,21 @@ export default function Home() {
   const contentDisplay = (
     <>
       <div className="header">
-        <h1>
-          {planDefinition?.title ??
-            planDefinition?.name ??
-            planDefinition?.url ??
-            planDefinition?.id ??
-            ''}
-        </h1>
-        <InboxOutlined
-          className="upload-icon"
-          onClick={() => setShowUpload(true)}
-        />
+        {resolver && planDefinition && (
+          <>
+            <h1>
+              {planDefinition?.title ??
+                planDefinition?.name ??
+                planDefinition?.url ??
+                planDefinition?.id ??
+                ''}
+            </h1>
+            <InboxOutlined
+              className="upload-icon"
+              onClick={() => setShowUpload(true)}
+            />
+          </>
+        )}
       </div>
       <div className="content-container">
         {resolver && planDefinition ? (
