@@ -1,11 +1,11 @@
-import '@/styles/detailsSection.css'
+import '@/styles/NarrativeDisplay.css'
 import { CloseOutlined } from '@ant-design/icons'
 import BrowserResolver from 'resolver/browser'
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import ResourceDetails from './ResourceDetails'
 
-interface DetailsSectionProps {
+interface NarrativeDisplayProps {
   setShowDetails: React.Dispatch<React.SetStateAction<boolean>>
   details:
     | fhir4.PlanDefinition
@@ -16,12 +16,12 @@ interface DetailsSectionProps {
   setSelected: React.Dispatch<React.SetStateAction<string | undefined>>
 }
 
-const DetailsSection = ({
+const NarrativeDisplay = ({
   details,
   setShowDetails,
   resolver,
   setSelected,
-}: DetailsSectionProps) => {
+}: NarrativeDisplayProps) => {
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -61,4 +61,4 @@ const DetailsSection = ({
   )
 }
 
-export default DetailsSection
+export default NarrativeDisplay

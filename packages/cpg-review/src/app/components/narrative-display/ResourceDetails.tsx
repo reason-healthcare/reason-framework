@@ -6,12 +6,12 @@ import {
   KnowledgeArtifact,
   notEmpty,
   TerminologyArtifact,
-} from '../helpers'
+} from '../../helpers'
 import { useLocation, useNavigate } from 'react-router-dom'
 import BrowserResolver from 'resolver/browser'
-import BackButton from './BackButton'
+import BackButton from '../BackButton'
 import CodeDisplay from './CodeDisplay'
-import '@/styles/detailsSection.css'
+import '@/styles/NarrativeDisplay.css'
 import { useEffect, useState } from 'react'
 
 interface ResourceDetailsProps {

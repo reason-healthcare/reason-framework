@@ -3,8 +3,8 @@ import BrowserResolver from 'resolver/browser'
 import { v4 } from 'uuid'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import SingleDisplayItem from './components/SingleDisplayItem'
-import ListDisplayItem from './components/ListDisplayItem'
+import SingleDisplayItem from './components/narrative-display/SingleDisplayItem'
+import ListDisplayItem from './components/narrative-display/ListDisplayItem'
 
 export function notEmpty<TValue>(
   value: TValue | null | undefined

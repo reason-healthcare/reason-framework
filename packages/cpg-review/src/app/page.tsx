@@ -1,9 +1,9 @@
 'use client'
 import { useState, useEffect } from 'react'
 import BrowserResolver from './resolver/browser'
-import FlowDisplay from './components/FlowDisplay'
+import FlowDisplay from './components/flow-display/FlowDisplay'
 import LoadIndicator from './components/LoadIndicator'
-import DetailsSection from './components/DetailsSection'
+import NarrativeDisplay from './components/narrative-display/NarrativeDisplay'
 import { ReactFlowProvider } from 'reactflow'
 import UploadSection from './components/UploadSection'
 import { InboxOutlined } from '@ant-design/icons'
@@ -75,12 +75,12 @@ export default function Home() {
         )}
         <MemoryRouter>
           {showDetails && (
-            <DetailsSection
+            <NarrativeDisplay
               details={details}
               resolver={resolver}
               setShowDetails={setShowDetails}
               setSelected={setSelected}
-            ></DetailsSection>
+            ></NarrativeDisplay>
           )}
         </MemoryRouter>
       </div>

@@ -9,7 +9,7 @@ type DefinitionNodeProps = {
     handle: 'output' | 'input' | undefined
     details: fhir4.PlanDefinitionAction
     isCollapsed: boolean
-    setExpandNode: React.Dispatch<React.SetStateAction<string>>
+    setexpandedNode: React.Dispatch<React.SetStateAction<string>>
     selected: string | undefined
     setSelected: React.Dispatch<React.SetStateAction<string | undefined>>
     setDetails: React.Dispatch<
@@ -28,7 +28,7 @@ const DefinitionNode = ({ data, id }: DefinitionNodeProps) => {
     handle,
     details,
     isCollapsed,
-    setExpandNode,
+    setexpandedNode,
     selected,
     setSelected,
     setDetails,
@@ -65,7 +65,7 @@ const DefinitionNode = ({ data, id }: DefinitionNodeProps) => {
           <InteractiveHandle
             setCollapsed={setCollapsed}
             collapsed={collapsed}
-            setExpandNode={setExpandNode}
+            setexpandedNode={setexpandedNode}
             id={id}
           />
         ) : null}

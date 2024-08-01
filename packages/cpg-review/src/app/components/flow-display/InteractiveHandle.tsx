@@ -6,21 +6,21 @@ import { UpCircleFilled, DownCircleFilled } from '@ant-design/icons'
 type InteractiveHandleProps = {
   setCollapsed: React.Dispatch<React.SetStateAction<boolean>>
   collapsed: boolean
-  setExpandNode: React.Dispatch<React.SetStateAction<string>>
+  setexpandedNode: React.Dispatch<React.SetStateAction<string>>
   id: string
 }
 
 const InteractiveHandle = ({
   setCollapsed,
   collapsed,
-  setExpandNode,
+  setexpandedNode,
   id,
 }: InteractiveHandleProps) => {
   const [displayIcon, setDisplayIcon] = useState(false)
 
   const handleClick = () => {
     if (collapsed) {
-      setExpandNode(id)
+      setexpandedNode(id)
     }
     setCollapsed(!collapsed)
   }

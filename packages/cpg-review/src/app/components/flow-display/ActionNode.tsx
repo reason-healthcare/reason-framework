@@ -12,7 +12,7 @@ type ActionNodeProps = {
     handle: 'output' | undefined
     details: fhir4.PlanDefinitionAction
     isCollapsed: boolean
-    setExpandNode: React.Dispatch<React.SetStateAction<string>>
+    setexpandedNode: React.Dispatch<React.SetStateAction<string>>
     selected: string | undefined
     setSelected: React.Dispatch<React.SetStateAction<string | undefined>>
     setDetails: React.Dispatch<
@@ -31,7 +31,7 @@ const ActionNode = ({ data, id }: ActionNodeProps) => {
     handle,
     details,
     isCollapsed,
-    setExpandNode,
+    setexpandedNode,
     selected,
     setSelected,
     setDetails,
@@ -96,7 +96,7 @@ const ActionNode = ({ data, id }: ActionNodeProps) => {
         <InteractiveHandle
           setCollapsed={setCollapsed}
           collapsed={collapsed}
-          setExpandNode={setExpandNode}
+          setexpandedNode={setexpandedNode}
           id={id}
         />
       ) : null}

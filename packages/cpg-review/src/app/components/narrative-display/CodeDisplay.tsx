@@ -1,6 +1,6 @@
 import hljs from 'highlight.js'
 import { FC, useEffect, useRef } from 'react'
-import '@/styles/detailsSection.css'
+import '@/styles/NarrativeDisplay.css'
 
 interface CodeDisplay {
   cql: string
