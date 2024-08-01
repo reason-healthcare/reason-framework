@@ -15,6 +15,10 @@
   width: 600px;
 }
 
+.ant-upload {
+  background-color: white;
+}
+
 .form-title {
   padding: 1rem;
 }

@@ -66,7 +66,7 @@ const ResourceDetails = ({
         setResource(rawResource)
       }
       if (is.Library(rawResource)) {
-        setCql(resolver.resolveCql(reference))
+        setCql(resolver.resolveCql(rawResource.id))
       } else {
         setCql(undefined)
       }

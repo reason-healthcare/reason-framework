@@ -1,8 +1,7 @@
-import ReactFlow, { Edge, Node, useReactFlow, getOutgoers } from 'reactflow'
+import { Edge, Node, getOutgoers } from 'reactflow'
 import { is, notEmpty } from '../helpers'
 import '@/styles/node.css'
 import '@/styles/edge.css'
-import FileResolver from 'resolver/file'
 import { ElkNode } from 'elkjs'
 import { resolveCanonical } from '../helpers'
 import { v4 } from 'uuid'
@@ -10,7 +9,6 @@ import Graph from './Graph'
 import BrowserResolver from 'resolver/browser'
 
 export interface FlowInstance {
-  // extends ReactFlowInstance {
   nodes: Node[] | undefined
   edges: Edge[] | undefined
   generateFinalFlow(graph: ElkNode): void

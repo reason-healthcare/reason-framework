@@ -70,54 +70,62 @@ const UploadSection = ({
       reader.onload = async (event) => {
         const zipData = JSON.stringify(event.target?.result)
         let resolver = new BrowserResolver()
-        resolver.handleProcessZip(zipData).then((r) => {
-          setResolver(resolver)
-          try {
-            localStorage.clear()
-            localStorage.setItem('resolver', JSON.stringify(resolver))
-            message.success('Saved content to local storage')
-          } catch (e) {
-            console.error(e)
-            message.info('Unable to save content to local storage')
+        resolver.handleProcessZip(zipData).then(() => {
+          if (resolver == null) {
+            message.error('Unable to process zipped data. Ensure that the data is the compressed output of a FHIR Implementation Guide')
+          } else {
+            setResolver(resolver)
+            try {
+              localStorage.clear()
+              localStorage.setItem('resolver', JSON.stringify(resolver))
+              message.success('Saved content to local storage')
+            } catch (e) {
+              console.error(e)
+              message.info('Unable to save content to local storage')
+            }
+            const { resourcesByCanonical } = resolver
+            const plans = Object.keys(resourcesByCanonical)
+              .map((k: string) => {
+                const resource = resourcesByCanonical[k]
+                let type
+                if (
+                  resource.meta?.profile?.find(
+                    (p) =>
+                      p ===
+                      'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-pathwaydefinition'
+                  )
+                ) {
+                  type = 'CPG Pathway'
+                } else if (
+                  resource.meta?.profile?.find(
+                    (p) =>
+                      p ===
+                      'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-strategydefinition'
+                  )
+                ) {
+                  type = 'CPG Strategy'
+                } else if (
+                  resource.meta?.profile?.find(
+                    (p) =>
+                      p ===
+                      'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-recommendationdefinition'
+                  )
+                ) {
+                  type = 'CPG Recommendation'
+                } else {
+                  type = 'Plan Definition'
+                }
+                if (is.PlanDefinition(resource)) {
+                  return `${resource.url} ${type ? `(${type})` : null}`
+                }
+              })
+              .filter(notEmpty)
+            if (plans.length > 0) {
+              setPlanDefinitions(plans)
+            } else {
+              message.error('Unable to find plan definitions. Please load content with at least one plan definition')
+            }
           }
-          const { resourcesByCanonical } = resolver
-          const plans = Object.keys(resourcesByCanonical)
-            .map((k: string) => {
-              const resource = resourcesByCanonical[k]
-              let type
-              if (
-                resource.meta?.profile?.find(
-                  (p) =>
-                    p ===
-                    'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-pathwaydefinition'
-                )
-              ) {
-                type = 'CPG Pathway'
-              } else if (
-                resource.meta?.profile?.find(
-                  (p) =>
-                    p ===
-                    'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-strategydefinition'
-                )
-              ) {
-                type = 'CPG Strategy'
-              } else if (
-                resource.meta?.profile?.find(
-                  (p) =>
-                    p ===
-                    'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-recommendationdefinition'
-                )
-              ) {
-                type = 'CPG Recommendation'
-              } else {
-                type = 'Plan Definition'
-              }
-              if (is.PlanDefinition(resource)) {
-                return `${resource.url} ${type ? `(${type})` : null}`
-              }
-            })
-            .filter(notEmpty)
-          setPlanDefinitions(plans)
         })
       }
       reader.readAsDataURL(file)

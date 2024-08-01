@@ -3,14 +3,11 @@ import JSZip from 'jszip'
 class BrowserResolver {
   resourcesByCanonical: Record<string, fhir4.FhirResource> = {}
   resourcesByReference: Record<string, fhir4.FhirResource> = {}
-  cqlByReference: Record<string, string> = {}
-  pathway: fhir4.PlanDefinition | undefined
-  baseUrl: string | undefined
+  cqlById: Record<string, string> = {}
 
-  constructor(storedContent?: string | undefined) {
-    let parsedContent
-    if (storedContent) {
-      parsedContent = JSON.parse(storedContent)
+  constructor(content?: string | undefined) {
+    if (content) {
+      const parsedContent = JSON.parse(content)
       const { resourcesByCanonical, resourcesByReference } = parsedContent
       this.resourcesByCanonical = resourcesByCanonical
       this.resourcesByReference = resourcesByReference
@@ -21,43 +18,27 @@ class BrowserResolver {
     const zip = new JSZip()
     try {
       const zipFile = await zip.loadAsync(rawData.split(',')[1], {
-        base64: true,
+        base64: true
       })
       const files = Object.keys(zipFile.files)
       for (const filename of files) {
         const fileContent = await zipFile.file(filename)?.async('string')
         if (fileContent && filename.endsWith('json')) {
           const rawResource = JSON.parse(fileContent)
-          if (rawResource.url != null && rawResource.resourceType != null) {
+          if (rawResource.url != null) {
             this.resourcesByCanonical[rawResource.url] = rawResource
           }
-          if (rawResource.id && rawResource.resourceType) {
+          if (rawResource.id != null && rawResource.resourceType != null) {
             const reference = `${rawResource.resourceType}/${rawResource.id}`
             this.resourcesByReference[
               `${rawResource.resourceType}/${rawResource.id}`
             ] = rawResource
-            if (
-              rawResource.resourceType === 'ImplementationGuide' &&
-              rawResource.url
-            ) {
-              this.baseUrl = rawResource.url.replace(`/${reference}`, '')
-            }
           }
         } else if (fileContent && filename.endsWith('cql')) {
-          const id = filename.split('.')[0].split('-')
-          const type = id.shift()
-          const reference = `${type}/${id}`.replace('output/', '')
-          this.cqlByReference[reference] = fileContent
+          const reference = filename.split('/').slice(1).join('/').replace('.cql', '')
+          const id = reference.split('-').slice(1).join('-')
+          this.cqlById[id] = fileContent
         }
-        // else if (fileContent && filename.endsWith('html') && filename.split('.').length == 2) {
-        //   const resourceType = filename.split("/").pop()?.split("-")[0]
-        //   const id = filename.split("/").pop()?.split("-")[1]?.split('.')[0]
-        //   if (this.resourcesByReference[`${resourceType}/${id}`]) {
-        //     this.resourcesByReference[`${resourceType}/${id}`] = {
-        //       ...this.resourcesByReference[`${resourceType}/${id}`], html: fileContent
-        //     }
-        //   }
-        // }
       }
     } catch (error) {
       console.error('Error reading ZIP file:', error)
@@ -74,8 +55,8 @@ class BrowserResolver {
     return reference != null ? this.resourcesByReference[reference] : undefined
   }
 
-  public resolveCql(reference: string | undefined) {
-    return reference != null ? this.cqlByReference[reference] : undefined
+  public resolveCql(id: string | undefined) {
+    return id != null ? this.cqlById[id] : undefined
   }
 }
 

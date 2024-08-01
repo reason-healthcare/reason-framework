@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import BrowserResolver from 'resolver/browser'
+import BrowserResolver from './resolver/browser'
 import FlowDisplay from './components/FlowDisplay'
 import LoadIndicator from './components/LoadIndicator'
 import DetailsSection from './components/DetailsSection'
@@ -8,6 +8,7 @@ import { ReactFlowProvider } from 'reactflow'
 import UploadSection from './components/UploadSection'
 import { InboxOutlined } from '@ant-design/icons'
 import { MemoryRouter } from 'react-router-dom'
+import { formatTitle } from 'helpers'
 
 export default function Home() {
   const [resolver, setResolver] = useState<BrowserResolver | undefined>()
@@ -33,7 +34,7 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    if (resolver && resolver instanceof BrowserResolver && planDefinition) {
+    if (resolver instanceof BrowserResolver && planDefinition != null) {
       setShowUpload(false)
       setShowDetails(false)
     } else {
@@ -44,14 +45,10 @@ export default function Home() {
   const contentDisplay = (
     <>
       <div className="header">
-        {resolver && planDefinition && (
+        {resolver != null && planDefinition != null && (
           <>
             <h1>
-              {planDefinition?.title ??
-                planDefinition?.name ??
-                planDefinition?.url ??
-                planDefinition?.id ??
-                ''}
+              {formatTitle(planDefinition)}
             </h1>
             <InboxOutlined
               className="upload-icon"
@@ -61,7 +58,7 @@ export default function Home() {
         )}
       </div>
       <div className="content-container">
-        {resolver && planDefinition ? (
+        {resolver != null && planDefinition != null ? (
           <ReactFlowProvider>
             <FlowDisplay
               resolver={resolver}

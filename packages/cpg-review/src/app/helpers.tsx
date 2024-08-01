@@ -759,10 +759,10 @@ export const resolveReference = (
 }
 
 export const resolveCql = (
-  reference: string | undefined,
+  id: string | undefined,
   resolver: BrowserResolver
 ) => {
-  return reference != null ? resolver.cqlByReference[reference] : undefined
+  return id != null ? resolver.cqlById[id] : undefined
 }
 
 export const isMarkdown = (content: any) => {
@@ -805,7 +805,7 @@ export const formatTitle = (
     is.TerminologyArtifact(resource)
   ) {
     const { title, name, url, id } = resource
-    header = title ?? name ?? url ?? id
+    header = title ?? name?.split(/(?=[A-Z])/).join(' ') ?? url ?? id
   } else {
     const { title, id } = resource
     header = title ?? id
@@ -841,8 +841,7 @@ export const formatUrl = (
   navigate?: NavigateFunction
 ) => {
   if (
-    resolver?.baseUrl != null &&
-    url.startsWith(resolver.baseUrl) &&
+    resolver != null &&
     navigate != null
   ) {
     const [canonical, version] = url.split('|')
