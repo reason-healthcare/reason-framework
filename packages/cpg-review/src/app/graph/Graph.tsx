@@ -1,6 +1,6 @@
 import { Edge, Node } from 'reactflow'
 import ELK, { ElkExtendedEdge, ElkNode } from 'elkjs'
-import { FlowInstance } from './Flow'
+import { FlowShape } from './Flow'
 
 class Graph {
   id: string
@@ -43,7 +43,7 @@ class Graph {
     })
   }
 
-  public async generateElkGraph(flow: FlowInstance) {
+  public async generateElkGraph(flow: FlowShape) {
     const elk = new ELK()
     flow.nodes ? this.generateElkNodes(flow.nodes) : null
     flow.edges ? this.generateElkEdges(flow.edges) : null

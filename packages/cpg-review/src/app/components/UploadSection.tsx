@@ -7,6 +7,7 @@ import type { RcFile } from 'antd/es/upload'
 import BrowserResolver from 'resolver/browser'
 import { is, notEmpty, resolveCanonical } from 'helpers'
 import LoadIndicator from './LoadIndicator'
+import Link from 'next/link'
 
 interface UploadSectionProps {
   setResolver: React.Dispatch<React.SetStateAction<BrowserResolver | undefined>>
@@ -22,7 +23,7 @@ const UploadSection = ({
   resolver,
 }: UploadSectionProps) => {
   const [planDefinitions, setPlanDefinitions] = useState<string[]>()
-  const [planDefinitionSelection, setPlanDefinitionSelection] =
+  const [planDefinitionPayload, setPlanDefinitionPayload] =
     useState<string>()
   const [isLoading, setIsLoading] = useState(false)
   const [uploaded, setUploaded] = useState<RcFile | undefined>()
@@ -32,7 +33,7 @@ const UploadSection = ({
   const [form] = Form.useForm()
 
   useEffect(() => {
-    setPlanDefinitionSelection(undefined)
+    setPlanDefinitionPayload(undefined)
     setPlanDefinition(undefined)
     setUploaded(undefined)
   }, [])
@@ -135,12 +136,12 @@ const UploadSection = ({
   }
 
   const handleChange = (value: string) => {
-    setPlanDefinitionSelection(value)
+    setPlanDefinitionPayload(value)
   }
 
   const handleSubmit = (e: Event) => {
     if (resolver instanceof BrowserResolver) {
-      const plan = resolveCanonical(planDefinitionSelection, resolver)
+      const plan = resolveCanonical(planDefinitionPayload, resolver)
       if (is.PlanDefinition(plan)) {
         setPlanDefinition(plan)
       }
@@ -150,6 +151,9 @@ const UploadSection = ({
   const onRemove = () => {
     localStorage.clear()
     setUploaded(undefined)
+    setPlanDefinitions(undefined)
+    setPlanDefinitionPayload(undefined)
+    setResolver(undefined)
   }
 
   const props: UploadProps = {
@@ -159,11 +163,11 @@ const UploadSection = ({
     beforeUpload,
     onChange: handleFileChange,
     onRemove,
+    maxCount: 1
   }
 
   return (
     <>
-      <h1 className="form-title">Upload FHIR Content</h1>
       <Form
         onFinish={handleSubmit}
         form={form}
@@ -176,6 +180,8 @@ const UploadSection = ({
           getValueFromEvent={(e) => e.fileList}
           className="form-item upload"
         >
+          <h1 className="form-title">Add content</h1>
+          <p className='form-description'>Add a compressed FHIR implementation guide template. Use the generated <span><Link href="https://confluence.hl7.org/display/FHIR/IG+Publisher+Documentation#IGPublisherDocumentation-Summary" target="_blank">ImplementationGuide/output/full-ig.zip</Link></span> file or manually compress the output folder.</p>
           <Dragger {...props} className="form-item">
             <p className="ant-upload-drag-icon">
               <InboxOutlined />
@@ -183,36 +189,34 @@ const UploadSection = ({
             <p className="ant-upload-text">
               Click or drag files to this area to upload
             </p>
-            <p className="ant-upload-hint">Provide only one zipped file.</p>
+            <p className="ant-upload-hint">Provide only one compressed file ending in .zip</p>
           </Dragger>
         </Form.Item>
-        {planDefinitions ? (
-          <Form.Item name={'select'} className="form-item">
-            <Select
-              onChange={handleChange}
-              placeholder="Select a plan definition"
-              popupMatchSelectWidth={true}
-            >
-              {planDefinitions.map((p) => {
-                return (
-                  <Option key={p} value={p.split(' ').shift()}>
-                    {p}
-                  </Option>
-                )
-              })}
-            </Select>
-          </Form.Item>
-        ) : isLoading ? (
-          <LoadIndicator />
-        ) : null}
+        <Form.Item name='select' className="form-item">
+          <h1 className="form-title">Select plan definition</h1>
+          <p className='form-description'>Select a plan definition for review. Recomend using a <span><Link href="https://build.fhir.org/ig/HL7/cqf-recommendations/documentation-approach-12-03-cpg-plan.html#pathways" target="_blank">Clinical Practice Guidelines Pathway</Link></span>.</p>
+          <Select
+            onChange={handleChange}
+            placeholder={planDefinitions == null ? "Upload content to view plans" : "Select a plan definition"}
+            popupMatchSelectWidth={true}
+            disabled={planDefinitions == null}
+          >
+            {planDefinitions?.map((p) => {
+              return (
+                <Option key={p} value={p.split(' ').shift()}>
+                  {p}
+                </Option>
+              )
+            })}
+          </Select>
+        </Form.Item>
         <Form.Item>
-          <Button
-            type="primary"
-            htmlType="submit"
-            disabled={planDefinitionSelection == undefined}
+          <button
+            type="submit"
+            className={planDefinitionPayload == undefined ? 'button disabled' : 'button'}
           >
             View Content
-          </Button>
+          </button>
         </Form.Item>
       </Form>
     </>

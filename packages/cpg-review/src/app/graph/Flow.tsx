@@ -8,13 +8,13 @@ import { v4 } from 'uuid'
 import Graph from './Graph'
 import BrowserResolver from 'resolver/browser'
 
-export interface FlowInstance {
+export interface FlowShape {
   nodes: Node[] | undefined
   edges: Edge[] | undefined
   generateFinalFlow(graph: ElkNode): void
 }
 
-class Flow implements FlowInstance {
+class Flow implements FlowShape {
   nodes: Node[] | undefined
   edges: Edge[] | undefined
   constructor(nodes?: Node[] | undefined, edges?: Edge[] | undefined) {

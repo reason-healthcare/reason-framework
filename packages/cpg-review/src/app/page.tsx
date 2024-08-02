@@ -6,9 +6,9 @@ import LoadIndicator from './components/LoadIndicator'
 import NarrativeDisplay from './components/narrative-display/NarrativeDisplay'
 import { ReactFlowProvider } from 'reactflow'
 import UploadSection from './components/UploadSection'
-import { InboxOutlined } from '@ant-design/icons'
 import { MemoryRouter } from 'react-router-dom'
 import { formatTitle } from 'helpers'
+import Link from 'next/link'
 
 export default function Home() {
   const [resolver, setResolver] = useState<BrowserResolver | undefined>()
@@ -44,18 +44,12 @@ export default function Home() {
 
   const contentDisplay = (
     <>
-      <div className="header">
-        {resolver != null && planDefinition != null && (
-          <>
-            <h1>
-              {formatTitle(planDefinition)}
-            </h1>
-            <InboxOutlined
-              className="upload-icon"
-              onClick={() => setShowUpload(true)}
-            />
-          </>
-        )}
+      <div className="plan-title">
+        {planDefinition != null &&
+          <h1>
+            {formatTitle(planDefinition)}
+          </h1>
+        }
       </div>
       <div className="content-container">
         {resolver != null && planDefinition != null ? (
@@ -88,16 +82,29 @@ export default function Home() {
   )
 
   return (
-    <div className="app-container">
-      {!showUpload ? (
-        contentDisplay
-      ) : (
-        <UploadSection
-          setResolver={setResolver}
-          setPlanDefinition={setPlanDefinition}
-          resolver={resolver}
-        />
-      )}
-    </div>
+    <>
+      <div className="header-container">
+        <Link href="https://www.vermonster.com/products" target="_blank" aria-label='visit reason healthcare' className='logo'><span className='r'>r</span><span>.</span><span>h</span></Link>
+        <div className="links">
+          {!showUpload && <button className='upload-link' aria-label='add new plan' onClick={() => setShowUpload(true)}>
+            New
+          </button>}
+          <Link href="https://github.com/reason-healthcare/reason-framework" target="_blank" className='upload-link' aria-label='documentation'>
+            Docs
+          </Link>
+        </div>
+      </div>
+      <div className="app-container">
+        {!showUpload ? (
+          contentDisplay
+        ) : (
+          <UploadSection
+            setResolver={setResolver}
+            setPlanDefinition={setPlanDefinition}
+            resolver={resolver}
+          />
+        )}
+      </div>
+    </>
   )
 }

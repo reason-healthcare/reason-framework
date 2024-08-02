@@ -6,7 +6,7 @@ const BackButton = () => {
   if (url !== '/') {
     return (
       <button
-        className="back-button"
+        className="button"
         onClick={(e) => {
           e.preventDefault()
           navigate(-2)

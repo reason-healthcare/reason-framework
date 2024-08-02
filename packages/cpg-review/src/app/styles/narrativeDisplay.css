@@ -4,8 +4,8 @@
   min-width: 35%;
   max-width: 50%;
   border-left: 1px solid lightgray;
-  padding-left: 3rem;
-  padding-right: 2rem;
+  padding-left: 3.5rem;
+  /* padding-right: 2rem; */
   margin-bottom: 5rem;
   gap: 2rem;
   overflow-y: scroll;
@@ -31,21 +31,6 @@
 .close {
   display: flex;
   justify-content: flex-end;
-}
-
-.back-button {
-  background-color: var(--teal);
-  color: #fff;
-  font-size: 0.9rem;
-  border: 0px;
-  border-radius: 6px;
-  width: 90px;
-  padding: 0.6rem;
-  font-weight: bold;
-}
-
-.back-button:hover {
-  background-color: var(--brTeal);
 }
 
 .single-item {

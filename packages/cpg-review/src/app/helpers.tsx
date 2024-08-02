@@ -861,7 +861,7 @@ export const formatUrl = (
     }
   }
   return (
-    <Link to={url} target="blank">
+    <Link to={url} target="_blank">
       {url}
     </Link>
   )
@@ -1161,8 +1161,8 @@ export const formatProperty = (
           .join(' ')
       : undefined
   if (Array.isArray(content)) {
-    return <ListDisplayItem heading={keyFormatted} content={content} />
+    return <ListDisplayItem key={keyFormatted} heading={keyFormatted} content={content} />
   } else {
-    return <SingleDisplayItem heading={keyFormatted} content={content} />
+    return <SingleDisplayItem key = {keyFormatted} heading={keyFormatted} content={content} />
   }
 }
