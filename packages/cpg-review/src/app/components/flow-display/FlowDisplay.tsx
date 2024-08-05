@@ -41,7 +41,7 @@ export default function FlowDisplay({
   selected,
   setSelected,
 }: FlowDisplayProps) {
-  const [expandedFlow, setExpandedFlow] = useState<Flow|undefined>()
+  const [expandedFlow, setExpandedFlow] = useState<Flow | undefined>()
   const [displayNodes, setDisplayNodes] = useState<Node[] | undefined>()
   const [displayEdges, setDisplayEdges] = useState<Edge[] | undefined>()
   const [expandedView, setExpandedView] = useState<boolean>(true)
@@ -110,12 +110,14 @@ export default function FlowDisplay({
     const flow = new Flow(displayNodes, displayEdges)
     if (expandedNode) {
       const sourceNode = expandedFlow?.nodes?.find((n) => n.id === expandedNode)
-      flow.expandChildren(sourceNode, expandedFlow?.nodes, expandedFlow?.edges).then((f) => {
-        setDisplayNodes(f.nodes)
-        setDisplayEdges(f.edges)
-        sourceNode ? setSelected(sourceNode.id) : null
-        flow.centerOnNode(expandedNode, 60, 1, reactFlow)
-      })
+      flow
+        .expandChildren(sourceNode, expandedFlow?.nodes, expandedFlow?.edges)
+        .then((f) => {
+          setDisplayNodes(f.nodes)
+          setDisplayEdges(f.edges)
+          sourceNode ? setSelected(sourceNode.id) : null
+          flow.centerOnNode(expandedNode, 60, 1, reactFlow)
+        })
     }
   }, [expandedNode])
 

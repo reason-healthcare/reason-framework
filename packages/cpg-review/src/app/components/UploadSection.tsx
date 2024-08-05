@@ -23,8 +23,7 @@ const UploadSection = ({
   resolver,
 }: UploadSectionProps) => {
   const [planDefinitions, setPlanDefinitions] = useState<string[]>()
-  const [planDefinitionPayload, setPlanDefinitionPayload] =
-    useState<string>()
+  const [planDefinitionPayload, setPlanDefinitionPayload] = useState<string>()
   const [isLoading, setIsLoading] = useState(false)
   const [uploaded, setUploaded] = useState<RcFile | undefined>()
 
@@ -73,7 +72,9 @@ const UploadSection = ({
         let resolver = new BrowserResolver()
         resolver.handleProcessZip(zipData).then(() => {
           if (resolver == null) {
-            message.error('Unable to process zipped data. Ensure that the data is the compressed output of a FHIR Implementation Guide')
+            message.error(
+              'Unable to process zipped data. Ensure that the data is the compressed output of a FHIR Implementation Guide'
+            )
           } else {
             setResolver(resolver)
             try {
@@ -124,7 +125,9 @@ const UploadSection = ({
             if (plans.length > 0) {
               setPlanDefinitions(plans)
             } else {
-              message.error('Unable to find plan definitions. Please load content with at least one plan definition')
+              message.error(
+                'Unable to find plan definitions. Please load content with at least one plan definition'
+              )
             }
           }
         })
@@ -163,7 +166,7 @@ const UploadSection = ({
     beforeUpload,
     onChange: handleFileChange,
     onRemove,
-    maxCount: 1
+    maxCount: 1,
   }
 
   return (
@@ -181,7 +184,19 @@ const UploadSection = ({
           className="form-item upload"
         >
           <h1 className="form-title">Add content</h1>
-          <p className='form-description'>Add a compressed FHIR implementation guide template. Use the generated <span><Link href="https://confluence.hl7.org/display/FHIR/IG+Publisher+Documentation#IGPublisherDocumentation-Summary" target="_blank">ImplementationGuide/output/full-ig.zip</Link></span> file or manually compress the output folder.</p>
+          <p className="form-description">
+            Add a compressed FHIR implementation guide template. Use the
+            generated{' '}
+            <span>
+              <Link
+                href="https://confluence.hl7.org/display/FHIR/IG+Publisher+Documentation#IGPublisherDocumentation-Summary"
+                target="_blank"
+              >
+                ImplementationGuide/output/full-ig.zip
+              </Link>
+            </span>{' '}
+            file or manually compress the output folder.
+          </p>
           <Dragger {...props} className="form-item">
             <p className="ant-upload-drag-icon">
               <InboxOutlined />
@@ -189,15 +204,32 @@ const UploadSection = ({
             <p className="ant-upload-text">
               Click or drag files to this area to upload
             </p>
-            <p className="ant-upload-hint">Provide only one compressed file ending in .zip</p>
+            <p className="ant-upload-hint">
+              Provide only one compressed file ending in .zip
+            </p>
           </Dragger>
         </Form.Item>
-        <Form.Item name='select' className="form-item">
+        <Form.Item name="select" className="form-item">
           <h1 className="form-title">Select plan definition</h1>
-          <p className='form-description'>Select a plan definition for review. Recomend using a <span><Link href="https://build.fhir.org/ig/HL7/cqf-recommendations/documentation-approach-12-03-cpg-plan.html#pathways" target="_blank">Clinical Practice Guidelines Pathway</Link></span>.</p>
+          <p className="form-description">
+            Select a plan definition for review. Recomend using a{' '}
+            <span>
+              <Link
+                href="https://build.fhir.org/ig/HL7/cqf-recommendations/documentation-approach-12-03-cpg-plan.html#pathways"
+                target="_blank"
+              >
+                Clinical Practice Guidelines Pathway
+              </Link>
+            </span>
+            .
+          </p>
           <Select
             onChange={handleChange}
-            placeholder={planDefinitions == null ? "Upload content to view plans" : "Select a plan definition"}
+            placeholder={
+              planDefinitions == null
+                ? 'Upload content to view plans'
+                : 'Select a plan definition'
+            }
             popupMatchSelectWidth={true}
             disabled={planDefinitions == null}
           >
@@ -213,7 +245,9 @@ const UploadSection = ({
         <Form.Item>
           <button
             type="submit"
-            className={planDefinitionPayload == undefined ? 'button disabled' : 'button'}
+            className={
+              planDefinitionPayload == undefined ? 'button disabled' : 'button'
+            }
           >
             View Content
           </button>

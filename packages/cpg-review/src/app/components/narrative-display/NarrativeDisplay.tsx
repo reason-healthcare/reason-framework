@@ -1,5 +1,4 @@
 import '@/styles/NarrativeDisplay.css'
-import { CloseOutlined } from '@ant-design/icons'
 import BrowserResolver from 'resolver/browser'
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
@@ -28,38 +27,31 @@ const NarrativeDisplay = ({
     navigate('/')
   }, [details])
 
-  const handleClick = () => {
-    setShowDetails(false)
-  }
-
   return (
     <div className="details-section">
-      <div className="close">
-        <CloseOutlined onClick={handleClick} />
-      </div>
-      <div className="details-container-outer">
-        <div className='details-container-inner'>
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <ResourceDetails
-                  resolver={resolver}
-                  setSelected={setSelected}
-                  nodeDetails={details}
-                />
-              }
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <ResourceDetails
+              resolver={resolver}
+              setSelected={setSelected}
+              nodeDetails={details}
+              setShowDetails={setShowDetails}
             />
-            <Route
-              path="/:resourceType/:id"
-              element={
-                <ResourceDetails resolver={resolver} setSelected={setSelected} />
-              }
+          }
+        />
+        <Route
+          path="/:resourceType/:id"
+          element={
+            <ResourceDetails
+              resolver={resolver}
+              setSelected={setSelected}
+              setShowDetails={setShowDetails}
             />
-          </Routes>
-
-        </div>
-      </div>
+          }
+        />
+      </Routes>
     </div>
   )
 }

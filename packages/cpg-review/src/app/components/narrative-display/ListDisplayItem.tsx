@@ -6,7 +6,7 @@ interface ListDisplayProps {
 const ListDisplayItem = ({ content, heading }: ListDisplayProps) => {
   if (content) {
     return (
-      <div>
+      <div className="list-items">
         {heading != null && (
           <>
             <span className="details-description">{heading}</span>

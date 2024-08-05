@@ -18,7 +18,7 @@ class BrowserResolver {
     const zip = new JSZip()
     try {
       const zipFile = await zip.loadAsync(rawData.split(',')[1], {
-        base64: true
+        base64: true,
       })
       const files = Object.keys(zipFile.files)
       for (const filename of files) {
@@ -35,7 +35,11 @@ class BrowserResolver {
             ] = rawResource
           }
         } else if (fileContent && filename.endsWith('cql')) {
-          const reference = filename.split('/').slice(1).join('/').replace('.cql', '')
+          const reference = filename
+            .split('/')
+            .slice(1)
+            .join('/')
+            .replace('.cql', '')
           const id = reference.split('-').slice(1).join('-')
           this.cqlById[id] = fileContent
         }

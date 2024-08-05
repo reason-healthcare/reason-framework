@@ -27,7 +27,6 @@
   &:hover {
     border-color: var(--brTeal) !important;
     outline-color: var(--brTeal) !important;
-
   }
 
   &:focus-visible {
@@ -40,7 +39,6 @@
   &:hover {
     border-color: var(--brTeal) !important;
     outline-color: var(--brTeal) !important;
-
   }
 
   &:focus-visible {
@@ -53,7 +51,6 @@
   &:hover {
     border-color: var(--brTeal) !important;
     outline-color: var(--brTeal) !important;
-
   }
 
   &:focus-visible {
@@ -64,14 +61,14 @@
 
 .form-title {
   /* padding: 1rem; */
-  font-weight: 600
+  font-weight: 600;
 }
 
 .form-description {
   margin: 0.5rem 0 0.5rem 0;
-  color: var(--ltGray)
+  color: var(--ltGray);
 }
 
 .ant-upload-drag-icon svg {
-  color: var(--brTeal)
+  color: var(--brTeal);
 }

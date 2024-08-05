@@ -1,4 +1,10 @@
-import { Edge, Node, ReactFlowInstance, getOutgoers, useReactFlow } from 'reactflow'
+import {
+  Edge,
+  Node,
+  ReactFlowInstance,
+  getOutgoers,
+  useReactFlow,
+} from 'reactflow'
 import { is, notEmpty } from '../helpers'
 import '@/styles/node.css'
 import { ElkNode } from 'elkjs'
@@ -223,7 +229,10 @@ class Flow implements FlowShape {
     return this
   }
 
-  public async collapseAllFromSource(id: string, reactFlow: ReactFlowInstance<any, any>) {
+  public async collapseAllFromSource(
+    id: string,
+    reactFlow: ReactFlowInstance<any, any>
+  ) {
     let children: Node[] | undefined
     if (this.nodes && this.edges) {
       const sourceNode = this.nodes?.find((n) => n.id === `definition-${id}`)
@@ -285,10 +294,13 @@ class Flow implements FlowShape {
     return this
   }
 
-  public async centerOnNode(sourceId: string, yAxis: number, zoomFactor: number, reactFlow: ReactFlowInstance<any, any>) {
-    const center = this.nodes?.find(
-      (n) => n.id === sourceId
-    )?.position
+  public async centerOnNode(
+    sourceId: string,
+    yAxis: number,
+    zoomFactor: number,
+    reactFlow: ReactFlowInstance<any, any>
+  ) {
+    const center = this.nodes?.find((n) => n.id === sourceId)?.position
     if (center) {
       const { x, y } = center
       const { zoom } = reactFlow.getViewport()

@@ -16,12 +16,12 @@
   --secondary-background: #ebebeb;
 }
 
-html, body {
+html,
+body {
   height: 100%;
   box-sizing: border-box;
   overflow-y: hidden;
   margin: 0;
-
 }
 
 body {
@@ -71,7 +71,7 @@ body {
 
 .links {
   display: flex;
-  gap: 1.5rem
+  gap: 1.5rem;
 }
 
 .logo {
@@ -108,7 +108,6 @@ body {
   justify-content: center;
   gap: 3rem;
   box-sizing: border-box;
-
 }
 
 .flow-container {
@@ -165,13 +164,13 @@ button:hover {
 
   &.disabled {
     cursor: not-allowed;
-    background-color: #EFEFF0;
-    color: #BBBBBB;
+    background-color: #efeff0;
+    color: #bbbbbb;
 
     &:hover {
       cursor: not-allowed;
-      background-color: #EFEFF0;
-      color: #BBBBBB;
+      background-color: #efeff0;
+      color: #bbbbbb;
     }
   }
 }

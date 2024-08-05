@@ -805,7 +805,15 @@ export const formatTitle = (
     is.TerminologyArtifact(resource)
   ) {
     const { title, name, url, id } = resource
-    header = title ?? name?.split(/(?=[A-Z])/).join(' ') ?? url ?? id
+    header =
+      title ??
+      name
+        ?.split(
+          /(?<=[0-9])(?=[A-Z])|(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])/
+        )
+        .join(' ') ??
+      url ??
+      id
   } else {
     const { title, id } = resource
     header = title ?? id
@@ -825,7 +833,9 @@ export const formatResourceType = (
     is.StructureDefinition(resource) ||
     is.TerminologyArtifact(resource)
   ) {
-    return resource.resourceType.split(/(?=[A-Z])/).join(' ')
+    return resource.resourceType
+      .split(/(?<=[0-9])(?=[A-Z])|(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])/)
+      .join(' ')
   }
 }
 
@@ -840,10 +850,7 @@ export const formatUrl = (
   resolver?: BrowserResolver | undefined,
   navigate?: NavigateFunction
 ) => {
-  if (
-    resolver != null &&
-    navigate != null
-  ) {
+  if (resolver != null && navigate != null) {
     const [canonical, version] = url.split('|')
     const resource = resolver.resolveCanonical(canonical)
     if (
@@ -1161,8 +1168,20 @@ export const formatProperty = (
           .join(' ')
       : undefined
   if (Array.isArray(content)) {
-    return <ListDisplayItem key={keyFormatted} heading={keyFormatted} content={content} />
+    return (
+      <ListDisplayItem
+        key={keyFormatted}
+        heading={keyFormatted}
+        content={content}
+      />
+    )
   } else {
-    return <SingleDisplayItem key = {keyFormatted} heading={keyFormatted} content={content} />
+    return (
+      <SingleDisplayItem
+        key={keyFormatted}
+        heading={keyFormatted}
+        content={content}
+      />
+    )
   }
 }

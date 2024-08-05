@@ -13,6 +13,9 @@ import BackButton from '../BackButton'
 import CodeDisplay from './CodeDisplay'
 import '@/styles/NarrativeDisplay.css'
 import { useEffect, useState } from 'react'
+import { CloseOutlined } from '@ant-design/icons'
+import type { RadioChangeEvent } from 'antd'
+import { Radio } from 'antd'
 
 interface ResourceDetailsProps {
   resolver: BrowserResolver | undefined
@@ -22,12 +25,14 @@ interface ResourceDetailsProps {
     | fhir4.PlanDefinitionAction
     | fhir4.ActivityDefinition
     | undefined
+  setShowDetails: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const ResourceDetails = ({
   resolver,
   setSelected,
   nodeDetails,
+  setShowDetails,
 }: ResourceDetailsProps) => {
   const [resource, setResource] = useState<
     | fhir4.StructureDefinition
@@ -37,7 +42,7 @@ const ResourceDetails = ({
     | undefined
   >()
   const [cql, setCql] = useState<string | undefined>()
-  const [displayJson, setDisplayJson] = useState<boolean>(false)
+  const [format, setFormat] = useState<'text' | 'json'>('text')
 
   const navigate = useNavigate()
   const path = useLocation().pathname
@@ -73,6 +78,15 @@ const ResourceDetails = ({
     }
   }, [path, nodeDetails])
 
+  const handleClose = () => {
+    setShowDetails(false)
+  }
+
+  const onFormatChange = (e: RadioChangeEvent) => {
+    setFormat(e.target.value)
+  }
+
+  let resourceDisplay
   if (resource != null) {
     const meta = [
       'id',
@@ -102,42 +116,47 @@ const ResourceDetails = ({
       })
       .filter(notEmpty)
 
-    return (
-      <div>
-        <h2>{`${formatResourceType(resource) ?? 'Action'}: ${formatTitle(
-          resource
-        )}`}</h2>
-        {!displayJson && cql != null ? (
-          <>
-            {formatedProperties}
-            <CodeDisplay cql={cql} />
-          </>
-        ) : displayJson ? (
-          <CodeDisplay cql={JSON.stringify(resource, null, 1)} />
-        ) : (
-          <>{formatedProperties}</>
-        )}
-        <div
-          className={
-            path === '/' ? 'buttons-container center' : 'buttons-container'
-          }
-        >
-          <BackButton />
-          <button
-            className="format-button"
-            onClick={() => setDisplayJson(!displayJson)}
-          >
-            {displayJson ? 'Text' : 'JSON'}
-          </button>
+    resourceDisplay = (
+      <div className="details-container-outer">
+        <div className="details-container-inner">
+          <h2>{`${formatResourceType(resource) ?? 'Action'}: ${formatTitle(
+            resource
+          )}`}</h2>
+          {format === 'text' && cql != null ? (
+            <>
+              {formatedProperties}
+              <CodeDisplay cql={cql} />
+            </>
+          ) : format === 'json' ? (
+            <CodeDisplay cql={JSON.stringify(resource, null, 1)} />
+          ) : (
+            <>{formatedProperties}</>
+          )}
         </div>
+        <Radio.Group
+          onChange={onFormatChange}
+          value={format}
+          optionType="button"
+          buttonStyle="solid"
+        >
+          <Radio value={'text'}>Text</Radio>
+          <Radio value={'json'}>JSON</Radio>
+        </Radio.Group>
       </div>
     )
   }
 
   return (
     <>
-      <p>Unable to load details</p>
-      <BackButton />
+      <div className="buttons-container">
+        <BackButton />
+        <CloseOutlined onClick={handleClose} />
+      </div>
+      {resourceDisplay != null ? (
+        resourceDisplay
+      ) : (
+        <p>Unable to load details</p>
+      )}
     </>
   )
 }

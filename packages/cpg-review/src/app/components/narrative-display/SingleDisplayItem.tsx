@@ -13,7 +13,6 @@ const SingleDisplayItem = ({ content, heading }: SingleDisplayProps) => {
             <span>: </span>
           </>
         )}
-        {/* <br></br> */}
         <span>{content}</span>
       </div>
     )
