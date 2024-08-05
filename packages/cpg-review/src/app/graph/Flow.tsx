@@ -253,7 +253,6 @@ class Flow implements FlowShape {
         )
       }
     }
-    this.centerOnNode(`definition-${id}`, 0, 10, reactFlow)
     await this.generateFinalFlow()
     return this
   }

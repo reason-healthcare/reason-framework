@@ -14,4 +14,3 @@
 3. Highlight selected edge path (currently stroke thickness increases)
 
 -- Fix body height (flow-provider-container contains both details section and flow)
--- Fix zoom on node collapse

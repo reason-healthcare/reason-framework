@@ -82,13 +82,15 @@ export default function FlowDisplay({
       newFlow?.collapseAllFromSource(planDefinition.id, reactFlow).then(() => {
         setDisplayNodes(newFlow.nodes)
         setDisplayEdges(newFlow.edges)
+        const newKey = key + 1
+        setKey(newKey)
       })
     } else if (expandedView) {
       setDisplayNodes(newFlow.nodes)
       setDisplayEdges(newFlow.edges)
+      const newKey = key + 1
+      setKey(newKey)
     }
-    const newKey = key + 1
-    setKey(newKey)
   }, [expandedView])
 
   useEffect(() => {
