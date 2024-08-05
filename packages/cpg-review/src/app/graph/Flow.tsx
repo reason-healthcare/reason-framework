@@ -1,7 +1,6 @@
 import { Edge, Node, ReactFlowInstance, getOutgoers, useReactFlow } from 'reactflow'
 import { is, notEmpty } from '../helpers'
 import '@/styles/node.css'
-import '@/styles/edge.css'
 import { ElkNode } from 'elkjs'
 import { resolveCanonical } from '../helpers'
 import { v4 } from 'uuid'

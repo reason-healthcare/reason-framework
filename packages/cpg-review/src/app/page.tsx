@@ -51,7 +51,7 @@ export default function Home() {
           </h1>
         }
       </div>
-      <div className="content-container">
+      <div className="flow-provider-container">
         {resolver != null && planDefinition != null ? (
           <ReactFlowProvider>
             <FlowDisplay
@@ -82,7 +82,7 @@ export default function Home() {
   )
 
   return (
-    <>
+    <div className='app-container'>
       <div className="header-container">
         <Link href="https://www.vermonster.com/products" target="_blank" aria-label='visit reason healthcare' className='logo'><span className='r'>r</span><span>.</span><span>h</span></Link>
         <div className="links">
@@ -94,7 +94,7 @@ export default function Home() {
           </Link>
         </div>
       </div>
-      <div className="app-container">
+      <div className="content-container">
         {!showUpload ? (
           contentDisplay
         ) : (
@@ -105,6 +105,6 @@ export default function Home() {
           />
         )}
       </div>
-    </>
+    </div>
   )
 }

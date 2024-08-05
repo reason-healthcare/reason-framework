@@ -37,25 +37,28 @@ const NarrativeDisplay = ({
       <div className="close">
         <CloseOutlined onClick={handleClick} />
       </div>
-      <div className="details-container">
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <ResourceDetails
-                resolver={resolver}
-                setSelected={setSelected}
-                nodeDetails={details}
-              />
-            }
-          />
-          <Route
-            path="/:resourceType/:id"
-            element={
-              <ResourceDetails resolver={resolver} setSelected={setSelected} />
-            }
-          />
-        </Routes>
+      <div className="details-container-outer">
+        <div className='details-container-inner'>
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <ResourceDetails
+                  resolver={resolver}
+                  setSelected={setSelected}
+                  nodeDetails={details}
+                />
+              }
+            />
+            <Route
+              path="/:resourceType/:id"
+              element={
+                <ResourceDetails resolver={resolver} setSelected={setSelected} />
+              }
+            />
+          </Routes>
+
+        </div>
       </div>
     </div>
   )

@@ -16,26 +16,36 @@
   --secondary-background: #ebebeb;
 }
 
-body {
+html, body {
+  height: 100%;
   box-sizing: border-box;
+  overflow-y: hidden;
+  margin: 0;
+
+}
+
+body {
   font-size: 0.5rem;
   background-color: var(--background);
-  min-width: 320px;
-  height: 100vh;
   display: flex;
   color: var(--drGray);
   line-height: 1.2rem;
-  margin: 0;
   flex-direction: column;
 }
 
 .app-container {
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+.content-container {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 100%;
   flex-direction: column;
   padding: 2rem 3rem 2rem 3rem;
+  box-sizing: border-box;
 }
 
 .header-container {
@@ -43,10 +53,8 @@ body {
   align-items: center;
   display: flex;
   background-color: white;
-  /* padding: 1rem 2rem 1rem 2rem; */
   padding: 1.2rem 3rem 1.2rem 3rem;
   border-bottom: 1px solid var(--ltBlueGray);
-  /* justify-content: end; */
 }
 
 .upload-link {
@@ -55,26 +63,10 @@ body {
   align-items: center;
   background: none;
   border: none;
-  /* margin: 0.2rem 0 0.2rem 0; */
-  /* width: 100%; */
   font-size: 1.1rem;
   font-weight: 600;
   color: var(--brTeal);
   text-decoration: none;
-}
-
-.plan-title {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 0.8rem;
-  width: 100%;
-  padding-bottom: 2rem;
-
-  & h1 {
-    font-size: 1rem;
-    font-weight: 500;
-  }
 }
 
 .links {
@@ -86,27 +78,41 @@ body {
   display: flex;
   text-decoration: none;
   color: var(--teal);
+
+  & span {
+    font-size: 2.2rem;
+  }
 }
 
 .r {
   font-weight: bold;
 }
 
-.logo span {
-  font-size: 2.2rem;
+.plan-title {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+
+  & h1 {
+    font-size: 1rem;
+    font-weight: 500;
+  }
 }
 
-
-.content-container {
+.flow-provider-container {
   display: flex;
-  height: 95%;
+  height: 100%;
   width: 100%;
   justify-content: center;
   gap: 3rem;
+  box-sizing: border-box;
+
 }
 
 .flow-container {
-  height: 95%;
+  height: 90%;
   width: 100%;
 }
 
@@ -117,7 +123,7 @@ h1 {
 }
 
 h2 {
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-weight: normal;
   line-height: 1.6rem;
 }

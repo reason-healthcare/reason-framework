@@ -12,3 +12,8 @@
 1. Accept patient data and render applicable pathway
 2. Generate questionnaire based on missing patient data
 3. Highlight selected edge path (currently stroke thickness increases)
+
+
+-- Fix body height (flow-provider-container contains both details section and flow)
+-- Fix zoom on node collapse
+-- Back and json/text buttons should be in view
