@@ -57,7 +57,7 @@ body {
   border-bottom: 1px solid var(--ltBlueGray);
 }
 
-.upload-link {
+.nav-button {
   display: flex;
   justify-content: flex-start;
   align-items: center;
@@ -67,6 +67,17 @@ body {
   font-weight: 600;
   color: var(--brTeal);
   text-decoration: none;
+}
+
+.nav-button-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+
+  &:hover {
+    color: var(--brTeal);
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
 }
 
 .links {

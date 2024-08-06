@@ -31,9 +31,6 @@ const UploadSection = ({
   const [form] = Form.useForm()
 
   const beforeUpload = (file: RcFile) => {
-    setPlanDefinitionPayload(undefined)
-    setPlanDefinition(undefined)
-    setResolver(undefined)
     const isZip = file.type === 'application/zip'
     if (uploaded != null) {
       message.error('May only upload one zipped file')
@@ -72,9 +69,11 @@ const UploadSection = ({
               'Unable to process zipped data. Ensure that the data is the compressed output of a FHIR Implementation Guide'
             )
           } else {
+            localStorage.clear()
+            setPlanDefinitionPayload(undefined)
+            setPlanDefinition(undefined)
             setResolver(resolver)
             try {
-              localStorage.clear()
               localStorage.setItem('resolver', JSON.stringify(resolver))
               message.success('Saved content to local storage')
             } catch (e) {

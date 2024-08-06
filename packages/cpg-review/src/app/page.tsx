@@ -97,17 +97,35 @@ export default function Home() {
         <div className="links">
           {!showUpload && (
             <button
-              className="upload-link"
+              className="nav-button"
               aria-label="add new plan"
               onClick={() => setShowUpload(true)}
             >
-              New
+              Upload
             </button>
+          )}
+          {showUpload && resolver != null && planDefinition != null ? (
+            <button
+              className="nav-button"
+              aria-label="add new plan"
+              onClick={() => setShowUpload(false)}
+            >
+              Review
+            </button>
+          ) : (
+            showUpload && (
+              <button
+                className="nav-button nav-button-disabled"
+                aria-label="add new plan"
+              >
+                Review
+              </button>
+            )
           )}
           <Link
             href="https://github.com/reason-healthcare/reason-framework"
             target="_blank"
-            className="upload-link"
+            className="nav-button"
             aria-label="documentation"
           >
             Docs
