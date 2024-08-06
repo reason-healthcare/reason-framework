@@ -9,21 +9,19 @@ import UploadSection from './components/UploadSection'
 import { MemoryRouter } from 'react-router-dom'
 import { formatTitle } from 'helpers'
 import Link from 'next/link'
+import { NodeData } from './types/NodeData'
 
 export default function Home() {
   const [resolver, setResolver] = useState<BrowserResolver | undefined>()
   const [planDefinition, setPlanDefinition] = useState<
     fhir4.PlanDefinition | undefined
   >()
-  const [json, setJson] = useState<
-    | fhir4.PlanDefinition
-    | fhir4.PlanDefinitionAction
-    | fhir4.ActivityDefinition
+  const [nodeData, setNodeData] = useState<
+    | NodeData
     | undefined
   >()
-  const [showNarrative, setShowNarrative] = useState<boolean>(false)
   const [showUpload, setShowUpload] = useState<boolean>(false)
-  const [selected, setSelected] = useState<string>()
+  const [selectedNode, setSelectedNode] = useState<string>()
 
   useEffect(() => {
     const storedContent = localStorage.getItem('resolver')
@@ -40,7 +38,6 @@ export default function Home() {
   useEffect(() => {
     if (resolver instanceof BrowserResolver && planDefinition != null) {
       setShowUpload(false)
-      setShowNarrative(false)
     } else {
       setShowUpload(true)
     }
@@ -57,23 +54,20 @@ export default function Home() {
             <FlowDisplay
               resolver={resolver}
               planDefinition={planDefinition}
-              setJson={setJson}
-              setShowNarrative={setShowNarrative}
-              showNarrative={showNarrative}
-              selected={selected}
-              setSelected={setSelected}
+              setNodeData={setNodeData}
+              selectedNode={selectedNode}
+              setSelectedNode={setSelectedNode}
             />
           </ReactFlowProvider>
         ) : (
           <LoadIndicator />
         )}
         <MemoryRouter>
-          {showNarrative && (
+          {selectedNode != null && (
             <NarrativeRouter
-              json={json}
+              nodeData={nodeData}
               resolver={resolver}
-              setShowNarrative={setShowNarrative}
-              setSelected={setSelected}
+              setSelectedNode={setSelectedNode}
             ></NarrativeRouter>
           )}
         </MemoryRouter>

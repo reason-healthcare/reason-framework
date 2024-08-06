@@ -10,57 +10,52 @@ import ReactFlow, {
   useReactFlow,
 } from 'reactflow'
 import Flow from '../../graph/Flow'
-import ActionNode from './ActionNode'
-import DefinitionNode from './DefinitionNode'
+import ContentNode from './ContentNode'
 import { FullscreenOutlined, FullscreenExitOutlined } from '@ant-design/icons'
 import BrowserResolver from 'resolver/browser'
+import StartNode from './StartNode'
+import { NodeData } from '../../types/NodeData'
+
 
 interface FlowDisplayProps {
   resolver: BrowserResolver | undefined
   planDefinition: fhir4.PlanDefinition
-  setJson: React.Dispatch<
+  setNodeData: React.Dispatch<
     React.SetStateAction<
-      | fhir4.PlanDefinition
-      | fhir4.PlanDefinitionAction
-      | fhir4.ActivityDefinition
+      | NodeData
       | undefined
     >
   >
-  setShowNarrative: React.Dispatch<React.SetStateAction<boolean>>
-  showNarrative: boolean
-  selected: string | undefined
-  setSelected: React.Dispatch<React.SetStateAction<string | undefined>>
+  selectedNode: string | undefined
+  setSelectedNode: React.Dispatch<React.SetStateAction<string | undefined>>
 }
 
 export default function FlowDisplay({
   resolver,
   planDefinition,
-  setJson,
-  setShowNarrative,
-  showNarrative,
-  selected,
-  setSelected,
+  setNodeData,
+  selectedNode,
+  setSelectedNode,
 }: FlowDisplayProps) {
   const [expandedFlow, setExpandedFlow] = useState<Flow | undefined>()
   const [displayNodes, setDisplayNodes] = useState<Node[] | undefined>()
   const [displayEdges, setDisplayEdges] = useState<Edge[] | undefined>()
   const [expandedView, setExpandedView] = useState<boolean>(true)
-  const [expandedNode, setexpandedNode] = useState<string>()
+  const [nodeToExpand, setNodeToExpand] = useState<string>()
   // Changing key triggers re-render of ReactFlow component
   const [key, setKey] = useState<number>(0)
 
   const nodeTypes = useMemo(
-    () => ({ actionNode: ActionNode, definitionNode: DefinitionNode }),
+    () => ({ contentNode: ContentNode, startNode: StartNode }),
     []
   )
 
   const data = {
-    expandedNode,
-    setexpandedNode,
-    selected,
-    setSelected,
-    setJson,
-    setShowNarrative,
+    nodeToExpand,
+    setNodeToExpand,
+    selectedNode,
+    setSelectedNode,
+    setNodeData,
   }
   const reactFlow = useReactFlow()
 
@@ -94,7 +89,7 @@ export default function FlowDisplay({
   }, [expandedView])
 
   useEffect(() => {
-    if (selected && displayNodes) {
+    if (selectedNode && displayNodes) {
       setDisplayNodes(
         displayNodes.map((node) => {
           return {
@@ -103,42 +98,42 @@ export default function FlowDisplay({
           }
         })
       )
-      const selectedNode = displayNodes.find((n) => n.id === selected)
-      setJson(selectedNode?.data.json)
+      const selectedNodeNode = displayNodes.find((n) => n.id === selectedNode)
+      setNodeData(selectedNodeNode?.data.nodeData)
     }
-  }, [selected])
+  }, [selectedNode])
 
   useEffect(() => {
     const flow = new Flow(displayNodes, displayEdges)
-    if (expandedNode) {
-      const sourceNode = expandedFlow?.nodes?.find((n) => n.id === expandedNode)
+    if (nodeToExpand) {
+      const sourceNode = expandedFlow?.nodes?.find((n) => n.id === nodeToExpand)
       flow
         .expandChildren(sourceNode, expandedFlow?.nodes, expandedFlow?.edges)
         .then((f) => {
           setDisplayNodes(f.nodes)
           setDisplayEdges(f.edges)
-          sourceNode ? setSelected(sourceNode.id) : null
-          flow.centerOnNode(expandedNode, 60, 1, reactFlow)
+          sourceNode ? setSelectedNode(sourceNode.id) : null
+          flow.centerOnNode(nodeToExpand, 60, 1, reactFlow)
         })
     }
-  }, [expandedNode])
+  }, [nodeToExpand])
 
   useEffect(() => {
     const newKey = key + 1
     setKey(newKey)
-  }, [showNarrative])
+  }, [])
 
   const handleExpandedViewClick = () => {
     setExpandedView(!expandedView)
-    setSelected(undefined)
-    setexpandedNode(undefined)
+    setSelectedNode(undefined)
+    setNodeToExpand(undefined)
   }
 
   const nodeColor = (node: Node) => {
     switch (node.type) {
       case 'definitionNode':
         return 'var(--teal)'
-      case 'actionNode':
+      case 'Node':
         return 'var(--ltTeal)'
       default:
         return 'var(--blueGray)'

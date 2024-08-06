@@ -43,7 +43,7 @@ class Flow implements FlowShape {
     this.edges ? this.edges.push(edge) : (this.edges = [edge])
   }
 
-  private createDefinitionalNode(
+  private createActivityNode(
     id: string,
     definition: fhir4.PlanDefinition | fhir4.ActivityDefinition
   ): Node {
@@ -56,26 +56,40 @@ class Flow implements FlowShape {
           definition.url ??
           definition.id ??
           definition.description,
-        json: definition,
+        nodeData: {nodeDetails: definition},
         isCollapsed: false,
       },
-      type: 'definitionNode',
+      type: 'contentNode',
       position: { x: 0, y: 0 },
-      className: 'definition-node node',
+      className: 'node',
     } as Node
   }
 
-  private createActionNode(id: string, action: fhir4.PlanDefinitionAction) {
+  private createActionNode(id: string, action: fhir4.PlanDefinitionAction, planDefinition: fhir4.PlanDefinition) {
     return {
       id,
       data: {
         label: action.title ?? action.id ?? action.description,
-        json: action,
+        handle: ['target', 'source'],
+        nodeData: {nodeDetails: action, partOf: planDefinition},
         isCollapsed: false,
       },
       position: { x: 0, y: 0 },
-      type: 'actionNode',
+      type: 'contentNode',
       className: 'node',
+    } as Node
+  }
+
+  private createStartNode(id: string, definition: fhir4.PlanDefinition) {
+    return {
+      id,
+      data: {
+        nodeData: {nodeDetails: definition},
+        isCollapsed: false,
+      },
+      position: { x: 0, y: 0 },
+      type: 'startNode',
+      className: 'start-node node',
     } as Node
   }
 
@@ -93,70 +107,32 @@ class Flow implements FlowShape {
   }
 
   /**
-   * Create new node based on activity or plan. If node already exists for plan/activity, the source action should be routed to existing node.
-   * @param definition Activity or Plan definition canonical to process as new node
-   * @param content FHIR content
-   * @param parentEdge Edge with source information
-   */
-  private processDefinitionalNode(
-    definition: fhir4.ActivityDefinition | fhir4.PlanDefinition | undefined,
-    content: BrowserResolver,
-    parentEdge?: Edge
-  ) {
-    if (definition) {
-      /** Create node if it doesn't exist, find node if it does */
-      const id = `definition-${definition.id}`
-      const match = this.nodes?.find((n) => n.id === id)
-      const node = match ?? this.createDefinitionalNode(id, definition)
-      !match ? this.addNewNode(node) : null
-
-      /** Connect to parent */
-      if (parentEdge) {
-        parentEdge.target = node.id
-        parentEdge.id += node.id
-        this.addNewEdge(parentEdge)
-      } else {
-        node.data.handle = 'input'
-      }
-
-      /** Handle children */
-      if (is.PlanDefinition(definition) && definition.action) {
-        const targetEdge = this.createEdge(node.id)
-        if (!match) {
-          this.processActionNodes(definition.action, content, targetEdge)
-        }
-      } else {
-        node.data.handle = 'output'
-      }
-    }
-  }
-
-  /**
    *
    * @param actions Plan definition actions to process as new node
    * @param content FHIR content
    * @param parentEdge Edge with source information
    */
   private processActionNodes(
+    planDefinition: fhir4.PlanDefinition,
     actions: fhir4.PlanDefinitionAction[],
     content: BrowserResolver,
     parentEdge: Edge
   ) {
-    actions.map((action) => {
+    actions?.map((action) => {
       /**
        * Create node for each action
        * ID needs to be unique - definition nodes are deduped, action nodes are not
        */
       const id = `action-${action.title}-${v4()}`
-      const actionNode = this.createActionNode(id, action)
-      this.addNewNode(actionNode)
+      const Node = this.createActionNode(id, action, planDefinition)
+      this.addNewNode(Node)
 
       /** Connect to parent */
       const sourceEdge = { ...parentEdge, target: id, id: parentEdge.id + id }
       this.addNewEdge(sourceEdge)
 
       /** Handle children */
-      const targetEdge = this.createEdge(actionNode.id)
+      const targetEdge = this.createEdge(Node.id)
       if (action.selectionBehavior) {
         targetEdge.animated = true
       }
@@ -164,15 +140,25 @@ class Flow implements FlowShape {
         const definition = resolveCanonical(
           action.definitionCanonical,
           content
-        ) as fhir4.ActivityDefinition | fhir4.PlanDefinition | undefined
-        if (definition) {
-          this.processDefinitionalNode(definition, content, targetEdge)
+        ) as fhir4.PlanDefinition | fhir4.ActivityDefinition | undefined
+        if (is.PlanDefinition(definition) && definition.action) {
+          this.processActionNodes(definition, definition.action, content, targetEdge)
+        } else if (is.ActivityDefinition(definition) && definition.id) {
+          const id = definition.id
+          let activityNode = this.nodes?.find(n => n.id === id)
+          if (activityNode == null) {
+            activityNode = this.createActivityNode(id, definition)
+            activityNode.data.handle = ['target']
+            this.addNewNode(activityNode)
+          }
+          const sourceEdge = { ...targetEdge, target: id, id: targetEdge.id + id }
+          this.addNewEdge(sourceEdge)
         }
       } else if (action.action) {
-        this.processActionNodes(action.action, content, targetEdge)
+        this.processActionNodes(planDefinition, action.action, content, targetEdge)
       }
       if (!action.definitionCanonical && !action.action) {
-        actionNode.data.handle = 'output'
+        Node.data.handle = ['source']
       }
     })
   }
@@ -187,7 +173,21 @@ class Flow implements FlowShape {
     planDefinition: fhir4.PlanDefinition,
     content: BrowserResolver
   ) {
-    this.processDefinitionalNode(planDefinition, content)
+    if (is.PlanDefinition(planDefinition)) {
+      /** Create node if it doesn't exist, find node if it does */
+      const id = planDefinition.id || 'start'
+      const node = this.createStartNode(id, planDefinition)
+      this.addNewNode(node)
+      node.data.handle = ['target']
+
+      /** Handle children */
+      if (planDefinition.action != null) {
+        const targetEdge = this.createEdge(node.id)
+          this.processActionNodes(planDefinition, planDefinition.action, content, targetEdge)
+      } else {
+        // TODO error handling
+      }
+    }
     return this
   }
 
@@ -235,7 +235,7 @@ class Flow implements FlowShape {
   ) {
     let children: Node[] | undefined
     if (this.nodes && this.edges) {
-      const sourceNode = this.nodes?.find((n) => n.id === `definition-${id}`)
+      const sourceNode = this.nodes?.find((n) => n.id === id)
       if (!sourceNode) {
         console.error('Unable to collapse graph')
       } else {
