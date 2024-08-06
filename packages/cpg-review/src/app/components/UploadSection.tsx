@@ -79,7 +79,9 @@ const UploadSection = ({
               message.success('Saved content to local storage')
             } catch (e) {
               console.error(e)
-              message.info('Unable to save content to local storage. Content can be reviewed but will not be saved between sessions.')
+              message.info(
+                'Unable to save content to local storage. Content can be reviewed but will not be saved between sessions.'
+              )
             }
             const { resourcesByCanonical } = resolver
             const plans = Object.keys(resourcesByCanonical)

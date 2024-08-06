@@ -790,9 +790,10 @@ export const capitalize = (string: any) => {
 }
 
 export const addSpaces = (string: any | undefined): string | undefined => {
-  return string?.replace(/([a-z])([A-Z])/g, '$1 $2')
-  .replace(/(\d)([a-zA-Z])/g, '$1 $2')
-  .replace(/([a-zA-Z])(\d)/g, '$1 $2')
+  return string
+    ?.replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/(\d)([a-zA-Z])/g, '$1 $2')
+    .replace(/([a-zA-Z])(\d)/g, '$1 $2')
 }
 
 /** General purpose */
@@ -811,11 +812,7 @@ export const formatTitle = (
     is.TerminologyArtifact(resource)
   ) {
     const { title, name, url, id } = resource
-    header =
-      title ??
-      addSpaces(name) ??
-      url ??
-      id
+    header = title ?? addSpaces(name) ?? url ?? id
   } else {
     const { title, id } = resource
     header = title ?? id

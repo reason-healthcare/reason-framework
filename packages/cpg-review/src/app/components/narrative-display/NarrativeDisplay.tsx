@@ -137,7 +137,7 @@ const NarrativeDisplay = ({
             value={format}
             optionType="button"
             buttonStyle="solid"
-            style={{marginTop: '3rem'}}
+            style={{ marginTop: '3rem' }}
           >
             <Radio value={'text'}>Text</Radio>
             <Radio value={'json'}>JSON</Radio>
@@ -153,11 +153,7 @@ const NarrativeDisplay = ({
         <BackButton />
         <CloseOutlined onClick={handleClose} />
       </div>
-      {resourceDisplay != null ? (
-        resourceDisplay
-      ) : (
-        <p>Unable to load json</p>
-      )}
+      {resourceDisplay != null ? resourceDisplay : <p>Unable to load json</p>}
     </>
   )
 }
