@@ -132,16 +132,17 @@ const NarrativeDisplay = ({
           ) : (
             <>{formatedProperties}</>
           )}
+          <Radio.Group
+            onChange={onFormatChange}
+            value={format}
+            optionType="button"
+            buttonStyle="solid"
+            style={{marginTop: '3rem'}}
+          >
+            <Radio value={'text'}>Text</Radio>
+            <Radio value={'json'}>JSON</Radio>
+          </Radio.Group>
         </div>
-        <Radio.Group
-          onChange={onFormatChange}
-          value={format}
-          optionType="button"
-          buttonStyle="solid"
-        >
-          <Radio value={'text'}>Text</Radio>
-          <Radio value={'json'}>JSON</Radio>
-        </Radio.Group>
       </div>
     )
   }

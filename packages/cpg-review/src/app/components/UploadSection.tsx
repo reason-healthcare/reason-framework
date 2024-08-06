@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Form, Button, message, Upload, Select } from 'antd'
+import { Form, message, Upload, Select } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
 import type { UploadProps } from 'antd'
 import '@/styles/uploadSection.css'
 import type { RcFile } from 'antd/es/upload'
 import BrowserResolver from 'resolver/browser'
 import { is, notEmpty, resolveCanonical } from 'helpers'
-import LoadIndicator from './LoadIndicator'
 import Link from 'next/link'
 
 interface UploadSectionProps {
@@ -31,13 +30,10 @@ const UploadSection = ({
   const { Dragger } = Upload
   const [form] = Form.useForm()
 
-  useEffect(() => {
+  const beforeUpload = (file: RcFile) => {
     setPlanDefinitionPayload(undefined)
     setPlanDefinition(undefined)
-    setUploaded(undefined)
-  }, [])
-
-  const beforeUpload = (file: RcFile) => {
+    setResolver(undefined)
     const isZip = file.type === 'application/zip'
     if (uploaded != null) {
       message.error('May only upload one zipped file')
@@ -83,7 +79,7 @@ const UploadSection = ({
               message.success('Saved content to local storage')
             } catch (e) {
               console.error(e)
-              message.info('Unable to save content to local storage')
+              message.info('Unable to save content to local storage. Content can be reviewed but will not be saved between sessions.')
             }
             const { resourcesByCanonical } = resolver
             const plans = Object.keys(resourcesByCanonical)
@@ -146,6 +142,7 @@ const UploadSection = ({
     if (resolver instanceof BrowserResolver) {
       const plan = resolveCanonical(planDefinitionPayload, resolver)
       if (is.PlanDefinition(plan)) {
+        localStorage.setItem('planDefinition', JSON.stringify(plan))
         setPlanDefinition(plan)
       }
     }

@@ -27,9 +27,13 @@ export default function Home() {
 
   useEffect(() => {
     const storedContent = localStorage.getItem('resolver')
+    const storedPlan = localStorage.getItem('planDefinition')
     if (storedContent) {
       const browserResolver = new BrowserResolver(storedContent)
       setResolver(browserResolver)
+      if (storedPlan) {
+        setPlanDefinition(JSON.parse(storedPlan))
+      }
     }
   }, [])
 
