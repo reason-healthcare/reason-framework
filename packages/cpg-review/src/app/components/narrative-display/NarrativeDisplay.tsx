@@ -2,6 +2,7 @@ import {
   formatProperty,
   formatResourceType,
   formatTitle,
+  formatUrl,
   is,
   KnowledgeArtifact,
   notEmpty,
@@ -16,23 +17,22 @@ import { useEffect, useState } from 'react'
 import { CloseOutlined } from '@ant-design/icons'
 import type { RadioChangeEvent } from 'antd'
 import { Radio } from 'antd'
+import { NodeData } from '../../types/NodeData'
+import SingleDisplayItem from './SingleDisplayItem'
 
 interface NarrativeDisplayProps {
   resolver: BrowserResolver | undefined
-  setSelected: React.Dispatch<React.SetStateAction<string | undefined>>
+  setSelectedNode: React.Dispatch<React.SetStateAction<string | undefined>>
   nodeDetails?:
-    | fhir4.PlanDefinition
-    | fhir4.PlanDefinitionAction
-    | fhir4.ActivityDefinition
+    | NodeData
     | undefined
-  setShowNarrative: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const NarrativeDisplay = ({
   resolver,
-  setSelected,
+  setSelectedNode,
   nodeDetails,
-  setShowNarrative,
+
 }: NarrativeDisplayProps) => {
   const [resource, setResource] = useState<
     | fhir4.StructureDefinition
@@ -42,25 +42,30 @@ const NarrativeDisplay = ({
     | undefined
   >()
   const [cql, setCql] = useState<string | undefined>()
+  const [partOfIdentifier, setPartOfIdentifier] = useState<string | undefined>()
   const [format, setFormat] = useState<'text' | 'json'>('text')
 
   const navigate = useNavigate()
   const path = useLocation().pathname
   useEffect(() => {
+    setPartOfIdentifier(undefined)
+    setCql(undefined)
     if (nodeDetails != null) {
-      if (is.KnowledgeArtifact(nodeDetails)) {
-        delete nodeDetails.text
+      const {nodeDetails: details, partOf} = nodeDetails
+      if (is.KnowledgeArtifact(details)) {
+        delete details.text
       }
-      setResource(nodeDetails)
-      setCql(undefined)
+      if (partOf != null) {
+        setPartOfIdentifier(partOf.url)
+      }
+      setResource(details)
     } else if (resolver != null) {
       const reference = path.split('/').slice(-2).join('/')
       const rawResource = resolver.resolveReference(reference)
       if (
-        is.PlanDefinition(rawResource) ||
         is.ActivityDefinition(rawResource)
       ) {
-        setSelected(`definition-${rawResource.id}`)
+        setSelectedNode(rawResource.id)
       }
       if (
         is.KnowledgeArtifact(rawResource) ||
@@ -79,7 +84,7 @@ const NarrativeDisplay = ({
   }, [path, nodeDetails])
 
   const handleClose = () => {
-    setShowNarrative(false)
+    setSelectedNode(undefined)
   }
 
   const onFormatChange = (e: RadioChangeEvent) => {
@@ -122,6 +127,7 @@ const NarrativeDisplay = ({
           <h2>{`${formatResourceType(resource) ?? 'Action'}: ${formatTitle(
             resource
           )}`}</h2>
+          {partOfIdentifier != null && <SingleDisplayItem heading="Part Of" content={formatUrl(partOfIdentifier, resolver, navigate)}/>}
           {format === 'text' && cql != null ? (
             <>
               {formatedProperties}

@@ -859,7 +859,7 @@ export const formatUrl = (
       const path = canonical.split('/').slice(-2).join('/')
       return (
         <Link onClick={() => navigate(`/${path}`)} to={`/${path}`}>
-          {title ?? name ?? url ?? id}
+          {title ?? addSpaces(name) ?? url ?? id}
         </Link>
       )
     }
@@ -1160,9 +1160,7 @@ export const formatProperty = (
   }
   const keyFormatted =
     key != null
-      ? capitalize(key)
-          .split(/(?=[A-Z])/)
-          .join(' ')
+      ? addSpaces(capitalize(key))
       : undefined
   if (Array.isArray(content)) {
     return (
