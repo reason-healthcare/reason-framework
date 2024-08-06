@@ -1,6 +1,6 @@
 # Next Steps
 
-1. Handle additional json properies in details section
+1. Handle additional json properies in json section
 2. Mini map styling
 3. Support REST endpoint
 4. Using local storage
@@ -12,5 +12,3 @@
 1. Accept patient data and render applicable pathway
 2. Generate questionnaire based on missing patient data
 3. Highlight selected edge path (currently stroke thickness increases)
-
--- Fix body height (flow-provider-container contains both details section and flow)

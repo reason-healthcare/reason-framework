@@ -18,7 +18,7 @@ import BrowserResolver from 'resolver/browser'
 interface FlowDisplayProps {
   resolver: BrowserResolver | undefined
   planDefinition: fhir4.PlanDefinition
-  setDetails: React.Dispatch<
+  setJson: React.Dispatch<
     React.SetStateAction<
       | fhir4.PlanDefinition
       | fhir4.PlanDefinitionAction
@@ -26,8 +26,8 @@ interface FlowDisplayProps {
       | undefined
     >
   >
-  setShowDetails: React.Dispatch<React.SetStateAction<boolean>>
-  showDetails: boolean
+  setShowNarrative: React.Dispatch<React.SetStateAction<boolean>>
+  showNarrative: boolean
   selected: string | undefined
   setSelected: React.Dispatch<React.SetStateAction<string | undefined>>
 }
@@ -35,9 +35,9 @@ interface FlowDisplayProps {
 export default function FlowDisplay({
   resolver,
   planDefinition,
-  setDetails,
-  setShowDetails,
-  showDetails,
+  setJson,
+  setShowNarrative,
+  showNarrative,
   selected,
   setSelected,
 }: FlowDisplayProps) {
@@ -59,8 +59,8 @@ export default function FlowDisplay({
     setexpandedNode,
     selected,
     setSelected,
-    setDetails,
-    setShowDetails,
+    setJson,
+    setShowNarrative,
   }
   const reactFlow = useReactFlow()
 
@@ -104,7 +104,7 @@ export default function FlowDisplay({
         })
       )
       const selectedNode = displayNodes.find((n) => n.id === selected)
-      setDetails(selectedNode?.data.details)
+      setJson(selectedNode?.data.json)
     }
   }, [selected])
 
@@ -126,7 +126,7 @@ export default function FlowDisplay({
   useEffect(() => {
     const newKey = key + 1
     setKey(newKey)
-  }, [showDetails])
+  }, [showNarrative])
 
   const handleExpandedViewClick = () => {
     setExpandedView(!expandedView)

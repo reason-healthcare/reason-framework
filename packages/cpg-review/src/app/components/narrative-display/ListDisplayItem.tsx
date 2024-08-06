@@ -9,7 +9,7 @@ const ListDisplayItem = ({ content, heading }: ListDisplayProps) => {
       <div className="list-items">
         {heading != null && (
           <>
-            <span className="details-description">{heading}</span>
+            <span className="narrative-description">{heading}</span>
             <span>:</span>
           </>
         )}

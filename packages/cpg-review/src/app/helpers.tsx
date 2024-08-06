@@ -789,6 +789,12 @@ export const capitalize = (string: any) => {
   return string.charAt(0).toUpperCase() + string.slice(1)
 }
 
+export const addSpaces = (string: any | undefined): string | undefined => {
+  return string?.replace(/([a-z])([A-Z])/g, '$1 $2')
+  .replace(/(\d)([a-zA-Z])/g, '$1 $2')
+  .replace(/([a-zA-Z])(\d)/g, '$1 $2')
+}
+
 /** General purpose */
 
 export const formatTitle = (
@@ -807,11 +813,7 @@ export const formatTitle = (
     const { title, name, url, id } = resource
     header =
       title ??
-      name
-        ?.split(
-          /(?<=[0-9])(?=[A-Z])|(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])/
-        )
-        .join(' ') ??
+      addSpaces(name) ??
       url ??
       id
   } else {
@@ -833,9 +835,7 @@ export const formatResourceType = (
     is.StructureDefinition(resource) ||
     is.TerminologyArtifact(resource)
   ) {
-    return resource.resourceType
-      .split(/(?<=[0-9])(?=[A-Z])|(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])/)
-      .join(' ')
+    return addSpaces(resource.resourceType)
   }
 }
 

@@ -10,17 +10,17 @@ type ActionNodeProps = {
   data: {
     label: string
     handle: 'output' | undefined
-    details: fhir4.PlanDefinitionAction
+    json: fhir4.PlanDefinitionAction
     isCollapsed: boolean
     setexpandedNode: React.Dispatch<React.SetStateAction<string>>
     selected: string | undefined
     setSelected: React.Dispatch<React.SetStateAction<string | undefined>>
-    setDetails: React.Dispatch<
+    setJson: React.Dispatch<
       React.SetStateAction<
         fhir4.PlanDefinition | fhir4.PlanDefinitionAction | undefined
       >
     >
-    setShowDetails: React.Dispatch<React.SetStateAction<boolean>>
+    setShowNarrative: React.Dispatch<React.SetStateAction<boolean>>
   }
   id: string
 }
@@ -29,13 +29,13 @@ const ActionNode = ({ data, id }: ActionNodeProps) => {
   const {
     label,
     handle,
-    details,
+    json,
     isCollapsed,
     setexpandedNode,
     selected,
     setSelected,
-    setDetails,
-    setShowDetails,
+    setJson,
+    setShowNarrative,
   } = data
   const [collapsed, setCollapsed] = useState<boolean>(false)
   const [highlight, setHighlight] = useState<boolean>()
@@ -49,19 +49,19 @@ const ActionNode = ({ data, id }: ActionNodeProps) => {
     }
   }, [isCollapsed, selected])
 
-  let detailsLabel
-  if (details.selectionBehavior && !collapsed) {
-    detailsLabel = (
-      <div className="action-details-label">
-        {`Select ${details.selectionBehavior}`}
+  let jsonLabel
+  if (json.selectionBehavior && !collapsed) {
+    jsonLabel = (
+      <div className="action-json-label">
+        {`Select ${json.selectionBehavior}`}
       </div>
     )
   }
 
   const handleNodeClick = () => {
     setSelected(id)
-    setDetails(details)
-    setShowDetails(true)
+    setJson(json)
+    setShowNarrative(true)
   }
 
   return (
@@ -84,7 +84,7 @@ const ActionNode = ({ data, id }: ActionNodeProps) => {
             </div>
           ) : (
             <Tooltip
-              title="Missing identifier. Click for details."
+              title="Missing identifier. Click for json."
               color="var(--drGray)"
             >
               <InfoCircleFilled width={50} className="info-icon" />
@@ -100,7 +100,7 @@ const ActionNode = ({ data, id }: ActionNodeProps) => {
           id={id}
         />
       ) : null}
-      {detailsLabel}
+      {jsonLabel}
     </div>
   )
 }

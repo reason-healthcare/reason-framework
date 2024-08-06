@@ -56,7 +56,7 @@ class Flow implements FlowShape {
           definition.url ??
           definition.id ??
           definition.description,
-        details: definition,
+        json: definition,
         isCollapsed: false,
       },
       type: 'definitionNode',
@@ -70,7 +70,7 @@ class Flow implements FlowShape {
       id,
       data: {
         label: action.title ?? action.id ?? action.description,
-        details: action,
+        json: action,
         isCollapsed: false,
       },
       position: { x: 0, y: 0 },

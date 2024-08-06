@@ -2,11 +2,11 @@ import hljs from 'highlight.js'
 import { FC, useEffect, useRef } from 'react'
 import '@/styles/NarrativeDisplay.css'
 
-interface CodeDisplay {
+interface CodeBlock {
   cql: string
 }
 
-const CodeDisplay: FC<CodeDisplay> = ({ cql }) => {
+const CodeBlock: FC<CodeBlock> = ({ cql }) => {
   const codeRef = useRef(null)
 
   useEffect(() => {
@@ -24,4 +24,4 @@ const CodeDisplay: FC<CodeDisplay> = ({ cql }) => {
   )
 }
 
-export default CodeDisplay
+export default CodeBlock

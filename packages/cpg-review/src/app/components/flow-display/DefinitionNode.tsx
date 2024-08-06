@@ -7,17 +7,17 @@ type DefinitionNodeProps = {
   data: {
     label: string
     handle: 'output' | 'input' | undefined
-    details: fhir4.PlanDefinitionAction
+    json: fhir4.PlanDefinitionAction
     isCollapsed: boolean
     setexpandedNode: React.Dispatch<React.SetStateAction<string>>
     selected: string | undefined
     setSelected: React.Dispatch<React.SetStateAction<string | undefined>>
-    setDetails: React.Dispatch<
+    setJson: React.Dispatch<
       React.SetStateAction<
         fhir4.PlanDefinition | fhir4.PlanDefinitionAction | undefined
       >
     >
-    setShowDetails: React.Dispatch<React.SetStateAction<boolean>>
+    setShowNarrative: React.Dispatch<React.SetStateAction<boolean>>
   }
   id: string
 }
@@ -26,13 +26,13 @@ const DefinitionNode = ({ data, id }: DefinitionNodeProps) => {
   const {
     label,
     handle,
-    details,
+    json,
     isCollapsed,
     setexpandedNode,
     selected,
     setSelected,
-    setDetails,
-    setShowDetails,
+    setJson,
+    setShowNarrative,
   } = data
   const [collapsed, setCollapsed] = useState<boolean>(false)
   const [highlight, setHighlight] = useState<boolean>()
@@ -48,8 +48,8 @@ const DefinitionNode = ({ data, id }: DefinitionNodeProps) => {
 
   const handleNodeClick = () => {
     setSelected(id)
-    setDetails(details)
-    setShowDetails(true)
+    setJson(json)
+    setShowNarrative(true)
   }
 
   return (

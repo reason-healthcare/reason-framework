@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import BrowserResolver from './resolver/browser'
 import FlowDisplay from './components/flow-display/FlowDisplay'
 import LoadIndicator from './components/LoadIndicator'
-import NarrativeDisplay from './components/narrative-display/NarrativeDisplay'
+import NarrativeRouter from './components/narrative-display/NarrativeRouter'
 import { ReactFlowProvider } from 'reactflow'
 import UploadSection from './components/UploadSection'
 import { MemoryRouter } from 'react-router-dom'
@@ -15,13 +15,13 @@ export default function Home() {
   const [planDefinition, setPlanDefinition] = useState<
     fhir4.PlanDefinition | undefined
   >()
-  const [details, setDetails] = useState<
+  const [json, setJson] = useState<
     | fhir4.PlanDefinition
     | fhir4.PlanDefinitionAction
     | fhir4.ActivityDefinition
     | undefined
   >()
-  const [showDetails, setShowDetails] = useState<boolean>(false)
+  const [showNarrative, setShowNarrative] = useState<boolean>(false)
   const [showUpload, setShowUpload] = useState<boolean>(false)
   const [selected, setSelected] = useState<string>()
 
@@ -36,7 +36,7 @@ export default function Home() {
   useEffect(() => {
     if (resolver instanceof BrowserResolver && planDefinition != null) {
       setShowUpload(false)
-      setShowDetails(false)
+      setShowNarrative(false)
     } else {
       setShowUpload(true)
     }
@@ -53,9 +53,9 @@ export default function Home() {
             <FlowDisplay
               resolver={resolver}
               planDefinition={planDefinition}
-              setDetails={setDetails}
-              setShowDetails={setShowDetails}
-              showDetails={showDetails}
+              setJson={setJson}
+              setShowNarrative={setShowNarrative}
+              showNarrative={showNarrative}
               selected={selected}
               setSelected={setSelected}
             />
@@ -64,13 +64,13 @@ export default function Home() {
           <LoadIndicator />
         )}
         <MemoryRouter>
-          {showDetails && (
-            <NarrativeDisplay
-              details={details}
+          {showNarrative && (
+            <NarrativeRouter
+              json={json}
               resolver={resolver}
-              setShowDetails={setShowDetails}
+              setShowNarrative={setShowNarrative}
               setSelected={setSelected}
-            ></NarrativeDisplay>
+            ></NarrativeRouter>
           )}
         </MemoryRouter>
       </div>

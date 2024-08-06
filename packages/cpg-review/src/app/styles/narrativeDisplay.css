@@ -1,4 +1,4 @@
-.details-section {
+.narrative-section {
   display: flex;
   flex-direction: column;
   min-width: 35%;
@@ -11,13 +11,13 @@
   word-break: break-word;
 }
 
-.details-container-outer {
+.narrative-container-outer {
   display: flex;
   flex-direction: column;
   overflow-y: scroll;
 }
 
-.details-container-inner {
+.narrative-container-inner {
   display: flex;
   flex-direction: column;
   margin-right: 1rem;
@@ -28,12 +28,9 @@
   }
 }
 
-.details-description {
+.narrative-description {
   text-decoration: underline;
   font-weight: 500;
-}
-
-.details-description ul {
   padding: 0;
 }
 
