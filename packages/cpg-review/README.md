@@ -4,12 +4,24 @@ This project renders a flow diagram dynamically based on desired CPG FHIR plan d
 
 ## Local Development
 
-Ensure environment variables are set to a local FHIR implementation guide in order to resolve content. Specify a plan definition canonical as well. See `.env.example`
+### Install
 
-Then, run the development server:
+Run `npm install` in the root of this monorepo
+
+### Build
+
+Run `npm run build` in the root of this monorepo
+
+### Format
+
+Run `npm run fmt` in the root of this monorepo
+
+### Running
+
+Then from `packages/cpg-review`, run the development server:
 
 ```
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in browser.
