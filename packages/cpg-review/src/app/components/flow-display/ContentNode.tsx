@@ -6,6 +6,7 @@ import { is } from 'helpers'
 import { NodeProps } from '../../types/NodeProps'
 import { Tooltip } from 'antd'
 import { InfoCircleFilled } from '@ant-design/icons'
+import TargetHandle from './TargetHandle'
 
 const ContentNode = ({ data: nodeProps, id }: NodeProps) => {
   const {
@@ -47,28 +48,30 @@ const ContentNode = ({ data: nodeProps, id }: NodeProps) => {
 
   return (
     <>
-    <div className={highlight ? 'node-highlight' : 'node-unhighlight'} onClick={handleNodeClick}>
+    <div className={`clickable node-container ${highlight ? 'node-highlight' : 'node-unhighlight'} ${is.ActivityDefinition(nodeDetails) ? 'activity-node' : ''}`}>
         {handle?.includes('target') ? (
-          <Handle type="target" position={Position.Top} />
+          <TargetHandle />
         ) : null}
-        {label ? (
-            <p>{label}</p>
-          ) : (
-            <Tooltip
-              title="Missing identifier. Click for data."
-              color="var(--drGray)"
-            >
-              <InfoCircleFilled width={50} className="info-icon" />
-            </Tooltip>
-          )}
-        {handle?.includes('source') ? (
+        <div onClick={handleNodeClick}>
+          {label ? (
+              <p>{label}</p>
+            ) : (
+              <Tooltip
+                title="Missing identifier. Click for data."
+                color="var(--drGray)"
+              >
+                <InfoCircleFilled width={50} className="info-icon" />
+              </Tooltip>
+            )}
+        </div>
+        {handle?.includes('source') && (
           <InteractiveHandle
             setCollapsed={setCollapsed}
             collapsed={collapsed}
             setNodeToExpand={setNodeToExpand}
             id={id}
           />
-        ) : null}
+        )}
       </div>
     {selectionDetail}
     </>
