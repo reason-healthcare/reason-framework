@@ -1,26 +1,23 @@
 import { Handle, Position } from 'reactflow'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import '@/styles/node.css'
 import { NodeProps } from '../../types/NodeProps'
 
 const StartNode = ({ data: nodeProps, id }: NodeProps) => {
   const {
-    label,
-    handle,
-    nodeData,
-    isCollapsed,
-    setNodeToExpand,
-    selectedNode,
-    setSelectedNode,
-    setNodeData,
-
+    selectedNode
   } = nodeProps
-  const [collapsed, setCollapsed] = useState<boolean>(false)
-  const [highlight, setHighlight] = useState<boolean>()
+  const [highlight, setHighlight] = useState<boolean>(true)
+
+  useEffect(() => {
+    if (selectedNode != null) {
+      setHighlight(false)
+    }
+  }, [selectedNode])
 
   return (
-    <div className={highlight ? 'node-highlight' : 'node-unhighlight'} style={{borderRadius: '50%'}}>
-      <p>Start</p>
+    <div className={`start-node ${highlight ? 'node-highlight' : 'node-unhighlight'}`}>
+      <p>START</p>
       <Handle type="source" position={Position.Bottom} className='hidden-handle' />
     </div>
   )

@@ -131,7 +131,7 @@ export default function FlowDisplay({
 
   const nodeColor = (node: Node) => {
     switch (node.type) {
-      case 'definitionNode':
+      case 'contentNode':
         return 'var(--teal)'
       case 'Node':
         return 'var(--ltTeal)'
