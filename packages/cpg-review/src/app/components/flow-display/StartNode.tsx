@@ -4,9 +4,7 @@ import '@/styles/node.css'
 import { NodeProps } from '../../types/NodeProps'
 
 const StartNode = ({ data: nodeProps, id }: NodeProps) => {
-  const {
-    selectedNode
-  } = nodeProps
+  const { selectedNode } = nodeProps
   const [highlight, setHighlight] = useState<boolean>(true)
 
   useEffect(() => {
@@ -16,9 +14,17 @@ const StartNode = ({ data: nodeProps, id }: NodeProps) => {
   }, [selectedNode])
 
   return (
-    <div className={`start-node ${highlight ? 'node-highlight' : 'node-unhighlight'}`}>
+    <div
+      className={`start-node-container ${
+        highlight ? 'node-highlight' : 'node-unhighlight'
+      }`}
+    >
       <p>START</p>
-      <Handle type="source" position={Position.Bottom} className='hidden-handle' />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        className="hidden-handle"
+      />
     </div>
   )
 }

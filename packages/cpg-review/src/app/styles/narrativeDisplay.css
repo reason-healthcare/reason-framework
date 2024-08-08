@@ -1,14 +1,11 @@
 .narrative-section {
   display: flex;
   flex-direction: column;
-  min-width: 35%;
-  max-width: 50%;
-  border-left: 1px solid lightgray;
-  padding-left: 3.5rem;
   margin-bottom: 5rem;
   gap: 1.5rem;
   white-space: normal;
   word-break: break-word;
+  height: 90%;
 }
 
 .narrative-container-outer {

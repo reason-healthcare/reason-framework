@@ -799,39 +799,21 @@ export const addSpaces = (string: any | undefined): string | undefined => {
 /** General purpose */
 
 export const formatTitle = (
-  resource:
-    | fhir4.StructureDefinition
-    | TerminologyArtifact
-    | KnowledgeArtifact
-    | fhir4.PlanDefinitionAction
+  resource: fhir4.FhirResource | fhir4.PlanDefinitionAction
 ) => {
-  let header
-  if (
-    is.KnowledgeArtifact(resource) ||
-    is.StructureDefinition(resource) ||
-    is.TerminologyArtifact(resource)
-  ) {
-    const { title, name, url, id } = resource
-    header = title ?? addSpaces(name) ?? url ?? id
-  } else {
-    const { title, id } = resource
-    header = title ?? id
+  const { title, name, url, id } = resource as {
+    title?: string
+    name?: string
+    url?: string
+    id?: string
   }
-  return header
+  return title ?? addSpaces(name) ?? url ?? id
 }
 
 export const formatResourceType = (
-  resource:
-    | fhir4.StructureDefinition
-    | TerminologyArtifact
-    | KnowledgeArtifact
-    | fhir4.PlanDefinitionAction
+  resource: fhir4.FhirResource | fhir4.PlanDefinitionAction
 ) => {
-  if (
-    is.KnowledgeArtifact(resource) ||
-    is.StructureDefinition(resource) ||
-    is.TerminologyArtifact(resource)
-  ) {
+  if ('resourceType' in resource) {
     return addSpaces(resource.resourceType)
   }
 }
@@ -850,16 +832,11 @@ export const formatUrl = (
   if (resolver != null && navigate != null) {
     const [canonical, version] = url.split('|')
     const resource = resolver.resolveCanonical(canonical)
-    if (
-      is.KnowledgeArtifact(resource) ||
-      is.TerminologyArtifact(resource) ||
-      is.StructureDefinition(resource)
-    ) {
-      const { title, name, id } = resource
+    if (resource != null) {
       const path = canonical.split('/').slice(-2).join('/')
       return (
         <Link onClick={() => navigate(`/${path}`)} to={`/${path}`}>
-          {title ?? addSpaces(name) ?? url ?? id}
+          {formatTitle(resource)}
         </Link>
       )
     }
@@ -869,6 +846,29 @@ export const formatUrl = (
       {url}
     </Link>
   )
+}
+
+export const formatReference = (
+  referenceObj: fhir4.Reference,
+  resolver?: BrowserResolver | undefined,
+  navigate?: NavigateFunction
+) => {
+  const { reference, type, identifier, display } = referenceObj
+  if (
+    reference?.split('/').length == 2 &&
+    resolver != null &&
+    navigate != null
+  ) {
+    const resource = resolver.resolveReference(reference)
+    if (resource != null) {
+      return (
+        <Link onClick={() => navigate(`/${reference}`)} to={`/${reference}`}>
+          {formatTitle(resource)}
+        </Link>
+      )
+    }
+  }
+  return reference ?? identifier ?? display
 }
 
 export const formatCodeableConcept = (
@@ -1102,6 +1102,8 @@ export const formatValue = (
     formattedValue = formatUrl(value, resolver, navigate)
   } else if (isPrimitive(value)) {
     formattedValue = value.toString()
+  } else if (is.Reference(value)) {
+    formattedValue = formatReference(value, resolver, navigate)
   } else if (is.Coding(value)) {
     formattedValue = formatCoding(value, resolver, navigate)
   } else if (is.Extension(value)) {
@@ -1158,10 +1160,7 @@ export const formatProperty = (
         .filter(notEmpty)
     }
   }
-  const keyFormatted =
-    key != null
-      ? addSpaces(capitalize(key))
-      : undefined
+  const keyFormatted = key != null ? addSpaces(capitalize(key)) : undefined
   if (Array.isArray(content)) {
     return (
       <ListDisplayItem

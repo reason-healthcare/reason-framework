@@ -1,14 +1,7 @@
-import {
-  Edge,
-  Node,
-  ReactFlowInstance,
-  getOutgoers,
-  useReactFlow,
-} from 'reactflow'
+import { Edge, Node, ReactFlowInstance, getOutgoers } from 'reactflow'
 import { is, notEmpty } from '../helpers'
 import '@/styles/node.css'
 import { ElkNode } from 'elkjs'
-import { resolveCanonical } from '../helpers'
 import { v4 } from 'uuid'
 import Graph from './Graph'
 import BrowserResolver from 'resolver/browser'
@@ -56,7 +49,7 @@ class Flow implements FlowShape {
           definition.url ??
           definition.id ??
           definition.description,
-        nodeData: {nodeDetails: definition},
+        nodeData: { nodeDetails: definition },
         isCollapsed: false,
       },
       type: 'contentNode',
@@ -65,13 +58,17 @@ class Flow implements FlowShape {
     } as Node
   }
 
-  private createActionNode(id: string, action: fhir4.PlanDefinitionAction, planDefinition: fhir4.PlanDefinition) {
+  private createActionNode(
+    id: string,
+    action: fhir4.PlanDefinitionAction,
+    planDefinition: fhir4.PlanDefinition
+  ) {
     return {
       id,
       data: {
         label: action.title ?? action.id ?? action.description,
         handle: ['target', 'source'],
-        nodeData: {nodeDetails: action, partOf: planDefinition},
+        nodeData: { nodeDetails: action, partOf: planDefinition },
         isCollapsed: false,
       },
       position: { x: 0, y: 0 },
@@ -84,7 +81,7 @@ class Flow implements FlowShape {
     return {
       id,
       data: {
-        nodeData: {nodeDetails: definition},
+        nodeData: { nodeDetails: definition },
         isCollapsed: false,
       },
       position: { x: 0, y: 0 },
@@ -109,69 +106,84 @@ class Flow implements FlowShape {
   /**
    *
    * @param actions Plan definition actions to process as new node
-   * @param content FHIR content
+   * @param resolver FHIR resolver
    * @param parentEdge Edge with source information
    */
   private processActionNodes(
     planDefinition: fhir4.PlanDefinition,
     actions: fhir4.PlanDefinitionAction[],
-    content: BrowserResolver,
+    resolver: BrowserResolver,
     parentEdge: Edge
   ) {
     actions?.map((action) => {
       /**
        * Create node for each action
-       * ID needs to be unique - definition nodes are deduped, action nodes are not
        */
       const id = `action-${action.title}-${v4()}`
-      const Node = this.createActionNode(id, action, planDefinition)
-      this.addNewNode(Node)
+      const node = this.createActionNode(id, action, planDefinition)
 
       /** Connect to parent */
-      const sourceEdge = { ...parentEdge, target: id, id: parentEdge.id + id }
+      const sourceEdge = {
+        ...parentEdge,
+        target: node.id,
+        id: `${parentEdge.id} - ${id}`,
+      }
       this.addNewEdge(sourceEdge)
 
       /** Handle children */
-      const targetEdge = this.createEdge(Node.id)
+      const targetEdge = this.createEdge(node.id)
       if (action.selectionBehavior) {
         targetEdge.animated = true
       }
       if (action.definitionCanonical) {
-        const definition = resolveCanonical(
-          action.definitionCanonical,
-          content
+        const definition = resolver.resolveCanonical(
+          action.definitionCanonical
         ) as fhir4.PlanDefinition | fhir4.ActivityDefinition | undefined
         if (is.PlanDefinition(definition) && definition.action) {
-          this.processActionNodes(definition, definition.action, content, targetEdge)
+          this.processActionNodes(
+            definition,
+            definition.action,
+            resolver,
+            targetEdge
+          )
         } else if (is.ActivityDefinition(definition) && definition.id) {
           const id = definition.id
-          let activityNode = this.nodes?.find(n => n.id === id)
+          let activityNode = this.nodes?.find((n) => n.id === id)
           if (activityNode == null) {
             activityNode = this.createActivityNode(id, definition)
             activityNode.data.handle = ['target']
             this.addNewNode(activityNode)
           }
-          const sourceEdge = { ...targetEdge, target: id, id: targetEdge.id + id }
+          const sourceEdge = {
+            ...targetEdge,
+            target: id,
+            id: `${targetEdge.id} - ${id}`,
+          }
           this.addNewEdge(sourceEdge)
         }
       } else if (action.action) {
-        this.processActionNodes(planDefinition, action.action, content, targetEdge)
+        this.processActionNodes(
+          planDefinition,
+          action.action,
+          resolver,
+          targetEdge
+        )
+      } else {
+        node.data.handle = ['target']
       }
-      if (!action.definitionCanonical && !action.action) {
-        Node.data.handle = ['source']
-      }
+      this.addNewNode(node)
     })
   }
 
   /**
    * Generate initial react flow from plan definition without layout (all positions are y:0 and x:0)
    * @param planDefinition
-   * @param content
+   * @param resolver
    * @returns
    */
   public generateInitialFlow(
     planDefinition: fhir4.PlanDefinition,
-    content: BrowserResolver
+    resolver: BrowserResolver
   ) {
     if (is.PlanDefinition(planDefinition)) {
       /** Create node if it doesn't exist, find node if it does */
@@ -183,7 +195,12 @@ class Flow implements FlowShape {
       /** Handle children */
       if (planDefinition.action != null) {
         const targetEdge = this.createEdge(node.id)
-          this.processActionNodes(planDefinition, planDefinition.action, content, targetEdge)
+        this.processActionNodes(
+          planDefinition,
+          planDefinition.action,
+          resolver,
+          targetEdge
+        )
       } else {
         // TODO error handling
       }

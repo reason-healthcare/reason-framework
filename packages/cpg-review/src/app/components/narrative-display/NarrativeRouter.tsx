@@ -6,10 +6,7 @@ import NarrativeDisplay from './NarrativeDisplay'
 import { NodeData } from '../../types/NodeData'
 
 interface NarrativeRouterProps {
-
-  nodeData:
-    | NodeData
-    | undefined
+  nodeData: NodeData | undefined
   resolver: BrowserResolver | undefined
   setSelectedNode: React.Dispatch<React.SetStateAction<string | undefined>>
 }
@@ -36,7 +33,6 @@ const NarrativeRouter = ({
               resolver={resolver}
               setSelectedNode={setSelectedNode}
               nodeDetails={nodeData}
-
             />
           }
         />
@@ -46,7 +42,6 @@ const NarrativeRouter = ({
             <NarrativeDisplay
               resolver={resolver}
               setSelectedNode={setSelectedNode}
-
             />
           }
         />

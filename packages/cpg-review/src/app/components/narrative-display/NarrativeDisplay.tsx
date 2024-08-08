@@ -23,23 +23,16 @@ import SingleDisplayItem from './SingleDisplayItem'
 interface NarrativeDisplayProps {
   resolver: BrowserResolver | undefined
   setSelectedNode: React.Dispatch<React.SetStateAction<string | undefined>>
-  nodeDetails?:
-    | NodeData
-    | undefined
+  nodeDetails?: NodeData | undefined
 }
 
 const NarrativeDisplay = ({
   resolver,
   setSelectedNode,
   nodeDetails,
-
 }: NarrativeDisplayProps) => {
   const [resource, setResource] = useState<
-    | fhir4.StructureDefinition
-    | KnowledgeArtifact
-    | TerminologyArtifact
-    | fhir4.PlanDefinitionAction
-    | undefined
+    fhir4.FhirResource | fhir4.PlanDefinitionAction | undefined
   >()
   const [cql, setCql] = useState<string | undefined>()
   const [partOfIdentifier, setPartOfIdentifier] = useState<string | undefined>()
@@ -51,10 +44,7 @@ const NarrativeDisplay = ({
     setPartOfIdentifier(undefined)
     setCql(undefined)
     if (nodeDetails != null) {
-      const {nodeDetails: details, partOf} = nodeDetails
-      if (is.KnowledgeArtifact(details)) {
-        delete details.text
-      }
+      const { nodeDetails: details, partOf } = nodeDetails
       if (partOf != null) {
         setPartOfIdentifier(partOf.url)
       }
@@ -62,17 +52,10 @@ const NarrativeDisplay = ({
     } else if (resolver != null) {
       const reference = path.split('/').slice(-2).join('/')
       const rawResource = resolver.resolveReference(reference)
-      if (
-        is.ActivityDefinition(rawResource)
-      ) {
+      if (is.ActivityDefinition(rawResource)) {
         setSelectedNode(rawResource.id)
       }
-      if (
-        is.KnowledgeArtifact(rawResource) ||
-        is.StructureDefinition(rawResource) ||
-        is.TerminologyArtifact(rawResource)
-      ) {
-        delete rawResource.text
+      if (rawResource != null) {
         setResource(rawResource)
       }
       if (is.Library(rawResource)) {
@@ -110,9 +93,11 @@ const NarrativeDisplay = ({
       'mapping',
       'snapshot',
       'parameter',
+      'jurisdiction',
+      'count',
     ]
 
-    const formatedProperties = Object.entries(resource)
+    const formattedProperties = Object.entries(resource)
       .map((e: [string, any]) => {
         const [k, v] = e
         if (!meta.includes(k)) {
@@ -127,16 +112,21 @@ const NarrativeDisplay = ({
           <h2>{`${formatResourceType(resource) ?? 'Action'}: ${formatTitle(
             resource
           )}`}</h2>
-          {partOfIdentifier != null && <SingleDisplayItem heading="Part Of" content={formatUrl(partOfIdentifier, resolver, navigate)}/>}
+          {partOfIdentifier != null && (
+            <SingleDisplayItem
+              heading="Part Of"
+              content={formatUrl(partOfIdentifier, resolver, navigate)}
+            />
+          )}
           {format === 'text' && cql != null ? (
             <>
-              {formatedProperties}
+              {formattedProperties}
               <CodeBlock cql={cql} />
             </>
           ) : format === 'json' ? (
             <CodeBlock cql={JSON.stringify(resource, null, 1)} />
           ) : (
-            <>{formatedProperties}</>
+            <>{formattedProperties}</>
           )}
           <Radio.Group
             onChange={onFormatChange}

@@ -1,7 +1,11 @@
 import { Handle, Position } from 'reactflow'
 import '@/styles/node.css'
 import { useState } from 'react'
-import { UpCircleFilled, DownCircleFilled, DownOutlined } from '@ant-design/icons'
+import {
+  UpCircleFilled,
+  DownCircleFilled,
+  DownOutlined,
+} from '@ant-design/icons'
 
 type InteractiveHandleProps = {
   setCollapsed: React.Dispatch<React.SetStateAction<boolean>>
@@ -16,7 +20,6 @@ const InteractiveHandle = ({
   setNodeToExpand,
   id,
 }: InteractiveHandleProps) => {
-
   const handleClick = () => {
     if (collapsed) {
       setNodeToExpand(id)
@@ -27,11 +30,13 @@ const InteractiveHandle = ({
   return (
     <div>
       <Handle
-        className='hidden-handle'
+        className="hidden-handle"
         type="source"
         position={Position.Bottom}
       >
-        {collapsed && <DownCircleFilled className="expand-icon" onClick={handleClick} />}
+        {collapsed && (
+          <DownCircleFilled className="expand-icon" onClick={handleClick} />
+        )}
       </Handle>
     </div>
   )

@@ -27,14 +27,19 @@
 .start-node {
   width: 50px;
   height: 50px;
+}
+
+.start-node-container {
+  height: 95%;
+  width: 95%;
   border-radius: 50% !important;
   display: flex;
   align-items: center;
   justify-content: center;
 
   &.node-highlight {
-    background: #b4f3d6;
-    border-color: #1db06e;
+    background: #90fab4;
+    border-color: #0ad14d;
   }
 }
 
@@ -87,7 +92,6 @@
   min-height: 0;
   width: 17px;
   cursor: grab !important;
-  /* height: 8px; */
 }
 
 .target-handle {
@@ -95,3 +99,10 @@
   cursor: grab;
 }
 
+/* .react-flow__edge.selected {
+  stroke: var(--brTeal) !important;
+
+  & path {
+    stroke: var(--brTeal) !important;
+  }
+} */

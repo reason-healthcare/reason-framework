@@ -16,16 +16,10 @@ import BrowserResolver from 'resolver/browser'
 import StartNode from './StartNode'
 import { NodeData } from '../../types/NodeData'
 
-
 interface FlowDisplayProps {
   resolver: BrowserResolver | undefined
   planDefinition: fhir4.PlanDefinition
-  setNodeData: React.Dispatch<
-    React.SetStateAction<
-      | NodeData
-      | undefined
-    >
-  >
+  setNodeData: React.Dispatch<React.SetStateAction<NodeData | undefined>>
   selectedNode: string | undefined
   setSelectedNode: React.Dispatch<React.SetStateAction<string | undefined>>
 }
@@ -112,7 +106,9 @@ export default function FlowDisplay({
         .then((f) => {
           setDisplayNodes(f.nodes)
           setDisplayEdges(f.edges)
-          sourceNode ? setSelectedNode(sourceNode.id) : null
+          sourceNode != null && selectedNode != null
+            ? setSelectedNode(sourceNode.id)
+            : null
           flow.centerOnNode(nodeToExpand, 60, 1, reactFlow)
         })
     }

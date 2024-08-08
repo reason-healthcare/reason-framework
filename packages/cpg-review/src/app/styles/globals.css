@@ -106,6 +106,7 @@ body {
   align-items: center;
   gap: 0.8rem;
   width: 100%;
+  margin-bottom: 0.5rem;
 
   & h1 {
     font-size: 1rem;
@@ -113,13 +114,17 @@ body {
   }
 }
 
-.flow-provider-container {
+.data-panel-group {
   display: flex;
-  height: 100%;
-  width: 100%;
   justify-content: center;
-  gap: 3rem;
+  gap: 3.5rem;
   box-sizing: border-box;
+}
+
+.panel-seperator {
+  width: 1px;
+  background: lightgray;
+  height: 90%;
 }
 
 .flow-container {

@@ -3,11 +3,9 @@ import '@/styles/node.css'
 import { useState } from 'react'
 import { DownOutlined } from '@ant-design/icons'
 
-type TargetHandleProps = {
-}
+type TargetHandleProps = {}
 
-const TargetHandle = ({
-}: TargetHandleProps) => {
+const TargetHandle = ({}: TargetHandleProps) => {
   return (
     <div>
       <Handle
@@ -15,7 +13,7 @@ const TargetHandle = ({
         type="target"
         position={Position.Top}
       >
-        <DownOutlined style={{width: 15, color: 'var(--accentGray)'}}/>
+        <DownOutlined style={{ width: 15, color: 'var(--accentGray)' }} />
       </Handle>
     </div>
   )

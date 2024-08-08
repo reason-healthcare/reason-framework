@@ -10,16 +10,14 @@ import { MemoryRouter } from 'react-router-dom'
 import { formatTitle } from 'helpers'
 import Link from 'next/link'
 import { NodeData } from './types/NodeData'
+import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels'
 
 export default function Home() {
   const [resolver, setResolver] = useState<BrowserResolver | undefined>()
   const [planDefinition, setPlanDefinition] = useState<
     fhir4.PlanDefinition | undefined
   >()
-  const [nodeData, setNodeData] = useState<
-    | NodeData
-    | undefined
-  >()
+  const [nodeData, setNodeData] = useState<NodeData | undefined>()
   const [showUpload, setShowUpload] = useState<boolean>(false)
   const [selectedNode, setSelectedNode] = useState<string>()
 
@@ -36,6 +34,7 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
+    setSelectedNode(undefined)
     if (resolver instanceof BrowserResolver && planDefinition != null) {
       setShowUpload(false)
     } else {
@@ -48,30 +47,39 @@ export default function Home() {
       <div className="plan-title">
         {planDefinition != null && <h1>{formatTitle(planDefinition)}</h1>}
       </div>
-      <div className="flow-provider-container">
-        {resolver != null && planDefinition != null ? (
-          <ReactFlowProvider>
-            <FlowDisplay
-              resolver={resolver}
-              planDefinition={planDefinition}
-              setNodeData={setNodeData}
-              selectedNode={selectedNode}
-              setSelectedNode={setSelectedNode}
-            />
-          </ReactFlowProvider>
-        ) : (
-          <LoadIndicator />
-        )}
-        <MemoryRouter>
-          {selectedNode != null && (
-            <NarrativeRouter
-              nodeData={nodeData}
-              resolver={resolver}
-              setSelectedNode={setSelectedNode}
-            ></NarrativeRouter>
+      <PanelGroup direction="horizontal" className="data-panel-group">
+        <Panel minSize={25}>
+          {resolver != null && planDefinition != null ? (
+            <ReactFlowProvider>
+              <FlowDisplay
+                resolver={resolver}
+                planDefinition={planDefinition}
+                setNodeData={setNodeData}
+                selectedNode={selectedNode}
+                setSelectedNode={setSelectedNode}
+              />
+            </ReactFlowProvider>
+          ) : (
+            <LoadIndicator />
           )}
-        </MemoryRouter>
-      </div>
+        </Panel>
+        {selectedNode != null && (
+          <>
+            <PanelResizeHandle className="panel-seperator" />
+            <Panel minSize={25}>
+              <MemoryRouter>
+                {selectedNode != null && (
+                  <NarrativeRouter
+                    nodeData={nodeData}
+                    resolver={resolver}
+                    setSelectedNode={setSelectedNode}
+                  ></NarrativeRouter>
+                )}
+              </MemoryRouter>
+            </Panel>
+          </>
+        )}
+      </PanelGroup>
     </>
   )
 
