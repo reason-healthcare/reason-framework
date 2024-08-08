@@ -21,7 +21,8 @@ const UploadSection = ({
   setPlanDefinition,
   resolver,
 }: UploadSectionProps) => {
-  const [planDefinitions, setPlanDefinitions] = useState<string[]>()
+  const [planDefinitions, setPlanDefinitions] =
+    useState<fhir4.PlanDefinition[]>()
   const [planDefinitionPayload, setPlanDefinitionPayload] = useState<string>()
   const [isLoading, setIsLoading] = useState(false)
   const [uploaded, setUploaded] = useState<RcFile | undefined>()
@@ -32,10 +33,8 @@ const UploadSection = ({
 
   const beforeUpload = (file: RcFile) => {
     const isZip = file.type === 'application/zip'
-    if (uploaded != null) {
-      message.error('May only upload one zipped file')
-    } else if (!isZip) {
-      message.error('May only upload zipped files')
+    if (uploaded != null || !isZip) {
+      message.error('May only upload one compressed file ending in .zip')
     }
     if (isZip && uploaded == null) {
       setUploaded(file)
@@ -50,7 +49,7 @@ const UploadSection = ({
     if (status === 'removed') {
       localStorage.clear()
     } else if (fileList.length > 1) {
-      message.error('May only upload one zipped file')
+      message.error('May only upload one compressed file ending in .zip')
     } else if (status === 'done') {
       handleUpload(originFileObj)
     }
@@ -63,10 +62,10 @@ const UploadSection = ({
       reader.onload = async (event) => {
         const zipData = JSON.stringify(event.target?.result)
         let resolver = new BrowserResolver()
-        resolver.handleProcessZip(zipData).then(() => {
+        resolver.decompress(zipData).then(() => {
           if (resolver == null) {
             message.error(
-              'Unable to process zipped data. Ensure that the data is the compressed output of a FHIR Implementation Guide'
+              'Unable to process compressed data. Ensure that the data is the compressed output of an r4 FHIR Implementation Guide (full-ig.zip)'
             )
           } else {
             localStorage.clear()
@@ -86,36 +85,8 @@ const UploadSection = ({
             const plans = Object.keys(resourcesByCanonical)
               .map((k: string) => {
                 const resource = resourcesByCanonical[k]
-                let type
-                if (
-                  resource.meta?.profile?.find(
-                    (p) =>
-                      p ===
-                      'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-pathwaydefinition'
-                  )
-                ) {
-                  type = 'CPG Pathway'
-                } else if (
-                  resource.meta?.profile?.find(
-                    (p) =>
-                      p ===
-                      'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-strategydefinition'
-                  )
-                ) {
-                  type = 'CPG Strategy'
-                } else if (
-                  resource.meta?.profile?.find(
-                    (p) =>
-                      p ===
-                      'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-recommendationdefinition'
-                  )
-                ) {
-                  type = 'CPG Recommendation'
-                } else {
-                  type = 'Plan Definition'
-                }
                 if (is.PlanDefinition(resource)) {
-                  return `${resource.url} ${type ? `(${type})` : null}`
+                  return resource
                 }
               })
               .filter(notEmpty)
@@ -131,8 +102,70 @@ const UploadSection = ({
       }
       reader.readAsDataURL(file)
     } else {
-      message.error('Please upload a zipped file')
+      message.error('Please upload a compressed file ending in .zip')
     }
+  }
+
+  const formatPlanOptions = (plans: fhir4.PlanDefinition[] | undefined) => {
+    const planOptions = planDefinitions?.map((plan) => {
+      let type
+      if (
+        plan.meta?.profile?.find(
+          (p) =>
+            p ===
+            'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-pathwaydefinition'
+        )
+      ) {
+        type = 'CPG Pathway'
+      } else if (
+        plan.meta?.profile?.find(
+          (p) =>
+            p ===
+            'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-strategydefinition'
+        )
+      ) {
+        type = 'CPG Strategy'
+      } else if (
+        plan.meta?.profile?.find(
+          (p) =>
+            p ===
+            'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-recommendationdefinition'
+        )
+      ) {
+        type = 'CPG Recommendation'
+      } else {
+        type = 'Plan Definition'
+      }
+      return (
+        <Option key={plan.url} value={plan.url}>
+          {`${plan.title ?? plan.name ?? plan.url ?? plan.id} (${type})`}
+        </Option>
+      )
+    })
+
+    const sortOrder = [
+      'CPG Pathway',
+      'CPG Strategy',
+      'CPG Recommendation',
+      'Plan Definition',
+    ]
+    return planOptions?.sort().sort((a, b) => {
+      const aKeyword =
+        a.props.children
+          .match(/\((.*?)\)/)
+          ?.shift()
+          ?.replace('(', '')
+          .replace(')', '') || ''
+      const bKeyword =
+        b.props.children
+          .match(/\((.*?)\)/)
+          ?.shift()
+          ?.replace('(', '')
+          .replace(')', '') || ''
+      const aIndex = sortOrder.indexOf(aKeyword)
+      const bIndex = sortOrder.indexOf(bKeyword)
+      return aIndex - bIndex
+    })
   }
 
   const handleChange = (value: string) => {
@@ -183,7 +216,7 @@ const UploadSection = ({
         >
           <h1 className="form-title">Add content</h1>
           <p className="form-description">
-            Add a compressed FHIR implementation guide template. Use the
+            Add a compressed r4 FHIR implementation guide. Use the
             generated{' '}
             <span>
               <Link
@@ -210,7 +243,7 @@ const UploadSection = ({
         <Form.Item name="select" className="form-item">
           <h1 className="form-title">Select plan definition</h1>
           <p className="form-description">
-            Select a plan definition for review. Recomend using a{' '}
+            Select a plan definition for review. Recommend using a{' '}
             <span>
               <Link
                 href="https://build.fhir.org/ig/HL7/cqf-recommendations/documentation-approach-12-03-cpg-plan.html#pathways"
@@ -231,13 +264,7 @@ const UploadSection = ({
             popupMatchSelectWidth={true}
             disabled={planDefinitions == null}
           >
-            {planDefinitions?.map((p) => {
-              return (
-                <Option key={p} value={p.split(' ').shift()}>
-                  {p}
-                </Option>
-              )
-            })}
+            {formatPlanOptions(planDefinitions)}
           </Select>
         </Form.Item>
         <Form.Item>

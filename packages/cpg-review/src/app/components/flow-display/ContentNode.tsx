@@ -19,7 +19,7 @@ const ContentNode = ({ data: nodeProps, id }: NodeProps) => {
     setSelectedNode,
     setNodeData,
   } = nodeProps
-  const {nodeDetails, partOf} = nodeData
+  const { nodeDetails, partOf } = nodeData
   const [collapsed, setCollapsed] = useState<boolean>(false)
   const [highlight, setHighlight] = useState<boolean>()
 
@@ -33,7 +33,11 @@ const ContentNode = ({ data: nodeProps, id }: NodeProps) => {
   }, [isCollapsed, selectedNode])
 
   let selectionDetail
-  if (!is.ActivityDefinition(nodeDetails) && nodeDetails.selectionBehavior && !collapsed) {
+  if (
+    !is.ActivityDefinition(nodeDetails) &&
+    nodeDetails.selectionBehavior &&
+    !collapsed
+  ) {
     selectionDetail = (
       <div className="action-selection-label">
         {`Select ${nodeDetails.selectionBehavior}`}
@@ -48,21 +52,23 @@ const ContentNode = ({ data: nodeProps, id }: NodeProps) => {
 
   return (
     <>
-    <div className={`clickable node-container ${highlight ? 'node-highlight' : 'node-unhighlight'} ${is.ActivityDefinition(nodeDetails) ? 'activity-node' : ''}`}>
-        {handle?.includes('target') ? (
-          <TargetHandle />
-        ) : null}
+      <div
+        className={`clickable node-container ${
+          highlight ? 'node-highlight' : 'node-unhighlight'
+        } ${is.ActivityDefinition(nodeDetails) ? 'activity-node' : ''}`}
+      >
+        {handle?.includes('target') ? <TargetHandle /> : null}
         <div onClick={handleNodeClick}>
           {label ? (
-              <p>{label}</p>
-            ) : (
-              <Tooltip
-                title="Missing identifier. Click for data."
-                color="var(--drGray)"
-              >
-                <InfoCircleFilled width={50} className="info-icon" />
-              </Tooltip>
-            )}
+            <p>{label}</p>
+          ) : (
+            <Tooltip
+              title="Missing identifier. Click for data."
+              color="var(--drGray)"
+            >
+              <InfoCircleFilled width={50} className="info-icon" />
+            </Tooltip>
+          )}
         </div>
         {handle?.includes('source') && (
           <InteractiveHandle
@@ -73,7 +79,7 @@ const ContentNode = ({ data: nodeProps, id }: NodeProps) => {
           />
         )}
       </div>
-    {selectionDetail}
+      {selectionDetail}
     </>
   )
 }

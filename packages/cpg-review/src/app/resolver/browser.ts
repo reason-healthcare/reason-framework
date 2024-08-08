@@ -14,7 +14,7 @@ class BrowserResolver {
     }
   }
 
-  public async handleProcessZip(rawData: string) {
+  public async decompress(rawData: string) {
     const zip = new JSZip()
     try {
       const zipFile = await zip.loadAsync(rawData.split(',')[1], {
