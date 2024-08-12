@@ -32,11 +32,13 @@ const UploadSection = ({
   const [form] = Form.useForm()
 
   const beforeUpload = (file: RcFile) => {
-    const isZip = file.type === 'application/zip'
-    if (uploaded != null || !isZip) {
-      message.error('May only upload one compressed file ending in .zip')
+    const isTar = file.type === 'application/gzip'
+    if (uploaded != null) {
+      message.error('May only upload one compressed package')
+    } else if (!isTar) {
+      message.error('May only upload file ending in .tgz')
     }
-    if (isZip && uploaded == null) {
+    if (isTar && uploaded == null) {
       setUploaded(file)
     } else {
       return Upload.LIST_IGNORE
@@ -49,7 +51,7 @@ const UploadSection = ({
     if (status === 'removed') {
       localStorage.clear()
     } else if (fileList.length > 1) {
-      message.error('May only upload one compressed file ending in .zip')
+      message.error('May only upload one compressed file')
     } else if (status === 'done') {
       handleUpload(originFileObj)
     }
@@ -60,12 +62,13 @@ const UploadSection = ({
     if (file) {
       const reader = new FileReader()
       reader.onload = async (event) => {
-        const zipData = JSON.stringify(event.target?.result)
+        const compressedData = JSON.stringify(event.target?.result)
         let resolver = new BrowserResolver()
-        resolver.decompress(zipData).then(() => {
-          if (resolver == null) {
+        resolver.decompress(compressedData).then((decompressed) => {
+          console.log(typeof decompressed)
+          if (decompressed instanceof Error) {
             message.error(
-              'Unable to process compressed data. Ensure that the data is the compressed output of an r4 FHIR Implementation Guide (full-ig.zip)'
+              'Unable to process compressed data. Ensure that the data is a FHIR Implementation Guide Package ending in .tgz'
             )
           } else {
             localStorage.clear()
@@ -75,26 +78,26 @@ const UploadSection = ({
             try {
               localStorage.setItem('resolver', JSON.stringify(resolver))
               message.success('Saved content to local storage')
+              const { resourcesByCanonical } = resolver
+              const plans = Object.keys(resourcesByCanonical)
+                .map((k: string) => {
+                  const resource = resourcesByCanonical[k]
+                  if (is.PlanDefinition(resource)) {
+                    return resource
+                  }
+                })
+                .filter(notEmpty)
+              if (plans.length > 0) {
+                setPlanDefinitions(plans)
+              } else {
+                message.error(
+                  'Unable to find plan definitions. Please load content with at least one plan definition'
+                )
+              }
             } catch (e) {
               console.error(e)
               message.info(
                 'Unable to save content to local storage. Content can be reviewed but will not be saved between sessions.'
-              )
-            }
-            const { resourcesByCanonical } = resolver
-            const plans = Object.keys(resourcesByCanonical)
-              .map((k: string) => {
-                const resource = resourcesByCanonical[k]
-                if (is.PlanDefinition(resource)) {
-                  return resource
-                }
-              })
-              .filter(notEmpty)
-            if (plans.length > 0) {
-              setPlanDefinitions(plans)
-            } else {
-              message.error(
-                'Unable to find plan definitions. Please load content with at least one plan definition'
               )
             }
           }
@@ -102,7 +105,7 @@ const UploadSection = ({
       }
       reader.readAsDataURL(file)
     } else {
-      message.error('Please upload a compressed file ending in .zip')
+      message.error('Please upload a compressed FHIR Implementation Guide Package ending in .tgz')
     }
   }
 
@@ -193,7 +196,7 @@ const UploadSection = ({
   const props: UploadProps = {
     name: 'file',
     multiple: false,
-    accept: 'zip',
+    accept: 'tgz',
     beforeUpload,
     onChange: handleFileChange,
     onRemove,
@@ -235,7 +238,7 @@ const UploadSection = ({
               Click or drag files to this area to upload
             </p>
             <p className="ant-upload-hint">
-              Provide only one compressed file ending in .zip
+              Provide only one compressed file ending in .gzip
             </p>
           </Dragger>
         </Form.Item>

@@ -46,6 +46,7 @@ class BrowserResolver {
       }
     } catch (error) {
       console.error('Error reading ZIP file:', error)
+      return new Error(`${error}`)
     }
     return this
   }
