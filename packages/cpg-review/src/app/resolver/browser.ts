@@ -1,4 +1,6 @@
-import JSZip from 'jszip'
+import { RcFile } from 'antd/es/upload'
+import tarStream, { type Headers } from 'tar-stream'
+import pako from 'pako'
 
 class BrowserResolver {
   resourcesByCanonical: Record<string, fhir4.FhirResource> = {}
@@ -14,41 +16,56 @@ class BrowserResolver {
     }
   }
 
-  public async decompress(rawData: string) {
-    const zip = new JSZip()
+  public async decompress(rawData: RcFile) {
     try {
-      const zipFile = await zip.loadAsync(rawData.split(',')[1], {
-        base64: true,
-      })
-      const files = Object.keys(zipFile.files)
-      for (const filename of files) {
-        const fileContent = await zipFile.file(filename)?.async('string')
-        if (fileContent && filename.endsWith('json')) {
-          const rawResource = JSON.parse(fileContent)
-          if (rawResource.url != null) {
-            this.resourcesByCanonical[rawResource.url] = rawResource
-          }
-          if (rawResource.id != null && rawResource.resourceType != null) {
-            const reference = `${rawResource.resourceType}/${rawResource.id}`
-            this.resourcesByReference[
-              `${rawResource.resourceType}/${rawResource.id}`
-            ] = rawResource
-          }
-        } else if (fileContent && filename.endsWith('cql')) {
-          const reference = filename
-            .split('/')
-            .slice(1)
-            .join('/')
-            .replace('.cql', '')
-          const id = reference.split('-').slice(1).join('-')
-          this.cqlById[id] = fileContent
+      const arrayBuffer = await rawData.arrayBuffer()
+      const decompressedData = pako.ungzip(new Uint8Array(arrayBuffer))
+      const extract = tarStream.extract()
+      extract.on(
+        'entry',
+        (header: Headers, stream: NodeJS.ReadableStream, next: () => void) => {
+          let fileContent = ''
+
+          stream.on('data', (chunk) => {
+            fileContent += new TextDecoder().decode(chunk)
+          })
+
+          stream.on('end', () => {
+            if (fileContent && header.name.endsWith('json')) {
+              const rawResource = JSON.parse(fileContent)
+              if (rawResource.url != null) {
+                this.resourcesByCanonical[rawResource.url] = rawResource
+              }
+              if (rawResource.id != null && rawResource.resourceType != null) {
+                const reference = `${rawResource.resourceType}/${rawResource.id}`
+                this.resourcesByReference[
+                  `${rawResource.resourceType}/${rawResource.id}`
+                ] = rawResource
+              }
+            } else if (fileContent && header.name.endsWith('cql')) {
+              const reference = header.name
+                .split('/')
+                .slice(1)
+                .join('/')
+                .replace('.cql', '')
+              const id = reference.split('-').slice(1).join('-')
+              this.cqlById[id] = fileContent
+            }
+            next()
+          })
+          stream.resume()
         }
-      }
+      )
+
+      await new Promise<void>((resolve, reject) => {
+        extract.on('finish', resolve)
+        extract.on('error', reject)
+        extract.end(decompressedData)
+      })
+      return this
     } catch (error) {
-      console.error('Error reading ZIP file:', error)
-      return new Error(`${error}`)
+      console.error('Error processing the .tgz file:', error)
     }
-    return this
   }
 
   public resolveCanonical(canonical: string | undefined) {

@@ -61,51 +61,51 @@ const UploadSection = ({
     setIsLoading(true)
     if (file) {
       const reader = new FileReader()
-      reader.onload = async (event) => {
-        const compressedData = JSON.stringify(event.target?.result)
-        let resolver = new BrowserResolver()
-        resolver.decompress(compressedData).then((decompressed) => {
-          console.log(typeof decompressed)
-          if (decompressed instanceof Error) {
-            message.error(
-              'Unable to process compressed data. Ensure that the data is a FHIR Implementation Guide Package ending in .tgz'
-            )
-          } else {
-            localStorage.clear()
-            setPlanDefinitionPayload(undefined)
-            setPlanDefinition(undefined)
-            setResolver(resolver)
-            try {
-              localStorage.setItem('resolver', JSON.stringify(resolver))
-              message.success('Saved content to local storage')
-              const { resourcesByCanonical } = resolver
-              const plans = Object.keys(resourcesByCanonical)
-                .map((k: string) => {
-                  const resource = resourcesByCanonical[k]
-                  if (is.PlanDefinition(resource)) {
-                    return resource
-                  }
-                })
-                .filter(notEmpty)
-              if (plans.length > 0) {
-                setPlanDefinitions(plans)
-              } else {
-                message.error(
-                  'Unable to find plan definitions. Please load content with at least one plan definition'
-                )
-              }
-            } catch (e) {
-              console.error(e)
-              message.info(
-                'Unable to save content to local storage. Content can be reviewed but will not be saved between sessions.'
+      // reader.onload = async (event) => {
+      let resolver = new BrowserResolver()
+      resolver.decompress(file).then((decompressed) => {
+        if (decompressed instanceof Error) {
+          message.error(
+            'Unable to process compressed data. Ensure that the data is a FHIR Implementation Guide Package ending in .tgz'
+          )
+        } else {
+          localStorage.clear()
+          setPlanDefinitionPayload(undefined)
+          setPlanDefinition(undefined)
+          setResolver(decompressed)
+          try {
+            localStorage.setItem('resolver', JSON.stringify(decompressed))
+            message.success('Saved content to local storage')
+            const { resourcesByCanonical } = resolver
+            const plans = Object.keys(resourcesByCanonical)
+              .map((k: string) => {
+                const resource = resourcesByCanonical[k]
+                if (is.PlanDefinition(resource)) {
+                  return resource
+                }
+              })
+              .filter(notEmpty)
+            if (plans.length > 0) {
+              setPlanDefinitions(plans)
+            } else {
+              message.error(
+                'Unable to find plan definitions. Please load content with at least one plan definition'
               )
             }
+          } catch (e) {
+            console.error(e)
+            message.info(
+              'Unable to save content to local storage. Content can be reviewed but will not be saved between sessions.'
+            )
           }
-        })
-      }
-      reader.readAsDataURL(file)
+        }
+      })
+      // }
+      // reader.readAsDataURL(file)
     } else {
-      message.error('Please upload a compressed FHIR Implementation Guide Package ending in .tgz')
+      message.error(
+        'Please upload a compressed FHIR Implementation Guide Package ending in .tgz'
+      )
     }
   }
 
@@ -219,16 +219,16 @@ const UploadSection = ({
         >
           <h1 className="form-title">Add content</h1>
           <p className="form-description">
-            Add a compressed r4 FHIR implementation guide. Use the generated{' '}
+            Add an r4 FHIR implementation guide package. Use the generated{' '}
             <span>
               <Link
                 href="https://confluence.hl7.org/display/FHIR/IG+Publisher+Documentation#IGPublisherDocumentation-Summary"
                 target="_blank"
               >
-                ImplementationGuide/output/full-ig.zip
+                ImplementationGuide/output/package.r4.tgz
               </Link>
             </span>{' '}
-            file or manually compress the output folder.
+            file.
           </p>
           <Dragger {...props} className="form-item">
             <p className="ant-upload-drag-icon">
