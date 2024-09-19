@@ -19,15 +19,15 @@ class BrowserResolver {
   public async decompress(rawData: RcFile) {
     try {
       const arrayBuffer = await rawData.arrayBuffer()
-      const decompressedData = pako.ungzip(new Uint8Array(arrayBuffer))
+      const decompressedData = pako.ungzip(arrayBuffer)
       const extract = tarStream.extract()
       extract.on(
         'entry',
         (header: Headers, stream: NodeJS.ReadableStream, next: () => void) => {
-          let fileContent = ''
+          let fileContent: string
 
           stream.on('data', (chunk) => {
-            fileContent += new TextDecoder().decode(chunk)
+            fileContent = new TextDecoder().decode(chunk)
           })
 
           stream.on('end', () => {

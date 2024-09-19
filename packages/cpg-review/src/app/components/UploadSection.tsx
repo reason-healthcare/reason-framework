@@ -73,25 +73,25 @@ const UploadSection = ({
           setPlanDefinitionPayload(undefined)
           setPlanDefinition(undefined)
           setResolver(decompressed)
+          const { resourcesByCanonical } = resolver
+          const plans = Object.keys(resourcesByCanonical)
+            .map((k: string) => {
+              const resource = resourcesByCanonical[k]
+              if (is.PlanDefinition(resource)) {
+                return resource
+              }
+            })
+            .filter(notEmpty)
+          if (plans.length > 0) {
+            setPlanDefinitions(plans)
+          } else {
+            message.error(
+              'Unable to find plan definitions. Please load content with at least one plan definition'
+            )
+          }
           try {
             localStorage.setItem('resolver', JSON.stringify(decompressed))
             message.success('Saved content to local storage')
-            const { resourcesByCanonical } = resolver
-            const plans = Object.keys(resourcesByCanonical)
-              .map((k: string) => {
-                const resource = resourcesByCanonical[k]
-                if (is.PlanDefinition(resource)) {
-                  return resource
-                }
-              })
-              .filter(notEmpty)
-            if (plans.length > 0) {
-              setPlanDefinitions(plans)
-            } else {
-              message.error(
-                'Unable to find plan definitions. Please load content with at least one plan definition'
-              )
-            }
           } catch (e) {
             console.error(e)
             message.info(
