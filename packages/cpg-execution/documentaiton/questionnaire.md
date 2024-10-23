@@ -41,7 +41,7 @@ Optionally, the parameter "supportedOnly" may be supplied. If true, the above ap
 | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | pattern[x]                                            | sets initial[x], hidden true                                                                                                                   | Because questionnaire.item.initial.value[x] is a subset of pattern[x], we have rules to coerce                                                                    |
 | fixed[x]                                              | sets initial[x], hidden true                                                                                                                   | Because questionnaire.item.initial.value[x] is a subset of fixed[x], we have rules to coerce                                                                      |
-| defaultValue[x]                                       | sets initial[x], hidden false                                                                                                                   |                                                                                                                                                                   |
+| defaultValue[x]                                       | sets initial[x], hidden false                                                                                                                  |                                                                                                                                                                   |
 | CPG featureExpression                                 | sets [questionnaire-initialExpression](https://hl7.org/fhir/uv/sdc/StructureDefinition-sdc-questionnaire-initialExpression.html), hidden false | see [Conformance with expression based population and definition based extraction](#conformance-with-expression-based-population-and-definition-based-extraction) |
 | {structureDefinition.url}#{element.path}              | definition                                                                                                                                     | for choice type paths, replace [x] with element type.code[0]                                                                                                      |
 | short description; element label; or stringified path | text                                                                                                                                           |                                                                                                                                                                   |
@@ -49,7 +49,7 @@ Optionally, the parameter "supportedOnly" may be supplied. If true, the above ap
 | min > 0                                               | required                                                                                                                                       |                                                                                                                                                                   |
 | max > 1                                               | repeats                                                                                                                                        |                                                                                                                                                                   |
 | maxLength                                             | maxLength                                                                                                                                      | apply if type = string                                                                                                                                            |
-| binding.valueSet                                      | expanded valueSet used as answerOption, set type as 'choice'                                                                                  |                                                                                                                                                                   |
+| binding.valueSet                                      | expanded valueSet used as answerOption, set type as 'choice'                                                                                   |                                                                                                                                                                   |
 | ??                                                    | readOnly                                                                                                                                       |                                                                                                                                                                   |
 
 Process elements from the structure definition resource:
@@ -57,6 +57,7 @@ Process elements from the structure definition resource:
 - For each element to process, create a questionnaire item
   - If the element has pattern[x] or fixed[x] make the item hidden and set initial[x]
   - Otherwise, make the item visible
+  - If CPG case featureExpression returns a value for the element, set initialExpression (see [Conformance with expression based population and definition based extraction](#conformance-with-expression-based-population-and-definition-based-extraction)); else if the element has defaultValue[x], set initial[x]
   - For the rest of questionnaire item properties:
     - QuestionnaireItem.linkId => generate some unique id
     - QuestionnaireItem.definition => "{structureDefinition.url}#{full element path}", where:
@@ -75,7 +76,7 @@ Process elements from the structure definition resource:
       - For a more detailed mapping of primitive and complex data types, see [ElementDefinition Mappings](#mapping-elementdefinition-data-types-to-questionnaire-items)
     - QuestionnaireItem.required => if (element.min > 0)
     - QuestionnaireItem.repeats => if (element.max > 1)
-    - QuestionnaireItem.readOnly => Context from the corresponding data-requirement (???)
+    - QuestionnaireItem.readOnly => Context from the corresponding data-requirement or default[x] (???)
     - QuestionnaireItem.maxLength => element.maxLength (if type is a string)
     - QuestionnaireItem.answerOption => expanded value set binding <!-- How should example binding be handled? open choice? -->
 - Ideally, the snapshot element will be used as a fallback for properties missing on differential elements. <!-- How should properties like "type" be handled, where the snapshot element definition may include multiple types -->
@@ -89,13 +90,19 @@ To conform to $populate and \$extract, the questionnaire should:
 - Include extension [questionnaire-launchContext](https://hl7.org/fhir/uv/sdc/StructureDefinition-sdc-questionnaire-launchContext.html) on the questionnaire for the in context subject (most often Patient)
 - For each element where there is a [CPG featureExpression](https://hl7.org/fhir/uv/cpg/StructureDefinition-cpg-featureExpression.html) value and absence of fixed[x] and pattern[x], set item [questionnaire-initialExpression](https://hl7.org/fhir/uv/sdc/StructureDefinition-sdc-questionnaire-initialExpression.html) extension as featureExpression.expression + element path. The item should be visible. <!--Is this the best way to get the corresponding case feature property?-->
 
+Note that initial[x] and initialExpression are mutually exclusive. These are set in order of preference:
+
+1. If available, use fixed[x] and patter[x] to set initial[x]; else
+
+2. If available, use CPG featureExpression to set initialExpression; else
+
+3. If available, use default[x] to set initial[x]
+
 ### Mapping ElementDefinition data types to Questionnaire Items
 
 - See mappings of FHIR primitive types to QuestionnaireItem.initialValue[x] and QuestionnaireItem.type [here](https://docs.google.com/spreadsheets/d/1YmmW28fDX0VsSlQAVsK2p9bbkV3hxhxnUaUCiRKAL6M/edit?usp=sharing)
 - For non-primitive, complex data types, $questionnaire should be applied to the SD of the data type and returned as a subgroup of questionnaire items
 - See `./rangeQuestionnaireRepresentation` as an example questionnaire.item representation of the Range data type [Datatypes - FHIR v5.0.0](https://www.hl7.org/fhir/datatypes.html#Range)
-
-
 
 ## Questionnaire/$assemble
 
@@ -125,4 +132,3 @@ See [SDC definition based extraction](https://hl7.org/fhir/uv/sdc/extraction.htm
 An extracted resource is created using the QuestionnaireResponse and corresponding Questionnaire. The extracted resource will not be persisted but used as a part of the \$apply context.
 
 <!--Should the extracted observation/resource in any way point back to the questionnaire response?-->
-
