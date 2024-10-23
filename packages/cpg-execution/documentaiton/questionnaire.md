@@ -1,6 +1,6 @@
 # PlanDefinition $apply with questionnaire generation
 
-Questionnaire generation may be enabled for PlanDefinition/$apply where required data is missing. Propose a process where
+Questionnaire generation may be enabled for PlanDefinition/$apply to elicit user feedback on required data elements. Propose a process where
 
 1. For each PlanDefinition with action.input, call [StructureDefinition/$questionnaire](https://hl7.org/fhir/R4/structuredefinition-operation-questionnaire.html) in minimal mode
 
@@ -19,6 +19,10 @@ Questionnaire generation may be enabled for PlanDefinition/$apply where required
 6. If there are new resources from Step 5, pass to the context and call [PlanDefinition/$apply](https://build.fhir.org/ig/HL7/cqf-recommendations/OperationDefinition-cpg-plandefinition-apply.html). The cycle repeats.
 
 **![Interactive CDS Overview](./interactive-cds.png)**
+
+## PlanDefinition/$apply
+
+Propose this process be wrapped into $apply based on heuristics. Where there is PlanDefintion.action.input, build the Questionnaire and QuestionnaireResponse dynamically.
 
 ## StructureDefinition/$questionnaire
 
@@ -78,7 +82,7 @@ Process elements from the structure definition resource:
 
 ### Conformance with expression based population and defintion based extraction
 
-See [SDC expression based population](https://build.fhir.org/ig/HL7/sdc/populate.html#expression-based-population) and [SDC Definition Based Extraction](https://hl7.org/fhir/uv/sdc/extraction.html#definition-based-extraction)
+See [SDC expression based population](https://build.fhir.org/ig/HL7/sdc/populate.html#expression-based-population) and [SDC definition based extraction](https://hl7.org/fhir/uv/sdc/extraction.html#definition-based-extraction)
 
 To conform to $populate and \$extract, the questionnaire should:
 
@@ -91,9 +95,21 @@ To conform to $populate and \$extract, the questionnaire should:
 - For non-primitive, complex data types, $questionnaire should be applied to the SD of the data type and returned as a subgroup of questionnaire items
 - See `./rangeQuestionnaireRepresentation` as an example questionnaire.item representation of the Range data type [Datatypes - FHIR v5.0.0](https://www.hl7.org/fhir/datatypes.html#Range)
 
+
+
+## Questionnaire/$assemble
+
+See [SDC modular questionnaires](https://build.fhir.org/ig/HL7/sdc/modular.html#modular) for assembly details.
+
+Multiple questionnaires may be generated if there is more than one PlanDefinition.action.input. These can be combined into a modular questionnaire which can then be assembled to create a single questionnaire. To conform with $assemble
+
+* Create a modular questionnaire with extension [assemble-expectation](https://build.fhir.org/ig/HL7/sdc/StructureDefinition-sdc-questionnaire-assemble-expectation.html) set to code "assemble-root"
+
+* For each questionnaire generated from PlanDefinition.action.input, add the [subQuestionnaire](https://build.fhir.org/ig/HL7/sdc/StructureDefinition-sdc-questionnaire-subQuestionnaire.html) extension
+
 ## Questionnaire/$populate
 
-See [SDC expression based population](https://build.fhir.org/ig/HL7/sdc/populate.html#expression-based-population)
+See [SDC expression based population](https://build.fhir.org/ig/HL7/sdc/populate.html#expression-based-population) for population details.
 
 A pre-populated questionnaire response can be generated using the resulting quesitonnaire items. Item initial value or initial expression is used to set the answer value.
 
@@ -104,12 +120,9 @@ A pre-populated questionnaire response can be generated using the resulting ques
 
 ## QuestionnaireResponse/$extract
 
-See [SDC Definition Based Extraction](https://hl7.org/fhir/uv/sdc/extraction.html#definition-based-extraction)
+See [SDC definition based extraction](https://hl7.org/fhir/uv/sdc/extraction.html#definition-based-extraction) for extraction details.
 
 An extracted resource is created using the QuestionnaireResponse and corresponding Questionnaire. The extracted resource will not be persisted but used as a part of the \$apply context.
 
 <!--Should the extracted observation/resource in any way point back to the questionnaire response?-->
 
-## PlanDefinition/$apply
-
-Propose this process be wrapped into $apply based on heuristics. Where there is PlanDefintion.action.input, build the Questionnaire and QuestionnaireResponse dynamically.
