@@ -22,7 +22,7 @@ Questionnaire generation may be enabled for PlanDefinition/$apply to elicit user
 
 ## PlanDefinition/$apply
 
-Propose this process be wrapped into $apply based on heuristics. Where there is PlanDefintion.action.input, build the Questionnaire and QuestionnaireResponse dynamically.
+Propose this process be wrapped into $apply based on heuristics. Where there is PlanDefinition.action.input, build the Questionnaire and QuestionnaireResponse dynamically.
 
 ## StructureDefinition/$questionnaire
 
@@ -41,7 +41,7 @@ Optionally, the parameter "supportedOnly" may be supplied. If true, the above ap
 | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | pattern[x]                                            | sets initial[x], hidden true                                                                                                                   | Because questionnaire.item.initial.value[x] is a subset of pattern[x], we have rules to coerce                                                                    |
 | fixed[x]                                              | sets initial[x], hidden true                                                                                                                   | Because questionnaire.item.initial.value[x] is a subset of fixed[x], we have rules to coerce                                                                      |
-| defaultValue[x]                                       | sets inital[x], hidden false                                                                                                                   |                                                                                                                                                                   |
+| defaultValue[x]                                       | sets initial[x], hidden false                                                                                                                   |                                                                                                                                                                   |
 | CPG featureExpression                                 | sets [questionnaire-initialExpression](https://hl7.org/fhir/uv/sdc/StructureDefinition-sdc-questionnaire-initialExpression.html), hidden false | see [Conformance with expression based population and definition based extraction](#conformance-with-expression-based-population-and-definition-based-extraction) |
 | {structureDefinition.url}#{element.path}              | definition                                                                                                                                     | for choice type paths, replace [x] with element type.code[0]                                                                                                      |
 | short description; element label; or stringified path | text                                                                                                                                           |                                                                                                                                                                   |
@@ -49,7 +49,7 @@ Optionally, the parameter "supportedOnly" may be supplied. If true, the above ap
 | min > 0                                               | required                                                                                                                                       |                                                                                                                                                                   |
 | max > 1                                               | repeats                                                                                                                                        |                                                                                                                                                                   |
 | maxLength                                             | maxLength                                                                                                                                      | apply if type = string                                                                                                                                            |
-| binding.valueSet                                      | expaneded valueSet used as answerOption, set type as 'choice'                                                                                  |                                                                                                                                                                   |
+| binding.valueSet                                      | expanded valueSet used as answerOption, set type as 'choice'                                                                                  |                                                                                                                                                                   |
 | ??                                                    | readOnly                                                                                                                                       |                                                                                                                                                                   |
 
 Process elements from the structure definition resource:
@@ -80,7 +80,7 @@ Process elements from the structure definition resource:
     - QuestionnaireItem.answerOption => expanded value set binding <!-- How should example binding be handled? open choice? -->
 - Ideally, the snapshot element will be used as a fallback for properties missing on differential elements. <!-- How should properties like "type" be handled, where the snapshot element definition may include multiple types -->
 
-### Conformance with expression based population and defintion based extraction
+### Conformance with expression based population and definition based extraction
 
 See [SDC expression based population](https://build.fhir.org/ig/HL7/sdc/populate.html#expression-based-population) and [SDC definition based extraction](https://hl7.org/fhir/uv/sdc/extraction.html#definition-based-extraction)
 
@@ -111,7 +111,7 @@ Multiple questionnaires may be generated if there is more than one PlanDefinitio
 
 See [SDC expression based population](https://build.fhir.org/ig/HL7/sdc/populate.html#expression-based-population) for population details.
 
-A pre-populated questionnaire response can be generated using the resulting quesitonnaire items. Item initial value or initial expression is used to set the answer value.
+A pre-populated questionnaire response can be generated using the resulting questionnaire items. Item initial value or initial expression is used to set the answer value.
 
 | questionnaireItem               | questionnaireResponseItem | notes                                           |
 | ------------------------------- | ------------------------- | ----------------------------------------------- |
