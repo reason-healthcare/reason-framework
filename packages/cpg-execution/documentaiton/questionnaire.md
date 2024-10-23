@@ -30,7 +30,7 @@ See [core $questionnaire operation](https://hl7.org/fhir/R4/structuredefinition-
 
 Propose parameter "minimal" where:
 
-  Elements from the structure definition should be processed to questionnaire items if:
+Elements from the structure definition should be processed to questionnaire items if:
 
 1. The element is a part of the differential;
 2. The element is a part of the snapshot and has a cardinality of at least 1..\* (min >1). Nested child elements with min > 1 should also be included if parent has min > 1.
@@ -110,9 +110,9 @@ See [SDC modular questionnaires](https://build.fhir.org/ig/HL7/sdc/modular.html#
 
 Multiple questionnaires may be generated if there is more than one PlanDefinition.action.input. These can be combined into a modular questionnaire which can then be assembled to create a single questionnaire. To conform with $assemble
 
-* Create a modular questionnaire with extension [assemble-expectation](https://build.fhir.org/ig/HL7/sdc/StructureDefinition-sdc-questionnaire-assemble-expectation.html) set to code "assemble-root"
+- Create a modular questionnaire with extension [assemble-expectation](https://build.fhir.org/ig/HL7/sdc/StructureDefinition-sdc-questionnaire-assemble-expectation.html) set to code "assemble-root"
 
-* For each questionnaire generated from PlanDefinition.action.input, add the [subQuestionnaire](https://build.fhir.org/ig/HL7/sdc/StructureDefinition-sdc-questionnaire-subQuestionnaire.html) extension
+- For each questionnaire generated from PlanDefinition.action.input, add the [subQuestionnaire](https://build.fhir.org/ig/HL7/sdc/StructureDefinition-sdc-questionnaire-subQuestionnaire.html) extension
 
 ## Questionnaire/$populate
 
