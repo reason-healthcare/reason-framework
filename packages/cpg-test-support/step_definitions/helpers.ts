@@ -22,9 +22,7 @@ const requestResourceTypes = [
 type RequestResourceType = typeof requestResourceTypes[number]
 
 export const is = {
-  ActivityDefinition: (
-    resource: any
-  ): resource is fhir4.ActivityDefinition => {
+  ActivityDefinition: (resource: any): resource is fhir4.ActivityDefinition => {
     return resource?.resourceType === 'ActivityDefinition'
   },
   CommunicationRequest: (
@@ -115,7 +113,8 @@ export const resolveRequestResource = (
 ) => {
   if (action.resource?.reference) {
     const id = action.resource.reference.split('/')[1]
-    return bundle?.entry?.find((e) => e.resource?.id === id)?.resource as fhir4.RequestGroup
+    return bundle?.entry?.find((e) => e.resource?.id === id)?.resource as
+      | fhir4.RequestGroup
       | RequestResource
   }
 }
@@ -127,7 +126,10 @@ export const findRecommendation = (
   return recommendations?.find((r) => r === identifier)
 }
 
-export const removeRecommendation = (identifier: string, recommendations: string[] | undefined) => {
+export const removeRecommendation = (
+  identifier: string,
+  recommendations: string[] | undefined
+) => {
   const index = recommendations?.indexOf(identifier)
   if (index != null) {
     recommendations?.splice(index, 1)
@@ -135,14 +137,19 @@ export const removeRecommendation = (identifier: string, recommendations: string
   return recommendations
 }
 
-export const removeRecommendations = (identifiers: string[] | undefined, recommendations: string[] | undefined) => {
-  return recommendations?.map(r => {
-    const exists = identifiers?.includes(r)
-    if (exists) {
-      identifiers = removeRecommendation(r, identifiers)
-    }
-    return exists ? null : r
-  }).filter(notEmpty)
+export const removeRecommendations = (
+  identifiers: string[] | undefined,
+  recommendations: string[] | undefined
+) => {
+  return recommendations
+    ?.map((r) => {
+      const exists = identifiers?.includes(r)
+      if (exists) {
+        identifiers = removeRecommendation(r, identifiers)
+      }
+      return exists ? null : r
+    })
+    .filter(notEmpty)
 }
 
 export const findSelectionGroup = (
@@ -198,8 +205,12 @@ export const resolveAction = (
   bundle: fhir4.Bundle
 ) => {
   let match = action.find((a) => {
-    const id = resolveRequestResource(a, bundle) ?? a.title
-    return id === identifier
+    const requestResource = resolveRequestResource(a, bundle)
+    let definitionId
+    if (requestResource != null) {
+      definitionId = getInstantiatesCanonical(requestResource)?.split('/').pop()
+    }
+    return a.title === identifier || definitionId === identifier
   })
   if (!match) {
     action.forEach((a) => {
@@ -240,7 +251,7 @@ export const getNestedSelectionGroups = (
     if (action.resource?.reference) {
       const resource = resolveRequestResource(action, bundle)
       if (is.RequestGroup(resource) && resource.action) {
-        resource.action.forEach(a => {
+        resource.action.forEach((a) => {
           getSelectionGroups(a, bundle, selectionGroups)
         })
       }
@@ -256,10 +267,12 @@ export const getNestedSelectionGroups = (
   return selectionGroups.filter(notEmpty)
 }
 
-export const findRecommendationResources = (canonicals: string[] | undefined) => {
-  return canonicals?.filter(c => {
+export const findRecommendationResources = (
+  canonicals: string[] | undefined
+) => {
+  return canonicals?.filter((c) => {
     // const recommendationTypes = ["order-set", "eca-rule"]
-    c.split("/")[-2] === "ActivityDefinition"
+    c.split('/')[-2] === 'ActivityDefinition'
   })
 }
 

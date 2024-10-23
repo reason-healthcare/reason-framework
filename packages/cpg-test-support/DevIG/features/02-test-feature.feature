@@ -3,13 +3,13 @@ Feature: $apply operation
     Given 'ExampleRecommendationDefinition' is loaded
     When apply is called with context 'Patient2Scenario'
     Then "ReportUnder18" should have been recommended
-    # And select "at-most-one" of the following actions should be present
-    # | Order Both Medications |
-    # | Order Medication 4 |
+    # And select "at-most-one" of the following should have been recommended
+    # | RecommendMedication3 |
+    # | OrderMedication4 |
 
-    When "Recommend Medication 3" is selected
-    Then "PatientEducation" should have been recommended
-    And "OrderMedication3" should have been recommended
+    When "RecommendMedication3" is selected
+    Then "OrderMedication3" should have been recommended
+    And "PatientEducation" should have been recommended
     And select "all" of the following should have been recommended
     | SendWrittenEducation |
     | ProvideVerbalEducation |

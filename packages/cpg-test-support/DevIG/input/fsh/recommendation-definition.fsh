@@ -38,8 +38,7 @@ Usage: #Example
       * definitionCanonical = Canonical(RecommendMedication3)
     * action[+]
       * title = "Order Medication 4"
-      * action[+]
-        * definitionCanonical = Canonical(OrderMedication4)
+      * definitionCanonical = Canonical(OrderMedication4)
 
 Instance: ReportOver18
 InstanceOf: CPGCommunicationActivity
@@ -104,9 +103,6 @@ InstanceOf: CPGServiceRequestActivity
 * kind = #ServiceRequest
 * intent = #proposal
 * doNotPerform = false
-
-
-
 
 Instance: OrderMedication3
 InstanceOf: CPGMedicationRequestActivity

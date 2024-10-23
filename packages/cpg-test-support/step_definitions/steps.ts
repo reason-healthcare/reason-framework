@@ -1,13 +1,7 @@
 import assert from 'assert'
 import path from 'path'
 import dotenv from 'dotenv'
-import {
-  Given,
-  When,
-  Then,
-  DataTable,
-  After,
-} from '@cucumber/cucumber'
+import { Given, When, Then, DataTable, After } from '@cucumber/cucumber'
 import {
   isEmpty,
   is,
@@ -133,15 +127,24 @@ When(
         'Unable to call $apply. Check that CPG engine is running and that environment variables are set'
       )
     }
-
     this.cpgResponse?.entry?.forEach((entry) => {
       if (is.RequestGroup(entry.resource) && entry.resource.action) {
-        entry.resource.action.forEach(a => {
+        entry.resource.action.forEach((a) => {
           if (this.cpgResponse) {
-            const recommendations = getNestedRecommendations(a, this.cpgResponse)
-            const selectionGroups = getNestedSelectionGroups(a, this.cpgResponse)
-            this.selectionGroups = this.selectionGroups ? this.selectionGroups.concat(selectionGroups) : selectionGroups
-            this.recommendations = this.recommendations ? this.recommendations.concat(recommendations) : recommendations
+            const recommendations = getNestedRecommendations(
+              a,
+              this.cpgResponse
+            )
+            const selectionGroups = getNestedSelectionGroups(
+              a,
+              this.cpgResponse
+            )
+            this.selectionGroups = this.selectionGroups
+              ? this.selectionGroups.concat(selectionGroups)
+              : selectionGroups
+            this.recommendations = this.recommendations
+              ? this.recommendations.concat(recommendations)
+              : recommendations
           }
         })
       }
@@ -198,7 +201,10 @@ Then(
       activityDefinitionIdentifier,
       this.recommendations
     )
-    this.recommendations = removeRecommendation(activityDefinitionIdentifier, this.recommendations)
+    this.recommendations = removeRecommendation(
+      activityDefinitionIdentifier,
+      this.recommendations
+    )
     assert(
       recommendationMatch,
       `\nExpected recommendation:\n- ${activityDefinitionIdentifier}\nBut found:\n- ${
@@ -234,8 +240,13 @@ Then(
       selectionDefinitionIdentifiers,
       this.selectionGroups
     )
-    this.selectionGroups = this.selectionGroups.filter(sg => sg !== selectionGroupMatch)
-    this.recommendations = removeRecommendations(selectionDefinitionIdentifiers, this.recommendations)
+    this.selectionGroups = this.selectionGroups.filter(
+      (sg) => sg !== selectionGroupMatch
+    )
+    this.recommendations = removeRecommendations(
+      selectionDefinitionIdentifiers,
+      this.recommendations
+    )
 
     const message = `\nExpected:\n - Select ${selectionBehaviorCode}: ${selectionDefinitionIdentifiers.join(
       ', '
@@ -314,17 +325,24 @@ Then(
 //   }
 // )
 
-Then('no activites should have been recommended', function (this: TestContext) {
-  const activityRecommendations = findRecommendationResources(this.recommendations)
-  assert(
-    isEmpty(activityRecommendations),
-    `Found recommendations:\n- ${activityRecommendations?.join('\n- ')}`
-  )
-})
+Then(
+  'no activities should have been recommended',
+  function (this: TestContext) {
+    const activityRecommendations = findRecommendationResources(
+      this.recommendations
+    )
+    assert(
+      isEmpty(activityRecommendations),
+      `Found recommendations:\n- ${activityRecommendations?.join('\n- ')}`
+    )
+  }
+)
 
 After(function (this: TestContext, scenario) {
   if (scenario?.result?.status === 'PASSED') {
-    const activityRecommendations = findRecommendationResources(this.recommendations)
+    const activityRecommendations = findRecommendationResources(
+      this.recommendations
+    )
     assert(
       isEmpty(activityRecommendations),
       `Found remaining recommendations:\n- ${activityRecommendations?.join(

@@ -32,24 +32,25 @@ npx cucumber-js
 Given {{PlanDefinitionIdentifier}} is loaded
 When apply is called with context {{DataBundleIdentifier}}
 # Specify user selection of an action (optional)
-  When {{action.title | ActivityDefinitionIdentifier}} is selected
+  When {{action.title || ActivityDefinitionIdentifier || PlanDefinitionIdentifier}} is selected
 # Check for recommendation
   Then {{ActivityDefinitionIdentifier}} should have been recommended
-# Check for selection between recommendations
+# Check for recommendations with selection behavior
   Then select {{action.selectionBehavior.code}} of the following should have been recommended
   |{{ActivityDefinitionIdentifier1}}|
   |{{ActivityDefinitionIdentifier2}}|
-<!-- # Check for selection between actions
+```
+
+<!-- #Check for selection between actions
   Then select {{action.selectionBehavior.code}} of the following should be present
   |action.title 1|
   |action.title 2| -->
-```
 
 ## Request Group Mappings
 
-| Identifier                     | Request Group Property       |
-| ------------------------------ | ---------------------------- |
-| Activity Definition Identifier | Request.intantiatesCanonical |
+| Identifier                     | Request Group Property        |
+| ------------------------------ | ----------------------------- |
+| Activity Definition Identifier | Request.instantiatesCanonical |
 
 ### Assertion of stand alone recommendation
 
