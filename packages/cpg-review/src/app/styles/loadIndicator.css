@@ -1,0 +1,16 @@
+.load-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  justify-items: center;
+  align-items: center;
+  font-size: 0.6rem;
+  text-align: center;
+}
+
+.load-icon {
+  font-size: 0.8rem;
+  display: flex;
+  justify-content: center;
+  color: var(--brTeal);
+}

@@ -1,0 +1,49 @@
+{
+  "name": "@reason-framework/cpg-review",
+  "version": "1.0.0",
+  "description": "Reason Framework CPG Preview Tool",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "fmt": "prettier --write ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reason-healthcare/cpg-review.git"
+  },
+  "author": "Vermonster LLC",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/reason-healthcare/cpg-review/issues"
+  },
+  "homepage": "https://github.com/reason-healthcare/cpg-review#readme",
+  "dependencies": {
+    "antd": "^5.16.4",
+    "dotenv": "^16.4.5",
+    "elkjs": "^0.9.3",
+    "highlight.js": "^11.9.0",
+    "jszip": "^3.10.1",
+    "next": "14.1.3",
+    "npm": "^10.5.2",
+    "react": "^18.2.0",
+    "react-dom": "^18",
+    "react-markdown": "^9.0.1",
+    "react-router-dom": "^6.23.1",
+    "reactflow": "^11.10.4",
+    "remark-gfm": "^4.0.0",
+    "uuidv4": "^6.2.13"
+  },
+  "devDependencies": {
+    "@types/fhir": "^0.0.41",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "web-worker": "^1.3.0"
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  }
+}

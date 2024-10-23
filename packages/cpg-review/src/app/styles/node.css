@@ -1,0 +1,126 @@
+/* Action Node */
+.node-container {
+  width: 150px;
+  height: 120px;
+  font-size: 12px;
+  text-align: center;
+  background-color: #f8f8f9;
+  line-height: 0.8rem;
+}
+
+.info-icon {
+  color: var(--teal);
+}
+
+.diamond-container {
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
+.diamond-icon {
+  width: 100%;
+  height: 100%;
+}
+
+.text-outer-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.text-inner-container {
+  width: 50%;
+  height: 50%;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  display: flex;
+}
+
+.text-inner-container p {
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.action-json-label {
+  margin: 0.8rem;
+  padding: 0.1rem;
+  background-color: #f8f8f9;
+  white-space: nowrap;
+  font-size: 0.5rem;
+}
+
+/* Definition Node */
+.definition-node {
+  font-size: 0.5rem;
+  background-color: #f8f8f9;
+  line-height: 0.8rem;
+}
+
+.node {
+  white-space: normal;
+  word-break: break-word;
+  width: 150px;
+}
+
+.node p {
+  font-size: 0.5rem;
+  margin: 0;
+}
+
+.inner-container {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  height: 100%;
+}
+
+.node-unhighlight {
+  border: 0.1px solid var(--drGray);
+  font-size: 12px;
+  text-align: center;
+  background-color: var(--background);
+  padding: 10px;
+  border-radius: 0.15rem;
+}
+
+.node-highlight {
+  border: 3px dotted var(--yellow);
+  font-size: 12px;
+  text-align: center;
+  background-color: var(--ltYellow);
+  padding: 5px;
+  border-radius: 0.15rem;
+}
+
+/* Interactive handle */
+
+.collapse-icon {
+  position: absolute;
+  top: auto;
+  left: 50%;
+  bottom: -8px;
+  transform: translate(-53%, 0);
+  z-index: 100;
+  font-size: 1.25rem;
+  color: var(--teal);
+}
+
+.hidden-handle {
+  background-color: var(--background);
+}

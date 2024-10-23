@@ -1,0 +1,74 @@
+.form {
+  max-width: 85%;
+  width: 850px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
+
+  & a {
+    text-decoration: underline;
+  }
+}
+
+.form-item {
+  width: 100%;
+  color: var(--drGray);
+}
+
+.ant-upload {
+  background-color: white;
+
+  &:hover {
+    border-color: var(--brTeal) !important;
+  }
+}
+.ant-select-outlined {
+  &:hover {
+    border-color: var(--brTeal) !important;
+    outline-color: var(--brTeal) !important;
+  }
+
+  &:focus-visible {
+    border-color: var(--brTeal) !important;
+    outline-color: var(--brTeal) !important;
+  }
+}
+
+#rc_select_0_list {
+  &:hover {
+    border-color: var(--brTeal) !important;
+    outline-color: var(--brTeal) !important;
+  }
+
+  &:focus-visible {
+    border-color: var(--brTeal) !important;
+    outline-color: var(--brTeal) !important;
+  }
+}
+
+.ant-select-selector {
+  &:hover {
+    border-color: var(--brTeal) !important;
+    outline-color: var(--brTeal) !important;
+  }
+
+  &:focus-visible {
+    border-color: var(--brTeal) !important;
+    outline-color: var(--brTeal) !important;
+  }
+}
+
+.form-title {
+  /* padding: 1rem; */
+  font-weight: 600;
+}
+
+.form-description {
+  margin: 0.5rem 0 0.5rem 0;
+  color: var(--ltGray);
+}
+
+.ant-upload-drag-icon svg {
+  color: var(--brTeal);
+}

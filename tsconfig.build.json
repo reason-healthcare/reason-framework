@@ -3,6 +3,7 @@
   "references": [
     { "path": "packages/cpg-execution" },
     { "path": "packages/cds-service" },
-    { "path": "packages/cpg-test-support" }
+    { "path": "packages/cpg-test-support" },
+    { "path": "packages/cpg-review" }
   ]
 }
