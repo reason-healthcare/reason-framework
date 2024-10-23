@@ -34,8 +34,10 @@ Usage: #Example
   * action[+]
     * selectionBehavior = #at-most-one
     * action[+]
-      * definitionCanonical = Canonical(OrderMedication3)
+      * title = "Recommend Medication 3"
+      * definitionCanonical = Canonical(RecommendMedication3)
     * action[+]
+      * title = "Order Medication 4"
       * definitionCanonical = Canonical(OrderMedication4)
 
 Instance: ReportOver18
@@ -63,6 +65,42 @@ Instance: OrderMedication2
 InstanceOf: CPGMedicationRequestActivity
 * insert DefinitionMetaData
 * kind = #MedicationRequest
+* intent = #proposal
+* doNotPerform = false
+
+Instance: RecommendMedication3
+InstanceOf: CPGRecommendationDefinition
+* insert DefinitionMetaData
+* action[+]
+  * selectionBehavior = #all
+  * action[+]
+    * definitionCanonical = Canonical(PatientEducation)
+  * action[+]
+    * definitionCanonical = Canonical(OrderMedication3)
+
+Instance: PatientEducation
+InstanceOf: CPGComputablePlanDefinition
+* insert DefinitionMetaData
+* type = #order-set
+* action[+]
+  * selectionBehavior = #all
+  * action[+]
+    * definitionCanonical = Canonical(SendWrittenEducation)
+  * action[+]
+    * definitionCanonical = Canonical(ProvideVerbalEducation)
+
+Instance: SendWrittenEducation
+InstanceOf: CPGCommunicationActivity
+* insert DefinitionMetaData
+* kind = #CommunicationRequest
+* intent = #proposal
+* doNotPerform = false
+
+
+Instance: ProvideVerbalEducation
+InstanceOf: CPGServiceRequestActivity
+* insert DefinitionMetaData
+* kind = #ServiceRequest
 * intent = #proposal
 * doNotPerform = false
 

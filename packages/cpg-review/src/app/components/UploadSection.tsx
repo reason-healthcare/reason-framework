@@ -216,8 +216,7 @@ const UploadSection = ({
         >
           <h1 className="form-title">Add content</h1>
           <p className="form-description">
-            Add a compressed r4 FHIR implementation guide. Use the
-            generated{' '}
+            Add a compressed r4 FHIR implementation guide. Use the generated{' '}
             <span>
               <Link
                 href="https://confluence.hl7.org/display/FHIR/IG+Publisher+Documentation#IGPublisherDocumentation-Summary"
