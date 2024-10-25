@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
-import { processDynamicValue } from './expression'
+import { processDynamicValue } from '../expression'
 import {
   referenceFromString,
   RequestResource,
@@ -8,8 +8,8 @@ import {
   canonicalize,
   inspect,
   notEmpty
-} from './helpers'
-import Resolver from './resolver'
+} from '../helpers'
+import Resolver from '../resolver'
 
 /**
  * Based on [Apply Operation](https://hl7.org/fhir/uv/cpg/OperationDefinition-cpg-plandefinition-apply.html)

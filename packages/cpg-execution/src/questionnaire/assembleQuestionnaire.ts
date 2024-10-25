@@ -1,6 +1,6 @@
-import Resolver from './resolver'
-import { set } from './expression'
-import { is } from './helpers'
+import Resolver from '../resolver'
+import { set } from '../expression'
+import { is } from '../helpers'
 import { v4 as uuidv4 } from 'uuid'
 
 export interface AssembleQuestionnaireArgs {

@@ -1,9 +1,9 @@
-import { Resolver } from './resolver'
+import { Resolver } from '../resolver'
 
 import {
   applyActivityDefinition,
   ApplyActivityDefinitionArgs
-} from './applyActivityDefinition'
+} from '../activity-definition/applyActivityDefinition'
 import {
   applyPlanDefinition,
   ApplyPlanDefinitionArgs
@@ -13,7 +13,7 @@ import {
   evaluateFhirpath,
   evaluateCqlExpression,
   processDynamicValue
-} from './expression'
+} from '../expression'
 import {
   notEmpty,
   is,
@@ -21,7 +21,7 @@ import {
   referenceFromResource,
   inspect,
   baseUrl
-} from './helpers'
+} from '../helpers'
 
 const isApplicable = async (
   patientRef: string,

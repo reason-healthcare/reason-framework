@@ -9,8 +9,8 @@ import {
   referenceFromResource,
   referenceFromString,
   removeUndefinedProps
-} from './helpers'
-import Resolver from './resolver'
+} from '../helpers'
+import Resolver from '../resolver'
 
 /**
  * Based on [Apply Operation](https://hl7.org/fhir/uv/cpg/OperationDefinition-cpg-plandefinition-apply.html)

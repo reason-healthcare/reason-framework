@@ -1,5 +1,5 @@
 import util from 'node:util'
-import { EndpointConfiguration } from './buildQuestionnaire'
+import { EndpointConfiguration } from './structure-definition/buildQuestionnaire'
 import Resolver from './resolver'
 
 export const terminologyResources = ['CodeSystem', 'ConceptMap', 'ValueSet']
@@ -441,10 +441,10 @@ export const getPathPrefix = (
 // if artifactRoute is present and artifactRoute starts with canonical or artifact reference: rank based on number of matching characters
 // if artifactRoute is not present: include but rank lower
 export const rankEndpoints = (
-  endpointConfigurations: EndpointConfiguration[],
+  artifactEndpointConfigurable: EndpointConfiguration[],
   canonical: string
 ) => {
-  return endpointConfigurations.sort((a, b) => {
+  return artifactEndpointConfigurable.sort((a, b) => {
     const aRank =
       a.artifactRoute && canonical.startsWith(a.artifactRoute)
         ? a.artifactRoute.length
@@ -458,54 +458,33 @@ export const rankEndpoints = (
 }
 
 export const resolveFromConfigurableEndpoints = async (
-  endpoints: EndpointConfiguration[],
+  artifactEndpointConfigurable: EndpointConfiguration[] | undefined,
   request: string,
   resourceTypes?: string[] | undefined
 ): Promise<fhir4.FhirResource | undefined> => {
-  let resource
-  for (let i = 0; i < endpoints.length; i++) {
-    const resolver = Resolver(endpoints[i].endpoint)
-    try {
-      if (request.startsWith('http')) {
-        resource = await resolver.resolveCanonical(request, resourceTypes)
-        return resource
+  if (artifactEndpointConfigurable != null) {
+    let rawResource
+    const endpoints = rankEndpoints(artifactEndpointConfigurable, request)
+    for (let i = 0; i < endpoints.length; i++) {
+      const resolver = Resolver(endpoints[i].endpoint)
+      try {
+        if (request.startsWith('http')) {
+          rawResource = await resolver.resolveCanonical(request, resourceTypes)
+          return rawResource
+        }
+        rawResource = await resolver.resolveReference(request)
+        return rawResource
+      } catch (e) {
+        console.warn(
+          `Unable to resolve ${request} at configurable endpoint ${
+            endpoints[i].endpoint.address
+          }. ${
+            endpoints[i + 1].endpoint
+              ? `Will try ${endpoints[i + 1].endpoint.address}`
+              : ''
+          }`
+        )
       }
-      resource = await resolver.resolveReference(request)
-      return resource
-    } catch (e) {
-      console.warn(
-        `Unable to resolve ${request} at configurable endpoint ${
-          endpoints[i].endpoint.address
-        }. ${
-          endpoints[i + 1].endpoint
-            ? `Will try ${endpoints[i + 1].endpoint.address}`
-            : ''
-        }`
-      )
     }
   }
-}
-
-export const resolveFromEndpoints = async (
-  request: string,
-  configurableEndpoints?: EndpointConfiguration[] | undefined,
-  secondaryEndpoint?: fhir4.Endpoint | undefined
-): Promise<fhir4.Resource | undefined> => {
-  let resourceRaw
-  let resource
-  if (configurableEndpoints) {
-    const endpoints = rankEndpoints(configurableEndpoints, request)
-    resourceRaw = await resolveFromConfigurableEndpoints(endpoints, request)
-  } else if (secondaryEndpoint) {
-    const resolver = Resolver(secondaryEndpoint)
-    if (request.startsWith('http')) {
-      resourceRaw = await resolver.resolveCanonical(request)
-    } else {
-      resourceRaw = await resolver.resolveReference(request)
-    }
-  }
-  if (is.FhirResource(resourceRaw)) {
-    resource = resourceRaw
-  }
-  return resource
 }
