@@ -12,6 +12,8 @@ import {
   ApplyPlanDefinitionArgs,
   buildQuestionnaire,
   BuildQuestionnaireArgs,
+  buildModularQuestionnaire,
+  buildModularQuestionnaireArgs,
   EndpointConfiguration,
   assembleQuestionnaire,
   AssembleQuestionnaireArgs,
@@ -20,11 +22,9 @@ import Resolver from '@reason-framework/cpg-execution/lib/resolver'
 import {
   is,
   notEmpty,
-  questionnaireBaseUrl,
+  removeUndefinedProps,
+  resolveFromConfigurableEndpoints,
 } from '@reason-framework/cpg-execution/lib/helpers'
-import { removeUndefinedProps } from '@reason-framework/cpg-execution/lib/helpers'
-import { v4 as uuidv4 } from 'uuid'
-import { resolveFromEndpoints } from '@reason-framework/cpg-execution/lib/helpers'
 
 /**
  * The patient whose record was opened, including their encounter, if
@@ -618,19 +618,11 @@ export default async (options?: FastifyServerOptions) => {
       const { parameter: parameters } = req.body as fhir4.Parameters
 
       if (parameters != null) {
-        const data = resourceFromParameters(parameters, 'data') as
-          | fhir4.Bundle
-          | undefined
         const supportedOnly = valueFromParameters(
           parameters,
           'supportedOnly',
           'valueBoolean'
         )
-        const dataEndpoint =
-          (resourceFromParameters(
-            parameters,
-            'dataEndpoint'
-          ) as fhir4.Endpoint) || defaultEndpoint
         const terminologyEndpoint =
           (resourceFromParameters(
             parameters,
@@ -641,47 +633,50 @@ export default async (options?: FastifyServerOptions) => {
             parameters,
             'contentEndpoint'
           ) as fhir4.Endpoint) || defaultEndpoint
-        const configurableEndpoints = endpointConfigurationFromParameters(
-          parameters
-        ) as EndpointConfiguration[] | undefined
-
-        if (
-          (!contentEndpoint || !terminologyEndpoint) &&
-          !configurableEndpoints
-        ) {
-          console.warn(
-            'Need to specify either content and terminology endpoints or configurable endpoints'
-          )
-        }
+        const artifactEndpointConfigurable =
+          endpointConfigurationFromParameters(parameters) as
+            | EndpointConfiguration[]
+            | undefined
 
         // Use profile as SD if provided
         let structureDefinition
-        structureDefinition = resourceFromParameters(parameters, 'profile')
+        structureDefinition = resourceFromParameters(
+          parameters,
+          'profile'
+        ) as fhir4.StructureDefinition
 
         // If profile not provided, use Canonical
         if (structureDefinition == null) {
           let url = valueFromParameters(parameters, 'url', 'valueUri')
-          let structureDefinitionRaw = resolveFromEndpoints(
-            url,
-            configurableEndpoints,
-            contentEndpoint
-          )
+          let structureDefinitionRaw
+          if (contentEndpoint != null) {
+            const resolver = Resolver(contentEndpoint)
+            structureDefinitionRaw = await resolver.resolveCanonical(url)
+          } else {
+            structureDefinitionRaw = await resolveFromConfigurableEndpoints(
+              artifactEndpointConfigurable,
+              url,
+              contentEndpoint
+            )
+          }
           if (is.StructureDefinition(structureDefinitionRaw)) {
             structureDefinition = structureDefinitionRaw
-            const args: BuildQuestionnaireArgs = {
-              structureDefinition,
-              data,
-              dataEndpoint,
-              configurableEndpoints,
-              contentEndpoint,
-              terminologyEndpoint,
-              supportedOnly,
-            }
-            res.send(await buildQuestionnaire(args))
-          } else {
-            console.warn('Must provide a structure definition')
           }
         }
+
+        const args: BuildQuestionnaireArgs = {
+          structureDefinition,
+          artifactEndpointConfigurable,
+          contentEndpoint,
+          terminologyEndpoint,
+          supportedOnly,
+        }
+
+        if (process.env.DEBUG != null) {
+          console.info(args)
+        }
+
+        res.send(await buildQuestionnaire(args))
       }
     }
   )
@@ -692,19 +687,11 @@ export default async (options?: FastifyServerOptions) => {
       const { parameter: parameters } = req.body as fhir4.Parameters
       // Use resource as PD if provided
       if (parameters != null) {
-        const data = resourceFromParameters(parameters, 'data') as
-          | fhir4.Bundle
-          | undefined
         const supportedOnly = valueFromParameters(
           parameters,
           'supportedOnly',
           'valueBoolean'
         )
-        const dataEndpoint =
-          (resourceFromParameters(
-            parameters,
-            'dataEndpoint'
-          ) as fhir4.Endpoint) || defaultEndpoint
         const terminologyEndpoint =
           (resourceFromParameters(
             parameters,
@@ -715,175 +702,48 @@ export default async (options?: FastifyServerOptions) => {
             parameters,
             'contentEndpoint'
           ) as fhir4.Endpoint) || defaultEndpoint
-        const configurableEndpoints = endpointConfigurationFromParameters(
-          parameters
-        ) as EndpointConfiguration[] | undefined
-
-        if (
-          (!contentEndpoint || !terminologyEndpoint) &&
-          !configurableEndpoints
-        ) {
-          console.warn(
-            'Need to specify either content and terminology endpoints or configurable endpoints'
-          )
-        }
+        const artifactEndpointConfigurable =
+          endpointConfigurationFromParameters(parameters) as
+            | EndpointConfiguration[]
+            | undefined
 
         let planDefinition = resourceFromParameters(
           parameters,
           'planDefinition'
-        ) as fhir4.PlanDefinition | undefined
+        ) as fhir4.PlanDefinition
 
         // If resource not provided, use Canonical
         if (planDefinition == null) {
           let url = valueFromParameters(parameters, 'url', 'valueUri')
-          planDefinition = (await resolveFromEndpoints(
-            url,
-            configurableEndpoints,
-            contentEndpoint
-          )) as fhir4.PlanDefinition
-        }
-
-        const getNestedPlanDefinitions = async (
-          planDefinition: fhir4.PlanDefinition
-        ) => {
-          let allPlans: fhir4.PlanDefinition[] = [planDefinition]
-          let plans = (
-            (await Promise.all(
-              planDefinition?.action?.flatMap(
-                async (action: fhir4.PlanDefinitionAction) => {
-                  let planDefinition
-                  if (action.definitionCanonical) {
-                    planDefinition = await resolveFromEndpoints(
-                      action.definitionCanonical,
-                      configurableEndpoints,
-                      contentEndpoint
-                    )
-                  }
-                  return planDefinition
-                }
-              ) ?? []
-            )) as fhir4.PlanDefinition[]
-          ).filter(notEmpty)
-
-          if (plans?.length) {
-            allPlans = allPlans.concat(plans)
-            plans.forEach(async (p) => {
-              allPlans = allPlans.concat(await getNestedPlanDefinitions(p))
-            })
-          }
-          return allPlans
-        }
-
-        const getDataRequirements = (actions: fhir4.PlanDefinitionAction[]) => {
-          let allCanonicals: string[] = []
-          // For each action, find input and add to list of profiles
-          let canonicals = actions
-            .flatMap((action) =>
-              action.input?.flatMap((input) => input.profile)
+          let planDefinitionRaw
+          if (contentEndpoint != null) {
+            const resolver = Resolver(contentEndpoint)
+            planDefinitionRaw = await resolver.resolveCanonical(url)
+          } else {
+            planDefinitionRaw = await resolveFromConfigurableEndpoints(
+              artifactEndpointConfigurable,
+              url,
+              contentEndpoint
             )
-            .filter(notEmpty)
-          const filteredCanonicals = canonicals.filter((c) => c != undefined)
-          if (filteredCanonicals.length) {
-            allCanonicals = [
-              ...new Set(allCanonicals.concat(filteredCanonicals)),
-            ]
           }
-          actions.forEach((action) => {
-            if (action.action) {
-              allCanonicals = allCanonicals.concat(
-                getDataRequirements(action.action)
-              )
-            }
-          })
-          return allCanonicals
-        }
-
-        let profiles: string[] = []
-        if (planDefinition?.url) {
-          const planDefinitions = (await getNestedPlanDefinitions(
-            planDefinition
-          )) || [planDefinition]
-          planDefinitions.forEach((p) => {
-            if (p.action) {
-              profiles = [
-                ...new Set(profiles.concat(getDataRequirements(p.action))),
-              ]
-            }
-          })
-        }
-
-        const questionnaireBundle: fhir4.Bundle = {
-          resourceType: 'Bundle',
-          id: uuidv4(),
-          type: 'collection',
-        }
-
-        if (profiles) {
-          const bundleEntries = await Promise.all(
-            profiles.map(async (p) => {
-              const structureDefinition = (await resolveFromEndpoints(
-                p,
-                configurableEndpoints,
-                contentEndpoint
-              )) as fhir4.StructureDefinition
-              const questionnaire: fhir4.Questionnaire =
-                await buildQuestionnaire({
-                  structureDefinition,
-                  data,
-                  dataEndpoint,
-                  configurableEndpoints,
-                  contentEndpoint,
-                  terminologyEndpoint,
-                  supportedOnly,
-                } as BuildQuestionnaireArgs)
-              return {
-                fullUrl: questionnaire.url,
-                resource: questionnaire,
-              }
-            })
-          )
-          questionnaireBundle.entry = bundleEntries
-        }
-
-        if (questionnaireBundle.entry?.length) {
-          const modularQuestionnaire: fhir4.Questionnaire = {
-            id: uuidv4(),
-            resourceType: 'Questionnaire',
-            description: `Questionnaire generated from ${planDefinition.url}`,
-            status: 'draft',
-            extension: [
-              {
-                url: 'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-assemble-expectation',
-                valueCode: 'assemble-root',
-              },
-            ],
-            item: [],
+          if (is.PlanDefinition(planDefinitionRaw)) {
+            planDefinition = planDefinitionRaw
           }
-          modularQuestionnaire.url = `${questionnaireBaseUrl}/Questionnaire/${modularQuestionnaire.id}`
-          questionnaireBundle.entry.forEach((e) => {
-            if (e.resource && is.Questionnaire(e.resource)) {
-              const resource = e.resource as fhir4.Questionnaire
-              const modularItem: fhir4.QuestionnaireItem = {
-                linkId: uuidv4(),
-                type: 'display',
-                text: `Sub-questionnaire - ${resource.url}`,
-                extension: [
-                  {
-                    url: 'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-subQuestionnaire',
-                    valueCanonical: resource.url,
-                  },
-                ],
-              }
-              modularQuestionnaire.item?.push(modularItem)
-            }
-          })
-          questionnaireBundle.entry.unshift({
-            fullUrl: modularQuestionnaire.url,
-            resource: modularQuestionnaire,
-          })
         }
 
-        res.send(questionnaireBundle)
+        const args: buildModularQuestionnaireArgs = {
+          planDefinition,
+          artifactEndpointConfigurable,
+          contentEndpoint,
+          terminologyEndpoint,
+          supportedOnly,
+        }
+
+        if (process.env.DEBUG != null) {
+          console.info(args)
+        }
+
+        res.send(await buildModularQuestionnaire(args))
       }
     }
   )

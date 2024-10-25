@@ -5,17 +5,17 @@ import {
   getPathPrefix,
   rankEndpoints,
   resolveFromConfigurableEndpoints
-} from './helpers'
-import Resolver from './resolver'
-import RestResolver from './resolver/rest'
-import FileResolver from './resolver/file'
+} from '../helpers'
+import Resolver from '../resolver'
+import RestResolver from '../resolver/rest'
+import FileResolver from '../resolver/file'
 import { EndpointConfiguration } from './buildQuestionnaire'
+import { initial } from 'lodash'
 
 /**
- * @param structureDefinition the strucutre definition passed to $questionnaire
+ * @param structureDefinition the structure definition passed to $questionnaire
  * @param parentElementPath the primary element path for the group
  * @param subGroupElements a list of element definitions to be processed as an questionnaire item grouping
- * @param featureExpresionResource resolved resource from featureExpression extension
  * @returns Questionnaire Item List
  */
 
@@ -23,15 +23,14 @@ export const buildQuestionnaireItemGroup = async (
   structureDefinition: fhir4.StructureDefinition,
   parentElementPath: fhir4.ElementDefinition['path'],
   subGroupElements: fhir4.ElementDefinition[],
-  terminologyResolver?: RestResolver | FileResolver | undefined,
-  dataResolver?: RestResolver | FileResolver | undefined,
-  contentResolver?: RestResolver | FileResolver | undefined,
-  configurableEndpoints?: EndpointConfiguration[] | undefined,
-  featureExpressionResource?: any
+  terminologyResolver: RestResolver | FileResolver | undefined,
+  contentResolver: RestResolver | FileResolver | undefined,
+  artifactEndpointConfigurable: EndpointConfiguration[] | undefined,
+  populationContextExpression: fhir4.Expression | undefined
 ): Promise<fhir4.QuestionnaireItem[]> => {
   //TODO
   // 1. determine how readOnly will be used
-  // 2. Reference, Quantity and Coding are currently returned as a group type if there are constraints on child elements. If there are only contraints on the backbone, returned as reference, quanitity, coding types with no children - is this how we should handle this?
+  // 2. Reference, Quantity and Coding are currently returned as a group type if there are constraints on child elements. If there are only constraints on the backbone, returned as reference, quantity, coding types with no children - is this how we should handle this?
   // 3. Support Slicing - Bug: returns duplicate items
 
   const childElements = subGroupElements.filter(
@@ -188,9 +187,9 @@ export const buildQuestionnaireItemGroup = async (
       let elementBinding = binding || snapshotDefinition?.binding
       let valueSetResource: fhir4.ValueSet | undefined
       let rankedEndpoints
-      if (configurableEndpoints && elementBinding?.valueSet) {
+      if (artifactEndpointConfigurable && elementBinding?.valueSet) {
         rankedEndpoints = rankEndpoints(
-          configurableEndpoints,
+          artifactEndpointConfigurable,
           elementBinding.valueSet
         )
         try {
@@ -273,7 +272,6 @@ export const buildQuestionnaireItemGroup = async (
         return initialValue
       }
 
-      let initialValue
       let fixedElementKey = Object.keys(element).find((k) => {
         return (
           k.startsWith('fixed') ||
@@ -281,25 +279,13 @@ export const buildQuestionnaireItemGroup = async (
           k.startsWith('defaultValue')
         )
       })
-      if (fixedElementKey) {
-        item.extension = [
-          {
-            url: 'http://hl7.org/fhir/StructureDefinition/questionnaire-hidden',
-            valueBoolean: true
-          }
-        ]
-        initialValue = getInitialValue(element, fixedElementKey)
-        // Use feature expression to set initial value if not fixed
-      } else if (featureExpressionResource) {
-        let featureExpressionKey = elementPath.split('.').pop()
-        if (featureExpressionKey && path.endsWith('[x]') && elementType) {
-          featureExpressionKey = featureExpressionKey?.replace(
-            elementType.charAt(0).toUpperCase() + elementType.slice(1),
-            ''
-          )
+
+      if (fixedElementKey != null) {
+        const initialValue = getInitialValue(element, fixedElementKey)
+        if (initialValue != null && valueType != null) {
+          item.initial = [{ [`value${valueType}`]: initialValue }]
         }
-        // Feature Expression value should be displayed to user
-        if (featureExpressionKey !== 'value') {
+        if (fixedElementKey == 'pattern' || fixedElementKey == 'fixed') {
           item.extension = [
             {
               url: 'http://hl7.org/fhir/StructureDefinition/questionnaire-hidden',
@@ -307,16 +293,15 @@ export const buildQuestionnaireItemGroup = async (
             }
           ]
         }
-        featureExpressionKey
-          ? (initialValue = getInitialValue(
-              featureExpressionResource,
-              featureExpressionKey
-            ))
-          : null
-      }
-
-      if (valueType != null && initialValue != null) {
-        item.initial = [{ [`value${valueType}`]: initialValue }]
+      } else if (populationContextExpression?.name != null) {
+        const initialExpression = {
+            language: 'text/cql-expression',
+            expression: `%${path.replace(getPathPrefix(path), populationContextExpression.name)}`
+          } as fhir4.Expression
+        (item.extension ||=[]).push({
+          url: 'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression',
+          valueExpression: initialExpression
+        })
       }
 
       // Add elementBinding expansion as answerOption if value is not fixed/pattern
@@ -355,15 +340,18 @@ export const buildQuestionnaireItemGroup = async (
           path,
           childSubGroupElements,
           terminologyResolver,
-          dataResolver,
           contentResolver,
-          configurableEndpoints
+          artifactEndpointConfigurable,
+          populationContextExpression
         )
       } else if (processAsGroup && elementType) {
         let dataTypeSD
-        if (configurableEndpoints && structureDefinition.baseDefinition) {
+        if (
+          artifactEndpointConfigurable &&
+          structureDefinition.baseDefinition
+        ) {
           const endpoints = rankEndpoints(
-            configurableEndpoints,
+            artifactEndpointConfigurable,
             structureDefinition.baseDefinition
           )
           dataTypeSD = await resolveFromConfigurableEndpoints(
@@ -407,9 +395,9 @@ export const buildQuestionnaireItemGroup = async (
           path,
           childSubGroupElements,
           terminologyResolver,
-          dataResolver,
           contentResolver,
-          configurableEndpoints
+          artifactEndpointConfigurable,
+          populationContextExpression
         )
       }
 

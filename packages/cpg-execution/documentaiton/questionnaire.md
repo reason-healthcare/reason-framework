@@ -88,7 +88,8 @@ See [SDC expression based population](https://build.fhir.org/ig/HL7/sdc/populate
 To conform to $populate and \$extract, the questionnaire should:
 
 - Include extension [questionnaire-launchContext](https://hl7.org/fhir/uv/sdc/StructureDefinition-sdc-questionnaire-launchContext.html) on the questionnaire for the in context subject (most often Patient)
-- For each element where there is a [CPG featureExpression](https://hl7.org/fhir/uv/cpg/StructureDefinition-cpg-featureExpression.html) value and absence of fixed[x] and pattern[x], set item [questionnaire-initialExpression](https://hl7.org/fhir/uv/sdc/StructureDefinition-sdc-questionnaire-initialExpression.html) extension as featureExpression.expression + element path. The item should be visible. <!--Is this the best way to get the corresponding case feature property?-->
+- If the extension [CPG featureExpression](https://hl7.org/fhir/uv/cpg/StructureDefinition-cpg-featureExpression.html), set [questionnaire-itemPopulationContext](https://build.fhir.org/ig/HL7/sdc/StructureDefinition-sdc-questionnaire-itemPopulationContext.html) on the root item to the featureExpression.valueExpression
+- For each element where there is a [CPG featureExpression](https://hl7.org/fhir/uv/cpg/StructureDefinition-cpg-featureExpression.html) value and absence of fixed[x] and pattern[x], set item [questionnaire-initialExpression](https://hl7.org/fhir/uv/sdc/StructureDefinition-sdc-questionnaire-initialExpression.html) extension expression to element path as a context variable. The item should be visible. <!--Is this the best way to get the corresponding case feature property?-->
 
 Note that initial[x] and initialExpression are mutually exclusive. These are set in order of preference:
 

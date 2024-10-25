@@ -613,7 +613,7 @@ export const set = (obj: any, path: string, value: any): void => {
 
 export const processFeatureExpression = async (
   expression: fhir4.Expression,
-  configurableEndpoints: any,
+  artifactEndpointConfigurable: any,
   terminologyResolver?: ResolverType | undefined,
   contentResolver?: ResolverType | undefined,
   data?: fhir4.Bundle | undefined,
@@ -703,9 +703,9 @@ export const processFeatureExpression = async (
       )
     }
 
-    if (configurableEndpoints && expression.reference) {
+    if (artifactEndpointConfigurable && expression.reference) {
       const endpoints = rankEndpoints(
-        configurableEndpoints,
+        artifactEndpointConfigurable,
         expression.reference
       )
       contentResolver =
