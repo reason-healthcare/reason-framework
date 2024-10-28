@@ -11,6 +11,7 @@ import RestResolver from '../resolver/rest'
 import FileResolver from '../resolver/file'
 import { EndpointConfiguration } from './buildQuestionnaire'
 import { initial } from 'lodash'
+import { QUESTIONNAIRE_HIDDEN, SDC_QUESTIONNAIRE_INITIAL_EXPRESSION } from '../constants'
 
 /**
  * @param structureDefinition the structure definition passed to $questionnaire
@@ -288,7 +289,7 @@ export const buildQuestionnaireItemGroup = async (
         if (fixedElementKey == 'pattern' || fixedElementKey == 'fixed') {
           item.extension = [
             {
-              url: 'http://hl7.org/fhir/StructureDefinition/questionnaire-hidden',
+              url: QUESTIONNAIRE_HIDDEN,
               valueBoolean: true
             }
           ]
@@ -299,7 +300,7 @@ export const buildQuestionnaireItemGroup = async (
             expression: `%${path.replace(getPathPrefix(path), populationContextExpression.name)}`
           } as fhir4.Expression
         (item.extension ||=[]).push({
-          url: 'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression',
+          url: SDC_QUESTIONNAIRE_INITIAL_EXPRESSION,
           valueExpression: initialExpression
         })
       }
