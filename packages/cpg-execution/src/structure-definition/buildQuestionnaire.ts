@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { questionnaireBaseUrl, getPathPrefix, is, inspect } from '../helpers'
 import { buildQuestionnaireItemGroup } from './buildQuestionnaireItemGroup'
 import Resolver from '../resolver'
-import { processFeatureExpression } from '../expression'
+import { CPG_FEATURE_EXPRESSION, SDC_QUESTIONNAIRE_LAUNCH_CONTEXT } from '../constants'
 
 export interface EndpointConfiguration {
   artifactRoute?: string | undefined
@@ -39,10 +39,10 @@ export const buildQuestionnaire = async (args: BuildQuestionnaireArgs) => {
     id: uuidv4(),
     resourceType: 'Questionnaire',
     description: `Questionnaire generated from ${structureDefinition.url}`,
-    status: 'draft'
+    status: 'draft',
   }
-
   questionnaire.url = `${questionnaireBaseUrl}/Questionnaire/${questionnaire.id}`
+
   const rootElement = structureDefinition.snapshot?.element.find(
     (e) => e.path === structureDefinition.type
   )
@@ -96,14 +96,14 @@ export const buildQuestionnaire = async (args: BuildQuestionnaireArgs) => {
     const featureExpression = structureDefinition.extension?.find(
       (e) =>
         e.url ===
-        'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-featureExpression'
+        CPG_FEATURE_EXPRESSION
     )?.valueExpression
 
     let populationContextExpression
     if (featureExpression != null) {
-      questionnaire.extension = [
+      (questionnaire.extension ||=[]).push(
         {
-          url: 'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-launchContext',
+          url: SDC_QUESTIONNAIRE_LAUNCH_CONTEXT,
           extension: [
             {
               url: 'name',
@@ -118,7 +118,8 @@ export const buildQuestionnaire = async (args: BuildQuestionnaireArgs) => {
             }
           ]
         }
-      ]
+      )
+
       populationContextExpression =  {...featureExpression, name: structureDefinition.name ?? featureExpression.expression ?? structureDefinition.id}
       ;(questionnaire.item[0].extension ||=[]).push({
         url: 'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-itemPopulationContext',

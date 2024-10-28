@@ -652,11 +652,11 @@ export default async (options?: FastifyServerOptions) => {
           if (contentEndpoint != null) {
             const resolver = Resolver(contentEndpoint)
             structureDefinitionRaw = await resolver.resolveCanonical(url)
-          } else {
+          }
+          if (structureDefinitionRaw == null && artifactEndpointConfigurable != null) {
             structureDefinitionRaw = await resolveFromConfigurableEndpoints(
               artifactEndpointConfigurable,
-              url,
-              contentEndpoint
+              url
             )
           }
           if (is.StructureDefinition(structureDefinitionRaw)) {
@@ -719,11 +719,11 @@ export default async (options?: FastifyServerOptions) => {
           if (contentEndpoint != null) {
             const resolver = Resolver(contentEndpoint)
             planDefinitionRaw = await resolver.resolveCanonical(url)
-          } else {
+          }
+          if (planDefinitionRaw == null && artifactEndpointConfigurable != null) {
             planDefinitionRaw = await resolveFromConfigurableEndpoints(
               artifactEndpointConfigurable,
-              url,
-              contentEndpoint
+              url
             )
           }
           if (is.PlanDefinition(planDefinitionRaw)) {
@@ -762,10 +762,15 @@ export default async (options?: FastifyServerOptions) => {
             parameters,
             'contentEndpoint'
           ) as fhir4.Endpoint) ?? defaultEndpoint
+          const artifactEndpointConfigurable =
+          endpointConfigurationFromParameters(parameters) as
+            | EndpointConfiguration[]
+            | undefined
         if (questionnaire != null) {
           const args: AssembleQuestionnaireArgs = {
             questionnaire,
             contentEndpoint,
+            artifactEndpointConfigurable
           }
           res.send(await assembleQuestionnaire(args))
         } else {

@@ -136,7 +136,7 @@ export const processDynamicValue = async (
     set(targetResource, path, value)
   } else {
     console.warn(
-      `Expression lanugage '${
+      `Expression language '${
         expression.language ?? '[none]'
       }' not supported, only support for: text/fhirpath, text/cql-identifier`
     )
