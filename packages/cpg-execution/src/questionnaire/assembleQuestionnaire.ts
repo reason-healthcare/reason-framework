@@ -59,7 +59,7 @@ export const assembleQuestionnaire = async (
       }
       return ext
     }).filter(notEmpty)
-    if (extension != null) {
+    if (extensions?.length) {
       questionnaireAssembled.extension === extensions
     } else {
       delete questionnaireAssembled.extension
