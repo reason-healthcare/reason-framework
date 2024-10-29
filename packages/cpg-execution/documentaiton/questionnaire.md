@@ -4,7 +4,7 @@ Questionnaire generation may be enabled for PlanDefinition/$apply to elicit user
 
 1. For each PlanDefinition with action.input, call [StructureDefinition/$questionnaire](https://hl7.org/fhir/R4/structuredefinition-operation-questionnaire.html) in minimal mode
 
-2. Build a modular questionnaire with sub-questionnaires for each questionnaire generated in Step 1. Call [Questionnaire/$assemble](https://hl7.org/fhir/uv/sdc/OperationDefinition-Questionnaire-assemble.html) to produce a single questionnaire with all sub-questionnaires inlined
+2. Build a modular questionnaire with sub-questionnaires for each questionnaire generated in Step 1. Call [Questionnaire/$assemble](https://hl7.org/fhir/uv/sdc/OperationDefinition-Questionnaire-assemble.html) to produce a single questionnaire with contained sub-questionnaires
 
 3. To build a pre-populated QuestionnaireResponse containing the Questionnaire from Step 2, call [Questionnaire/$populate](https://hl7.org/fhir/uv/sdc/OperationDefinition-Questionnaire-populate.html)
 

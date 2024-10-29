@@ -4,6 +4,7 @@ import {
   EndpointConfiguration
 } from '../structure-definition/buildQuestionnaire'
 import {
+  inspect,
   is,
   notEmpty,
   questionnaireBaseUrl,
@@ -11,6 +12,7 @@ import {
 } from '../helpers'
 import Resolver from '../resolver'
 import { v4 as uuidv4 } from 'uuid'
+import { SDC_QUESTIONNAIRE_SUB_QUESTIONNAIRE } from '../constants'
 
 const getNestedPlanDefinitions = async (
   planDefinition: fhir4.PlanDefinition,
@@ -64,7 +66,7 @@ const getNestedPlanDefinitions = async (
 
 const getDataRequirements = (actions: fhir4.PlanDefinitionAction[]) => {
   let allCanonicals: string[] = []
-  // For each action, find input and add to list of structureDefinitions
+  // For each action, find input and add to list of profiles
   let canonicals = actions
     .flatMap((action) => action.input?.flatMap((input) => input.profile))
     .filter(notEmpty)
@@ -103,7 +105,29 @@ export const buildModularQuestionnaire = async (
     supportedOnly
   } = args
 
-  let structureDefinitions: string[] = []
+  if (!is.PlanDefinition(planDefinition)) {
+    throw new Error(
+      `planDefinition does not seem to be a FHIR PlanDefinition" ${inspect(
+        planDefinition
+      )}`
+    )
+  }
+
+  const modularQuestionnaire = {
+    id: uuidv4(),
+      resourceType: 'Questionnaire',
+      description: `Questionnaire generated from ${planDefinition?.url}`,
+      status: 'draft',
+      extension: [
+        {
+          url: 'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-assemble-expectation',
+          valueCode: 'assemble-root'
+        }
+      ],
+  } as fhir4.Questionnaire
+  modularQuestionnaire.url = `${questionnaireBaseUrl}/Questionnaire/${modularQuestionnaire.id}`
+
+  let profiles: string[] = []
   if (planDefinition?.url) {
     const planDefinitions = (await getNestedPlanDefinitions(
       planDefinition,
@@ -112,23 +136,22 @@ export const buildModularQuestionnaire = async (
     )) || [planDefinition]
     planDefinitions.forEach((p) => {
       if (p.action) {
-        structureDefinitions = [
-          ...new Set(structureDefinitions.concat(getDataRequirements(p.action)))
+        profiles = [
+          ...new Set(profiles.concat(getDataRequirements(p.action)))
         ]
       }
     })
   }
 
-  const questionnaireBundle: fhir4.Bundle = {
-    resourceType: 'Bundle',
-    id: uuidv4(),
-    type: 'collection'
-  }
-
-  if (structureDefinitions?.length) {
-    const bundleEntries = await Promise.all(
-      structureDefinitions
+  let items
+  if (profiles?.length) {
+    items = await Promise.all(
+      profiles
         .map(async (p) => {
+          const item = {
+            linkId: uuidv4(),
+            type: 'display',
+          } as fhir4.QuestionnaireItem
           let structureDefinitionRaw
           if (contentEndpoint != null) {
             const resolver = Resolver(contentEndpoint)
@@ -152,53 +175,39 @@ export const buildModularQuestionnaire = async (
                 supportedOnly
               } as BuildQuestionnaireArgs
             )
-            return {
-              fullUrl: questionnaire.url,
-              resource: questionnaire
+            if (is.Questionnaire(questionnaire)) {
+              item.text = `Sub-questionnaire - ${questionnaire.url}`
+              item.extension = [
+                {
+                  url: SDC_QUESTIONNAIRE_SUB_QUESTIONNAIRE,
+                  valueCanonical: questionnaire.url
+                }
+              ]
+              ;(modularQuestionnaire.contained ||=[]).push(questionnaire)
+            } else {
+              item.text = `Error: Problem generation questionnaire from structure definition ${p}. Does not seem to be a FHIR Questionnaire`
             }
+          } else {
+            item.text = `Error: Problem generation questionnaire from structure definition ${p}. Does not seem to be a FHIR StructureDefinition`
           }
+          return item
         })
-        .filter(notEmpty) as fhir4.BundleEntry[]
+        .filter(notEmpty)
     )
-    questionnaireBundle.entry = bundleEntries
   }
 
-  if (questionnaireBundle.entry?.length) {
-    const modularQuestionnaire: fhir4.Questionnaire = {
-      id: uuidv4(),
-      resourceType: 'Questionnaire',
-      description: `Questionnaire generated from ${planDefinition?.url}`,
-      status: 'draft',
-      extension: [
-        {
-          url: 'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-assemble-expectation',
-          valueCode: 'assemble-root'
-        }
-      ],
-      item: []
-    }
-    modularQuestionnaire.url = `${questionnaireBaseUrl}/Questionnaire/${modularQuestionnaire.id}`
-    questionnaireBundle.entry.forEach((e) => {
-      if (e.resource && is.Questionnaire(e.resource)) {
-        const resource = e.resource as fhir4.Questionnaire
-        const subQuestionnaire: fhir4.QuestionnaireItem = {
-          linkId: uuidv4(),
-          type: 'display',
-          text: `Sub-questionnaire - ${resource.url}`,
-          extension: [
-            {
-              url: 'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-subQuestionnaire',
-              valueCanonical: resource.url
-            }
-          ]
-        }
-        modularQuestionnaire.item?.push(subQuestionnaire)
-      }
-    })
-    questionnaireBundle.entry.unshift({
-      fullUrl: modularQuestionnaire.url,
-      resource: modularQuestionnaire
-    })
+  if (items != null && items.length) {
+    modularQuestionnaire.item = items
   }
-  return questionnaireBundle
+
+  // Find all canonicals, if not present, return empty questionnaire
+  // Create an item for each canonical
+  // Resolve each canonical, if not an SD, the item should be 'display' with error as text
+  // For each valid SD, create a questionnaire. If not a valid questionnaire, the item should be 'display' with error as text
+  // For each valid questionnaire, the item should have the sub questionnaire extension and the questionnaire should be added to contained
+
+  return modularQuestionnaire
 }
+
+
+

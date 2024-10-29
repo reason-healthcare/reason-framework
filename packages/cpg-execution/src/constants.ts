@@ -8,6 +8,7 @@ export const SDC_QUESTIONNAIRE_LAUNCH_CONTEXT = 'http://hl7.org/fhir/uv/sdc/Stru
 export const SDC_QUESTIONNAIRE_ASSEMBLE_EXPECTATION = 'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-assemble-expectation'
 export const SDC_QUESTIONNAIRE_INITIAL_EXPRESSION = 'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression'
 export const QUESTIONNAIRE_HIDDEN = 'http://hl7.org/fhir/StructureDefinition/questionnaire-hidden'
+export const SDC_QUESTIONNAIRE_SUB_QUESTIONNAIRE ='http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-subQuestionnaire'
 
 // Case feature extensions
 export const CPG_FEATURE_EXPRESSION = 'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-featureExpression'
