@@ -510,9 +510,17 @@ export default async (options?: FastifyServerOptions) => {
 
         if (activityDefinition == null) {
           let url = valueFromParameters(parameters, 'url', 'valueString')
-          let version = valueFromParameters(parameters, 'version', 'valueString')
+          let version = valueFromParameters(
+            parameters,
+            'version',
+            'valueString'
+          )
           const contentResolver = Resolver(contentEndpoint)
-          const activityDefinitionRaw = await contentResolver.resolveCanonical(url, ['ActivityDefinition'], version)
+          const activityDefinitionRaw = await contentResolver.resolveCanonical(
+            url,
+            ['ActivityDefinition'],
+            version
+          )
 
           if (is.ActivityDefinition(activityDefinitionRaw)) {
             activityDefinition = activityDefinitionRaw
@@ -582,9 +590,17 @@ export default async (options?: FastifyServerOptions) => {
           ) as fhir4.Endpoint) ?? defaultEndpoint
         if (planDefinition == null) {
           let url = valueFromParameters(parameters, 'url', 'valueString')
-          let version = valueFromParameters(parameters, 'version', 'valueString')
+          let version = valueFromParameters(
+            parameters,
+            'version',
+            'valueString'
+          )
           const contentResolver = Resolver(contentEndpoint)
-          const planDefinitionRaw = await contentResolver.resolveCanonical(url, ['PlanDefinition'], version)
+          const planDefinitionRaw = await contentResolver.resolveCanonical(
+            url,
+            ['PlanDefinition'],
+            version
+          )
 
           if (is.PlanDefinition(planDefinitionRaw)) {
             planDefinition = planDefinitionRaw
@@ -635,6 +651,11 @@ export default async (options?: FastifyServerOptions) => {
           'supportedOnly',
           'valueBoolean'
         )
+        const minimal = valueFromParameters(
+          parameters,
+          'minimal',
+          'valueBoolean'
+        )
         const terminologyEndpoint =
           (resourceFromParameters(
             parameters,
@@ -660,13 +681,24 @@ export default async (options?: FastifyServerOptions) => {
         // If profile not provided, use Canonical
         if (structureDefinition == null) {
           let url = valueFromParameters(parameters, 'url', 'valueUri')
-          let version = valueFromParameters(parameters, 'version', 'valueString')
+          let version = valueFromParameters(
+            parameters,
+            'version',
+            'valueString'
+          )
           let structureDefinitionRaw
           if (contentEndpoint != null) {
             const resolver = Resolver(contentEndpoint)
-            structureDefinitionRaw = await resolver.resolveCanonical(url, ['StructureDefinition'], version)
+            structureDefinitionRaw = await resolver.resolveCanonical(
+              url,
+              ['StructureDefinition'],
+              version
+            )
           }
-          if (structureDefinitionRaw == null && artifactEndpointConfigurable != null) {
+          if (
+            structureDefinitionRaw == null &&
+            artifactEndpointConfigurable != null
+          ) {
             structureDefinitionRaw = await resolveFromConfigurableEndpoints(
               artifactEndpointConfigurable,
               url,
@@ -685,6 +717,7 @@ export default async (options?: FastifyServerOptions) => {
           contentEndpoint,
           terminologyEndpoint,
           supportedOnly,
+          minimal,
         }
 
         if (process.env.DEBUG != null) {
@@ -705,6 +738,11 @@ export default async (options?: FastifyServerOptions) => {
         const supportedOnly = valueFromParameters(
           parameters,
           'supportedOnly',
+          'valueBoolean'
+        )
+        const minimal = valueFromParameters(
+          parameters,
+          'minimal',
           'valueBoolean'
         )
         const terminologyEndpoint =
@@ -730,13 +768,24 @@ export default async (options?: FastifyServerOptions) => {
         // If resource not provided, use Canonical
         if (planDefinition == null) {
           let url = valueFromParameters(parameters, 'url', 'valueUri')
-          let version = valueFromParameters(parameters, 'version', 'valueString')
+          let version = valueFromParameters(
+            parameters,
+            'version',
+            'valueString'
+          )
           let planDefinitionRaw
           if (contentEndpoint != null) {
             const resolver = Resolver(contentEndpoint)
-            planDefinitionRaw = await resolver.resolveCanonical(url, ['PlanDefinition'], version)
+            planDefinitionRaw = await resolver.resolveCanonical(
+              url,
+              ['PlanDefinition'],
+              version
+            )
           }
-          if (planDefinitionRaw == null && artifactEndpointConfigurable != null) {
+          if (
+            planDefinitionRaw == null &&
+            artifactEndpointConfigurable != null
+          ) {
             planDefinitionRaw = await resolveFromConfigurableEndpoints(
               artifactEndpointConfigurable,
               url,
@@ -755,6 +804,7 @@ export default async (options?: FastifyServerOptions) => {
           contentEndpoint,
           terminologyEndpoint,
           supportedOnly,
+          minimal,
         }
 
         if (process.env.DEBUG != null) {
@@ -780,7 +830,7 @@ export default async (options?: FastifyServerOptions) => {
             parameters,
             'contentEndpoint'
           ) as fhir4.Endpoint) ?? defaultEndpoint
-          const artifactEndpointConfigurable =
+        const artifactEndpointConfigurable =
           endpointConfigurationFromParameters(parameters) as
             | EndpointConfiguration[]
             | undefined
@@ -788,7 +838,7 @@ export default async (options?: FastifyServerOptions) => {
           const args: AssembleQuestionnaireArgs = {
             questionnaire,
             contentEndpoint,
-            artifactEndpointConfigurable
+            artifactEndpointConfigurable,
           }
           res.send(await assembleQuestionnaire(args))
         } else {

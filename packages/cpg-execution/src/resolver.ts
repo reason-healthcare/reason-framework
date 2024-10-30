@@ -8,7 +8,7 @@ export interface Resolver {
   resolveCanonical: (
     reference: string | undefined,
     resourceTypes?: string[] | undefined,
-    version?: string | undefined,
+    version?: string | undefined
   ) => Promise<fhir4.FhirResource | undefined>
 
   resolveReference: (

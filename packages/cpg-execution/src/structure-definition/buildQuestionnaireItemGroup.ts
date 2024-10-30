@@ -10,8 +10,10 @@ import Resolver from '../resolver'
 import RestResolver from '../resolver/rest'
 import FileResolver from '../resolver/file'
 import { EndpointConfiguration } from './buildQuestionnaire'
-import { initial } from 'lodash'
-import { QUESTIONNAIRE_HIDDEN, SDC_QUESTIONNAIRE_INITIAL_EXPRESSION } from '../constants'
+import {
+  QUESTIONNAIRE_HIDDEN,
+  SDC_QUESTIONNAIRE_INITIAL_EXPRESSION
+} from '../constants'
 
 /**
  * @param structureDefinition the structure definition passed to $questionnaire
@@ -296,10 +298,13 @@ export const buildQuestionnaireItemGroup = async (
         }
       } else if (populationContextExpression?.name != null) {
         const initialExpression = {
-            language: 'text/cql-expression',
-            expression: `%${path.replace(getPathPrefix(path), populationContextExpression.name)}`
-          } as fhir4.Expression
-        (item.extension ||=[]).push({
+          language: 'text/cql-expression',
+          expression: `%${path.replace(
+            getPathPrefix(path),
+            populationContextExpression.name
+          )}`
+        } as fhir4.Expression
+        ;(item.extension ||= []).push({
           url: SDC_QUESTIONNAIRE_INITIAL_EXPRESSION,
           valueExpression: initialExpression
         })
@@ -391,7 +396,7 @@ export const buildQuestionnaireItemGroup = async (
           })
         }
 
-        item.item = await buildQuestionnaireItemGroup(
+        const childItems = await buildQuestionnaireItemGroup(
           structureDefinition,
           path,
           childSubGroupElements,
@@ -400,6 +405,12 @@ export const buildQuestionnaireItemGroup = async (
           artifactEndpointConfigurable,
           populationContextExpression
         )
+
+        if (childItems?.length) {
+          item.item = childItems
+        } else {
+          item.text = `Error: Problem processing child elements for group item ${item.definition}`
+        }
       }
 
       return item

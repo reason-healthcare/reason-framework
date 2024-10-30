@@ -100,21 +100,24 @@ class RestResolver extends BaseResolver implements Resolver {
   public async resolveCanonical(
     canonicalWithVersion: string | undefined,
     resourceTypes?: string[] | undefined,
-    version?: string | undefined,
+    version?: string | undefined
   ) {
     const [canonical, versionPiped] = (canonicalWithVersion || '').split('|')
 
     if (version != null && versionPiped != null && version !== versionPiped) {
-      throw new Error(`Canonical with version ${canonicalWithVersion} does not match version ${version}`)
+      throw new Error(
+        `Canonical with version ${canonicalWithVersion} does not match version ${version}`
+      )
     }
     const versionFormatted = version ?? versionPiped
     const canonicalWithVersionFormatted = `${canonical}|${versionFormatted}`
 
-    const cached = Cache.getKey(`canonical-resource-${canonicalWithVersionFormatted}`)
+    const cached = Cache.getKey(
+      `canonical-resource-${canonicalWithVersionFormatted}`
+    )
     if (cached != null) {
       return cached
     }
-
 
     if (canonical != null) {
       let results
@@ -172,7 +175,10 @@ class RestResolver extends BaseResolver implements Resolver {
         if (resources?.length <= 2) {
           //temp set to 2 to include operation outcome
           const result = resources[0]
-          Cache.setKey(`canonical-resource-${canonicalWithVersionFormatted}`, result)
+          Cache.setKey(
+            `canonical-resource-${canonicalWithVersionFormatted}`,
+            result
+          )
           Cache.save(true)
           return result
         } else {
