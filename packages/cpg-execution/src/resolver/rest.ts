@@ -99,25 +99,29 @@ class RestResolver extends BaseResolver implements Resolver {
 
   public async resolveCanonical(
     canonicalWithVersion: string | undefined,
-    resourceTypes?: string[] | undefined
+    resourceTypes?: string[] | undefined,
+    version?: string | undefined,
   ) {
-    const cached = Cache.getKey(`canonical-resource-${canonicalWithVersion}`)
+    const [canonical, versionPiped] = (canonicalWithVersion || '').split('|')
+
+    if (version != null && versionPiped != null && version !== versionPiped) {
+      throw new Error(`Canonical with version ${canonicalWithVersion} does not match version ${version}`)
+    }
+    const versionFormatted = version ?? versionPiped
+    const canonicalWithVersionFormatted = `${canonical}|${versionFormatted}`
+
+    const cached = Cache.getKey(`canonical-resource-${canonicalWithVersionFormatted}`)
     if (cached != null) {
       return cached
     }
 
-    const [canonical, version] = (canonicalWithVersion || '').split('|')
 
     if (canonical != null) {
       let results
       let requestParams = `/?url=${canonical}`
-      if (version != null) {
-        requestParams += `&version=${version}`
+      if (versionFormatted != null) {
+        requestParams += `&version=${versionFormatted}`
       }
-      // // HAPI server requires resource type
-      // if (resourceTypes?.length) {
-      //   requestParams = `/${resourceTypes[0]}` + requestParams
-      // }
       if (process.env.CANONICAL_SEARCH_ROOT != null) {
         console.log('Running canonical root search...')
         try {
@@ -134,7 +138,7 @@ class RestResolver extends BaseResolver implements Resolver {
             body: this.canonicalSearchBundle(
               canonical,
               resourceTypes,
-              version
+              versionFormatted
             ) as unknown as fhir4.FhirResource & {
               type: 'batch'
             } // TODO: Update FKC type here `fhir4.Bundle & { type: 'batch' }`
@@ -168,12 +172,12 @@ class RestResolver extends BaseResolver implements Resolver {
         if (resources?.length <= 2) {
           //temp set to 2 to include operation outcome
           const result = resources[0]
-          Cache.setKey(`canonical-resource-${canonicalWithVersion}`, result)
+          Cache.setKey(`canonical-resource-${canonicalWithVersionFormatted}`, result)
           Cache.save(true)
           return result
         } else {
           throw new Error(
-            `Did not find one and only one resource for ${canonicalWithVersion}. Found: ` +
+            `Did not find one and only one resource for ${canonicalWithVersionFormatted}. Found: ` +
               `${JSON.stringify(resources)}`
           )
         }

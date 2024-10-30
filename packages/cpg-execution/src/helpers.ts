@@ -460,7 +460,8 @@ export const rankEndpoints = (
 export const resolveFromConfigurableEndpoints = async (
   artifactEndpointConfigurable: EndpointConfiguration[] | undefined,
   request: string,
-  resourceTypes?: string[] | undefined
+  resourceTypes?: string[] | undefined,
+  version?: string | undefined
 ): Promise<fhir4.FhirResource | undefined> => {
   if (artifactEndpointConfigurable != null) {
     let rawResource
@@ -469,7 +470,7 @@ export const resolveFromConfigurableEndpoints = async (
       const resolver = Resolver(endpoints[i].endpoint)
       try {
         if (request.startsWith('http')) {
-          rawResource = await resolver.resolveCanonical(request, resourceTypes)
+          rawResource = await resolver.resolveCanonical(request, resourceTypes, version)
           return rawResource
         }
         rawResource = await resolver.resolveReference(request)

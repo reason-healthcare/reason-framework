@@ -486,7 +486,7 @@ export default async (options?: FastifyServerOptions) => {
       const { parameter: parameters } = req.body as fhir4.Parameters
 
       if (parameters != null) {
-        const activityDefinition = resourceFromParameters(
+        let activityDefinition = resourceFromParameters(
           parameters,
           'activityDefinition'
         ) as fhir4.ActivityDefinition
@@ -507,6 +507,17 @@ export default async (options?: FastifyServerOptions) => {
             parameters,
             'terminologyEndpoint'
           ) as fhir4.Endpoint) ?? defaultEndpoint
+
+        if (activityDefinition == null) {
+          let url = valueFromParameters(parameters, 'url', 'valueString')
+          let version = valueFromParameters(parameters, 'version', 'valueString')
+          const contentResolver = Resolver(contentEndpoint)
+          const activityDefinitionRaw = await contentResolver.resolveCanonical(url, ['ActivityDefinition'], version)
+
+          if (is.ActivityDefinition(activityDefinitionRaw)) {
+            activityDefinition = activityDefinitionRaw
+          }
+        }
 
         const args: ApplyActivityDefinitionArgs = {
           activityDefinition,
@@ -571,8 +582,9 @@ export default async (options?: FastifyServerOptions) => {
           ) as fhir4.Endpoint) ?? defaultEndpoint
         if (planDefinition == null) {
           let url = valueFromParameters(parameters, 'url', 'valueString')
+          let version = valueFromParameters(parameters, 'version', 'valueString')
           const contentResolver = Resolver(contentEndpoint)
-          const planDefinitionRaw = await contentResolver.resolveCanonical(url)
+          const planDefinitionRaw = await contentResolver.resolveCanonical(url, ['PlanDefinition'], version)
 
           if (is.PlanDefinition(planDefinitionRaw)) {
             planDefinition = planDefinitionRaw
@@ -648,15 +660,18 @@ export default async (options?: FastifyServerOptions) => {
         // If profile not provided, use Canonical
         if (structureDefinition == null) {
           let url = valueFromParameters(parameters, 'url', 'valueUri')
+          let version = valueFromParameters(parameters, 'version', 'valueString')
           let structureDefinitionRaw
           if (contentEndpoint != null) {
             const resolver = Resolver(contentEndpoint)
-            structureDefinitionRaw = await resolver.resolveCanonical(url)
+            structureDefinitionRaw = await resolver.resolveCanonical(url, ['StructureDefinition'], version)
           }
           if (structureDefinitionRaw == null && artifactEndpointConfigurable != null) {
             structureDefinitionRaw = await resolveFromConfigurableEndpoints(
               artifactEndpointConfigurable,
-              url
+              url,
+              ['StructureDefinition'],
+              version
             )
           }
           if (is.StructureDefinition(structureDefinitionRaw)) {
@@ -715,15 +730,18 @@ export default async (options?: FastifyServerOptions) => {
         // If resource not provided, use Canonical
         if (planDefinition == null) {
           let url = valueFromParameters(parameters, 'url', 'valueUri')
+          let version = valueFromParameters(parameters, 'version', 'valueString')
           let planDefinitionRaw
           if (contentEndpoint != null) {
             const resolver = Resolver(contentEndpoint)
-            planDefinitionRaw = await resolver.resolveCanonical(url)
+            planDefinitionRaw = await resolver.resolveCanonical(url, ['PlanDefinition'], version)
           }
           if (planDefinitionRaw == null && artifactEndpointConfigurable != null) {
             planDefinitionRaw = await resolveFromConfigurableEndpoints(
               artifactEndpointConfigurable,
-              url
+              url,
+              ['PlanDefinition'],
+              version
             )
           }
           if (is.PlanDefinition(planDefinitionRaw)) {
