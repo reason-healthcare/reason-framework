@@ -470,7 +470,11 @@ export const resolveFromConfigurableEndpoints = async (
       const resolver = Resolver(endpoints[i].endpoint)
       try {
         if (request.startsWith('http')) {
-          rawResource = await resolver.resolveCanonical(request, resourceTypes, version)
+          rawResource = await resolver.resolveCanonical(
+            request,
+            resourceTypes,
+            version
+          )
           return rawResource
         }
         rawResource = await resolver.resolveReference(request)

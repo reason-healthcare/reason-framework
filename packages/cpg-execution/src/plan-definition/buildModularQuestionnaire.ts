@@ -90,6 +90,7 @@ export interface buildModularQuestionnaireArgs {
   contentEndpoint?: fhir4.Endpoint | undefined
   terminologyEndpoint?: fhir4.Endpoint | undefined
   supportedOnly?: boolean | undefined
+  minimal?: boolean | undefined
 }
 
 export const buildModularQuestionnaire = async (
@@ -102,7 +103,8 @@ export const buildModularQuestionnaire = async (
     artifactEndpointConfigurable,
     contentEndpoint,
     terminologyEndpoint,
-    supportedOnly
+    supportedOnly,
+    minimal
   } = args
 
   if (!is.PlanDefinition(planDefinition)) {
@@ -115,15 +117,15 @@ export const buildModularQuestionnaire = async (
 
   const modularQuestionnaire = {
     id: uuidv4(),
-      resourceType: 'Questionnaire',
-      description: `Questionnaire generated from ${planDefinition?.url}`,
-      status: 'draft',
-      extension: [
-        {
-          url: 'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-assemble-expectation',
-          valueCode: 'assemble-root'
-        }
-      ],
+    resourceType: 'Questionnaire',
+    description: `Questionnaire generated from ${planDefinition?.url}`,
+    status: 'draft',
+    extension: [
+      {
+        url: 'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-assemble-expectation',
+        valueCode: 'assemble-root'
+      }
+    ]
   } as fhir4.Questionnaire
   modularQuestionnaire.url = `${questionnaireBaseUrl}/Questionnaire/${modularQuestionnaire.id}`
 
@@ -136,9 +138,7 @@ export const buildModularQuestionnaire = async (
     )) || [planDefinition]
     planDefinitions.forEach((p) => {
       if (p.action) {
-        profiles = [
-          ...new Set(profiles.concat(getDataRequirements(p.action)))
-        ]
+        profiles = [...new Set(profiles.concat(getDataRequirements(p.action)))]
       }
     })
   }
@@ -150,7 +150,7 @@ export const buildModularQuestionnaire = async (
         .map(async (p) => {
           const item = {
             linkId: uuidv4(),
-            type: 'display',
+            type: 'display'
           } as fhir4.QuestionnaireItem
           let structureDefinitionRaw
           if (contentEndpoint != null) {
@@ -172,7 +172,8 @@ export const buildModularQuestionnaire = async (
                 artifactEndpointConfigurable,
                 contentEndpoint,
                 terminologyEndpoint,
-                supportedOnly
+                supportedOnly,
+                minimal
               } as BuildQuestionnaireArgs
             )
             if (is.Questionnaire(questionnaire)) {
@@ -183,7 +184,7 @@ export const buildModularQuestionnaire = async (
                   valueCanonical: questionnaire.url
                 }
               ]
-              ;(modularQuestionnaire.contained ||=[]).push(questionnaire)
+              ;(modularQuestionnaire.contained ||= []).push(questionnaire)
             } else {
               item.text = `Error: Problem generation questionnaire from structure definition ${p}. Does not seem to be a FHIR Questionnaire`
             }
@@ -200,14 +201,5 @@ export const buildModularQuestionnaire = async (
     modularQuestionnaire.item = items
   }
 
-  // Find all canonicals, if not present, return empty questionnaire
-  // Create an item for each canonical
-  // Resolve each canonical, if not an SD, the item should be 'display' with error as text
-  // For each valid SD, create a questionnaire. If not a valid questionnaire, the item should be 'display' with error as text
-  // For each valid questionnaire, the item should have the sub questionnaire extension and the questionnaire should be added to contained
-
   return modularQuestionnaire
 }
-
-
-
