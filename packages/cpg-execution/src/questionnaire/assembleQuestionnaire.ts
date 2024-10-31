@@ -19,14 +19,14 @@ import {
 
 export interface AssembleQuestionnaireArgs {
   questionnaire: fhir4.Questionnaire
-  contentEndpoint?: fhir4.Endpoint | undefined
   artifactEndpointConfigurable?: EndpointConfiguration[] | undefined
+  contentEndpoint?: fhir4.Endpoint | undefined
 }
 
 export const assembleQuestionnaire = async (
   args: AssembleQuestionnaireArgs
 ): Promise<fhir4.Questionnaire | undefined> => {
-  const { questionnaire, contentEndpoint, artifactEndpointConfigurable } = args
+  const { questionnaire, artifactEndpointConfigurable, contentEndpoint } = args
   const {
     id,
     meta,

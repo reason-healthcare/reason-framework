@@ -84,8 +84,6 @@ const getDataRequirements = (actions: fhir4.PlanDefinitionAction[]) => {
 
 export interface buildModularQuestionnaireArgs {
   planDefinition: fhir4.PlanDefinition
-  data?: fhir4.Bundle | undefined
-  dataEndpoint?: fhir4.Endpoint | undefined
   artifactEndpointConfigurable?: EndpointConfiguration[] | undefined
   contentEndpoint?: fhir4.Endpoint | undefined
   terminologyEndpoint?: fhir4.Endpoint | undefined
@@ -98,8 +96,6 @@ export const buildModularQuestionnaire = async (
 ) => {
   const {
     planDefinition,
-    data,
-    dataEndpoint,
     artifactEndpointConfigurable,
     contentEndpoint,
     terminologyEndpoint,
@@ -167,8 +163,6 @@ export const buildModularQuestionnaire = async (
             const questionnaire: fhir4.Questionnaire = await buildQuestionnaire(
               {
                 structureDefinition: structureDefinitionRaw,
-                data,
-                dataEndpoint,
                 artifactEndpointConfigurable,
                 contentEndpoint,
                 terminologyEndpoint,
