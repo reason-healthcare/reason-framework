@@ -5,6 +5,7 @@
 3. Github CI action
 4. Use human readable identifiers in place of ID - title or name?
 5. Improve error handling for selection behavior
+6. Handle resources without instantiates canonical
 
 Current: Selection behaviors on actions are optional. Selection behavior is hybrid of titles/definitions. Only definitions that are unused will be checked at test completion.
 

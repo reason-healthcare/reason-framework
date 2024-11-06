@@ -838,7 +838,7 @@ export default async (options?: FastifyServerOptions) => {
           const args: AssembleQuestionnaireArgs = {
             questionnaire,
             artifactEndpointConfigurable,
-            contentEndpoint
+            contentEndpoint,
           }
           res.send(await assembleQuestionnaire(args))
         } else {
