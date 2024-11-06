@@ -41,16 +41,16 @@ Usage: #Example
       * definitionCanonical = Canonical(OrderMedication4)
 
 Instance: ReportOver18
-InstanceOf: CPGCommunicationActivity
+InstanceOf: CPGServiceRequestActivity
 * insert DefinitionMetaData
-* kind = #CommunicationRequest
+* kind = #ServiceRequest
 * intent = #proposal
 * doNotPerform = false
 
 Instance: ReportUnder18
-InstanceOf: CPGCommunicationActivity
+InstanceOf: CPGServiceRequestActivity
 * insert DefinitionMetaData
-* kind = #CommunicationRequest
+* kind = #ServiceRequest
 * intent = #proposal
 * doNotPerform = false
 
@@ -90,9 +90,9 @@ InstanceOf: CPGComputablePlanDefinition
     * definitionCanonical = Canonical(ProvideVerbalEducation)
 
 Instance: SendWrittenEducation
-InstanceOf: CPGCommunicationActivity
+InstanceOf: CPGServiceRequestActivity
 * insert DefinitionMetaData
-* kind = #CommunicationRequest
+* kind = #ServiceRequest
 * intent = #proposal
 * doNotPerform = false
 
