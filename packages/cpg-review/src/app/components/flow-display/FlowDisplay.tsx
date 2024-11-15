@@ -15,6 +15,7 @@ import { FullscreenOutlined, FullscreenExitOutlined } from '@ant-design/icons'
 import BrowserResolver from 'resolver/browser'
 import StartNode from './StartNode'
 import { NodeData } from '../../types/NodeData'
+import ApplicabilityNode from './ApplicabilityNode'
 
 interface FlowDisplayProps {
   resolver: BrowserResolver | undefined
@@ -40,7 +41,7 @@ export default function FlowDisplay({
   const [key, setKey] = useState<number>(0)
 
   const nodeTypes = useMemo(
-    () => ({ contentNode: ContentNode, startNode: StartNode }),
+    () => ({ contentNode: ContentNode, startNode: StartNode, applicabilityNode: ApplicabilityNode }),
     []
   )
 
