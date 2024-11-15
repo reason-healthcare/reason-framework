@@ -153,7 +153,11 @@ class Flow implements FlowShape {
       let applicabilityNode
       if (action.condition != null) {
         const edgeSource = this.createEdge(node.id)
-        applicabilityNode = this.createApplicabilityNode(`condition-${id}`, action, planDefinition)
+        applicabilityNode = this.createApplicabilityNode(
+          `condition-${id}`,
+          action,
+          planDefinition
+        )
         this.addNewNode(applicabilityNode)
         const edgeFinal = {
           ...edgeSource,
@@ -319,9 +323,17 @@ class Flow implements FlowShape {
   ) {
     if (sourceNode && allNodes && allEdges) {
       // On node click, find outgoers and add to display nodes then regraph
-      const children = getOutgoers(sourceNode, allNodes, allEdges).filter(
-        (c) => !this.nodes?.includes(c)
+      let children = getOutgoers(sourceNode, allNodes, allEdges)
+      const applicabilityNodes = children.filter(
+        (node) => node.type === 'applicabilityNode'
       )
+      children = children
+        .concat(
+          applicabilityNodes
+            ?.flatMap((n) => getOutgoers(n, allNodes, allEdges))
+            .filter((n) => n != null)
+        )
+        .filter((c) => !this.nodes?.includes(c))
       if (children && this.nodes) {
         this.setNodes = [
           ...this.nodes.map((n) => {
@@ -336,9 +348,12 @@ class Flow implements FlowShape {
           }),
         ]
       }
+      console.log(this.nodes)
       const childEdges = allEdges.filter(
         (e) =>
-          children?.some((c) => c.id === e.target) && e.source === sourceNode.id
+          children?.some((c) => c.id === e.target) &&
+          (e.source === sourceNode.id ||
+            children?.some((c) => c.id === e.source))
       )
       if (childEdges && this.edges) {
         this.setEdges = [...this.edges, ...childEdges]

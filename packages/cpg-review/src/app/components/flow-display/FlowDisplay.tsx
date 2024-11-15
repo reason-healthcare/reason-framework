@@ -41,7 +41,11 @@ export default function FlowDisplay({
   const [key, setKey] = useState<number>(0)
 
   const nodeTypes = useMemo(
-    () => ({ contentNode: ContentNode, startNode: StartNode, applicabilityNode: ApplicabilityNode }),
+    () => ({
+      contentNode: ContentNode,
+      startNode: StartNode,
+      applicabilityNode: ApplicabilityNode,
+    }),
     []
   )
 
@@ -100,7 +104,7 @@ export default function FlowDisplay({
 
   useEffect(() => {
     const flow = new Flow(displayNodes, displayEdges)
-    if (nodeToExpand) {
+    if (nodeToExpand != null) {
       const sourceNode = expandedFlow?.nodes?.find((n) => n.id === nodeToExpand)
       flow
         .expandChildren(sourceNode, expandedFlow?.nodes, expandedFlow?.edges)

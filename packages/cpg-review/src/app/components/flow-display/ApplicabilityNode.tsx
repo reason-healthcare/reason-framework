@@ -8,13 +8,14 @@ import { NodeProps } from '../../types/NodeProps'
 import { Tooltip } from 'antd'
 import { InfoCircleFilled } from '@ant-design/icons'
 import TargetHandle from './TargetHandle'
+import ApplicabilityHandle from './ApplicabilityHandle'
 
 const ApplicabilityNode = ({ data: nodeProps, id }: NodeProps) => {
   const {
     label,
     handle,
     nodeData,
-    isCollapsed,
+    // isCollapsed,
     setNodeToExpand,
     selectedNode,
     setSelectedNode,
@@ -25,13 +26,13 @@ const ApplicabilityNode = ({ data: nodeProps, id }: NodeProps) => {
   const [highlight, setHighlight] = useState<boolean>()
 
   useEffect(() => {
-    setCollapsed(isCollapsed)
+    // setCollapsed(isCollapsed)
     if (selectedNode === id) {
       setHighlight(true)
     } else {
       setHighlight(false)
     }
-  }, [isCollapsed, selectedNode])
+  }, [selectedNode])
 
   let selectionDetail
   if (
@@ -53,10 +54,8 @@ const ApplicabilityNode = ({ data: nodeProps, id }: NodeProps) => {
 
   return (
     <>
-      <div
-        className={`clickable node-container applicability`}
-      >
-        {handle?.includes('target') ? <TargetHandle /> : null}
+      <div className={`clickable node-container applicability`}>
+        {handle?.includes('target') ? <ApplicabilityHandle /> : null}
         <div className="diamond-container" onClick={handleNodeClick}>
           <Image
             src={
@@ -67,9 +66,9 @@ const ApplicabilityNode = ({ data: nodeProps, id }: NodeProps) => {
             width="150"
             height="150"
           />
-        <div className="diamond-text-container">
-          {label ? (
-            <p>{label}</p>
+          <div className="diamond-text-container">
+            {label ? (
+              <p>{label}</p>
             ) : (
               <Tooltip
                 title="Missing identifier. Click for data."
