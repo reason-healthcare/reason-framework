@@ -348,7 +348,6 @@ class Flow implements FlowShape {
           }),
         ]
       }
-      console.log(this.nodes)
       const childEdges = allEdges.filter(
         (e) =>
           children?.some((c) => c.id === e.target) &&

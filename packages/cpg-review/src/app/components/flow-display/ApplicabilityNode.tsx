@@ -59,7 +59,8 @@ const ApplicabilityNode = ({ data: nodeProps, id }: NodeProps) => {
         <div className="diamond-container" onClick={handleNodeClick}>
           <Image
             src={
-              highlight ? 'images/diamond-highlight.svg' : '/images/diamond.svg'
+              // highlight ? 'images/diamond-highlight.svg' : '/images/diamond.svg'
+              '/images/diamond.svg'
             }
             alt="diamond node"
             className="diamond-icon"
