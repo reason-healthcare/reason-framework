@@ -1,13 +1,10 @@
-import { Handle, Position } from 'reactflow'
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import '@/styles/node.css'
 import InteractiveHandle from './InteractiveHandle'
-import { is } from 'helpers'
 import { NodeProps } from '../../types/NodeProps'
 import { Tooltip } from 'antd'
 import { InfoCircleFilled } from '@ant-design/icons'
-import TargetHandle from './TargetHandle'
 import ApplicabilityHandle from './ApplicabilityHandle'
 
 const ApplicabilityNode = ({ data: nodeProps, id }: NodeProps) => {
@@ -21,31 +18,19 @@ const ApplicabilityNode = ({ data: nodeProps, id }: NodeProps) => {
     setSelectedNode,
     setNodeData,
   } = nodeProps
-  const { nodeDetails, partOf } = nodeData
+  // const { nodeDetails, partOf } = nodeData
   const [collapsed, setCollapsed] = useState<boolean>(false)
-  const [highlight, setHighlight] = useState<boolean>()
+  // const [highlight, setHighlight] = useState<boolean>()
 
-  useEffect(() => {
-    // setCollapsed(isCollapsed)
-    if (selectedNode === id) {
-      setHighlight(true)
-    } else {
-      setHighlight(false)
-    }
-  }, [selectedNode])
+  // useEffect(() => {
+  //   // setCollapsed(isCollapsed)
+  //   if (selectedNode === id) {
+  //     setHighlight(true)
+  //   } else {
+  //     setHighlight(false)
+  //   }
+  // }, [selectedNode])
 
-  let selectionDetail
-  if (
-    !is.ActivityDefinition(nodeDetails) &&
-    nodeDetails.selectionBehavior &&
-    !collapsed
-  ) {
-    selectionDetail = (
-      <div className="action-selection-label">
-        {`Select ${nodeDetails.selectionBehavior}`}
-      </div>
-    )
-  }
 
   const handleNodeClick = () => {
     setSelectedNode(id)
@@ -89,7 +74,9 @@ const ApplicabilityNode = ({ data: nodeProps, id }: NodeProps) => {
           />
         )}
       </div>
-      {selectionDetail}
+      <div className="action-selection-label">
+        {'Yes'}
+      </div>
     </>
   )
 }
