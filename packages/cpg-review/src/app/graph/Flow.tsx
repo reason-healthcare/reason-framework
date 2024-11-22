@@ -122,6 +122,28 @@ class Flow implements FlowShape {
     return edge
   }
 
+  private proccessApplicabilityNodes(
+    parentId: string,
+    index: string,
+    action: fhir4.PlanDefinitionAction,
+    planDefinition: fhir4.PlanDefinition
+  ) {
+    const edgeSource = this.createEdge(parentId)
+    const applicabilityNode = this.createApplicabilityNode(
+      `condition-${parentId}-${index}`,
+      action,
+      planDefinition
+    )
+    this.addNewNode(applicabilityNode)
+    const edgeFinal = {
+      ...edgeSource,
+      target: applicabilityNode.id,
+      id: `${edgeSource.id} - ${applicabilityNode.id}`,
+    }
+    this.addNewEdge(edgeFinal)
+    return applicabilityNode
+  }
+
   /**
    *
    * @param actions Plan definition actions to process as new node
@@ -152,6 +174,9 @@ class Flow implements FlowShape {
       //* Handle Applicability */
       let applicabilityNode
       if (action.condition != null) {
+        action.condition.forEach((condition, index) => {
+
+        })
         const edgeSource = this.createEdge(node.id)
         applicabilityNode = this.createApplicabilityNode(
           `condition-${id}`,
