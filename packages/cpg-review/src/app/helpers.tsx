@@ -992,7 +992,7 @@ export const formatExpression = (
       <span>{`${expression}${language ? ` as ${language}` : ''}${
         reference ? ` from ` : ''
       }`}</span>
-      <span>{formatValue(reference, resolver, navigate)}</span>
+      <span>{reference ? formatValue(reference, resolver, navigate) : null}</span>
     </>
   )
 }
@@ -1083,9 +1083,10 @@ export const formatCondition = (
 ) => {
   const { kind, expression } = condition
   return (
-    <span>{`${
-      expression ? formatExpression(expression, resolver, navigate) + ' ' : ''
-    }${kind ? `(${kind})` : ''}`}</span>
+    <>
+      <span>{formatExpression(expression, resolver, navigate)}</span>
+      <span>{`${expression ? ' ' : ''}${kind ? `(${kind})` : ''}`}</span>
+    </>
   )
 }
 
