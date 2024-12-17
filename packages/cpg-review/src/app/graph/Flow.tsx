@@ -174,9 +174,7 @@ class Flow implements FlowShape {
       //* Handle Applicability */
       let applicabilityNode
       if (action.condition != null) {
-        action.condition.forEach((condition, index) => {
-
-        })
+        action.condition.forEach((condition, index) => {})
         const edgeSource = this.createEdge(node.id)
         applicabilityNode = this.createApplicabilityNode(
           `condition-${id}`,

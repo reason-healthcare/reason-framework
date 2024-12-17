@@ -987,12 +987,14 @@ export const formatExpression = (
   navigate?: NavigateFunction
 ) => {
   const { language, expression, reference } = exp
-  return(
+  return (
     <>
       <span>{`${expression}${language ? ` as ${language}` : ''}${
         reference ? ` from ` : ''
       }`}</span>
-      <span>{reference ? formatValue(reference, resolver, navigate) : null}</span>
+      <span>
+        {reference ? formatValue(reference, resolver, navigate) : null}
+      </span>
     </>
   )
 }
