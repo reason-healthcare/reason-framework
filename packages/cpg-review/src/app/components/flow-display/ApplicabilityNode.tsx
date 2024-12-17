@@ -12,24 +12,12 @@ const ApplicabilityNode = ({ data: nodeProps, id }: NodeProps) => {
     label,
     handle,
     nodeData,
-    // isCollapsed,
     setNodeToExpand,
     selectedNode,
     setSelectedNode,
     setNodeData,
   } = nodeProps
-  // const { nodeDetails, partOf } = nodeData
   const [collapsed, setCollapsed] = useState<boolean>(false)
-  // const [highlight, setHighlight] = useState<boolean>()
-
-  // useEffect(() => {
-  //   // setCollapsed(isCollapsed)
-  //   if (selectedNode === id) {
-  //     setHighlight(true)
-  //   } else {
-  //     setHighlight(false)
-  //   }
-  // }, [selectedNode])
 
   const handleNodeClick = () => {
     setSelectedNode(id)
@@ -43,7 +31,6 @@ const ApplicabilityNode = ({ data: nodeProps, id }: NodeProps) => {
         <div className="diamond-container" onClick={handleNodeClick}>
           <Image
             src={
-              // highlight ? 'images/diamond-highlight.svg' : '/images/diamond.svg'
               '/images/diamond.svg'
             }
             alt="diamond node"
