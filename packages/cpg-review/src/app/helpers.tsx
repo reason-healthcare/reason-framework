@@ -987,9 +987,16 @@ export const formatExpression = (
   navigate?: NavigateFunction
 ) => {
   const { language, expression, reference } = exp
-  return `${expression}${language ? ` as ${language}` : ''}${
-    reference ? ` from ${formatValue(reference, resolver, navigate)}` : ''
-  }`
+  return (
+    <>
+      <span>{`${expression}${language ? ` as ${language}` : ''}${
+        reference ? ` from ` : ''
+      }`}</span>
+      <span>
+        {reference ? formatValue(reference, resolver, navigate) : null}
+      </span>
+    </>
+  )
 }
 
 export const formatRelatedArtifact = (
@@ -1078,9 +1085,10 @@ export const formatCondition = (
 ) => {
   const { kind, expression } = condition
   return (
-    <span>{`${
-      expression ? formatExpression(expression, resolver, navigate) + ' ' : ''
-    }${kind ? `(${kind})` : ''}`}</span>
+    <>
+      <span>{formatExpression(expression, resolver, navigate)}</span>
+      <span>{`${expression ? ' ' : ''}${kind ? `(${kind})` : ''}`}</span>
+    </>
   )
 }
 

@@ -77,6 +77,25 @@ class Flow implements FlowShape {
     } as Node
   }
 
+  private createApplicabilityNode(
+    id: string,
+    action: fhir4.PlanDefinitionAction,
+    planDefinition: fhir4.PlanDefinition
+  ) {
+    return {
+      id,
+      data: {
+        label: action.condition![0].expression?.expression,
+        handle: ['target', 'source'],
+        nodeData: { nodeDetails: action, partOf: planDefinition },
+        isCollapsed: false,
+      },
+      position: { x: 0, y: 0 },
+      type: 'applicabilityNode',
+      className: 'node',
+    } as Node
+  }
+
   private createStartNode(id: string, definition: fhir4.PlanDefinition) {
     return {
       id,
@@ -103,6 +122,28 @@ class Flow implements FlowShape {
     return edge
   }
 
+  private proccessApplicabilityNodes(
+    parentId: string,
+    index: string,
+    action: fhir4.PlanDefinitionAction,
+    planDefinition: fhir4.PlanDefinition
+  ) {
+    const edgeSource = this.createEdge(parentId)
+    const applicabilityNode = this.createApplicabilityNode(
+      `condition-${parentId}-${index}`,
+      action,
+      planDefinition
+    )
+    this.addNewNode(applicabilityNode)
+    const edgeFinal = {
+      ...edgeSource,
+      target: applicabilityNode.id,
+      id: `${edgeSource.id} - ${applicabilityNode.id}`,
+    }
+    this.addNewEdge(edgeFinal)
+    return applicabilityNode
+  }
+
   /**
    *
    * @param actions Plan definition actions to process as new node
@@ -123,19 +164,41 @@ class Flow implements FlowShape {
       const node = this.createActionNode(id, action, planDefinition)
 
       /** Connect to parent */
-      const sourceEdge = {
+      const edgeFinal = {
         ...parentEdge,
         target: node.id,
-        id: `${parentEdge.id} - ${id}`,
+        id: `${parentEdge.id} - ${node.id}`,
       }
-      this.addNewEdge(sourceEdge)
+      this.addNewEdge(edgeFinal)
+
+      //* Handle Applicability */
+      let applicabilityNode
+      if (action.condition != null) {
+        action.condition.forEach((condition, index) => {})
+        const edgeSource = this.createEdge(node.id)
+        applicabilityNode = this.createApplicabilityNode(
+          `condition-${id}`,
+          action,
+          planDefinition
+        )
+        this.addNewNode(applicabilityNode)
+        const edgeFinal = {
+          ...edgeSource,
+          target: applicabilityNode.id,
+          id: `${edgeSource.id} - ${applicabilityNode.id}`,
+        }
+
+        this.addNewEdge(edgeFinal)
+      }
+
+      const parentNode = applicabilityNode ?? node
 
       /** Handle children */
-      const targetEdge = this.createEdge(node.id)
+      const edgeSource = this.createEdge(parentNode.id)
       if (action.selectionBehavior) {
-        targetEdge.animated = true
+        edgeSource.animated = true
       }
-      if (action.definitionCanonical) {
+      if (action.definitionCanonical != null) {
         const definition = resolver.resolveCanonical(
           action.definitionCanonical
         ) as fhir4.PlanDefinition | fhir4.ActivityDefinition | undefined
@@ -144,7 +207,7 @@ class Flow implements FlowShape {
             definition,
             definition.action,
             resolver,
-            targetEdge
+            edgeSource
           )
         } else if (is.ActivityDefinition(definition) && definition.id) {
           const id = definition.id
@@ -154,21 +217,23 @@ class Flow implements FlowShape {
             activityNode.data.handle = ['target']
             this.addNewNode(activityNode)
           }
-          const sourceEdge = {
-            ...targetEdge,
-            target: id,
-            id: `${targetEdge.id} - ${id}`,
+          const edgeFinal = {
+            ...edgeSource,
+            target: activityNode.id,
+            id: `${edgeSource.id} - ${activityNode.id}`,
           }
-          this.addNewEdge(sourceEdge)
+          this.addNewEdge(edgeFinal)
         }
-      } else if (action.action) {
+      }
+      if (action.action != null) {
         this.processActionNodes(
           planDefinition,
           action.action,
           resolver,
-          targetEdge
+          edgeSource
         )
-      } else {
+      }
+      if (action.action == null && action.definitionCanonical == null) {
         node.data.handle = ['target']
       }
       this.addNewNode(node)
@@ -194,12 +259,12 @@ class Flow implements FlowShape {
 
       /** Handle children */
       if (planDefinition.action != null) {
-        const targetEdge = this.createEdge(node.id)
+        const edgeSource = this.createEdge(node.id)
         this.processActionNodes(
           planDefinition,
           planDefinition.action,
           resolver,
-          targetEdge
+          edgeSource
         )
       } else {
         // TODO error handling
@@ -281,9 +346,17 @@ class Flow implements FlowShape {
   ) {
     if (sourceNode && allNodes && allEdges) {
       // On node click, find outgoers and add to display nodes then regraph
-      const children = getOutgoers(sourceNode, allNodes, allEdges).filter(
-        (c) => !this.nodes?.includes(c)
+      let children = getOutgoers(sourceNode, allNodes, allEdges)
+      const applicabilityNodes = children.filter(
+        (node) => node.type === 'applicabilityNode'
       )
+      children = children
+        .concat(
+          applicabilityNodes
+            ?.flatMap((n) => getOutgoers(n, allNodes, allEdges))
+            .filter((n) => n != null)
+        )
+        .filter((c) => !this.nodes?.includes(c))
       if (children && this.nodes) {
         this.setNodes = [
           ...this.nodes.map((n) => {
@@ -300,7 +373,9 @@ class Flow implements FlowShape {
       }
       const childEdges = allEdges.filter(
         (e) =>
-          children?.some((c) => c.id === e.target) && e.source === sourceNode.id
+          children?.some((c) => c.id === e.target) &&
+          (e.source === sourceNode.id ||
+            children?.some((c) => c.id === e.source))
       )
       if (childEdges && this.edges) {
         this.setEdges = [...this.edges, ...childEdges]

@@ -58,6 +58,11 @@
   box-sizing: border-box;
 }
 
+.node-container.applicability {
+  border: none;
+  padding: 0;
+}
+
 .clickable {
   cursor: pointer;
 }
@@ -106,3 +111,27 @@
     stroke: var(--brTeal) !important;
   }
 } */
+
+.diamond-container {
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
+.diamond-icon {
+  width: 60%;
+  height: 60%;
+}
+
+.diamond-text-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-weight: 700;
+}
