@@ -22,6 +22,9 @@ export const is = {
   PlanDefinition: (resource: any): resource is fhir4.PlanDefinition => {
     return resource?.resourceType === 'PlanDefinition'
   },
+  Questionnaire: (resource: any): resource is fhir4.Questionnaire => {
+    return resource?.resourceType === 'Questionnaire'
+  },
   PlanDefinitionAction: (object: any): object is fhir4.PlanDefinitionAction => {
     const keys = [
       'action',
