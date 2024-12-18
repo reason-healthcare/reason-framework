@@ -209,7 +209,7 @@ class Flow implements FlowShape {
             resolver,
             edgeSource
           )
-        } else if (is.ActivityDefinition(definition) && definition.id) {
+        } else if ((is.ActivityDefinition(definition) || is.Questionnaire(definition)) && definition.id) {
           const id = definition.id
           let activityNode = this.nodes?.find((n) => n.id === id)
           if (activityNode == null) {
