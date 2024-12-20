@@ -35,6 +35,7 @@ const ContentNode = ({ data: nodeProps, id }: NodeProps) => {
   let selectionDetail
   if (
     !is.ActivityDefinition(nodeDetails) &&
+    !is.Questionnaire(nodeDetails) &&
     nodeDetails.selectionBehavior &&
     !collapsed
   ) {
