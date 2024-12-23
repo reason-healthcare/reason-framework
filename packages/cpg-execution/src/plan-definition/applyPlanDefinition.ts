@@ -163,7 +163,7 @@ export const applyPlanDefinition = async (
         resourceType: 'Goal',
         id: uuidv4(),
         subject: referenceFromString(subject, 'Patient'),
-        lifecycleStatus: 'planned',
+        lifecycleStatus: 'proposed',
         ...fixedGoalProperties
       }
 

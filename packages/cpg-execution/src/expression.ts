@@ -141,11 +141,6 @@ export const processDynamicValue = async (
       }' not supported, only support for: text/fhirpath, text/cql-identifier`
     )
   }
-  console.log(
-    JSON.stringify(
-      JSON.stringify(targetResource) + 'targetResource from process'
-    )
-  )
   return targetResource
 }
 
@@ -566,9 +561,7 @@ export const evaluateCqlLibrary = async (
     }
 
     const cqlResults = executor.exec(patientSource)
-    //if (process.env.DEBUG != null) {
     console.info('CQL Results', cqlResults.patientResults)
-    //}
     return cqlResults
   } catch (error) {
     handleError(`Problem evaluating ${library.url ?? library.id ?? 'Unknown'}`)
