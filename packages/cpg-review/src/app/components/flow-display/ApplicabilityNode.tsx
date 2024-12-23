@@ -30,9 +30,7 @@ const ApplicabilityNode = ({ data: nodeProps, id }: NodeProps) => {
         {handle?.includes('target') ? <ApplicabilityHandle /> : null}
         <div className="diamond-container" onClick={handleNodeClick}>
           <Image
-            src={
-              '/images/diamond.svg'
-            }
+            src={'/images/diamond.svg'}
             alt="diamond node"
             className="diamond-icon"
             width="150"
