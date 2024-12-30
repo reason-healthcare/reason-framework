@@ -4,9 +4,7 @@ import {
   formatTitle,
   formatUrl,
   is,
-  KnowledgeArtifact,
   notEmpty,
-  TerminologyArtifact,
 } from '../../helpers'
 import { useLocation, useNavigate } from 'react-router-dom'
 import BrowserResolver from 'resolver/browser'
@@ -59,7 +57,10 @@ const NarrativeDisplay = ({
         setResource(rawResource)
       }
       if (is.Library(rawResource)) {
-        setCql(resolver.resolveCql(rawResource.id))
+        const cql = rawResource.content?.find(c => c.contentType === 'text/cql')?.data
+        if (cql != null) {
+          setCql(atob(cql))
+        }
       } else {
         setCql(undefined)
       }

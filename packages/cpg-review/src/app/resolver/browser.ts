@@ -5,7 +5,6 @@ import pako from 'pako'
 class BrowserResolver {
   resourcesByCanonical: Record<string, fhir4.FhirResource> = {}
   resourcesByReference: Record<string, fhir4.FhirResource> = {}
-  cqlById: Record<string, string> = {}
 
   constructor(content?: string | undefined) {
     if (content) {
@@ -42,14 +41,6 @@ class BrowserResolver {
                   `${rawResource.resourceType}/${rawResource.id}`
                 ] = rawResource
               }
-            } else if (fileContent && header.name.endsWith('cql')) {
-              const reference = header.name
-                .split('/')
-                .slice(1)
-                .join('/')
-                .replace('.cql', '')
-              const id = reference.split('-').slice(1).join('-')
-              this.cqlById[id] = fileContent
             }
             next()
           })
@@ -75,10 +66,6 @@ class BrowserResolver {
 
   public resolveReference(reference: string | undefined) {
     return reference != null ? this.resourcesByReference[reference] : undefined
-  }
-
-  public resolveCql(id: string | undefined) {
-    return id != null ? this.cqlById[id] : undefined
   }
 }
 
