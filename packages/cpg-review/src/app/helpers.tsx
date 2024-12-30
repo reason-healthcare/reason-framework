@@ -19,6 +19,9 @@ export type KnowledgeArtifact =
 export type TerminologyArtifact = fhir4.ValueSet | fhir4.CodeSystem
 
 export const is = {
+  FhirResource: (resource: any): resource is fhir4.FhirResource => {
+    return resource?.resourceType != null
+  },
   PlanDefinition: (resource: any): resource is fhir4.PlanDefinition => {
     return resource?.resourceType === 'PlanDefinition'
   },
@@ -759,13 +762,6 @@ export const resolveReference = (
   return reference != null
     ? resolver.resourcesByReference[reference]
     : undefined
-}
-
-export const resolveCql = (
-  id: string | undefined,
-  resolver: BrowserResolver
-) => {
-  return id != null ? resolver.cqlById[id] : undefined
 }
 
 export const isMarkdown = (content: any) => {

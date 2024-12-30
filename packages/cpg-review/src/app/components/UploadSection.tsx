@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Form, message, Upload, Select } from 'antd'
+import { Form, message, Upload, Select, Radio, Input } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
-import type { UploadProps } from 'antd'
+import type { RadioChangeEvent, UploadProps } from 'antd'
 import '@/styles/uploadSection.css'
 import type { RcFile } from 'antd/es/upload'
 import BrowserResolver from 'resolver/browser'
@@ -26,6 +26,7 @@ const UploadSection = ({
   const [planDefinitionPayload, setPlanDefinitionPayload] = useState<string>()
   const [isLoading, setIsLoading] = useState(false)
   const [uploaded, setUploaded] = useState<RcFile | undefined>()
+  const [packageType, setPackageType] = useState<string>('file')
 
   const { Option } = Select
   const { Dragger } = Upload
@@ -203,6 +204,56 @@ const UploadSection = ({
     maxCount: 1,
   }
 
+  const handlePackageTypeChange = (e: RadioChangeEvent) => {
+    console.log(e.target.value)
+    setPackageType(e.target.value)
+  }
+
+  let uploadItem
+  if (packageType === 'file') {
+    uploadItem = (<Form.Item
+      name="upload"
+      className="form-item upload"
+    >
+      <h1 className="form-title">Add content</h1>
+      <p className="form-description">
+        Add an r4 FHIR implementation guide package. Use the generated{' '}
+        <span>
+          <Link
+            href="https://confluence.hl7.org/display/FHIR/IG+Publisher+Documentation#IGPublisherDocumentation-Summary"
+            target="_blank"
+          >
+            ImplementationGuide/output/package.r4.tgz
+          </Link>
+        </span>{' '}
+        file.
+      </p>
+      <Dragger {...props} className="form-item">
+        <p className="ant-upload-drag-icon">
+          <InboxOutlined />
+        </p>
+        <p className="ant-upload-text">
+          Click or drag files to this area to upload
+        </p>
+        <p className="ant-upload-hint">
+          Provide one tarball ending in .tgz
+        </p>
+      </Dragger>
+    </Form.Item>)
+  } else {
+    uploadItem = (<Form.Item
+      name="endpoint"
+      valuePropName="fileList"
+      getValueFromEvent={(e) => e.fileList}
+      className="form-item upload"
+    >
+      <h1 className="form-title">Add content endpoint</h1>
+      <p className="form-description">
+        Specify FHIR Package endpoint address
+      </p>
+      <Input />
+    </Form.Item>)
+  }
   return (
     <>
       <Form
@@ -212,36 +263,17 @@ const UploadSection = ({
         autoComplete="off"
       >
         <Form.Item
-          name="upload"
-          valuePropName="fileList"
-          getValueFromEvent={(e) => e.fileList}
-          className="form-item upload"
+          name="packageType"
+          className="form-item"
         >
-          <h1 className="form-title">Add content</h1>
-          <p className="form-description">
-            Add an r4 FHIR implementation guide package. Use the generated{' '}
-            <span>
-              <Link
-                href="https://confluence.hl7.org/display/FHIR/IG+Publisher+Documentation#IGPublisherDocumentation-Summary"
-                target="_blank"
-              >
-                ImplementationGuide/output/package.r4.tgz
-              </Link>
-            </span>{' '}
-            file.
-          </p>
-          <Dragger {...props} className="form-item">
-            <p className="ant-upload-drag-icon">
-              <InboxOutlined />
-            </p>
-            <p className="ant-upload-text">
-              Click or drag files to this area to upload
-            </p>
-            <p className="ant-upload-hint">
-              Provide one tarball ending in .tgz
-            </p>
-          </Dragger>
+          <Radio.Group value={"packageType"}
+          onChange={handlePackageTypeChange}
+          >
+            <Radio.Button value="file">File</Radio.Button>
+            <Radio.Button value="rest">Rest</Radio.Button>
+          </Radio.Group>
         </Form.Item>
+        {uploadItem}
         <Form.Item name="select" className="form-item">
           <h1 className="form-title">Select plan definition</h1>
           <p className="form-description">
