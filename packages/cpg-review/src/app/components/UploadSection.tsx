@@ -238,7 +238,7 @@ const UploadSection = ({
               Click or drag files to this area to upload
             </p>
             <p className="ant-upload-hint">
-              Provide only one compressed file ending in .gzip
+              Provide one tarball ending in .tgz
             </p>
           </Dragger>
         </Form.Item>
