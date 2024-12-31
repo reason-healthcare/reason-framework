@@ -30,8 +30,7 @@
   border-color: var(--teal) !important;
 }
 
-.ant-radio-wrapper:hover .ant-radio-inner
-{
+.ant-radio-wrapper:hover .ant-radio-inner {
   border-color: var(--brTeal);
   outline-color: var(--brTeal) !important;
 }

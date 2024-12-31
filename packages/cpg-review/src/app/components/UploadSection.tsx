@@ -7,7 +7,7 @@ import type { RcFile } from 'antd/es/upload'
 import BrowserResolver from 'resolver/browser'
 import { is, notEmpty, resolveCanonical } from 'helpers'
 import Link from 'next/link'
-import {debounce} from 'lodash'
+import { debounce } from 'lodash'
 
 interface UploadSectionProps {
   setResolver: React.Dispatch<React.SetStateAction<BrowserResolver | undefined>>
@@ -28,7 +28,7 @@ const UploadSection = ({
   const [isLoading, setIsLoading] = useState(false)
   const [uploaded, setUploaded] = useState<RcFile | undefined>()
   const [packageType, setPackageType] = useState<string>('file')
-  const [endpoint, setEndpoint] = useState<string|undefined>()
+  const [endpoint, setEndpoint] = useState<string | undefined>()
 
   const { Option } = Select
   const { Dragger } = Upload
@@ -121,11 +121,10 @@ const UploadSection = ({
       } catch (e) {
         console.error(`Problem fetching resource: ${e}`)
       }
-
     } else if (value != '') {
       message.error('Not a valid url')
     }
-  }, 2000);
+  }, 2000)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleInput(e.target.value)
@@ -231,48 +230,50 @@ const UploadSection = ({
 
   let uploadItem
   if (packageType === 'file') {
-    uploadItem = (<Form.Item
-      name="upload"
-      className="form-item upload"
-    >
-      <h1 className="form-title">Upload package</h1>
-      <p className="form-description">
-        Add an r4 FHIR implementation guide package. Use the generated{' '}
-        <span>
-          <Link
-            href="https://confluence.hl7.org/display/FHIR/IG+Publisher+Documentation#IGPublisherDocumentation-Summary"
-            target="_blank"
-          >
-            ImplementationGuide/output/package.r4.tgz
-          </Link>
-        </span>{' '}
-        file.
-      </p>
-      <Dragger {...props} className="form-item">
-        <p className="ant-upload-drag-icon">
-          <InboxOutlined />
+    uploadItem = (
+      <Form.Item name="upload" className="form-item upload">
+        <h1 className="form-title">Upload package</h1>
+        <p className="form-description">
+          Add an r4 FHIR implementation guide package. Use the generated{' '}
+          <span>
+            <Link
+              href="https://confluence.hl7.org/display/FHIR/IG+Publisher+Documentation#IGPublisherDocumentation-Summary"
+              target="_blank"
+            >
+              ImplementationGuide/output/package.r4.tgz
+            </Link>
+          </span>{' '}
+          file.
         </p>
-        <p className="ant-upload-text">
-          Click or drag files to this area to upload
-        </p>
-        <p className="ant-upload-hint">
-          Provide one tarball ending in .tgz
-        </p>
-      </Dragger>
-    </Form.Item>)
+        <Dragger {...props} className="form-item">
+          <p className="ant-upload-drag-icon">
+            <InboxOutlined />
+          </p>
+          <p className="ant-upload-text">
+            Click or drag files to this area to upload
+          </p>
+          <p className="ant-upload-hint">Provide one tarball ending in .tgz</p>
+        </Dragger>
+      </Form.Item>
+    )
   } else {
-    uploadItem = (<Form.Item
-      name="endpoint"
-      valuePropName="fileList"
-      getValueFromEvent={(e) => e.fileList}
-      className="form-item upload"
-    >
-      <h1 className="form-title">Set content endpoint</h1>
-      <p className="form-description">
-        Specify endpoint address for r4 FHIR implementation guide package.
-      </p>
-      <Input placeholder="https://packages.simplifier.net/hl7.fhir.uv.cpg/2.0.0" onChange={handleInputChange}/>
-    </Form.Item>)
+    uploadItem = (
+      <Form.Item
+        name="endpoint"
+        valuePropName="fileList"
+        getValueFromEvent={(e) => e.fileList}
+        className="form-item upload"
+      >
+        <h1 className="form-title">Set content endpoint</h1>
+        <p className="form-description">
+          Specify endpoint address for r4 FHIR implementation guide package.
+        </p>
+        <Input
+          placeholder="https://packages.simplifier.net/hl7.fhir.uv.cpg/2.0.0"
+          onChange={handleInputChange}
+        />
+      </Form.Item>
+    )
   }
   return (
     <>
@@ -282,14 +283,12 @@ const UploadSection = ({
         className="form"
         autoComplete="off"
       >
-        <Form.Item
-          name="packageType"
-          className="form-item"
-        >
+        <Form.Item name="packageType" className="form-item">
           <h1 className="form-title">Select FHIR package type</h1>
-          <Radio.Group value={packageType}
-          onChange={handlePackageTypeChange}
-          className='radio-group'
+          <Radio.Group
+            value={packageType}
+            onChange={handlePackageTypeChange}
+            className="radio-group"
           >
             <Radio value="file">File</Radio>
             <Radio value="rest">Rest</Radio>

@@ -57,7 +57,9 @@ const NarrativeDisplay = ({
         setResource(rawResource)
       }
       if (is.Library(rawResource)) {
-        const cql = rawResource.content?.find(c => c.contentType === 'text/cql')?.data
+        const cql = rawResource.content?.find(
+          (c) => c.contentType === 'text/cql'
+        )?.data
         if (cql != null) {
           setCql(atob(cql))
         }
