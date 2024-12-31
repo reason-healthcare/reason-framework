@@ -7,6 +7,7 @@ import type { RcFile } from 'antd/es/upload'
 import BrowserResolver from 'resolver/browser'
 import { is, notEmpty, resolveCanonical } from 'helpers'
 import Link from 'next/link'
+import {debounce} from 'lodash'
 
 interface UploadSectionProps {
   setResolver: React.Dispatch<React.SetStateAction<BrowserResolver | undefined>>
@@ -27,6 +28,7 @@ const UploadSection = ({
   const [isLoading, setIsLoading] = useState(false)
   const [uploaded, setUploaded] = useState<RcFile | undefined>()
   const [packageType, setPackageType] = useState<string>('file')
+  const [endpoint, setEndpoint] = useState<string|undefined>()
 
   const { Option } = Select
   const { Dragger } = Upload
@@ -46,25 +48,11 @@ const UploadSection = ({
     }
   }
 
-  const handleFileChange = (info: any) => {
-    const { status, originFileObj } = info.file
-    const { fileList } = info
-    if (status === 'removed') {
-      localStorage.clear()
-    } else if (fileList.length > 1) {
-      message.error('May only upload one compressed file')
-    } else if (status === 'done') {
-      handleUpload(originFileObj)
-    }
-  }
-
-  const handleUpload = async (file: RcFile) => {
+  const handleUpload = async (rawData: RcFile | Blob) => {
     setIsLoading(true)
-    if (file) {
-      const reader = new FileReader()
-      // reader.onload = async (event) => {
+    if (rawData) {
       let resolver = new BrowserResolver()
-      resolver.decompress(file).then((decompressed) => {
+      resolver.decompress(rawData).then((decompressed) => {
         if (decompressed instanceof Error) {
           message.error(
             'Unable to process compressed data. Ensure that the data is a FHIR Implementation Guide Package ending in .tgz'
@@ -101,13 +89,46 @@ const UploadSection = ({
           }
         }
       })
-      // }
-      // reader.readAsDataURL(file)
     } else {
       message.error(
         'Please upload a compressed FHIR Implementation Guide Package ending in .tgz'
       )
     }
+  }
+
+  const handleFileChange = (info: any) => {
+    const { status, originFileObj } = info.file
+    const { fileList } = info
+    if (status === 'removed') {
+      localStorage.clear()
+    } else if (fileList.length > 1) {
+      message.error('May only upload one compressed file')
+    } else if (status === 'done') {
+      handleUpload(originFileObj)
+    }
+  }
+
+  const handleInput = debounce(async (value) => {
+    if (value.startsWith('https://') || value.startsWith('http://')) {
+      setEndpoint(value)
+      try {
+        const response = await fetch(value)
+        if (!response.ok) {
+          throw response
+        }
+        const blob = await response.blob()
+        await handleUpload(blob)
+      } catch (e) {
+        console.error(`Problem fetching resource: ${e}`)
+      }
+
+    } else if (value != '') {
+      message.error('Not a valid url')
+    }
+  }, 2000);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleInput(e.target.value)
   }
 
   const formatPlanOptions = (plans: fhir4.PlanDefinition[] | undefined) => {
@@ -205,7 +226,6 @@ const UploadSection = ({
   }
 
   const handlePackageTypeChange = (e: RadioChangeEvent) => {
-    console.log(e.target.value)
     setPackageType(e.target.value)
   }
 
@@ -215,7 +235,7 @@ const UploadSection = ({
       name="upload"
       className="form-item upload"
     >
-      <h1 className="form-title">Add content</h1>
+      <h1 className="form-title">Upload package</h1>
       <p className="form-description">
         Add an r4 FHIR implementation guide package. Use the generated{' '}
         <span>
@@ -247,11 +267,11 @@ const UploadSection = ({
       getValueFromEvent={(e) => e.fileList}
       className="form-item upload"
     >
-      <h1 className="form-title">Add content endpoint</h1>
+      <h1 className="form-title">Set content endpoint</h1>
       <p className="form-description">
-        Specify FHIR Package endpoint address
+        Specify endpoint address for r4 FHIR implementation guide package.
       </p>
-      <Input />
+      <Input placeholder="https://packages.simplifier.net/hl7.fhir.uv.cpg/2.0.0" onChange={handleInputChange}/>
     </Form.Item>)
   }
   return (
@@ -266,11 +286,13 @@ const UploadSection = ({
           name="packageType"
           className="form-item"
         >
-          <Radio.Group value={"packageType"}
+          <h1 className="form-title">Select FHIR package type</h1>
+          <Radio.Group value={packageType}
           onChange={handlePackageTypeChange}
+          className='radio-group'
           >
-            <Radio.Button value="file">File</Radio.Button>
-            <Radio.Button value="rest">Rest</Radio.Button>
+            <Radio value="file">File</Radio>
+            <Radio value="rest">Rest</Radio>
           </Radio.Group>
         </Form.Item>
         {uploadItem}

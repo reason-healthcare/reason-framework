@@ -15,7 +15,7 @@ class BrowserResolver {
     }
   }
 
-  public async decompress(rawData: RcFile) {
+  public async decompress(rawData: RcFile | Blob) {
     try {
       const arrayBuffer = await rawData.arrayBuffer()
       const decompressedData = pako.ungzip(arrayBuffer)

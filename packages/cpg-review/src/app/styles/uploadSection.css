@@ -5,6 +5,7 @@
   flex-direction: column;
   align-items: center;
   gap: 3rem;
+  margin-top: 2rem;
 
   & a {
     text-decoration: underline;
@@ -14,6 +15,40 @@
 .form-item {
   width: 100%;
   color: var(--drGray);
+  margin-bottom: 0;
+}
+
+.radio-group {
+  justify-content: start;
+  margin-top: 1rem;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ant-radio-checked .ant-radio-inner {
+  background-color: var(--teal) !important;
+  border-color: var(--teal) !important;
+}
+
+.ant-radio-wrapper:hover .ant-radio-inner
+{
+  border-color: var(--brTeal);
+  outline-color: var(--brTeal) !important;
+}
+
+.ant-input-outlined {
+  &:hover {
+    border-color: var(--brTeal);
+  }
+  &:active {
+    border-color: var(--brTeal);
+  }
+  &:focus {
+    border-color: var(--brTeal);
+  }
+  &:focus-visible {
+    border-color: var(--brTeal);
+  }
 }
 
 .ant-upload {
