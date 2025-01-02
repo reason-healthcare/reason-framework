@@ -5,12 +5,13 @@ import FlowDisplay from './components/flow-display/FlowDisplay'
 import LoadIndicator from './components/LoadIndicator'
 import NarrativeRouter from './components/narrative-display/NarrativeRouter'
 import { ReactFlowProvider } from 'reactflow'
-import UploadSection from './components/UploadSection'
+import UploadSection, { UploadSectionProps } from './components/UploadSection'
 import { MemoryRouter } from 'react-router-dom'
 import { formatTitle } from 'helpers'
 import Link from 'next/link'
 import { NodeData } from './types/NodeData'
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels'
+import { UploadFile } from 'antd'
 
 export default function Home() {
   const [resolver, setResolver] = useState<BrowserResolver | undefined>()
@@ -20,6 +21,12 @@ export default function Home() {
   const [nodeData, setNodeData] = useState<NodeData | undefined>()
   const [showUpload, setShowUpload] = useState<boolean>(false)
   const [selectedNode, setSelectedNode] = useState<string>()
+
+  const [packageTypePayload, setPackageTypePayload] = useState<string>('file')
+  const [endpointPayload, setEndpointPayload] = useState<string | undefined>()
+  const [fileList, setFileList] = useState<UploadFile<any>[]>([])
+  const [planDefinitionSelectionOptions, setPlanDefinitionSelectionOptions] = useState<fhir4.PlanDefinition[]>()
+  const [planDefinitionPayload, setPlanDefinitionPayload] = useState<string | undefined>()
 
   useEffect(() => {
     const storedContent = localStorage.getItem('resolver')
@@ -41,6 +48,22 @@ export default function Home() {
       setShowUpload(true)
     }
   }, [resolver, planDefinition])
+
+  const uploadSectionProps: UploadSectionProps = {
+    setResolver,
+    setPlanDefinition,
+    resolver,
+    packageTypePayload,
+    setPackageTypePayload,
+    endpointPayload,
+    setEndpointPayload,
+    fileList,
+    setFileList,
+    planDefinitionSelectionOptions,
+    setPlanDefinitionSelectionOptions,
+    planDefinitionPayload,
+    setPlanDefinitionPayload,
+  }
 
   const contentDisplay = (
     <>
@@ -139,9 +162,7 @@ export default function Home() {
           contentDisplay
         ) : (
           <UploadSection
-            setResolver={setResolver}
-            setPlanDefinition={setPlanDefinition}
-            resolver={resolver}
+            {...uploadSectionProps}
           />
         )}
       </div>
