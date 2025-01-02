@@ -39,6 +39,7 @@ const NarrativeDisplay = ({
   const navigate = useNavigate()
   const path = useLocation().pathname
   useEffect(() => {
+    setResource(undefined)
     setPartOfIdentifier(undefined)
     setCql(undefined)
     if (nodeDetails != null) {
@@ -50,11 +51,9 @@ const NarrativeDisplay = ({
     } else if (resolver != null) {
       const reference = path.split('/').slice(-2).join('/')
       const rawResource = resolver.resolveReference(reference)
+      console.log(rawResource)
       if (is.ActivityDefinition(rawResource)) {
         setSelectedNode(rawResource.id)
-      }
-      if (rawResource != null) {
-        setResource(rawResource)
       }
       if (is.Library(rawResource)) {
         const cql = rawResource.content?.find(
@@ -65,6 +64,9 @@ const NarrativeDisplay = ({
         }
       } else {
         setCql(undefined)
+      }
+      if (rawResource != null) {
+        setResource(rawResource)
       }
     }
   }, [path, nodeDetails])
@@ -152,7 +154,7 @@ const NarrativeDisplay = ({
         <BackButton />
         <CloseOutlined onClick={handleClose} />
       </div>
-      {resourceDisplay != null ? resourceDisplay : <p>Unable to load json</p>}
+      {resourceDisplay != null ? resourceDisplay : <p>{`Unable to load ${path}`}</p>}
     </>
   )
 }

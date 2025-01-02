@@ -285,6 +285,7 @@ const UploadSection = ({
       >
         <Form.Item name="packageType" className="form-item">
           <h1 className="form-title">Select FHIR package type</h1>
+          <p className='form-description'>Choose to upload FHIR package from local filesystem or rest endpoint.</p>
           <Radio.Group
             value={packageType}
             onChange={handlePackageTypeChange}

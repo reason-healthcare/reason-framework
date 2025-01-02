@@ -130,7 +130,7 @@ export default function Home() {
             className="nav-button"
             aria-label="documentation"
           >
-            Docs
+            Github
           </Link>
         </div>
       </div>
