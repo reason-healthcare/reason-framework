@@ -47,6 +47,7 @@ body {
   flex-direction: column;
   padding: 2rem 3rem 2rem 3rem;
   box-sizing: border-box;
+  overflow: auto;
 }
 
 .header-container {
@@ -189,6 +190,18 @@ button:hover {
       background-color: #efeff0;
       color: #bbbbbb;
     }
+  }
+}
+
+.button.button-secondary {
+  background-color: var(--background);
+  color: var(--teal);
+  border: 1px solid var(--teal);
+
+  &:hover {
+    color: var(--brTeal);
+    background-color: var(--background);
+    border-color: var(--brTeal);
   }
 }
 

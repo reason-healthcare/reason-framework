@@ -3,7 +3,7 @@ import { Form, message, Upload, Select, Radio, Input } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
 import type { RadioChangeEvent, UploadProps } from 'antd'
 import '@/styles/uploadSection.css'
-import type { RcFile } from 'antd/es/upload'
+import type { RcFile, UploadFile } from 'antd/es/upload'
 import BrowserResolver from 'resolver/browser'
 import { is, notEmpty, resolveCanonical } from 'helpers'
 import Link from 'next/link'
@@ -22,13 +22,13 @@ const UploadSection = ({
   setPlanDefinition,
   resolver,
 }: UploadSectionProps) => {
-  const [planDefinitions, setPlanDefinitions] =
-    useState<fhir4.PlanDefinition[]>()
+  const [packageTypePayload, setPackageTypePayload] = useState<string>('file')
+  const [endpointPayload, setEndpointPayload] = useState<string | undefined>()
+  const [fileList, setFileList] = useState<UploadFile<any>[]>([])
+  const [planDefinitionSelectionOptions, setPlanDefinitionSelectionOptions] = useState<fhir4.PlanDefinition[]>()
   const [planDefinitionPayload, setPlanDefinitionPayload] = useState<string>()
   const [isLoading, setIsLoading] = useState(false)
-  const [uploaded, setUploaded] = useState<RcFile | undefined>()
-  const [packageType, setPackageType] = useState<string>('file')
-  const [endpoint, setEndpoint] = useState<string | undefined>()
+  const [uploaded, setUploaded] = useState<RcFile | Blob | undefined>()
 
   const { Option } = Select
   const { Dragger } = Upload
@@ -39,10 +39,11 @@ const UploadSection = ({
     if (uploaded != null) {
       message.error('May only upload one compressed package')
     } else if (!isTar) {
-      message.error('May only upload file ending in .tgz')
+      message.error('File must be a tarball ending in .tgz')
     }
     if (isTar && uploaded == null) {
       setUploaded(file)
+      setFileList([file])
     } else {
       return Upload.LIST_IGNORE
     }
@@ -58,10 +59,6 @@ const UploadSection = ({
             'Unable to process compressed data. Ensure that the data is a FHIR Implementation Guide Package ending in .tgz'
           )
         } else {
-          localStorage.clear()
-          setPlanDefinitionPayload(undefined)
-          setPlanDefinition(undefined)
-          setResolver(decompressed)
           const { resourcesByCanonical } = resolver
           const plans = Object.keys(resourcesByCanonical)
             .map((k: string) => {
@@ -72,19 +69,22 @@ const UploadSection = ({
             })
             .filter(notEmpty)
           if (plans.length > 0) {
-            setPlanDefinitions(plans)
+            setPlanDefinitionSelectionOptions(plans)
+            localStorage.clear()
+            setPlanDefinition(undefined)
+            setResolver(decompressed)
+            try {
+              localStorage.setItem('resolver', JSON.stringify(decompressed))
+              message.success('Saved content to local storage')
+            } catch (e) {
+              console.error(e)
+              message.info(
+                'Unable to save content to local storage. Content can be reviewed but will not be saved between sessions.'
+              )
+            }
           } else {
             message.error(
               'Unable to find plan definitions. Please load content with at least one plan definition'
-            )
-          }
-          try {
-            localStorage.setItem('resolver', JSON.stringify(decompressed))
-            message.success('Saved content to local storage')
-          } catch (e) {
-            console.error(e)
-            message.info(
-              'Unable to save content to local storage. Content can be reviewed but will not be saved between sessions.'
             )
           }
         }
@@ -110,15 +110,16 @@ const UploadSection = ({
 
   const handleInput = debounce(async (value) => {
     if (value.startsWith('https://') || value.startsWith('http://')) {
-      setEndpoint(value)
       try {
         const response = await fetch(value)
         if (!response.ok) {
           throw response
         }
         const blob = await response.blob()
+        setUploaded(blob)
         await handleUpload(blob)
       } catch (e) {
+        message.error('Unable to resolve endpoint')
         console.error(`Problem fetching resource: ${e}`)
       }
     } else if (value != '') {
@@ -128,10 +129,11 @@ const UploadSection = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleInput(e.target.value)
+    setEndpointPayload(e.target.value)
   }
 
-  const formatPlanOptions = (plans: fhir4.PlanDefinition[] | undefined) => {
-    const planOptions = planDefinitions?.map((plan) => {
+  const formatPlanOptions = () => {
+    const planOptions = planDefinitionSelectionOptions?.map((plan) => {
       let type
       if (
         plan.meta?.profile?.find(
@@ -192,7 +194,7 @@ const UploadSection = ({
     })
   }
 
-  const handleChange = (value: string) => {
+  const handlePDChange = (value: string) => {
     setPlanDefinitionPayload(value)
   }
 
@@ -200,18 +202,28 @@ const UploadSection = ({
     if (resolver instanceof BrowserResolver) {
       const plan = resolveCanonical(planDefinitionPayload, resolver)
       if (is.PlanDefinition(plan)) {
-        localStorage.setItem('planDefinition', JSON.stringify(plan))
+        // localStorage.setItem('planDefinition', JSON.stringify(plan))
         setPlanDefinition(plan)
       }
     }
   }
 
-  const onRemove = () => {
-    localStorage.clear()
-    setUploaded(undefined)
-    setPlanDefinitions(undefined)
-    setPlanDefinitionPayload(undefined)
+  const reset = () => {
+    setPlanDefinition(undefined)
     setResolver(undefined)
+    onRemove()
+    form.resetFields()
+    localStorage.clear()
+  }
+
+  const onRemove = () => {
+    setFileList([])
+    setUploaded(undefined)
+    setPlanDefinitionSelectionOptions(undefined)
+    setPlanDefinitionPayload(undefined)
+    setEndpointPayload(undefined)
+    form.resetFields()
+    localStorage.clear()
   }
 
   const props: UploadProps = {
@@ -224,12 +236,13 @@ const UploadSection = ({
     maxCount: 1,
   }
 
-  const handlePackageTypeChange = (e: RadioChangeEvent) => {
-    setPackageType(e.target.value)
+  const handlePackageTypePayloadChange = (e: RadioChangeEvent) => {
+    setPackageTypePayload(e.target.value)
+    onRemove()
   }
 
   let uploadItem
-  if (packageType === 'file') {
+  if (packageTypePayload === 'file') {
     uploadItem = (
       <Form.Item name="upload" className="form-item upload">
         <h1 className="form-title">Upload package</h1>
@@ -245,7 +258,7 @@ const UploadSection = ({
           </span>{' '}
           file.
         </p>
-        <Dragger {...props} className="form-item">
+        <Dragger {...props} className={`form-item ${fileList.length ? 'hidden' : '' }`} fileList={fileList}>
           <p className="ant-upload-drag-icon">
             <InboxOutlined />
           </p>
@@ -271,6 +284,7 @@ const UploadSection = ({
         <Input
           placeholder="https://packages.simplifier.net/hl7.fhir.uv.cpg/2.0.0"
           onChange={handleInputChange}
+          value={endpointPayload}
         />
       </Form.Item>
     )
@@ -283,12 +297,12 @@ const UploadSection = ({
         className="form"
         autoComplete="off"
       >
-        <Form.Item name="packageType" className="form-item">
+        <Form.Item name="packageTypePayload" className="form-item">
           <h1 className="form-title">Select FHIR package type</h1>
           <p className='form-description'>Choose to upload FHIR package from local filesystem or rest endpoint.</p>
           <Radio.Group
-            value={packageType}
-            onChange={handlePackageTypeChange}
+            value={packageTypePayload}
+            onChange={handlePackageTypePayloadChange}
             className="radio-group"
           >
             <Radio value="file">File</Radio>
@@ -311,19 +325,19 @@ const UploadSection = ({
             .
           </p>
           <Select
-            onChange={handleChange}
+            onChange={handlePDChange}
             placeholder={
-              planDefinitions == null
+              planDefinitionSelectionOptions == null
                 ? 'Upload content to view plans'
                 : 'Select a plan definition'
             }
             popupMatchSelectWidth={true}
-            disabled={planDefinitions == null}
+            disabled={planDefinitionSelectionOptions == null}
           >
-            {formatPlanOptions(planDefinitions)}
+            {formatPlanOptions()}
           </Select>
         </Form.Item>
-        <Form.Item>
+        <Form.Item className='button-group'>
           <button
             type="submit"
             className={
@@ -331,6 +345,14 @@ const UploadSection = ({
             }
           >
             View Content
+          </button>
+          <button
+            type="submit"
+            className=
+              'button button-secondary'
+            onClick={reset}
+          >
+            Reset
           </button>
         </Form.Item>
       </Form>

@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3rem;
+  gap: 2rem;
   margin-top: 2rem;
 
   & a {
@@ -16,6 +16,8 @@
   width: 100%;
   color: var(--drGray);
   margin-bottom: 0;
+  /* display: flex;
+  gap: 1rem; */
 }
 
 .radio-group {
@@ -94,7 +96,6 @@
 }
 
 .form-title {
-  /* padding: 1rem; */
   font-weight: 600;
 }
 
@@ -105,4 +106,16 @@
 
 .ant-upload-drag-icon svg {
   color: var(--brTeal);
+}
+
+.hidden .ant-upload-drag {
+  visibility: hidden;
+  height: 0px;
+  width: 0px;
+}
+
+.button-group .ant-form-item-control-input-content {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
 }
