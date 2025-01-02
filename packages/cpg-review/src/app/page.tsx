@@ -25,8 +25,11 @@ export default function Home() {
   const [packageTypePayload, setPackageTypePayload] = useState<string>('file')
   const [endpointPayload, setEndpointPayload] = useState<string | undefined>()
   const [fileList, setFileList] = useState<UploadFile<any>[]>([])
-  const [planDefinitionSelectionOptions, setPlanDefinitionSelectionOptions] = useState<fhir4.PlanDefinition[]>()
-  const [planDefinitionPayload, setPlanDefinitionPayload] = useState<string | undefined>()
+  const [planDefinitionSelectionOptions, setPlanDefinitionSelectionOptions] =
+    useState<fhir4.PlanDefinition[]>()
+  const [planDefinitionPayload, setPlanDefinitionPayload] = useState<
+    string | undefined
+  >()
 
   useEffect(() => {
     const storedContent = localStorage.getItem('resolver')
@@ -161,9 +164,7 @@ export default function Home() {
         {!showUpload ? (
           contentDisplay
         ) : (
-          <UploadSection
-            {...uploadSectionProps}
-          />
+          <UploadSection {...uploadSectionProps} />
         )}
       </div>
     </div>

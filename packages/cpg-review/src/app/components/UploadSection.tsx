@@ -16,31 +16,24 @@ export interface UploadSectionProps {
   >
   resolver: BrowserResolver | undefined
   packageTypePayload: string
-  setPackageTypePayload: React.Dispatch<
-  React.SetStateAction<string>
->
+  setPackageTypePayload: React.Dispatch<React.SetStateAction<string>>
   endpointPayload: string | undefined
-  setEndpointPayload: React.Dispatch<
-  React.SetStateAction<string | undefined>
->
+  setEndpointPayload: React.Dispatch<React.SetStateAction<string | undefined>>
   fileList: UploadFile<any>[]
-  setFileList: React.Dispatch<
-  React.SetStateAction<UploadFile<any>[]>
->
+  setFileList: React.Dispatch<React.SetStateAction<UploadFile<any>[]>>
   planDefinitionSelectionOptions: fhir4.PlanDefinition[] | undefined
   setPlanDefinitionSelectionOptions: React.Dispatch<
-  React.SetStateAction<fhir4.PlanDefinition[] | undefined>
->
+    React.SetStateAction<fhir4.PlanDefinition[] | undefined>
+  >
   planDefinitionPayload: string | undefined
   setPlanDefinitionPayload: React.Dispatch<
-  React.SetStateAction<string | undefined>
->
+    React.SetStateAction<string | undefined>
+  >
 }
 
-const UploadSection = (
-  uploadSectionProps: UploadSectionProps
-) => {
-  const {    setResolver,
+const UploadSection = (uploadSectionProps: UploadSectionProps) => {
+  const {
+    setResolver,
     setPlanDefinition,
     resolver,
     packageTypePayload,
@@ -52,7 +45,8 @@ const UploadSection = (
     planDefinitionSelectionOptions,
     setPlanDefinitionSelectionOptions,
     planDefinitionPayload,
-    setPlanDefinitionPayload } = uploadSectionProps
+    setPlanDefinitionPayload,
+  } = uploadSectionProps
 
   const [isLoading, setIsLoading] = useState(false)
   const [uploaded, setUploaded] = useState<RcFile | Blob | undefined>()
@@ -137,7 +131,7 @@ const UploadSection = (
 
   const handleInput = useRef(
     debounce(async (value) => {
-      if (value.startsWith("https://") || value.startsWith("http://")) {
+      if (value.startsWith('https://') || value.startsWith('http://')) {
         try {
           const response = await fetch(value)
           if (!response.ok) {
@@ -147,11 +141,11 @@ const UploadSection = (
           setUploaded(blob)
           await handleUpload(blob)
         } catch (e) {
-          message.error("Unable to resolve endpoint")
+          message.error('Unable to resolve endpoint')
           console.error(`Problem fetching resource: ${e}`)
         }
-      } else if (value !== "") {
-        message.error("Not a valid URL")
+      } else if (value !== '') {
+        message.error('Not a valid URL')
       }
     }, 2000)
   ).current
@@ -278,7 +272,11 @@ const UploadSection = (
           </span>{' '}
           file.
         </p>
-        <Dragger {...props} className={`form-item ${fileList.length ? 'hidden' : '' }`} fileList={fileList}>
+        <Dragger
+          {...props}
+          className={`form-item ${fileList.length ? 'hidden' : ''}`}
+          fileList={fileList}
+        >
           <p className="ant-upload-drag-icon">
             <InboxOutlined />
           </p>
@@ -319,7 +317,10 @@ const UploadSection = (
       >
         <Form.Item name="packageTypePayload" className="form-item">
           <h1 className="form-title">Select FHIR package type</h1>
-          <p className='form-description'>Choose to upload FHIR package from local filesystem or rest endpoint.</p>
+          <p className="form-description">
+            Choose to upload FHIR package from local filesystem or rest
+            endpoint.
+          </p>
           <Radio.Group
             value={packageTypePayload}
             onChange={handlePackageTypePayloadChange}
@@ -357,7 +358,7 @@ const UploadSection = (
             {formatPlanOptions()}
           </Select>
         </Form.Item>
-        <Form.Item className='button-group'>
+        <Form.Item className="button-group">
           <button
             type="submit"
             className={
@@ -368,8 +369,7 @@ const UploadSection = (
           </button>
           <button
             type="submit"
-            className=
-              'button button-secondary'
+            className="button button-secondary"
             onClick={reset}
           >
             Reset

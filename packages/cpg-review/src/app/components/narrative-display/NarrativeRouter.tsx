@@ -11,7 +11,6 @@ interface NarrativeRouterProps {
   setSelectedNode: React.Dispatch<React.SetStateAction<string | undefined>>
 }
 
-
 const NarrativeRouter = ({
   nodeData,
 

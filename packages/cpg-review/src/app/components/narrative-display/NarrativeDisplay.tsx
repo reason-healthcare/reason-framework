@@ -154,7 +154,11 @@ const NarrativeDisplay = ({
         <BackButton />
         <CloseOutlined onClick={handleClose} />
       </div>
-      {resourceDisplay != null ? resourceDisplay : <p>{`Unable to load ${path}`}</p>}
+      {resourceDisplay != null ? (
+        resourceDisplay
+      ) : (
+        <p>{`Unable to load ${path}`}</p>
+      )}
     </>
   )
 }
