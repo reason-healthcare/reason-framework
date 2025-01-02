@@ -29,6 +29,9 @@ export interface UploadSectionProps {
   setPlanDefinitionPayload: React.Dispatch<
     React.SetStateAction<string | undefined>
   >
+  setShowUpload: React.Dispatch<
+    React.SetStateAction<boolean>
+  >
 }
 
 const UploadSection = (uploadSectionProps: UploadSectionProps) => {
@@ -46,6 +49,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
     setPlanDefinitionSelectionOptions,
     planDefinitionPayload,
     setPlanDefinitionPayload,
+    setShowUpload
   } = uploadSectionProps
 
   const [isLoading, setIsLoading] = useState(false)
@@ -226,6 +230,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
       const plan = resolveCanonical(planDefinitionPayload, resolver)
       if (is.PlanDefinition(plan)) {
         setPlanDefinition(plan)
+        setShowUpload(false)
       }
     }
   }

@@ -66,6 +66,7 @@ export default function Home() {
     setPlanDefinitionSelectionOptions,
     planDefinitionPayload,
     setPlanDefinitionPayload,
+    setShowUpload
   }
 
   const contentDisplay = (
@@ -91,7 +92,7 @@ export default function Home() {
         </Panel>
         {selectedNode != null && (
           <>
-            <PanelResizeHandle className="panel-seperator" />
+            <PanelResizeHandle className="panel-separator" />
             <Panel minSize={25}>
               <MemoryRouter>
                 {selectedNode != null && (
