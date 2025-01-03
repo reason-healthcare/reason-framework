@@ -1,8 +1,5 @@
 # TODO
 
--- Selected edge color
--- Mini map color for AD
--- Plan definition selection search
 
 # Future Items
 

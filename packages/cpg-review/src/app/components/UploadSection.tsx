@@ -1,45 +1,121 @@
-import { useState, useEffect } from 'react'
-import { Form, message, Upload, Select } from 'antd'
+import { useState, useEffect, useRef } from 'react'
+import { Form, message, Upload, Select, Radio, Input } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
-import type { UploadProps } from 'antd'
+import type { RadioChangeEvent, UploadProps } from 'antd'
 import '@/styles/uploadSection.css'
-import type { RcFile } from 'antd/es/upload'
+import type { RcFile, UploadFile } from 'antd/es/upload'
 import BrowserResolver from 'resolver/browser'
 import { is, notEmpty, resolveCanonical } from 'helpers'
 import Link from 'next/link'
+import { debounce } from 'lodash'
 
-interface UploadSectionProps {
+export interface UploadSectionProps {
   setResolver: React.Dispatch<React.SetStateAction<BrowserResolver | undefined>>
   setPlanDefinition: React.Dispatch<
     React.SetStateAction<fhir4.PlanDefinition | undefined>
   >
   resolver: BrowserResolver | undefined
+  packageTypePayload: string
+  setPackageTypePayload: React.Dispatch<React.SetStateAction<string>>
+  endpointPayload: string | undefined
+  setEndpointPayload: React.Dispatch<React.SetStateAction<string | undefined>>
+  fileList: UploadFile<any>[]
+  setFileList: React.Dispatch<React.SetStateAction<UploadFile<any>[]>>
+  planDefinitionSelectionOptions: fhir4.PlanDefinition[] | undefined
+  setPlanDefinitionSelectionOptions: React.Dispatch<
+    React.SetStateAction<fhir4.PlanDefinition[] | undefined>
+  >
+  planDefinitionPayload: string | undefined
+  setPlanDefinitionPayload: React.Dispatch<
+    React.SetStateAction<string | undefined>
+  >
+  setShowUpload: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const UploadSection = ({
-  setResolver,
-  setPlanDefinition,
-  resolver,
-}: UploadSectionProps) => {
-  const [planDefinitions, setPlanDefinitions] =
-    useState<fhir4.PlanDefinition[]>()
-  const [planDefinitionPayload, setPlanDefinitionPayload] = useState<string>()
+const UploadSection = (uploadSectionProps: UploadSectionProps) => {
+  const {
+    setResolver,
+    setPlanDefinition,
+    resolver,
+    packageTypePayload,
+    setPackageTypePayload,
+    endpointPayload,
+    setEndpointPayload,
+    fileList,
+    setFileList,
+    planDefinitionSelectionOptions,
+    setPlanDefinitionSelectionOptions,
+    planDefinitionPayload,
+    setPlanDefinitionPayload,
+    setShowUpload,
+  } = uploadSectionProps
+
   const [isLoading, setIsLoading] = useState(false)
-  const [uploaded, setUploaded] = useState<RcFile | undefined>()
+  const [uploaded, setUploaded] = useState<RcFile | Blob | undefined>()
 
   const { Option } = Select
   const { Dragger } = Upload
   const [form] = Form.useForm()
 
   const beforeUpload = (file: RcFile) => {
-    const isZip = file.type === 'application/zip'
-    if (uploaded != null || !isZip) {
-      message.error('May only upload one compressed file ending in .zip')
+    const isTar = file.type === 'application/gzip'
+    if (uploaded != null) {
+      message.error('May only upload one compressed package')
+    } else if (!isTar) {
+      message.error('File must be a tarball ending in .tgz')
     }
-    if (isZip && uploaded == null) {
+    if (isTar && uploaded == null) {
       setUploaded(file)
+      setFileList([file])
     } else {
       return Upload.LIST_IGNORE
+    }
+  }
+
+  const handleUpload = async (rawData: RcFile | Blob) => {
+    setIsLoading(true)
+    if (rawData) {
+      let resolver = new BrowserResolver()
+      resolver.decompress(rawData).then((decompressed) => {
+        if (decompressed instanceof Error) {
+          message.error(
+            'Unable to process compressed data. Ensure that the data is a FHIR Implementation Guide Package ending in .tgz'
+          )
+        } else {
+          const { resourcesByCanonical } = resolver
+          const plans = Object.keys(resourcesByCanonical)
+            .map((k: string) => {
+              const resource = resourcesByCanonical[k]
+              if (is.PlanDefinition(resource)) {
+                return resource
+              }
+            })
+            .filter(notEmpty)
+          if (plans.length > 0) {
+            setPlanDefinitionSelectionOptions(plans)
+            localStorage.clear()
+            setPlanDefinition(undefined)
+            setResolver(decompressed)
+            try {
+              localStorage.setItem('resolver', JSON.stringify(decompressed))
+              message.success('Saved content to local storage')
+            } catch (e) {
+              console.error(e)
+              message.info(
+                'Unable to save content to local storage. Content can be reviewed but will not be saved between sessions.'
+              )
+            }
+          } else {
+            message.error(
+              'Unable to find plan definitions. Please load content with at least one plan definition'
+            )
+          }
+        }
+      })
+    } else {
+      message.error(
+        'Please upload a compressed FHIR Implementation Guide Package ending in .tgz'
+      )
     }
   }
 
@@ -49,65 +125,40 @@ const UploadSection = ({
     if (status === 'removed') {
       localStorage.clear()
     } else if (fileList.length > 1) {
-      message.error('May only upload one compressed file ending in .zip')
+      message.error('May only upload one compressed file')
     } else if (status === 'done') {
       handleUpload(originFileObj)
     }
   }
 
-  const handleUpload = async (file: RcFile) => {
-    setIsLoading(true)
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = async (event) => {
-        const zipData = JSON.stringify(event.target?.result)
-        let resolver = new BrowserResolver()
-        resolver.decompress(zipData).then(() => {
-          if (resolver == null) {
-            message.error(
-              'Unable to process compressed data. Ensure that the data is the compressed output of an r4 FHIR Implementation Guide (full-ig.zip)'
-            )
-          } else {
-            localStorage.clear()
-            setPlanDefinitionPayload(undefined)
-            setPlanDefinition(undefined)
-            setResolver(resolver)
-            try {
-              localStorage.setItem('resolver', JSON.stringify(resolver))
-              message.success('Saved content to local storage')
-            } catch (e) {
-              console.error(e)
-              message.info(
-                'Unable to save content to local storage. Content can be reviewed but will not be saved between sessions.'
-              )
-            }
-            const { resourcesByCanonical } = resolver
-            const plans = Object.keys(resourcesByCanonical)
-              .map((k: string) => {
-                const resource = resourcesByCanonical[k]
-                if (is.PlanDefinition(resource)) {
-                  return resource
-                }
-              })
-              .filter(notEmpty)
-            if (plans.length > 0) {
-              setPlanDefinitions(plans)
-            } else {
-              message.error(
-                'Unable to find plan definitions. Please load content with at least one plan definition'
-              )
-            }
+  const handleInput = useRef(
+    debounce(async (value) => {
+      if (value.startsWith('https://') || value.startsWith('http://')) {
+        try {
+          const response = await fetch(value)
+          if (!response.ok) {
+            throw response
           }
-        })
+          const blob = await response.blob()
+          setUploaded(blob)
+          await handleUpload(blob)
+        } catch (e) {
+          message.error('Unable to resolve endpoint')
+          console.error(`Problem fetching resource: ${e}`)
+        }
+      } else if (value !== '') {
+        message.error('Not a valid URL')
       }
-      reader.readAsDataURL(file)
-    } else {
-      message.error('Please upload a compressed file ending in .zip')
-    }
+    }, 2000)
+  ).current
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleInput(e.target.value)
+    setEndpointPayload(e.target.value)
   }
 
-  const formatPlanOptions = (plans: fhir4.PlanDefinition[] | undefined) => {
-    const planOptions = planDefinitions?.map((plan) => {
+  const formatPlanOptions = () => {
+    const planOptions = planDefinitionSelectionOptions?.map((plan) => {
       let type
       if (
         plan.meta?.profile?.find(
@@ -168,7 +219,7 @@ const UploadSection = ({
     })
   }
 
-  const handleChange = (value: string) => {
+  const handlePDChange = (value: string) => {
     setPlanDefinitionPayload(value)
   }
 
@@ -176,30 +227,89 @@ const UploadSection = ({
     if (resolver instanceof BrowserResolver) {
       const plan = resolveCanonical(planDefinitionPayload, resolver)
       if (is.PlanDefinition(plan)) {
-        localStorage.setItem('planDefinition', JSON.stringify(plan))
         setPlanDefinition(plan)
+        setShowUpload(false)
       }
     }
   }
 
-  const onRemove = () => {
-    localStorage.clear()
+  const reset = () => {
+    setFileList([])
     setUploaded(undefined)
-    setPlanDefinitions(undefined)
+    setPlanDefinitionSelectionOptions(undefined)
     setPlanDefinitionPayload(undefined)
-    setResolver(undefined)
+    setEndpointPayload(undefined)
+    form.resetFields()
+    localStorage.clear()
   }
 
   const props: UploadProps = {
     name: 'file',
     multiple: false,
-    accept: 'zip',
+    accept: 'tgz',
     beforeUpload,
     onChange: handleFileChange,
-    onRemove,
+    onRemove: reset,
     maxCount: 1,
   }
 
+  const handlePackageTypePayloadChange = (e: RadioChangeEvent) => {
+    setPackageTypePayload(e.target.value)
+    reset()
+  }
+
+  let uploadItem
+  if (packageTypePayload === 'file') {
+    uploadItem = (
+      <Form.Item name="upload" className="form-item upload">
+        <h1 className="form-title">Upload package</h1>
+        <p className="form-description">
+          Add an r4 FHIR implementation guide package. Use the generated{' '}
+          <span>
+            <Link
+              href="https://confluence.hl7.org/display/FHIR/IG+Publisher+Documentation#IGPublisherDocumentation-Summary"
+              target="_blank"
+            >
+              ImplementationGuide/output/package.r4.tgz
+            </Link>
+          </span>{' '}
+          file.
+        </p>
+        <Dragger
+          {...props}
+          className={`form-item ${fileList.length ? 'hidden' : ''}`}
+          fileList={fileList}
+        >
+          <p className="ant-upload-drag-icon">
+            <InboxOutlined />
+          </p>
+          <p className="ant-upload-text">
+            Click or drag files to this area to upload
+          </p>
+          <p className="ant-upload-hint">Provide one tarball ending in .tgz</p>
+        </Dragger>
+      </Form.Item>
+    )
+  } else {
+    uploadItem = (
+      <Form.Item
+        name="endpoint"
+        valuePropName="fileList"
+        getValueFromEvent={(e) => e.fileList}
+        className="form-item upload"
+      >
+        <h1 className="form-title">Set content endpoint</h1>
+        <p className="form-description">
+          Specify endpoint address for r4 FHIR implementation guide package.
+        </p>
+        <Input
+          placeholder="https://packages.simplifier.net/hl7.fhir.uv.cpg/2.0.0"
+          onChange={handleInputChange}
+          value={endpointPayload}
+        />
+      </Form.Item>
+    )
+  }
   return (
     <>
       <Form
@@ -208,37 +318,22 @@ const UploadSection = ({
         className="form"
         autoComplete="off"
       >
-        <Form.Item
-          name="upload"
-          valuePropName="fileList"
-          getValueFromEvent={(e) => e.fileList}
-          className="form-item upload"
-        >
-          <h1 className="form-title">Add content</h1>
+        <Form.Item name="packageTypePayload" className="form-item">
+          <h1 className="form-title">Select FHIR package type</h1>
           <p className="form-description">
-            Add a compressed r4 FHIR implementation guide. Use the generated{' '}
-            <span>
-              <Link
-                href="https://confluence.hl7.org/display/FHIR/IG+Publisher+Documentation#IGPublisherDocumentation-Summary"
-                target="_blank"
-              >
-                ImplementationGuide/output/full-ig.zip
-              </Link>
-            </span>{' '}
-            file or manually compress the output folder.
+            Choose to upload FHIR package from local filesystem or rest
+            endpoint.
           </p>
-          <Dragger {...props} className="form-item">
-            <p className="ant-upload-drag-icon">
-              <InboxOutlined />
-            </p>
-            <p className="ant-upload-text">
-              Click or drag files to this area to upload
-            </p>
-            <p className="ant-upload-hint">
-              Provide only one compressed file ending in .zip
-            </p>
-          </Dragger>
+          <Radio.Group
+            value={packageTypePayload}
+            onChange={handlePackageTypePayloadChange}
+            className="radio-group"
+          >
+            <Radio value="file">File</Radio>
+            <Radio value="rest">Rest</Radio>
+          </Radio.Group>
         </Form.Item>
+        {uploadItem}
         <Form.Item name="select" className="form-item">
           <h1 className="form-title">Select plan definition</h1>
           <p className="form-description">
@@ -254,19 +349,19 @@ const UploadSection = ({
             .
           </p>
           <Select
-            onChange={handleChange}
+            onChange={handlePDChange}
             placeholder={
-              planDefinitions == null
+              planDefinitionSelectionOptions == null
                 ? 'Upload content to view plans'
                 : 'Select a plan definition'
             }
             popupMatchSelectWidth={true}
-            disabled={planDefinitions == null}
+            disabled={planDefinitionSelectionOptions == null}
           >
-            {formatPlanOptions(planDefinitions)}
+            {formatPlanOptions()}
           </Select>
         </Form.Item>
-        <Form.Item>
+        <Form.Item className="button-group">
           <button
             type="submit"
             className={
@@ -274,6 +369,13 @@ const UploadSection = ({
             }
           >
             View Content
+          </button>
+          <button
+            type="submit"
+            className="button button-secondary"
+            onClick={reset}
+          >
+            Reset
           </button>
         </Form.Item>
       </Form>

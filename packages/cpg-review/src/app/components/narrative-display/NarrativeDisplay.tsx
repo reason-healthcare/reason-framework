@@ -4,9 +4,7 @@ import {
   formatTitle,
   formatUrl,
   is,
-  KnowledgeArtifact,
   notEmpty,
-  TerminologyArtifact,
 } from '../../helpers'
 import { useLocation, useNavigate } from 'react-router-dom'
 import BrowserResolver from 'resolver/browser'
@@ -41,6 +39,7 @@ const NarrativeDisplay = ({
   const navigate = useNavigate()
   const path = useLocation().pathname
   useEffect(() => {
+    setResource(undefined)
     setPartOfIdentifier(undefined)
     setCql(undefined)
     if (nodeDetails != null) {
@@ -52,16 +51,22 @@ const NarrativeDisplay = ({
     } else if (resolver != null) {
       const reference = path.split('/').slice(-2).join('/')
       const rawResource = resolver.resolveReference(reference)
+      console.log(rawResource)
       if (is.ActivityDefinition(rawResource)) {
         setSelectedNode(rawResource.id)
       }
-      if (rawResource != null) {
-        setResource(rawResource)
-      }
       if (is.Library(rawResource)) {
-        setCql(resolver.resolveCql(rawResource.id))
+        const cql = rawResource.content?.find(
+          (c) => c.contentType === 'text/cql'
+        )?.data
+        if (cql != null) {
+          setCql(atob(cql))
+        }
       } else {
         setCql(undefined)
+      }
+      if (rawResource != null) {
+        setResource(rawResource)
       }
     }
   }, [path, nodeDetails])
@@ -149,7 +154,11 @@ const NarrativeDisplay = ({
         <BackButton />
         <CloseOutlined onClick={handleClose} />
       </div>
-      {resourceDisplay != null ? resourceDisplay : <p>Unable to load json</p>}
+      {resourceDisplay != null ? (
+        resourceDisplay
+      ) : (
+        <p>{`Unable to load ${path}`}</p>
+      )}
     </>
   )
 }
