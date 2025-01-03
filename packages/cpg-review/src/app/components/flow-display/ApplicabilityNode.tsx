@@ -6,18 +6,17 @@ import { NodeProps } from '../../types/NodeProps'
 import { Tooltip } from 'antd'
 import { InfoCircleFilled } from '@ant-design/icons'
 import ApplicabilityHandle from './ApplicabilityHandle'
+import { Handle, Position } from 'reactflow'
 
 const ApplicabilityNode = ({ data: nodeProps, id }: NodeProps) => {
   const {
     label,
     handle,
     nodeData,
-    setNodeToExpand,
-    selectedNode,
     setSelectedNode,
     setNodeData,
   } = nodeProps
-  const [collapsed, setCollapsed] = useState<boolean>(false)
+
 
   const handleNodeClick = () => {
     setSelectedNode(id)
@@ -50,11 +49,10 @@ const ApplicabilityNode = ({ data: nodeProps, id }: NodeProps) => {
           </div>
         </div>
         {handle?.includes('source') && (
-          <InteractiveHandle
-            setCollapsed={setCollapsed}
-            collapsed={collapsed}
-            setNodeToExpand={setNodeToExpand}
-            id={id}
+          <Handle
+            type="source"
+            position={Position.Bottom}
+            className="hidden-handle"
           />
         )}
       </div>
