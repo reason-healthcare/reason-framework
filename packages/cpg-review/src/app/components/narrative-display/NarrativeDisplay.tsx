@@ -51,7 +51,6 @@ const NarrativeDisplay = ({
     } else if (resolver != null) {
       const reference = path.split('/').slice(-2).join('/')
       const rawResource = resolver.resolveReference(reference)
-      console.log(rawResource)
       if (is.ActivityDefinition(rawResource)) {
         setSelectedNode(rawResource.id)
       }
