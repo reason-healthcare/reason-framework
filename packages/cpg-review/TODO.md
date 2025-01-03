@@ -1,11 +1,5 @@
 # TODO
 
-Upload Section:
-
-- When package is uploaded, upload section should display on the file and delte button
-- Preserve form state (package type, uploaded, etc)
-- Add reset button to clear form
-- Rest endpoint can only be reset with reset button even after PDs are requested
 
 # Future Items
 
