@@ -16,8 +16,6 @@
   width: 100%;
   color: var(--drGray);
   margin-bottom: 0;
-  /* display: flex;
-  gap: 1rem; */
 }
 
 .radio-group {
@@ -59,8 +57,8 @@
     border-color: var(--brTeal) !important;
   }
 }
-.ant-select-outlined {
-  &:hover {
+.ant-select-outlined:hover {
+  &.ant-select-selector {
     border-color: var(--brTeal) !important;
     outline-color: var(--brTeal) !important;
   }
@@ -76,6 +74,16 @@
     border-color: var(--brTeal) !important;
     outline-color: var(--brTeal) !important;
   }
+
+  &:focus-visible {
+    border-color: var(--brTeal) !important;
+    outline-color: var(--brTeal) !important;
+  }
+}
+
+.ant-select-focused .ant-select-selector {
+  border-color: var(--brTeal) !important;
+  outline-color: var(--brTeal) !important;
 
   &:focus-visible {
     border-color: var(--brTeal) !important;

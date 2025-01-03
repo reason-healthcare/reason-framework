@@ -160,7 +160,7 @@ class Flow implements FlowShape {
       /**
        * Create node for each action
        */
-      const id = `action-${action.title}-${v4()}`
+      const id = `action-${action.title ?? action.id}-${v4()}`
       const node = this.createActionNode(id, action, planDefinition)
 
       /** Connect to parent */
@@ -182,13 +182,13 @@ class Flow implements FlowShape {
           planDefinition
         )
         this.addNewNode(applicabilityNode)
-        const edgeFinal = {
+        const applicabilityEdge = {
           ...edgeSource,
           target: applicabilityNode.id,
           id: `${edgeSource.id} - ${applicabilityNode.id}`,
         }
 
-        this.addNewEdge(edgeFinal)
+        this.addNewEdge(applicabilityEdge)
       }
 
       const parentNode = applicabilityNode ?? node
@@ -227,19 +227,18 @@ class Flow implements FlowShape {
           }
           this.addNewEdge(edgeFinal)
         }
-      }
-      if (action.action != null) {
+      } else if (action.action != null) {
         this.processActionNodes(
           planDefinition,
           action.action,
           resolver,
           edgeSource
         )
+      } else {
+        parentNode.data.handle = ['target']
       }
-      if (action.action == null && action.definitionCanonical == null) {
-        node.data.handle = ['target']
-      }
-      this.addNewNode(node)
+      this.addNewNode(parentNode)
+      applicabilityNode != null ? this.addNewNode(node) : null
     })
   }
 
