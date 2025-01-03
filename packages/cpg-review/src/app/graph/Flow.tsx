@@ -157,44 +157,44 @@ class Flow implements FlowShape {
     parentEdge: Edge
   ) {
     actions?.map((action) => {
+
       /**
        * Create node for each action
        */
       const id = `action-${action.title ?? action.id}-${v4()}`
       const node = this.createActionNode(id, action, planDefinition)
 
-      /** Connect to parent */
-      const edgeFinal = {
-        ...parentEdge,
-        target: node.id,
-        id: `${parentEdge.id} - ${node.id}`,
-      }
-      this.addNewEdge(edgeFinal)
-
-      //* Handle Applicability */
-      let applicabilityNode
+      //* Handle Applicability - becomes parent of current action node */
+      let newParentEdge
       if (action.condition != null) {
         action.condition.forEach((condition, index) => {})
-        const edgeSource = this.createEdge(node.id)
-        applicabilityNode = this.createApplicabilityNode(
+        const applicabilityNode = this.createApplicabilityNode(
           `condition-${id}`,
           action,
           planDefinition
         )
         this.addNewNode(applicabilityNode)
         const applicabilityEdge = {
-          ...edgeSource,
+          ...parentEdge,
           target: applicabilityNode.id,
-          id: `${edgeSource.id} - ${applicabilityNode.id}`,
+          id: `${parentEdge.id} - ${applicabilityNode.id}`,
         }
-
         this.addNewEdge(applicabilityEdge)
+        newParentEdge = this.createEdge(applicabilityNode.id)
       }
 
-      const parentNode = applicabilityNode ?? node
+      const finalParentEdge = newParentEdge ?? parentEdge
+
+      /** Connect to parent */
+      const edgeFinal = {
+        ...finalParentEdge,
+        target: node.id,
+        id: `${parentEdge.id} - ${node.id}`,
+      }
+      this.addNewEdge(edgeFinal)
 
       /** Handle children */
-      const edgeSource = this.createEdge(parentNode.id)
+      const edgeSource = this.createEdge(node.id)
       if (action.selectionBehavior) {
         edgeSource.animated = true
       }
@@ -235,10 +235,9 @@ class Flow implements FlowShape {
           edgeSource
         )
       } else {
-        parentNode.data.handle = ['target']
+        node.data.handle = ['target']
       }
-      this.addNewNode(parentNode)
-      applicabilityNode != null ? this.addNewNode(node) : null
+      this.addNewNode(node)
     })
   }
 
@@ -323,17 +322,24 @@ class Flow implements FlowShape {
       if (!sourceNode) {
         console.error('Unable to collapse graph')
       } else {
-        children = getOutgoers(sourceNode, this.nodes, this.edges)
-        this.setNodes = [
+        const sourceNodes = [sourceNode]
+        children = getOutgoers(sourceNode, this.nodes, this.edges).flatMap((child) => {
+          if (child.type === 'applicabilityNode' && this.nodes != null && this.edges != null) {
+            sourceNodes.push(child)
+            return getOutgoers(child, this.nodes, this.edges)
+          } else {
+            return child
+          }
+        })
+        this.setNodes = sourceNodes.concat([
           ...children.map((c) => {
-            return { ...c, data: { ...c.data, isCollapsed: true } }
-          }),
-          sourceNode,
-        ]
+            return { ...c, data: { ...c.data, isCollapsed: true} }
+          })
+        ])
         this.setEdges = this.edges.filter(
           (e) =>
-            children?.some((c) => c.id === e.target) &&
-            e.source === sourceNode.id
+            (children?.find((c) => c.id === e.target) || sourceNodes.find(n => n.id === e.target)) &&
+            sourceNodes.find(n => n.id === e.source)
         )
       }
     }
