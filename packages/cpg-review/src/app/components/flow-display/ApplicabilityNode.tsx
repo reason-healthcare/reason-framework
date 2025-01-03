@@ -58,7 +58,9 @@ const ApplicabilityNode = ({ data: nodeProps, id }: NodeProps) => {
           />
         )}
       </div>
-      <div className="action-selection-label">{'Yes'}</div>
+      {handle?.includes('source') && (
+        <div className="action-selection-label">{'Yes'}</div>
+      )}
     </>
   )
 }

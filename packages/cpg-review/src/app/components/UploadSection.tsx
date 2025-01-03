@@ -29,9 +29,7 @@ export interface UploadSectionProps {
   setPlanDefinitionPayload: React.Dispatch<
     React.SetStateAction<string | undefined>
   >
-  setShowUpload: React.Dispatch<
-    React.SetStateAction<boolean>
-  >
+  setShowUpload: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const UploadSection = (uploadSectionProps: UploadSectionProps) => {
@@ -49,7 +47,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
     setPlanDefinitionSelectionOptions,
     planDefinitionPayload,
     setPlanDefinitionPayload,
-    setShowUpload
+    setShowUpload,
   } = uploadSectionProps
 
   const [isLoading, setIsLoading] = useState(false)
