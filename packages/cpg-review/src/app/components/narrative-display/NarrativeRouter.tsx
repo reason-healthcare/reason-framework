@@ -4,6 +4,7 @@ import { Route, Routes, useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import NarrativeDisplay from './NarrativeDisplay'
 import { NodeData } from '../../types/NodeData'
+import { is } from 'helpers'
 
 interface NarrativeRouterProps {
   nodeData: NodeData | undefined
@@ -20,7 +21,15 @@ const NarrativeRouter = ({
   const navigate = useNavigate()
 
   useEffect(() => {
-    navigate('/')
+    if (is.FhirResource(nodeData?.nodeDetails)) {
+      const {
+        resourceType,
+        id
+      } = nodeData.nodeDetails
+      navigate(`${resourceType}/${id}`)
+    } else {
+      navigate('/')
+    }
   }, [nodeData])
 
   return (
