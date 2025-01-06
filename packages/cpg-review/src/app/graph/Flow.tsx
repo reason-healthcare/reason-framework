@@ -157,7 +157,6 @@ class Flow implements FlowShape {
     parentEdge: Edge
   ) {
     actions?.map((action) => {
-
       /**
        * Create node for each action
        */
@@ -323,23 +322,30 @@ class Flow implements FlowShape {
         console.error('Unable to collapse graph')
       } else {
         const sourceNodes = [sourceNode]
-        children = getOutgoers(sourceNode, this.nodes, this.edges).flatMap((child) => {
-          if (child.type === 'applicabilityNode' && this.nodes != null && this.edges != null) {
-            sourceNodes.push(child)
-            return getOutgoers(child, this.nodes, this.edges)
-          } else {
-            return child
+        children = getOutgoers(sourceNode, this.nodes, this.edges).flatMap(
+          (child) => {
+            if (
+              child.type === 'applicabilityNode' &&
+              this.nodes != null &&
+              this.edges != null
+            ) {
+              sourceNodes.push(child)
+              return getOutgoers(child, this.nodes, this.edges)
+            } else {
+              return child
+            }
           }
-        })
+        )
         this.setNodes = sourceNodes.concat([
           ...children.map((c) => {
-            return { ...c, data: { ...c.data, isCollapsed: true} }
-          })
+            return { ...c, data: { ...c.data, isCollapsed: true } }
+          }),
         ])
         this.setEdges = this.edges.filter(
           (e) =>
-            (children?.find((c) => c.id === e.target) || sourceNodes.find(n => n.id === e.target)) &&
-            sourceNodes.find(n => n.id === e.source)
+            (children?.find((c) => c.id === e.target) ||
+              sourceNodes.find((n) => n.id === e.target)) &&
+            sourceNodes.find((n) => n.id === e.source)
         )
       }
     }

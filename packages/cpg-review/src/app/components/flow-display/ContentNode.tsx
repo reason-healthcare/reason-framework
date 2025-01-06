@@ -56,7 +56,11 @@ const ContentNode = ({ data: nodeProps, id }: NodeProps) => {
       <div
         className={`clickable node-container ${
           highlight ? 'node-highlight' : 'node-unhighlight'
-        } ${is.ActivityDefinition(nodeDetails) ? 'activity-node' : ''}`}
+        } ${
+          is.ActivityDefinition(nodeDetails) || is.Questionnaire(nodeDetails)
+            ? 'activity-node'
+            : ''
+        }`}
       >
         {handle?.includes('target') ? <TargetHandle /> : null}
         <div onClick={handleNodeClick}>

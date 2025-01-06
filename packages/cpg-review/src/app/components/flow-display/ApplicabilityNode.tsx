@@ -9,14 +9,7 @@ import ApplicabilityHandle from './ApplicabilityHandle'
 import { Handle, Position } from 'reactflow'
 
 const ApplicabilityNode = ({ data: nodeProps, id }: NodeProps) => {
-  const {
-    label,
-    handle,
-    nodeData,
-    setSelectedNode,
-    setNodeData,
-  } = nodeProps
-
+  const { label, handle, nodeData, setSelectedNode, setNodeData } = nodeProps
 
   const handleNodeClick = () => {
     setSelectedNode(id)

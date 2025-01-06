@@ -21,11 +21,11 @@ const NarrativeRouter = ({
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (is.FhirResource(nodeData?.nodeDetails)) {
-      const {
-        resourceType,
-        id
-      } = nodeData.nodeDetails
+    if (
+      nodeData?.nodeDetails != null &&
+      is.FhirResource(nodeData?.nodeDetails)
+    ) {
+      const { resourceType, id } = nodeData.nodeDetails
       navigate(`${resourceType}/${id}`)
     } else {
       navigate('/')

@@ -1,6 +1,5 @@
 # TODO
 
-
 # Future Items
 
 1. Accept patient data and render applicable pathway
