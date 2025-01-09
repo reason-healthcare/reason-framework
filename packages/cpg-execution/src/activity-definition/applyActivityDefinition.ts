@@ -505,7 +505,7 @@ export const applyActivityDefinition = async (
             .map(async (expression) => {
               const { reference } = expression
               if (reference != null) {
-                await contentResolver.resolveCanonical(reference)
+                await contentResolver.resolveCanonical(reference, ['Library'])
               }
             })
             .filter(notEmpty)

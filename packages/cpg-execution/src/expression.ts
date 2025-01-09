@@ -389,7 +389,7 @@ const getDataRequirements = async (
   // Add current requirements...
   const currentFhirCanonical = `${elmLibrary.library?.identifier?.system}/Library/${elmLibrary.library?.identifier?.id}`
   const currentFhirLibrary = await contentResolver.resolveCanonical(
-    currentFhirCanonical
+    currentFhirCanonical, ['Library']
   )
 
   if (is.Library(currentFhirLibrary)) {
@@ -411,7 +411,7 @@ const getDataRequirements = async (
           '/Library/$1'
         )
         const childFhirLibrary = await contentResolver.resolveCanonical(
-          childFhirCanonical
+          childFhirCanonical, ['Library']
         )
 
         if (is.Library(childFhirLibrary)) {

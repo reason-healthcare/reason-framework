@@ -121,7 +121,8 @@ class RestResolver extends BaseResolver implements Resolver {
 
     if (canonical != null) {
       let results
-      let requestParams = `/?url=${canonical}`
+      const resourceType = resourceTypes?.length === 1 ? resourceTypes[0] : ''
+      let requestParams = `${resourceType}?url=${canonical}`
       if (versionFormatted != null) {
         requestParams += `&version=${versionFormatted}`
       }
@@ -146,6 +147,7 @@ class RestResolver extends BaseResolver implements Resolver {
               type: 'batch'
             } // TODO: Update FKC type here `fhir4.Bundle & { type: 'batch' }`
           })
+          console.log(results.entry[0])
         } catch (e) {
           throw new Error(`Problem with canonical search ${inspect(e)}`)
         }
