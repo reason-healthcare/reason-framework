@@ -1,31 +1,23 @@
-FROM node:18-alpine AS builder
-
+FROM node:18-alpine AS build
 WORKDIR /app
 
 COPY packages/cpg-execution/package.json ./packages/cpg-execution/package.json
 COPY packages/cds-service/package.json ./packages/cds-service/package.json
 COPY package.json ./
 COPY tsconfig* ./
+COPY package-lock.json ./
 RUN npm install
 
-COPY packages ./packages
-RUN npm run build
+COPY . .
+RUN npm run build --workspaces --workspace packages/cpg-execution --workspace packages/cds-service
 
-#
-# TODO: Work out multistage with a monorepo
-#
-# FROM node:18-alpine
+# FROM node:18-alpine AS runtime
 # WORKDIR /app
-# RUN mkdir -p ./packages/cpg-execution
-# RUN mkdir -p ./packages/cds-service
-# COPY --from=builder *.json ./
-# COPY --from=builder /app/node_modules ./node_modules
-# COPY --from=builder /app/packages/cpg-execution/package.json ./packages/cpg-execution/package.json
-# COPY --from=builder /app/packages/cds-service/package.json ./packages/cds-service/package.json
-# COPY --from=builder /app/packages/cpg-execution/node_modules ./packages/cpg-execution/node_modules
-# COPY --from=builder /app/packages/cds-service/node_modules ./packages/cds-service/node_modules
-# COPY --from=builder /app/packages/cpg-execution/lib ./packages/cpg-execution/lib
-# COPY --from=builder /app/packages/cds-service/lib ./packages/cds-service/lib
+# COPY --from=build /app/packages/cpg-execution/lib packages/cpg-execution/lib
+# COPY --from=build /app/packages/cds-service/lib packages/cds-service/lib
+# COPY package.json package-lock.json ./
+# RUN npm install
+# RUN ls node_modules/fastify
 
 EXPOSE 9001
 

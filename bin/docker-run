@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-DOCKER_IMAGE=bkaney/reason-framework:latest
+DOCKER_IMAGE=reason-framework:latest
 
 SCRIPT_DIR="$(cd -P "$(dirname -- "${BASH_SOURCE}")" >/dev/null 2>&1 && pwd)"
 
