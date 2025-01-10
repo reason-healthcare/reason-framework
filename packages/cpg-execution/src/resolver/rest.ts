@@ -147,7 +147,6 @@ class RestResolver extends BaseResolver implements Resolver {
               type: 'batch'
             } // TODO: Update FKC type here `fhir4.Bundle & { type: 'batch' }`
           })
-          console.log(results.entry[0])
         } catch (e) {
           throw new Error(`Problem with canonical search ${inspect(e)}`)
         }
