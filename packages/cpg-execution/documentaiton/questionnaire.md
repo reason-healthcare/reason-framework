@@ -12,7 +12,7 @@ Questionnaire generation may be enabled for PlanDefinition/$apply to elicit user
 
    1. Change the QuestionnaireResponse and proceed to Steps 3 and 4; Or
 
-   2. Select recommendations from the RequestGroup and end they apply cycle
+   2. Select recommendations from the RequestGroup and end the apply cycle
 
 5. If the QuestionnaireResponse is updated, call [QuestionnaireResponse/$extract](https://hl7.org/fhir/uv/sdc/OperationDefinition-QuestionnaireResponse-extract.html) to create new resources based on QuestionnaireResponse from Steps 3 and 4
 
@@ -33,32 +33,39 @@ Propose parameter "minimal" where:
 Elements from the structure definition should be processed to questionnaire items if:
 
 1. The element is a part of the differential;
-2. The element is a part of the snapshot and has a cardinality of at least 1..\* (min >1). Nested child elements with min > 1 should also be included if parent has min > 1.
+2. The element is a part of the snapshot and has a cardinality of at least 1..\* (min >1). Nested child elements with min > 1 should also be included if parent has min > 1;
+3. The element is not fixed[x] or pattern[x]
 
 Optionally, the parameter "supportedOnly" may be supplied. If true, the above applies only to elements with must support flags.
 
-| elementDefinition                                     | questionnaireItem                                                                                                                              | notes                                                                                                                                                             |
-| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| pattern[x]                                            | sets initial[x], hidden true                                                                                                                   | Because questionnaire.item.initial.value[x] is a subset of pattern[x], we have rules to coerce                                                                    |
-| fixed[x]                                              | sets initial[x], hidden true                                                                                                                   | Because questionnaire.item.initial.value[x] is a subset of fixed[x], we have rules to coerce                                                                      |
-| defaultValue[x]                                       | sets initial[x], hidden false                                                                                                                  |                                                                                                                                                                   |
-| CPG featureExpression                                 | sets [questionnaire-initialExpression](https://hl7.org/fhir/uv/sdc/StructureDefinition-sdc-questionnaire-initialExpression.html), hidden false | see [Conformance with expression based population and definition based extraction](#conformance-with-expression-based-population-and-definition-based-extraction) |
-| {structureDefinition.url}#{element.path}              | definition                                                                                                                                     | for choice type paths, replace [x] with element type.code[0]                                                                                                      |
-| short description; element label; or stringified path | text                                                                                                                                           |                                                                                                                                                                   |
-| type                                                  | type                                                                                                                                           | see [ElementDefinition Mappings](#mapping-elementdefinition-data-types-to-questionnaire-items)                                                                    |
-| min > 0                                               | required                                                                                                                                       |                                                                                                                                                                   |
-| max > 1                                               | repeats                                                                                                                                        |                                                                                                                                                                   |
-| maxLength                                             | maxLength                                                                                                                                      | apply if type = string                                                                                                                                            |
-| binding.valueSet                                      | expanded valueSet used as answerOption, set type as 'choice'                                                                                   |                                                                                                                                                                   |
-| ??                                                    | readOnly                                                                                                                                       |                                                                                                                                                                   |
+The goal of minimal mode is to process only the elements required for definition based extraction.
+
+| elementDefinition                                     | questionnaireItem                                                      | notes                                                                                                                                                             |
+| ----------------------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| extension[sdc-questionnaire-definitionExtractValue]   | sets extension[sdc-questionnaire-definitionExtractValue] on group item | Authored on case feature elements that will be evaluated as an expression during $extract                                                                         |
+| CPG featureExpression                                 | sets [questionnaire-initialExpression]                                 | see [Conformance with expression based population and definition based extraction](#conformance-with-expression-based-population-and-definition-based-extraction) |
+| {structureDefinition.url}#{element.path}              | definition                                                             | for choice type paths, replace [x] with element type.code[0]                                                                                                      |
+| short description; element label; or stringified path | text                                                                   |                                                                                                                                                                   |
+| type                                                  | type                                                                   | see [ElementDefinition Mappings](#mapping-elementdefinition-data-types-to-questionnaire-items)                                                                    |
+| min > 0                                               | required                                                               |                                                                                                                                                                   |
+| max > 1                                               | repeats                                                                |                                                                                                                                                                   |
+| maxLength                                             | maxLength                                                              | apply if type = string                                                                                                                                            |
+| binding.valueSet                                      | expanded valueSet used as answerOption, set type as 'choice'           |                                                                                                                                                                   |
+| ??                                                    | readOnly                                                               |                                                                                                                                                                   |
 
 Process elements from the structure definition resource:
 
-- For each element to process, create a questionnaire item
-  - If the element has pattern[x] or fixed[x] make the item hidden and set initial[x]
-  - Otherwise, make the item visible
-  - If CPG case featureExpression returns a value for the element, set initialExpression (see [Conformance with expression based population and definition based extraction](#conformance-with-expression-based-population-and-definition-based-extraction)); else if the element has defaultValue[x], set initial[x]
-  - For the rest of questionnaire item properties:
+<!-- - Set one top level group item for the questionnaire
+
+  - Include the [SDC definition extract extension](http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-definitionExtract). Set extension[definition].valueCanonical to the canonical of the SD
+
+  - If CPG case featureExpression is present, include the [SDC item population context extension](http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-itemPopulationContext) -->
+
+* For each element to process
+
+  - If the element has the [SDC definition extract value extension](https://build.fhir.org/ig/HL7/sdc/StructureDefinition-sdc-questionnaire-definitionExtractValue.html), carry the extension over to the root item with type 'group'
+  - Otherwise, if the element represents the value of the case feature (e.g should be displayed for input), process new child item as follows
+    - If CPG case featureExpression is present, set the [SDC initial expression extension](http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression). See [Conformance with expression based population and definition based extraction](#conformance-with-expression-based-population-and-definition-based-extraction)
     - QuestionnaireItem.linkId => generate some unique id
     - QuestionnaireItem.definition => "{structureDefinition.url}#{full element path}", where:
       - "full element path" is path unless the path is a choice type (e.g. 'Observation.value[x]')
@@ -72,32 +79,33 @@ Process elements from the structure definition resource:
     - QuestionnaireItem.type (should always be primitive type) =>
       - If the element type is specified in the differential, map to Questionnaire.type
       - If the element type is not specified in the differential, use the snapshot type and map to Questionnaire.type
-      - If of type code, treat as a coding with type 'choice'(note: during $extract need to map this type back to code)
+      - If type code, treat as a coding with type 'choice' (note: during $extract need to map this type back to code)
       - For a more detailed mapping of primitive and complex data types, see [ElementDefinition Mappings](#mapping-elementdefinition-data-types-to-questionnaire-items)
     - QuestionnaireItem.required => if (element.min > 0)
     - QuestionnaireItem.repeats => if (element.max > 1)
     - QuestionnaireItem.readOnly => Context from the corresponding data-requirement or default[x] (???)
     - QuestionnaireItem.maxLength => element.maxLength (if type is a string)
     - QuestionnaireItem.answerOption => expanded value set binding <!-- How should example binding be handled? open choice? -->
-- Ideally, the snapshot element will be used as a fallback for properties missing on differential elements. <!-- How should properties like "type" be handled, where the snapshot element definition may include multiple types -->
+    <!-- to do: how to handle [questionnaire-unit](http://hl7.org/fhir/R4/extension-questionnaire-unit.html)-->
+    <!-- to do: how to handle sliced elements-->
 
 ### Conformance with expression based population and definition based extraction
 
-See [SDC expression based population](https://build.fhir.org/ig/HL7/sdc/populate.html#expression-based-population) and [SDC definition based extraction](https://hl7.org/fhir/uv/sdc/extraction.html#definition-based-extraction)
+See [SDC expression based population](https://build.fhir.org/ig/HL7/sdc/populate.html#expression-based-population) and [SDC definition based extraction](https://build.fhir.org/ig/HL7/sdc/extraction.html#definition-extract)
 
-To conform to $populate and \$extract, the questionnaire should:
+To conform to $populate and \$extract:
 
-- Include extension [questionnaire-launchContext](https://hl7.org/fhir/uv/sdc/StructureDefinition-sdc-questionnaire-launchContext.html) on the questionnaire for the in context subject (most often Patient)
-- If the extension [CPG featureExpression](https://hl7.org/fhir/uv/cpg/StructureDefinition-cpg-featureExpression.html), set [questionnaire-itemPopulationContext](https://build.fhir.org/ig/HL7/sdc/StructureDefinition-sdc-questionnaire-itemPopulationContext.html) on the root item to the featureExpression.valueExpression
-- For each element where there is a [CPG featureExpression](https://hl7.org/fhir/uv/cpg/StructureDefinition-cpg-featureExpression.html) value and absence of fixed[x] and pattern[x], set item [questionnaire-initialExpression](https://hl7.org/fhir/uv/sdc/StructureDefinition-sdc-questionnaire-initialExpression.html) extension expression to element path as a context variable. The item should be visible. <!--Is this the best way to get the corresponding case feature property?-->
+- At the root of the questionnaire, include extension [questionnaire-launchContext](https://hl7.org/fhir/uv/sdc/StructureDefinition-sdc-questionnaire-launchContext.html)  for the in context subject (most often Patient), encounter, etc
 
-Note that initial[x] and initialExpression are mutually exclusive. These are set in order of preference:
+- At the root item with type 'group'
 
-1. If available, use fixed[x] and patter[x] to set initial[x]; else
+  - Include the [SDC definition extract extension](http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-definitionExtract). Set extension[definition].valueCanonical to the canonical of the SD;
 
-2. If available, use CPG featureExpression to set initialExpression; else
+  - If CPG featureExpression is present on the SD
 
-3. If available, use default[x] to set initial[x]
+    - Include the [SDC item population context extension](http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-itemPopulationContext);
+
+    - For each child item, include the [questionnaire-initialExpression](https://hl7.org/fhir/uv/sdc/StructureDefinition-sdc-questionnaire-initialExpression.html) extension
 
 ### Mapping ElementDefinition data types to Questionnaire Items
 
@@ -128,8 +136,8 @@ A pre-populated questionnaire response can be generated using the resulting ques
 
 ## QuestionnaireResponse/$extract
 
-See [SDC definition based extraction](https://hl7.org/fhir/uv/sdc/extraction.html#definition-based-extraction) for extraction details.
+See [SDC definition based extraction](https://build.fhir.org/ig/HL7/sdc/extraction.html#definition-extract) for extraction details.
 
 An extracted resource is created using the QuestionnaireResponse and corresponding Questionnaire. The extracted resource will not be persisted but used as a part of the \$apply context.
 
-<!--Should the extracted observation/resource in any way point back to the questionnaire response?-->
+If an observation, set Observation.derivedFrom to the canonical of the QuestionnaireResponse.
