@@ -2,7 +2,7 @@
 
 SCRIPT_DIR="$(cd -P "$(dirname -- "${BASH_SOURCE}")" >/dev/null 2>&1 && pwd)"
 
-DOCKER_IMAGE=bkaney/reason-framework:latest
+DOCKER_IMAGE=reason-framework:latest
 
 cd $SCRIPT_DIR/../
 docker build -t $DOCKER_IMAGE .
