@@ -9,7 +9,7 @@ import UploadSection, { UploadSectionProps } from './components/UploadSection'
 import { MemoryRouter } from 'react-router-dom'
 import { formatTitle } from 'helpers'
 import Link from 'next/link'
-import { NodeData } from './types/NodeData'
+import { NodeContent } from './types/NodeProps'
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels'
 import { UploadFile } from 'antd'
 
@@ -18,7 +18,7 @@ export default function Page() {
   const [planDefinition, setPlanDefinition] = useState<
     fhir4.PlanDefinition | undefined
   >()
-  const [nodeData, setNodeData] = useState<NodeData | undefined>()
+  const [narrativeContent, setNarrativeContent] = useState<NodeContent | undefined>()
   const [showUpload, setShowUpload] = useState<boolean>(false)
   const [selectedNode, setSelectedNode] = useState<string>()
 
@@ -82,7 +82,7 @@ export default function Page() {
               <FlowDisplay
                 resolver={resolver}
                 planDefinition={planDefinition}
-                setNodeData={setNodeData}
+                setNarrativeContent={setNarrativeContent}
                 selectedNode={selectedNode}
                 setSelectedNode={setSelectedNode}
               />
@@ -98,7 +98,7 @@ export default function Page() {
               <MemoryRouter>
                 {selectedNode != null && (
                   <NarrativeRouter
-                    nodeData={nodeData}
+                    narrativeContent={narrativeContent}
                     resolver={resolver}
                     setSelectedNode={setSelectedNode}
                   ></NarrativeRouter>

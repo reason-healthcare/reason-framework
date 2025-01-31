@@ -5,12 +5,12 @@ import { NodeProps } from '../../types/NodeProps'
 
 const StartNode = ({ data: nodeProps, id }: NodeProps) => {
   const { isSelected } = nodeProps
-  const [highlight, setHighlight] = useState<boolean>(true)
 
   return (
     <div
       className={`start-node-container ${
-        isSelected ? 'node-highlight' : 'node-unhighlight'
+        // isSelected ? 'node-highlight' : 'node-unhighlight'
+        'node-highlight'
       }`}
     >
       <p>START</p>

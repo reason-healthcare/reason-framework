@@ -3,16 +3,16 @@ import BrowserResolver from 'resolver/browser'
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import NarrativeDisplay from './NarrativeDisplay'
-import { NodeData } from '../../types/NodeData'
+import { NodeContent } from '../../types/NodeProps'
 
 interface NarrativeRouterProps {
-  nodeData: NodeData | undefined
+  narrativeContent: NodeContent | undefined
   resolver: BrowserResolver | undefined
   setSelectedNode: React.Dispatch<React.SetStateAction<string | undefined>>
 }
 
 const NarrativeRouter = ({
-  nodeData,
+  narrativeContent,
   resolver,
   setSelectedNode,
 }: NarrativeRouterProps) => {
@@ -21,7 +21,7 @@ const NarrativeRouter = ({
   /** Node data includes the resource or action that the node represents. In the case of an action, preference to track and display the data as opposed to resolving the action via action title/id. Action titles and Ids are not required and are not always unique. */
   useEffect(() => {
     navigate('/')
-  }, [nodeData])
+  }, [narrativeContent])
 
   return (
     <div className="narrative-section">
@@ -32,7 +32,7 @@ const NarrativeRouter = ({
             <NarrativeDisplay
               resolver={resolver}
               setSelectedNode={setSelectedNode}
-              nodeData={nodeData}
+              narrativeContent={narrativeContent}
             />
           }
         />

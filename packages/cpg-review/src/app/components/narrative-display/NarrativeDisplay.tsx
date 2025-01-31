@@ -16,19 +16,19 @@ import { useEffect, useState } from 'react'
 import { CloseOutlined } from '@ant-design/icons'
 import type { RadioChangeEvent } from 'antd'
 import { Radio } from 'antd'
-import { NodeData } from '../../types/NodeData'
+import { NodeContent } from '../../types/NodeProps'
 import SingleDisplayItem from './SingleDisplayItem'
 
 interface NarrativeDisplayProps {
   resolver: BrowserResolver | undefined
   setSelectedNode: React.Dispatch<React.SetStateAction<string | undefined>>
-  nodeData?: NodeData | undefined
+  narrativeContent?: NodeContent | undefined
 }
 
 const NarrativeDisplay = ({
   resolver,
   setSelectedNode,
-  nodeData,
+  narrativeContent,
 }: NarrativeDisplayProps) => {
   const [resource, setResource] = useState<
     fhir4.FhirResource | fhir4.PlanDefinitionAction | undefined
@@ -40,20 +40,16 @@ const NarrativeDisplay = ({
   const navigate = useNavigate()
   const path = useLocation().pathname
   useEffect(() => {
-    console.log('From display panel:')
-    console.log(path)
     setResource(undefined)
     setPartOfIdentifier(undefined)
     setCql(undefined)
-    if (nodeData != null) {
-      console.log('using node details')
-      const { nodeDetails: details, partOf } = nodeData
+    if (narrativeContent != null) {
+      const { resource, partOf } = narrativeContent
       if (partOf != null) {
         setPartOfIdentifier(partOf.url)
       }
-      setResource(details)
+      setResource(resource)
     } else if (resolver != null) {
-      console.log('resolving')
       const reference = path.split('/').slice(-2).join('/')
       const rawResource = resolver.resolveReference(reference)
       if (is.ActivityDefinition(rawResource) || is.Questionnaire(rawResource)) {
@@ -73,7 +69,7 @@ const NarrativeDisplay = ({
         setResource(rawResource)
       }
     }
-  }, [path, nodeData])
+  }, [path, narrativeContent])
 
   const handleClose = () => {
     setSelectedNode(undefined)

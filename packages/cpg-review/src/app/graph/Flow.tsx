@@ -43,7 +43,7 @@ class Flow implements FlowShape {
       data: {
         label: id,
         handle: ['target'],
-        nodeData: { nodeDetails: resource },
+        nodeContent: { resource },
         isCollapsed: false,
         isSelected: false,
       },
@@ -64,7 +64,7 @@ class Flow implements FlowShape {
       data: {
         label: title ?? actionId ?? description,
         handle: ['target', 'source'],
-        nodeData: { nodeDetails: action, partOf: planDefinition },
+        nodeContent: { resource: action, partOf: planDefinition },
         isCollapsed: false,
         isSelected: false,
       },
@@ -86,7 +86,7 @@ class Flow implements FlowShape {
       data: {
         label: expression != null ? expression.name ?? expression.expression ?? expression.description : kind,
         handle: ['target', 'source'],
-        nodeData: { nodeDetails: action, partOf: planDefinition },
+        nodeContent: { resource: action, partOf: planDefinition },
         isCollapsed: false,
       },
       type: 'applicabilityNode',
@@ -99,9 +99,8 @@ class Flow implements FlowShape {
     return {
       id,
       data: {
-        nodeData: { nodeDetails: definition },
+        nodeContent: { resource: definition },
         isCollapsed: false,
-        isSelected: true
       },
       position: { x: 0, y: 0 },
       type: 'startNode',

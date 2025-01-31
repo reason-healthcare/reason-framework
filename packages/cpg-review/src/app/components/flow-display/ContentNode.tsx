@@ -11,13 +11,13 @@ const ContentNode = ({ data: nodeProps, id }: NodeProps) => {
   const {
     label,
     handle,
-    nodeData,
+    nodeContent,
     isCollapsed,
     isSelected,
     setNodeToExpand,
     setSelectedNode,
   } = nodeProps
-  const { nodeDetails, partOf } = nodeData
+  const { resource, partOf } = nodeContent
   const [collapsed, setCollapsed] = useState<boolean>(false)
 
   useEffect(() => {
@@ -26,14 +26,14 @@ const ContentNode = ({ data: nodeProps, id }: NodeProps) => {
 
   let selectionDetail
   if (
-    !is.ActivityDefinition(nodeDetails) &&
-    !is.Questionnaire(nodeDetails) &&
-    nodeDetails.selectionBehavior &&
+    !is.ActivityDefinition(resource) &&
+    !is.Questionnaire(resource) &&
+    resource.selectionBehavior &&
     !collapsed
   ) {
     selectionDetail = (
       <div className="action-selection-label">
-        {`Select ${nodeDetails.selectionBehavior}`}
+        {`Select ${resource.selectionBehavior}`}
       </div>
     )
   }
@@ -48,7 +48,7 @@ const ContentNode = ({ data: nodeProps, id }: NodeProps) => {
         className={`clickable node-container ${
           isSelected ? 'node-highlight' : 'node-unhighlight'
         } ${
-          is.ActivityDefinition(nodeDetails) || is.Questionnaire(nodeDetails)
+          is.ActivityDefinition(resource) || is.Questionnaire(resource)
             ? 'activity-node'
             : ''
         }`}
