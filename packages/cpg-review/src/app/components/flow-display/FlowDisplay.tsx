@@ -52,9 +52,7 @@ export default function FlowDisplay({
   const data = {
     nodeToExpand,
     setNodeToExpand,
-    selectedNode,
     setSelectedNode,
-    setNodeData,
   }
   const reactFlow = useReactFlow()
 
@@ -62,7 +60,7 @@ export default function FlowDisplay({
     const flow = new Flow()
     if (resolver && resolver.resourcesByCanonical) {
       flow.generateInitialFlow(planDefinition, resolver)
-      flow.generateFinalFlow(data).then((f) => {
+      flow.positionNodes(data).then((f) => {
         setExpandedFlow(f)
         setDisplayNodes(f.nodes)
         setDisplayEdges(f.edges)
@@ -93,12 +91,21 @@ export default function FlowDisplay({
         displayNodes.map((node) => {
           return {
             ...node,
-            data: { ...node.data, ...data },
+            data: { ...node.data, isSelected: node.id === selectedNode },
           }
         })
       )
-      const selectedNodeNode = displayNodes.find((n) => n.id === selectedNode)
-      setNodeData(selectedNodeNode?.data.nodeData)
+      const selectedNodeData = displayNodes.find((n) => n.id === selectedNode)?.data.nodeData
+      setNodeData(selectedNodeData)
+    } else if (displayNodes != null) {
+      setDisplayNodes(
+        displayNodes.map((node) => {
+          return {
+            ...node,
+            data: { ...node.data, isSelected: false},
+          }
+        })
+      )
     }
   }, [selectedNode])
 

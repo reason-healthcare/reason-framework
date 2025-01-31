@@ -1,7 +1,5 @@
-import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import '@/styles/node.css'
-import InteractiveHandle from './InteractiveHandle'
 import { NodeProps } from '../../types/NodeProps'
 import { Tooltip } from 'antd'
 import { InfoCircleFilled } from '@ant-design/icons'
@@ -9,11 +7,10 @@ import ApplicabilityHandle from './ApplicabilityHandle'
 import { Handle, Position } from 'reactflow'
 
 const ApplicabilityNode = ({ data: nodeProps, id }: NodeProps) => {
-  const { label, handle, nodeData, setSelectedNode, setNodeData } = nodeProps
+  const { label, handle, setSelectedNode } = nodeProps
 
   const handleNodeClick = () => {
-    setSelectedNode(id)
-    setNodeData(nodeData)
+    setSelectedNode(id.replace('condition-', ''))
   }
 
   return (

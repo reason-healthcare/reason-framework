@@ -1,4 +1,3 @@
-import { Handle, Position } from 'reactflow'
 import { useState, useEffect } from 'react'
 import '@/styles/node.css'
 import InteractiveHandle from './InteractiveHandle'
@@ -14,23 +13,16 @@ const ContentNode = ({ data: nodeProps, id }: NodeProps) => {
     handle,
     nodeData,
     isCollapsed,
+    isSelected,
     setNodeToExpand,
-    selectedNode,
     setSelectedNode,
-    setNodeData,
   } = nodeProps
   const { nodeDetails, partOf } = nodeData
   const [collapsed, setCollapsed] = useState<boolean>(false)
-  const [highlight, setHighlight] = useState<boolean>()
 
   useEffect(() => {
     setCollapsed(isCollapsed)
-    if (selectedNode === id) {
-      setHighlight(true)
-    } else {
-      setHighlight(false)
-    }
-  }, [isCollapsed, selectedNode])
+  }, [isCollapsed])
 
   let selectionDetail
   if (
@@ -48,14 +40,13 @@ const ContentNode = ({ data: nodeProps, id }: NodeProps) => {
 
   const handleNodeClick = () => {
     setSelectedNode(id)
-    setNodeData(nodeData)
   }
 
   return (
     <>
       <div
         className={`clickable node-container ${
-          highlight ? 'node-highlight' : 'node-unhighlight'
+          isSelected ? 'node-highlight' : 'node-unhighlight'
         } ${
           is.ActivityDefinition(nodeDetails) || is.Questionnaire(nodeDetails)
             ? 'activity-node'

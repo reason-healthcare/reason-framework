@@ -6,10 +6,9 @@ export interface NodeProps {
     handle: ('source' | 'target')[]
     nodeData: NodeData
     isCollapsed: boolean
+    isSelected: boolean
     setNodeToExpand: React.Dispatch<React.SetStateAction<string>>
-    selectedNode: string | undefined
     setSelectedNode: React.Dispatch<React.SetStateAction<string | undefined>>
-    setNodeData: React.Dispatch<React.SetStateAction<NodeData | undefined>>
   }
   id: string
 }

@@ -1,16 +1,13 @@
 import { Edge, Node, ReactFlowInstance, getOutgoers } from 'reactflow'
-import { is, notEmpty } from '../helpers'
+import { is, notEmpty, getNodeIdFromResource } from '../helpers'
 import '@/styles/node.css'
-import { ElkNode } from 'elkjs'
 import { v4 } from 'uuid'
 import Graph from './Graph'
 import BrowserResolver from 'resolver/browser'
-import exp from 'constants'
 
 export interface FlowShape {
   nodes: Node[] | undefined
   edges: Edge[] | undefined
-  generateFinalFlow(graph: ElkNode): void
 }
 
 class Flow implements FlowShape {
@@ -38,9 +35,9 @@ class Flow implements FlowShape {
   }
 
   private createEndNode(
-    id: string,
     resource: fhir4.ActivityDefinition | fhir4.Questionnaire
   ): Node {
+    const id = getNodeIdFromResource(resource)
     return {
       id,
       data: {
@@ -48,6 +45,7 @@ class Flow implements FlowShape {
         handle: ['target'],
         nodeData: { nodeDetails: resource },
         isCollapsed: false,
+        isSelected: false,
       },
       type: 'contentNode',
       position: { x: 0, y: 0 },
@@ -68,6 +66,7 @@ class Flow implements FlowShape {
         handle: ['target', 'source'],
         nodeData: { nodeDetails: action, partOf: planDefinition },
         isCollapsed: false,
+        isSelected: false,
       },
       type: 'contentNode',
       position: { x: 0, y: 0 },
@@ -102,6 +101,7 @@ class Flow implements FlowShape {
       data: {
         nodeData: { nodeDetails: definition },
         isCollapsed: false,
+        isSelected: true
       },
       position: { x: 0, y: 0 },
       type: 'startNode',
@@ -194,14 +194,7 @@ class Flow implements FlowShape {
         ) {
           let endNode = this.nodes?.find((n) => n.id === id)
           if (endNode == null) {
-            const {id, title, name, url, description} = definition
-            endNode = this.createEndNode(
-              title ??
-              name ??
-              url ??
-              id ??
-              description ??
-              v4(), definition)
+            endNode = this.createEndNode(definition)
             this.addNewNode(endNode)
           }
           this.connectNodes(node.id, endNode.id, parentSelection)
@@ -257,7 +250,7 @@ class Flow implements FlowShape {
    * Generate final react flow with updated layout positions
    * @param graph
    */
-  public async generateFinalFlow(data?: any) {
+  public async positionNodes(data?: any) {
     const graph = new Graph()
     await graph.generateElkGraph(this).then((g) => {
       if (this.nodes && this.edges) {
@@ -327,7 +320,7 @@ class Flow implements FlowShape {
         )
       }
     }
-    await this.generateFinalFlow()
+    await this.positionNodes()
     return this
   }
 
@@ -373,7 +366,7 @@ class Flow implements FlowShape {
         this.setEdges = [...this.edges, ...childEdges]
       }
     }
-    await this.generateFinalFlow()
+    await this.positionNodes()
     return this
   }
 

@@ -3,6 +3,7 @@ import {
   formatResourceType,
   formatTitle,
   formatUrl,
+  getNodeIdFromResource,
   is,
   notEmpty,
 } from '../../helpers'
@@ -21,13 +22,13 @@ import SingleDisplayItem from './SingleDisplayItem'
 interface NarrativeDisplayProps {
   resolver: BrowserResolver | undefined
   setSelectedNode: React.Dispatch<React.SetStateAction<string | undefined>>
-  nodeDetails?: NodeData | undefined
+  nodeData?: NodeData | undefined
 }
 
 const NarrativeDisplay = ({
   resolver,
   setSelectedNode,
-  nodeDetails,
+  nodeData,
 }: NarrativeDisplayProps) => {
   const [resource, setResource] = useState<
     fhir4.FhirResource | fhir4.PlanDefinitionAction | undefined
@@ -39,20 +40,24 @@ const NarrativeDisplay = ({
   const navigate = useNavigate()
   const path = useLocation().pathname
   useEffect(() => {
+    console.log('From display panel:')
+    console.log(path)
     setResource(undefined)
     setPartOfIdentifier(undefined)
     setCql(undefined)
-    if (nodeDetails != null) {
-      const { nodeDetails: details, partOf } = nodeDetails
+    if (nodeData != null) {
+      console.log('using node details')
+      const { nodeDetails: details, partOf } = nodeData
       if (partOf != null) {
         setPartOfIdentifier(partOf.url)
       }
       setResource(details)
     } else if (resolver != null) {
+      console.log('resolving')
       const reference = path.split('/').slice(-2).join('/')
       const rawResource = resolver.resolveReference(reference)
-      if (is.ActivityDefinition(rawResource)) {
-        setSelectedNode(rawResource.id)
+      if (is.ActivityDefinition(rawResource) || is.Questionnaire(rawResource)) {
+        setSelectedNode(getNodeIdFromResource(rawResource))
       }
       if (is.Library(rawResource)) {
         const cql = rawResource.content?.find(
@@ -68,7 +73,7 @@ const NarrativeDisplay = ({
         setResource(rawResource)
       }
     }
-  }, [path, nodeDetails])
+  }, [path, nodeData])
 
   const handleClose = () => {
     setSelectedNode(undefined)
