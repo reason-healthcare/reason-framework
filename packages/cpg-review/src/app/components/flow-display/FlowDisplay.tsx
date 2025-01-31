@@ -73,7 +73,7 @@ export default function FlowDisplay({
   useEffect(() => {
     const newFlow = new Flow(expandedFlow?.nodes, expandedFlow?.edges)
     if (!expandedView && planDefinition.id != null) {
-      newFlow?.collapseAllFromSource(planDefinition.id, reactFlow).then(() => {
+      newFlow?.collapseAllNodes().then(() => {
         setDisplayNodes(newFlow.nodes)
         setDisplayEdges(newFlow.edges)
         const newKey = key + 1

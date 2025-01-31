@@ -5,6 +5,7 @@ import { ElkNode } from 'elkjs'
 import { v4 } from 'uuid'
 import Graph from './Graph'
 import BrowserResolver from 'resolver/browser'
+import exp from 'constants'
 
 export interface FlowShape {
   nodes: Node[] | undefined
@@ -36,20 +37,16 @@ class Flow implements FlowShape {
     this.edges ? this.edges.push(edge) : (this.edges = [edge])
   }
 
-  private createActivityNode(
+  private createEndNode(
     id: string,
-    definition: fhir4.PlanDefinition | fhir4.ActivityDefinition
+    resource: fhir4.ActivityDefinition | fhir4.Questionnaire
   ): Node {
     return {
       id,
       data: {
-        label:
-          definition.title ??
-          definition.name ??
-          definition.url ??
-          definition.id ??
-          definition.description,
-        nodeData: { nodeDetails: definition },
+        label: id,
+        handle: ['target'],
+        nodeData: { nodeDetails: resource },
         isCollapsed: false,
       },
       type: 'contentNode',
@@ -63,35 +60,38 @@ class Flow implements FlowShape {
     action: fhir4.PlanDefinitionAction,
     planDefinition: fhir4.PlanDefinition
   ) {
+    const {title, id: actionId, description} = action
     return {
       id,
       data: {
-        label: action.title ?? action.id ?? action.description,
+        label: title ?? actionId ?? description,
         handle: ['target', 'source'],
         nodeData: { nodeDetails: action, partOf: planDefinition },
         isCollapsed: false,
       },
-      position: { x: 0, y: 0 },
       type: 'contentNode',
+      position: { x: 0, y: 0 },
       className: 'node',
     } as Node
   }
 
   private createApplicabilityNode(
     id: string,
+    condition: fhir4.PlanDefinitionActionCondition,
     action: fhir4.PlanDefinitionAction,
     planDefinition: fhir4.PlanDefinition
   ) {
+    const {expression, kind} = condition
     return {
       id,
       data: {
-        label: action.condition![0].expression?.expression,
+        label: expression != null ? expression.name ?? expression.expression ?? expression.description : kind,
         handle: ['target', 'source'],
         nodeData: { nodeDetails: action, partOf: planDefinition },
         isCollapsed: false,
       },
-      position: { x: 0, y: 0 },
       type: 'applicabilityNode',
+      position: { x: 0, y: 0 },
       className: 'node',
     } as Node
   }
@@ -109,134 +109,118 @@ class Flow implements FlowShape {
     } as Node
   }
 
-  private createEdge(sourceId: string, targetId?: string) {
+  private createEdge(sourceId: string, targetId: string) {
     const edge = {
-      id: `${sourceId}`,
+      id: `${sourceId} - ${targetId}`,
       source: sourceId,
+      target: targetId,
       type: 'smoothstep',
       className: 'edge',
     } as Edge
-    if (targetId) {
-      edge.target = targetId
-    }
     return edge
   }
 
-  private proccessApplicabilityNodes(
-    parentId: string,
-    index: string,
-    action: fhir4.PlanDefinitionAction,
-    planDefinition: fhir4.PlanDefinition
+  private connectNodes(
+    sourceId: string,
+    targetId: string,
+    selectionBehavior: fhir4.PlanDefinitionAction['selectionBehavior'] | undefined
   ) {
-    const edgeSource = this.createEdge(parentId)
-    const applicabilityNode = this.createApplicabilityNode(
-      `condition-${parentId}-${index}`,
-      action,
-      planDefinition
-    )
-    this.addNewNode(applicabilityNode)
-    const edgeFinal = {
-      ...edgeSource,
-      target: applicabilityNode.id,
-      id: `${edgeSource.id} - ${applicabilityNode.id}`,
+    const edge = this.createEdge(sourceId, targetId)
+    if (selectionBehavior != null) {
+      edge.animated = true
     }
-    this.addNewEdge(edgeFinal)
-    return applicabilityNode
+    this.addNewEdge(edge)
   }
 
   /**
-   *
-   * @param actions Plan definition actions to process as new node
+   * @param planDefinition Plan definition source data
+   * @param actions Plan definition actions to process as new nodes
    * @param resolver FHIR resolver
-   * @param parentEdge Edge with source information
+   * @param parent Parent node that will connect to new child node
+   * @param parentSelection Selection behavior if any of the parent node
    */
   private processActionNodes(
     planDefinition: fhir4.PlanDefinition,
     actions: fhir4.PlanDefinitionAction[],
     resolver: BrowserResolver,
-    parentEdge: Edge
+    parent: Node,
+    parentSelection?: fhir4.PlanDefinitionAction['selectionBehavior'] | undefined
   ) {
     actions?.map((action) => {
+      const { title, id, condition, definitionCanonical, selectionBehavior, action: childActions } = action
+      const nodeId = `action-${title ?? id}-${v4()}`
       /**
-       * Create node for each action
+       * Handle Applicability - becomes parent of current action node
        */
-      const id = `action-${action.title ?? action.id}-${v4()}`
-      const node = this.createActionNode(id, action, planDefinition)
-
-      //* Handle Applicability - becomes parent of current action node */
-      let newParentEdge
-      if (action.condition != null) {
-        action.condition.forEach((condition, index) => {})
-        const applicabilityNode = this.createApplicabilityNode(
-          `condition-${id}`,
-          action,
-          planDefinition
-        )
-        this.addNewNode(applicabilityNode)
-        const applicabilityEdge = {
-          ...parentEdge,
-          target: applicabilityNode.id,
-          id: `${parentEdge.id} - ${applicabilityNode.id}`,
-        }
-        this.addNewEdge(applicabilityEdge)
-        newParentEdge = this.createEdge(applicabilityNode.id)
+      let currentParent = parent
+      if (condition != null) {
+        condition.forEach((condition) => {
+          const applicabilityNode = this.createApplicabilityNode(
+            `condition-${nodeId}`,
+            condition,
+            action,
+            planDefinition
+          )
+          this.addNewNode(applicabilityNode)
+          this.connectNodes(currentParent.id, applicabilityNode.id, parentSelection)
+          currentParent = applicabilityNode
+        })
       }
 
-      const finalParentEdge = newParentEdge ?? parentEdge
+      /**
+       * Create action node
+       */
+      const node = this.createActionNode(nodeId, action, planDefinition)
 
-      /** Connect to parent */
-      const edgeFinal = {
-        ...finalParentEdge,
-        target: node.id,
-        id: `${parentEdge.id} - ${node.id}`,
-      }
-      this.addNewEdge(edgeFinal)
-
-      /** Handle children */
-      const edgeSource = this.createEdge(node.id)
-      if (action.selectionBehavior) {
-        edgeSource.animated = true
-      }
-      if (action.definitionCanonical != null) {
+      /**
+       * Handle children
+       */
+      if (definitionCanonical != null) {
         const definition = resolver.resolveCanonical(
           action.definitionCanonical
         ) as fhir4.PlanDefinition | fhir4.ActivityDefinition | undefined
-        if (is.PlanDefinition(definition) && definition.action) {
+        /** Process definition canonical = plan definition */
+        if (is.PlanDefinition(definition) && definition.action != null) {
           this.processActionNodes(
             definition,
             definition.action,
             resolver,
-            edgeSource
+            node,
+            selectionBehavior
           )
+        /** Process definition canonical = activity definition or questionnaire */
         } else if (
-          (is.ActivityDefinition(definition) || is.Questionnaire(definition)) &&
-          definition.id
+          is.ActivityDefinition(definition) || is.Questionnaire(definition)
         ) {
-          const id = definition.id
-          let activityNode = this.nodes?.find((n) => n.id === id)
-          if (activityNode == null) {
-            activityNode = this.createActivityNode(id, definition)
-            activityNode.data.handle = ['target']
-            this.addNewNode(activityNode)
+          let endNode = this.nodes?.find((n) => n.id === id)
+          if (endNode == null) {
+            const {id, title, name, url, description} = definition
+            endNode = this.createEndNode(
+              title ??
+              name ??
+              url ??
+              id ??
+              description ??
+              v4(), definition)
+            this.addNewNode(endNode)
           }
-          const edgeFinal = {
-            ...edgeSource,
-            target: activityNode.id,
-            id: `${edgeSource.id} - ${activityNode.id}`,
-          }
-          this.addNewEdge(edgeFinal)
+          this.connectNodes(node.id, endNode.id, parentSelection)
         }
-      } else if (action.action != null) {
+      /** Process child actions */
+      } else if (childActions != null) {
         this.processActionNodes(
           planDefinition,
-          action.action,
+          childActions,
           resolver,
-          edgeSource
+          node,
+          selectionBehavior
         )
       } else {
+        /** Where there are no child nodes, the final node should be of type 'target'  */
         node.data.handle = ['target']
       }
       this.addNewNode(node)
+      this.connectNodes(currentParent.id, node.id, parentSelection)
     })
   }
 
@@ -251,20 +235,16 @@ class Flow implements FlowShape {
     resolver: BrowserResolver
   ) {
     if (is.PlanDefinition(planDefinition)) {
-      /** Create node if it doesn't exist, find node if it does */
-      const id = planDefinition.id || 'start'
-      const node = this.createStartNode(id, planDefinition)
+      const node = this.createStartNode('start', planDefinition)
       this.addNewNode(node)
-      node.data.handle = ['target']
 
       /** Handle children */
       if (planDefinition.action != null) {
-        const edgeSource = this.createEdge(node.id)
         this.processActionNodes(
           planDefinition,
           planDefinition.action,
           resolver,
-          edgeSource
+          node
         )
       } else {
         // TODO error handling
@@ -311,13 +291,11 @@ class Flow implements FlowShape {
     return this
   }
 
-  public async collapseAllFromSource(
-    id: string,
-    reactFlow: ReactFlowInstance<any, any>
+  public async collapseAllNodes(
   ) {
     let children: Node[] | undefined
     if (this.nodes && this.edges) {
-      const sourceNode = this.nodes?.find((n) => n.id === id)
+      const sourceNode = this.nodes?.find((n) => n.id === 'start')
       if (!sourceNode) {
         console.error('Unable to collapse graph')
       } else {
@@ -359,7 +337,7 @@ class Flow implements FlowShape {
     allEdges: Edge[] | undefined
   ) {
     if (sourceNode && allNodes && allEdges) {
-      // On node click, find outgoers and add to display nodes then regraph
+      // On node click, find outgoers, add to display nodes, then regraph
       let children = getOutgoers(sourceNode, allNodes, allEdges)
       const applicabilityNodes = children.filter(
         (node) => node.type === 'applicabilityNode'
