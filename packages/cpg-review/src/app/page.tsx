@@ -22,6 +22,7 @@ export default function Page() {
   const [showUpload, setShowUpload] = useState<boolean>(false)
   const [selectedNode, setSelectedNode] = useState<string>()
 
+  /** Page.tsx manages upload form payload to preserve form after submit */
   const [packageTypePayload, setPackageTypePayload] = useState<string>('file')
   const [endpointPayload, setEndpointPayload] = useState<string | undefined>()
   const [fileList, setFileList] = useState<UploadFile<any>[]>([])
