@@ -33,13 +33,11 @@ export default function FlowDisplay({
   selectedNode,
   setSelectedNode,
 }: FlowDisplayProps) {
-  const [flow, setFlow] = useState<Flow | undefined>()
+  const [initialFlow, setInitialFlow] = useState<Flow | undefined>()
   const [visibleNodes, setVisibleNodes] = useState<Node[] | undefined>()
   const [visibleEdges, setVisibleEdges] = useState<Edge[] | undefined>()
   const [expandedView, setExpandedView] = useState<boolean>(true)
   const [nodeToExpand, setNodeToExpand] = useState<string>()
-  // Changing key triggers re-render of ReactFlow component
-  const [key, setKey] = useState<number>(0)
 
   const nodeTypes = useMemo(
     () => ({
@@ -57,77 +55,60 @@ export default function FlowDisplay({
       flow.positionNodes({
         setNodeToExpand,
         setSelectedNode,
-      }).then((f) => {
-        setFlow(f)
-        setVisibleNodes(f.nodes)
-        setVisibleEdges(f.edges)
+      }).then((updatedFlow) => {
+        setInitialFlow(updatedFlow)
+        setVisibleNodes(updatedFlow.nodes)
+        setVisibleEdges(updatedFlow.edges)
       })
     }
   }, [])
 
   useEffect(() => {
-    const newFlow = new Flow(flow?.nodes, flow?.edges)
-    if (!expandedView) {
-      newFlow?.collapseAllNodes().then(() => {
-        setVisibleNodes(newFlow.nodes)
-        setVisibleEdges(newFlow.edges)
-        const newKey = key + 1
-        setKey(newKey)
-      })
-    } else if (expandedView) {
-      setVisibleNodes(newFlow.nodes)
-      setVisibleEdges(newFlow.edges)
-      const newKey = key + 1
-      setKey(newKey)
-    }
-  }, [expandedView])
-
-  useEffect(() => {
-    if (selectedNode && visibleNodes) {
-      setVisibleNodes(
-        visibleNodes.map((node) => {
-          return {
-            ...node,
-            data: { ...node.data, isSelected: node.id === selectedNode },
-          }
-        })
-      )
-      const selectedNodeContent = visibleNodes.find((n) => n.id === selectedNode)?.data.nodeContent
-      setNarrativeContent(selectedNodeContent)
-    } else if (visibleNodes != null) {
-      setVisibleNodes(
-        visibleNodes.map((node) => {
-          return {
-            ...node,
-            data: { ...node.data, isSelected: false},
-          }
-        })
-      )
+    if (visibleNodes != null) {
+      const node = visibleNodes.find((n) => n.id === selectedNode)
+      setVisibleNodes(Flow.setSelectedNode(visibleNodes, node?.id))
+      if (node != null) {
+        setNarrativeContent(node.data.nodeContent)
+      } else {
+        // Error handling
+      }
     }
   }, [selectedNode])
 
+  useEffect(() => {
+    if (initialFlow?.nodes != null && initialFlow?.edges != null) {
+      if (!expandedView) {
+        const newFlow = new Flow(initialFlow.nodes, initialFlow.edges)
+        newFlow.collapseAllChildren().then(() => {
+          setVisibleNodes(newFlow.nodes)
+          setVisibleEdges(newFlow.edges)
+        })
+      } else {
+        setVisibleNodes(initialFlow.nodes)
+        setVisibleEdges(initialFlow.edges)
+      }
+    }
+  }, [expandedView])
+
   const reactFlow = useReactFlow()
   useEffect(() => {
-    const flow = new Flow(visibleNodes, visibleEdges)
-    if (nodeToExpand != null) {
-      const sourceNode = flow?.nodes?.find((n) => n.id === nodeToExpand)
-      flow
-        .expandChildren(sourceNode, flow?.nodes, flow?.edges)
-        .then((f) => {
-          setVisibleNodes(f.nodes)
-          setVisibleEdges(f.edges)
-          sourceNode != null && selectedNode != null
-            ? setSelectedNode(sourceNode.id)
-            : null
-          flow.centerOnNode(nodeToExpand, 60, 1, reactFlow)
+    if (nodeToExpand != null && initialFlow?.nodes != null && initialFlow?.edges != null) {
+      const sourceNode = initialFlow.nodes.find((n) => n.id === nodeToExpand)
+      if (sourceNode != null) {
+        const newFlow = new Flow(visibleNodes, visibleEdges)
+        newFlow
+        .expandChild(sourceNode, initialFlow.nodes, initialFlow.edges)
+        .then((updatedFlow) => {
+          setVisibleNodes(updatedFlow.nodes)
+          setVisibleEdges(updatedFlow.edges)
+          newFlow.centerOnNode(nodeToExpand, 60, 1, reactFlow)
+          setSelectedNode(sourceNode.id)
         })
+      } else {
+        // TODO error handling
+      }
     }
   }, [nodeToExpand])
-
-  useEffect(() => {
-    const newKey = key + 1
-    setKey(newKey)
-  }, [])
 
   const handleExpandedViewClick = () => {
     setExpandedView(!expandedView)
@@ -149,7 +130,6 @@ export default function FlowDisplay({
   return (
     <div className="flow-container">
       <ReactFlow
-        key={key}
         nodes={visibleNodes}
         edges={visibleEdges}
         nodeTypes={nodeTypes}

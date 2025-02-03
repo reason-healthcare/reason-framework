@@ -18,14 +18,6 @@ class Flow implements FlowShape {
     this.edges = edges
   }
 
-  set setNodes(n: Node[]) {
-    this.nodes = n
-  }
-
-  set setEdges(e: Edge[]) {
-    this.edges = e
-  }
-
   private addNewNode(node: Node) {
     this.nodes ? this.nodes.push(node) : (this.nodes = [node])
   }
@@ -44,7 +36,7 @@ class Flow implements FlowShape {
         label: id,
         handle: ['target'],
         nodeContent: { resource },
-        isCollapsed: false,
+        isExpandable: false,
         isSelected: false,
       },
       type: 'contentNode',
@@ -65,7 +57,7 @@ class Flow implements FlowShape {
         label: title ?? actionId ?? description,
         handle: ['target', 'source'],
         nodeContent: { resource: action, partOf: planDefinition },
-        isCollapsed: false,
+        isExpandable: false,
         isSelected: false,
       },
       type: 'contentNode',
@@ -87,7 +79,7 @@ class Flow implements FlowShape {
         label: expression != null ? expression.name ?? expression.expression ?? expression.description : kind,
         handle: ['target', 'source'],
         nodeContent: { resource: action, partOf: planDefinition },
-        isCollapsed: false,
+        isExpandable: false,
       },
       type: 'applicabilityNode',
       position: { x: 0, y: 0 },
@@ -100,7 +92,7 @@ class Flow implements FlowShape {
       id,
       data: {
         nodeContent: { resource: definition },
-        isCollapsed: false,
+        isExpandable: false,
       },
       position: { x: 0, y: 0 },
       type: 'startNode',
@@ -132,11 +124,11 @@ class Flow implements FlowShape {
   }
 
   /**
-   * @param planDefinition Plan definition source data
+   * @param planDefinition Plan definition as source data
    * @param actions Plan definition actions to process as new nodes
    * @param resolver FHIR resolver
-   * @param parent Parent node that will connect to new child node
-   * @param parentSelection Selection behavior if any of the parent node
+   * @param parent Parent node that will connect to new child node (used to create Edge)
+   * @param parentSelection Selection behavior if any of the parent node (used to create Edge)
    */
   private processActionNodes(
     planDefinition: fhir4.PlanDefinition,
@@ -247,9 +239,10 @@ class Flow implements FlowShape {
 
   /**
    * Generate final react flow with updated layout positions
-   * @param graph
+   * @param nodeData React state setters to pass to nodes
    */
-  public async positionNodes(data?: any) {
+  public async positionNodes(nodeData?: Record<any, React.Dispatch<React.SetStateAction<any>>>) {
+    console.log(nodeData)
     const graph = new Graph()
     await graph.generateElkGraph(this).then((g) => {
       if (this.nodes && this.edges) {
@@ -260,7 +253,7 @@ class Flow implements FlowShape {
               return {
                 ...reactNode,
                 position: { x: node.x, y: node.y },
-                data: { ...reactNode.data, ...data },
+                data: { ...reactNode.data, ...nodeData },
               }
             }
           })
@@ -283,39 +276,42 @@ class Flow implements FlowShape {
     return this
   }
 
-  public async collapseAllNodes(
+  /**
+   *
+   * @param parentNode
+   * @param allNodes
+   * @param allEdges
+   * @returns
+   */
+  private getChildNodes(parentNode: Node, allNodes: Node[], allEdges: Edge[]) {
+    const immediateOutgoers = getOutgoers(parentNode, allNodes, allEdges)
+    const applicabilityOutgoers = immediateOutgoers.filter(
+      (node) => node.type === 'applicabilityNode'
+    )?.flatMap((n) => getOutgoers(n, allNodes, allEdges))
+    .filter((n) => n != null)
+    return immediateOutgoers.concat(applicabilityOutgoers)
+  }
+
+  /**
+   * @returns Updated, re-graphed flow with visible outgoers from the start node. Remaining nodes are hidden.
+   */
+  public async collapseAllChildren(
   ) {
-    let children: Node[] | undefined
-    if (this.nodes && this.edges) {
-      const sourceNode = this.nodes?.find((n) => n.id === 'start')
-      if (!sourceNode) {
+    if (this.nodes != null && this.edges != null) {
+      const startNode = this.nodes.find((n) => n.id === 'start')
+      if (!startNode) {
         console.error('Unable to collapse graph')
       } else {
-        const sourceNodes = [sourceNode]
-        children = getOutgoers(sourceNode, this.nodes, this.edges).flatMap(
-          (child) => {
-            if (
-              child.type === 'applicabilityNode' &&
-              this.nodes != null &&
-              this.edges != null
-            ) {
-              sourceNodes.push(child)
-              return getOutgoers(child, this.nodes, this.edges)
-            } else {
-              return child
-            }
-          }
-        )
-        this.setNodes = sourceNodes.concat([
+        const children = this.getChildNodes(startNode, this.nodes, this.edges)
+        this.nodes = [
+          startNode,
           ...children.map((c) => {
-            return { ...c, data: { ...c.data, isCollapsed: true } }
+            return { ...c, data: { ...c.data, isExpandable: true } }
           }),
-        ])
-        this.setEdges = this.edges.filter(
-          (e) =>
-            (children?.find((c) => c.id === e.target) ||
-              sourceNodes.find((n) => n.id === e.target)) &&
-            sourceNodes.find((n) => n.id === e.source)
+        ]
+        this.edges = this.edges.filter(
+          (edge) =>
+            this.nodes?.find(node => node.id === edge.target) && this.nodes?.find(node => node.id === edge.source)
         )
       }
     }
@@ -323,35 +319,30 @@ class Flow implements FlowShape {
     return this
   }
 
-  public async expandChildren(
-    sourceNode: Node | undefined,
-    allNodes: Node[] | undefined,
-    allEdges: Edge[] | undefined
+  /**
+   *
+   * @param sourceNode Node to expand from
+   * @param allNodes All available nodes from initial Flow
+   * @param allEdges All available edges from initial Flow
+   * @returns Updated, re-graphed flow with visible outgoers from the expanded node and other previously visible nodes. Remaining nodes are hidden.
+   */
+  public async expandChild(
+    sourceNode: Node,
+    allNodes: Node[],
+    allEdges: Edge[]
   ) {
-    if (sourceNode && allNodes && allEdges) {
-      // On node click, find outgoers, add to display nodes, then regraph
-      let children = getOutgoers(sourceNode, allNodes, allEdges)
-      const applicabilityNodes = children.filter(
-        (node) => node.type === 'applicabilityNode'
-      )
-      children = children
-        .concat(
-          applicabilityNodes
-            ?.flatMap((n) => getOutgoers(n, allNodes, allEdges))
-            .filter((n) => n != null)
-        )
-        .filter((c) => !this.nodes?.includes(c))
-      if (children && this.nodes) {
-        this.setNodes = [
-          ...this.nodes.map((n) => {
-            let node = n
-            if (n.id === sourceNode.id) {
-              node = { ...n, data: { ...n.data, isCollapsed: false } }
+    if (this.nodes != null && this.edges != null) {
+      const children = this.getChildNodes(sourceNode, allNodes, allEdges)
+      if (children != null) {
+        this.nodes = [
+          ...this.nodes.map((node) => {
+            if (node.id === sourceNode.id) {
+              node = { ...node, data: { ...node.data, isExpandable: false } }
             }
             return node
           }),
-          ...children.map((c) => {
-            return { ...c, data: { ...c.data, isCollapsed: true } }
+          ...children.map((childNode) => {
+            return { ...childNode, data: { ...childNode.data, isExpandable: true } }
           }),
         ]
       }
@@ -362,13 +353,20 @@ class Flow implements FlowShape {
             children?.some((c) => c.id === e.source))
       )
       if (childEdges && this.edges) {
-        this.setEdges = [...this.edges, ...childEdges]
+        this.edges = [...this.edges, ...childEdges]
       }
     }
     await this.positionNodes()
     return this
   }
 
+  /**
+   *
+   * @param sourceId Node to center in flow
+   * @param yAxis y-axis offset
+   * @param zoomFactor
+   * @param reactFlow
+   */
   public async centerOnNode(
     sourceId: string,
     yAxis: number,
@@ -382,6 +380,23 @@ class Flow implements FlowShape {
       reactFlow.setCenter(x, y + yAxis, { zoom: zoom * zoomFactor })
     }
   }
+
+  /**
+   *
+   * @param nodes All visible nodes
+   * @param selectedNode Node to set as selected. If undefined, all nodes set to isSelected false.
+   * @returns Nodes with updated node data
+   */
+  public static setSelectedNode(nodes: Node[], selectedNode?: string | undefined) {
+    return nodes.map((node) => {
+      return {
+        ...node,
+        data: { ...node.data, isSelected: node.id === (selectedNode ?? false) },
+      }
+    })
+  }
+
 }
+
 
 export default Flow

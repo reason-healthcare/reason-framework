@@ -11,7 +11,7 @@ export interface NodeProps {
     label: string
     handle: ('source' | 'target')[]
     nodeContent: NodeContent
-    isCollapsed: boolean
+    isExpandable: boolean
     isSelected: boolean
     setNodeToExpand: React.Dispatch<React.SetStateAction<string>>
     setSelectedNode: React.Dispatch<React.SetStateAction<string | undefined>>

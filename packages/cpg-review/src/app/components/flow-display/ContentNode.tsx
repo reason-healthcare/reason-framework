@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react'
 import '@/styles/node.css'
 import InteractiveHandle from './InteractiveHandle'
 import { is } from 'helpers'
@@ -12,24 +11,19 @@ const ContentNode = ({ data: nodeProps, id }: NodeProps) => {
     label,
     handle,
     nodeContent,
-    isCollapsed,
+    isExpandable,
     isSelected,
     setNodeToExpand,
     setSelectedNode,
   } = nodeProps
-  const { resource, partOf } = nodeContent
-  const [collapsed, setCollapsed] = useState<boolean>(false)
-
-  useEffect(() => {
-    setCollapsed(isCollapsed)
-  }, [isCollapsed])
+  const { resource } = nodeContent
 
   let selectionDetail
   if (
     !is.ActivityDefinition(resource) &&
     !is.Questionnaire(resource) &&
     resource.selectionBehavior &&
-    !collapsed
+    !isExpandable
   ) {
     selectionDetail = (
       <div className="action-selection-label">
@@ -68,8 +62,7 @@ const ContentNode = ({ data: nodeProps, id }: NodeProps) => {
         </div>
         {handle?.includes('source') && (
           <InteractiveHandle
-            setCollapsed={setCollapsed}
-            collapsed={collapsed}
+            isExpandable={isExpandable}
             setNodeToExpand={setNodeToExpand}
             id={id}
           />
