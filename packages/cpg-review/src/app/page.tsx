@@ -18,7 +18,9 @@ export default function Page() {
   const [planDefinition, setPlanDefinition] = useState<
     fhir4.PlanDefinition | undefined
   >()
-  const [narrativeContent, setNarrativeContent] = useState<NodeContent | undefined>()
+  const [narrativeContent, setNarrativeContent] = useState<
+    NodeContent | undefined
+  >()
   const [showUpload, setShowUpload] = useState<boolean>(false)
   const [selectedNode, setSelectedNode] = useState<string>()
 

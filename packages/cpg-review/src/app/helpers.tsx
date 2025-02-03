@@ -745,8 +745,10 @@ export const is = {
   },
 }
 
-export const getNodeIdFromResource = (resource: fhir4.ActivityDefinition | fhir4.Questionnaire) => {
-  const {title, name, url, id} = resource
+export const getNodeIdFromResource = (
+  resource: fhir4.ActivityDefinition | fhir4.Questionnaire
+) => {
+  const { title, name, url, id } = resource
   return title ?? name ?? url ?? id
 }
 

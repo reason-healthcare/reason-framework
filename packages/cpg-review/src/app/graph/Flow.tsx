@@ -50,7 +50,7 @@ class Flow implements FlowShape {
     action: fhir4.PlanDefinitionAction,
     planDefinition: fhir4.PlanDefinition
   ) {
-    const {title, id: actionId, description} = action
+    const { title, id: actionId, description } = action
     return {
       id,
       data: {
@@ -72,11 +72,14 @@ class Flow implements FlowShape {
     action: fhir4.PlanDefinitionAction,
     planDefinition: fhir4.PlanDefinition
   ) {
-    const {expression, kind} = condition
+    const { expression, kind } = condition
     return {
       id,
       data: {
-        label: expression != null ? expression.name ?? expression.expression ?? expression.description : kind,
+        label:
+          expression != null
+            ? expression.name ?? expression.expression ?? expression.description
+            : kind,
         handle: ['target', 'source'],
         nodeContent: { resource: action, partOf: planDefinition },
         isExpandable: false,
@@ -114,7 +117,9 @@ class Flow implements FlowShape {
   private connectNodes(
     sourceId: string,
     targetId: string,
-    selectionBehavior: fhir4.PlanDefinitionAction['selectionBehavior'] | undefined
+    selectionBehavior:
+      | fhir4.PlanDefinitionAction['selectionBehavior']
+      | undefined
   ) {
     const edge = this.createEdge(sourceId, targetId)
     if (selectionBehavior != null) {
@@ -135,10 +140,19 @@ class Flow implements FlowShape {
     actions: fhir4.PlanDefinitionAction[],
     resolver: BrowserResolver,
     parent: Node,
-    parentSelection?: fhir4.PlanDefinitionAction['selectionBehavior'] | undefined
+    parentSelection?:
+      | fhir4.PlanDefinitionAction['selectionBehavior']
+      | undefined
   ) {
     actions?.map((action) => {
-      const { title, id, condition, definitionCanonical, selectionBehavior, action: childActions } = action
+      const {
+        title,
+        id,
+        condition,
+        definitionCanonical,
+        selectionBehavior,
+        action: childActions,
+      } = action
       const nodeId = `action-${title ?? id}-${v4()}`
       /**
        * Handle Applicability - becomes parent of current action node
@@ -153,7 +167,11 @@ class Flow implements FlowShape {
             planDefinition
           )
           this.addNewNode(applicabilityNode)
-          this.connectNodes(currentParent.id, applicabilityNode.id, parentSelection)
+          this.connectNodes(
+            currentParent.id,
+            applicabilityNode.id,
+            parentSelection
+          )
           currentParent = applicabilityNode
         })
       }
@@ -179,9 +197,10 @@ class Flow implements FlowShape {
             node,
             selectionBehavior
           )
-        /** Process definition canonical = activity definition or questionnaire */
+          /** Process definition canonical = activity definition or questionnaire */
         } else if (
-          is.ActivityDefinition(definition) || is.Questionnaire(definition)
+          is.ActivityDefinition(definition) ||
+          is.Questionnaire(definition)
         ) {
           let endNode = this.nodes?.find((n) => n.id === id)
           if (endNode == null) {
@@ -190,7 +209,7 @@ class Flow implements FlowShape {
           }
           this.connectNodes(node.id, endNode.id, parentSelection)
         }
-      /** Process child actions */
+        /** Process child actions */
       } else if (childActions != null) {
         this.processActionNodes(
           planDefinition,
@@ -241,7 +260,9 @@ class Flow implements FlowShape {
    * Generate final react flow with updated layout positions
    * @param nodeData React state setters to pass to nodes
    */
-  public async positionNodes(nodeData?: Record<any, React.Dispatch<React.SetStateAction<any>>>) {
+  public async positionNodes(
+    nodeData?: Record<any, React.Dispatch<React.SetStateAction<any>>>
+  ) {
     console.log(nodeData)
     const graph = new Graph()
     await graph.generateElkGraph(this).then((g) => {
@@ -285,18 +306,17 @@ class Flow implements FlowShape {
    */
   private getChildNodes(parentNode: Node, allNodes: Node[], allEdges: Edge[]) {
     const immediateOutgoers = getOutgoers(parentNode, allNodes, allEdges)
-    const applicabilityOutgoers = immediateOutgoers.filter(
-      (node) => node.type === 'applicabilityNode'
-    )?.flatMap((n) => getOutgoers(n, allNodes, allEdges))
-    .filter((n) => n != null)
+    const applicabilityOutgoers = immediateOutgoers
+      .filter((node) => node.type === 'applicabilityNode')
+      ?.flatMap((n) => getOutgoers(n, allNodes, allEdges))
+      .filter((n) => n != null)
     return immediateOutgoers.concat(applicabilityOutgoers)
   }
 
   /**
    * @returns Updated, re-graphed flow with visible outgoers from the start node. Remaining nodes are hidden.
    */
-  public async collapseAllChildren(
-  ) {
+  public async collapseAllChildren() {
     if (this.nodes != null && this.edges != null) {
       const startNode = this.nodes.find((n) => n.id === 'start')
       if (!startNode) {
@@ -311,7 +331,8 @@ class Flow implements FlowShape {
         ]
         this.edges = this.edges.filter(
           (edge) =>
-            this.nodes?.find(node => node.id === edge.target) && this.nodes?.find(node => node.id === edge.source)
+            this.nodes?.find((node) => node.id === edge.target) &&
+            this.nodes?.find((node) => node.id === edge.source)
         )
       }
     }
@@ -342,7 +363,10 @@ class Flow implements FlowShape {
             return node
           }),
           ...children.map((childNode) => {
-            return { ...childNode, data: { ...childNode.data, isExpandable: true } }
+            return {
+              ...childNode,
+              data: { ...childNode.data, isExpandable: true },
+            }
           }),
         ]
       }
@@ -387,7 +411,10 @@ class Flow implements FlowShape {
    * @param selectedNode Node to set as selected. If undefined, all nodes set to isSelected false.
    * @returns Nodes with updated node data
    */
-  public static setSelectedNode(nodes: Node[], selectedNode?: string | undefined) {
+  public static setSelectedNode(
+    nodes: Node[],
+    selectedNode?: string | undefined
+  ) {
     return nodes.map((node) => {
       return {
         ...node,
@@ -395,8 +422,6 @@ class Flow implements FlowShape {
       }
     })
   }
-
 }
-
 
 export default Flow

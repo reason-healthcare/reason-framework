@@ -21,7 +21,9 @@ import ApplicabilityNode from './ApplicabilityNode'
 interface FlowDisplayProps {
   resolver: BrowserResolver | undefined
   planDefinition: fhir4.PlanDefinition
-  setNarrativeContent: React.Dispatch<React.SetStateAction<NodeContent | undefined>>
+  setNarrativeContent: React.Dispatch<
+    React.SetStateAction<NodeContent | undefined>
+  >
   selectedNode: string | undefined
   setSelectedNode: React.Dispatch<React.SetStateAction<string | undefined>>
 }
@@ -52,14 +54,16 @@ export default function FlowDisplay({
     const flow = new Flow()
     if (resolver && resolver.resourcesByCanonical) {
       flow.generateInitialFlow(planDefinition, resolver)
-      flow.positionNodes({
-        setNodeToExpand,
-        setSelectedNode,
-      }).then((updatedFlow) => {
-        setInitialFlow(updatedFlow)
-        setVisibleNodes(updatedFlow.nodes)
-        setVisibleEdges(updatedFlow.edges)
-      })
+      flow
+        .positionNodes({
+          setNodeToExpand,
+          setSelectedNode,
+        })
+        .then((updatedFlow) => {
+          setInitialFlow(updatedFlow)
+          setVisibleNodes(updatedFlow.nodes)
+          setVisibleEdges(updatedFlow.edges)
+        })
     }
   }, [])
 
@@ -92,18 +96,22 @@ export default function FlowDisplay({
 
   const reactFlow = useReactFlow()
   useEffect(() => {
-    if (nodeToExpand != null && initialFlow?.nodes != null && initialFlow?.edges != null) {
+    if (
+      nodeToExpand != null &&
+      initialFlow?.nodes != null &&
+      initialFlow?.edges != null
+    ) {
       const sourceNode = initialFlow.nodes.find((n) => n.id === nodeToExpand)
       if (sourceNode != null) {
         const newFlow = new Flow(visibleNodes, visibleEdges)
         newFlow
-        .expandChild(sourceNode, initialFlow.nodes, initialFlow.edges)
-        .then((updatedFlow) => {
-          setVisibleNodes(updatedFlow.nodes)
-          setVisibleEdges(updatedFlow.edges)
-          newFlow.centerOnNode(nodeToExpand, 60, 1, reactFlow)
-          setSelectedNode(sourceNode.id)
-        })
+          .expandChild(sourceNode, initialFlow.nodes, initialFlow.edges)
+          .then((updatedFlow) => {
+            setVisibleNodes(updatedFlow.nodes)
+            setVisibleEdges(updatedFlow.edges)
+            newFlow.centerOnNode(nodeToExpand, 60, 1, reactFlow)
+            setSelectedNode(sourceNode.id)
+          })
       } else {
         // TODO error handling
       }

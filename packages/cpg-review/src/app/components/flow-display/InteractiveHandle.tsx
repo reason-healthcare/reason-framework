@@ -1,8 +1,6 @@
 import { Handle, Position } from 'reactflow'
 import '@/styles/node.css'
-import {
-  DownCircleFilled,
-} from '@ant-design/icons'
+import { DownCircleFilled } from '@ant-design/icons'
 
 type InteractiveHandleProps = {
   isExpandable: boolean
