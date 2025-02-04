@@ -9,6 +9,13 @@ import { is, notEmpty, resolveCanonical } from 'helpers'
 import Link from 'next/link'
 import { debounce } from 'lodash'
 
+const CPG_PATHWAY_DEF =
+  'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-pathwaydefinition'
+const CPG_STRATEGY_DEF =
+  'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-strategydefinition'
+const CPG_RECOMMENDATION_DEF =
+  'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-recommendationdefinition'
+
 export interface UploadSectionProps {
   setResolver: React.Dispatch<React.SetStateAction<BrowserResolver | undefined>>
   setPlanDefinition: React.Dispatch<
@@ -21,15 +28,21 @@ export interface UploadSectionProps {
   setEndpointPayload: React.Dispatch<React.SetStateAction<string | undefined>>
   fileList: UploadFile<any>[]
   setFileList: React.Dispatch<React.SetStateAction<UploadFile<any>[]>>
-  planDefinitionSelectionOptions: fhir4.PlanDefinition[] | undefined
+  planDefinitionSelectionOptions: PlanDefinitionSelectionOption[] | undefined
   setPlanDefinitionSelectionOptions: React.Dispatch<
-    React.SetStateAction<fhir4.PlanDefinition[] | undefined>
+    React.SetStateAction<PlanDefinitionSelectionOption[] | undefined>
   >
   planDefinitionPayload: string | undefined
   setPlanDefinitionPayload: React.Dispatch<
     React.SetStateAction<string | undefined>
   >
-  setShowUpload: React.Dispatch<React.SetStateAction<boolean>>
+  setShowUploadPage: React.Dispatch<React.SetStateAction<boolean>>
+}
+
+export interface PlanDefinitionSelectionOption {
+  planDefinition: fhir4.PlanDefinition
+  label: string | undefined
+  type: string
 }
 
 const UploadSection = (uploadSectionProps: UploadSectionProps) => {
@@ -47,33 +60,128 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
     setPlanDefinitionSelectionOptions,
     planDefinitionPayload,
     setPlanDefinitionPayload,
-    setShowUpload,
+    setShowUploadPage,
   } = uploadSectionProps
 
-  const [isLoading, setIsLoading] = useState(false)
+  // const [isLoading, setIsLoading] = useState(false)
   const [uploaded, setUploaded] = useState<RcFile | Blob | undefined>()
-
-  const { Option } = Select
-  const { Dragger } = Upload
   const [form] = Form.useForm()
 
-  const beforeUpload = (file: RcFile) => {
-    const isTar = file.type === 'application/gzip'
-    if (uploaded != null) {
-      message.error('May only upload one compressed package')
-    } else if (!isTar) {
-      message.error('File must be a tarball ending in .tgz')
+  const getPlanOptionType = (planDefinition: fhir4.PlanDefinition) => {
+    let type
+    const { meta } = planDefinition
+    if (meta?.profile?.find((profile) => profile === CPG_PATHWAY_DEF)) {
+      type = 'CPG Pathway'
+    } else if (meta?.profile?.find((profile) => profile === CPG_STRATEGY_DEF)) {
+      type = 'CPG Strategy'
+    } else if (
+      meta?.profile?.find((profile) => profile === CPG_RECOMMENDATION_DEF)
+    ) {
+      type = 'CPG Recommendation'
+    } else {
+      type = 'Plan Definition'
     }
+    return type
+  }
+  /** Sort plan definition options alphabetically with preference for plan type 1. pathway 2. strategy 3. recommendation 4. plan definition */
+  const formatPlanOptions = (planDefinitionOptions: fhir4.PlanDefinition[]) => {
+    return planDefinitionOptions
+      .map((plan) => {
+        const type = getPlanOptionType(plan)
+        const label = plan.title ?? plan.name ?? plan.url ?? plan.id
+        return {
+          planDefinition: plan,
+          type,
+          label,
+        }
+      })
+      .sort((a, b) => {
+        const sortOrder = [
+          'CPG Pathway',
+          'CPG Strategy',
+          'CPG Recommendation',
+          'Plan Definition',
+        ]
+        return (
+          sortOrder.indexOf(a.type) - sortOrder.indexOf(b.type) ||
+          a.label?.localeCompare(b.label ?? '') ||
+          0
+        )
+      })
+  }
+
+  const handleEndpointInput = useRef(
+    debounce(async (value) => {
+      if (value.startsWith('https://') || value.startsWith('http://')) {
+        try {
+          const response = await fetch(value)
+          if (!response.ok) {
+            throw response
+          }
+          const blob = await response.blob()
+          setUploaded(blob)
+          await handleUploadFile(blob)
+        } catch (e) {
+          message.error('Unable to resolve endpoint')
+          console.error(`Problem fetching resource: ${e}`)
+        }
+      } else if (value !== '') {
+        message.error('Not a valid URL')
+      }
+    }, 2000)
+  ).current
+
+  const handleEndpointChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleEndpointInput(e.target.value)
+    setEndpointPayload(e.target.value)
+  }
+
+  const resetForm = () => {
+    setFileList([])
+    setUploaded(undefined)
+    setPlanDefinitionSelectionOptions(undefined)
+    setPlanDefinitionPayload(undefined)
+    setEndpointPayload(undefined)
+    form.resetFields()
+    localStorage.clear()
+  }
+
+  const handlePackageTypeChange = (e: RadioChangeEvent) => {
+    setPackageTypePayload(e.target.value)
+    resetForm()
+  }
+
+  const handlePlanSelectionChange = (value: string) => {
+    setPlanDefinitionPayload(value)
+  }
+
+  const handleSubmit = (e: Event) => {
+    if (resolver instanceof BrowserResolver) {
+      const plan = resolveCanonical(planDefinitionPayload, resolver)
+      if (is.PlanDefinition(plan)) {
+        setPlanDefinition(plan)
+        setShowUploadPage(false)
+      }
+    }
+  }
+
+  const beforeFileUpload = (file: RcFile) => {
+    const isTar = file.type === 'application/gzip'
     if (isTar && uploaded == null) {
       setUploaded(file)
       setFileList([file])
     } else {
+      if (uploaded != null) {
+        message.error('May only upload one compressed package')
+      } else if (!isTar) {
+        message.error('File must be a tarball ending in .tgz')
+      }
       return Upload.LIST_IGNORE
     }
   }
 
-  const handleUpload = async (rawData: RcFile | Blob) => {
-    setIsLoading(true)
+  const handleUploadFile = async (rawData: RcFile | Blob) => {
+    // setIsLoading(true)
     if (rawData) {
       let resolver = new BrowserResolver()
       resolver.decompress(rawData).then((decompressed) => {
@@ -92,7 +200,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
             })
             .filter(notEmpty)
           if (plans.length > 0) {
-            setPlanDefinitionSelectionOptions(plans)
+            setPlanDefinitionSelectionOptions(formatPlanOptions(plans))
             localStorage.clear()
             setPlanDefinition(undefined)
             setResolver(decompressed)
@@ -119,7 +227,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
     }
   }
 
-  const handleFileChange = (info: any) => {
+  const handleFileUploadChange = (info: any) => {
     const { status, originFileObj } = info.file
     const { fileList } = info
     if (status === 'removed') {
@@ -127,140 +235,24 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
     } else if (fileList.length > 1) {
       message.error('May only upload one compressed file')
     } else if (status === 'done') {
-      handleUpload(originFileObj)
+      handleUploadFile(originFileObj)
     }
   }
 
-  const handleInput = useRef(
-    debounce(async (value) => {
-      if (value.startsWith('https://') || value.startsWith('http://')) {
-        try {
-          const response = await fetch(value)
-          if (!response.ok) {
-            throw response
-          }
-          const blob = await response.blob()
-          setUploaded(blob)
-          await handleUpload(blob)
-        } catch (e) {
-          message.error('Unable to resolve endpoint')
-          console.error(`Problem fetching resource: ${e}`)
-        }
-      } else if (value !== '') {
-        message.error('Not a valid URL')
-      }
-    }, 2000)
-  ).current
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handleInput(e.target.value)
-    setEndpointPayload(e.target.value)
-  }
-
-  const formatPlanOptions = () => {
-    const planOptions = planDefinitionSelectionOptions?.map((plan) => {
-      let type
-      if (
-        plan.meta?.profile?.find(
-          (p) =>
-            p ===
-            'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-pathwaydefinition'
-        )
-      ) {
-        type = 'CPG Pathway'
-      } else if (
-        plan.meta?.profile?.find(
-          (p) =>
-            p ===
-            'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-strategydefinition'
-        )
-      ) {
-        type = 'CPG Strategy'
-      } else if (
-        plan.meta?.profile?.find(
-          (p) =>
-            p ===
-            'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-recommendationdefinition'
-        )
-      ) {
-        type = 'CPG Recommendation'
-      } else {
-        type = 'Plan Definition'
-      }
-      return (
-        <Option key={plan.url} value={plan.url}>
-          {`${plan.title ?? plan.name ?? plan.url ?? plan.id} (${type})`}
-        </Option>
-      )
-    })
-
-    const sortOrder = [
-      'CPG Pathway',
-      'CPG Strategy',
-      'CPG Recommendation',
-      'Plan Definition',
-    ]
-    return planOptions?.sort().sort((a, b) => {
-      const aKeyword =
-        a.props.children
-          .match(/\((.*?)\)/)
-          ?.shift()
-          ?.replace('(', '')
-          .replace(')', '') || ''
-      const bKeyword =
-        b.props.children
-          .match(/\((.*?)\)/)
-          ?.shift()
-          ?.replace('(', '')
-          .replace(')', '') || ''
-      const aIndex = sortOrder.indexOf(aKeyword)
-      const bIndex = sortOrder.indexOf(bKeyword)
-      return aIndex - bIndex
-    })
-  }
-
-  const handlePDChange = (value: string) => {
-    setPlanDefinitionPayload(value)
-  }
-
-  const handleSubmit = (e: Event) => {
-    if (resolver instanceof BrowserResolver) {
-      const plan = resolveCanonical(planDefinitionPayload, resolver)
-      if (is.PlanDefinition(plan)) {
-        setPlanDefinition(plan)
-        setShowUpload(false)
-      }
-    }
-  }
-
-  const reset = () => {
-    setFileList([])
-    setUploaded(undefined)
-    setPlanDefinitionSelectionOptions(undefined)
-    setPlanDefinitionPayload(undefined)
-    setEndpointPayload(undefined)
-    form.resetFields()
-    localStorage.clear()
-  }
-
-  const props: UploadProps = {
+  const uploadProps: UploadProps = {
     name: 'file',
     multiple: false,
     accept: 'tgz',
-    beforeUpload,
-    onChange: handleFileChange,
-    onRemove: reset,
+    beforeUpload: beforeFileUpload,
+    onChange: handleFileUploadChange,
+    onRemove: resetForm,
     maxCount: 1,
   }
 
-  const handlePackageTypePayloadChange = (e: RadioChangeEvent) => {
-    setPackageTypePayload(e.target.value)
-    reset()
-  }
-
-  let uploadItem
+  const { Dragger } = Upload
+  let uploadFormItem
   if (packageTypePayload === 'file') {
-    uploadItem = (
+    uploadFormItem = (
       <Form.Item name="upload" className="form-item upload">
         <h1 className="form-title">Upload package</h1>
         <p className="form-description">
@@ -276,7 +268,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
           file.
         </p>
         <Dragger
-          {...props}
+          {...uploadProps}
           className={`form-item ${fileList.length ? 'hidden' : ''}`}
           fileList={fileList}
         >
@@ -291,7 +283,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
       </Form.Item>
     )
   } else {
-    uploadItem = (
+    uploadFormItem = (
       <Form.Item
         name="endpoint"
         valuePropName="fileList"
@@ -304,12 +296,14 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
         </p>
         <Input
           placeholder="https://packages.simplifier.net/hl7.fhir.uv.cpg/2.0.0"
-          onChange={handleInputChange}
+          onChange={handleEndpointChange}
           value={endpointPayload}
         />
       </Form.Item>
     )
   }
+
+  const { Option } = Select
   return (
     <>
       <Form
@@ -326,14 +320,14 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
           </p>
           <Radio.Group
             value={packageTypePayload}
-            onChange={handlePackageTypePayloadChange}
+            onChange={handlePackageTypeChange}
             className="radio-group"
           >
             <Radio value="file">File</Radio>
             <Radio value="rest">Rest</Radio>
           </Radio.Group>
         </Form.Item>
-        {uploadItem}
+        {uploadFormItem}
         <Form.Item name="select" className="form-item">
           <h1 className="form-title">Select plan definition</h1>
           <p className="form-description">
@@ -349,7 +343,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
             .
           </p>
           <Select
-            onChange={handlePDChange}
+            onChange={handlePlanSelectionChange}
             placeholder={
               planDefinitionSelectionOptions == null
                 ? 'Upload content to view plans'
@@ -358,7 +352,14 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
             popupMatchSelectWidth={true}
             disabled={planDefinitionSelectionOptions == null}
           >
-            {formatPlanOptions()}
+            {planDefinitionSelectionOptions?.map((planOption) => {
+              const { planDefinition, label, type } = planOption
+              return (
+                <Option key={planDefinition.url} value={planDefinition.url}>
+                  {`${label} (${type})`}
+                </Option>
+              )
+            })}
           </Select>
         </Form.Item>
         <Form.Item className="button-group">
@@ -373,7 +374,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
           <button
             type="submit"
             className="button button-secondary"
-            onClick={reset}
+            onClick={resetForm}
           >
             Reset
           </button>
