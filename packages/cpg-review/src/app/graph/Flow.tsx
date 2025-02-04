@@ -263,7 +263,6 @@ class Flow implements FlowShape {
   public async positionNodes(
     nodeData?: Record<any, React.Dispatch<React.SetStateAction<any>>>
   ) {
-    console.log(nodeData)
     const graph = new Graph()
     await graph.generateElkGraph(this).then((g) => {
       if (this.nodes && this.edges) {

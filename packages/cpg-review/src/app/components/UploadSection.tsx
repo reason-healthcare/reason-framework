@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useRef } from 'react'
 import { Form, message, Upload, Select, Radio, Input, Spin } from 'antd'
 import { InboxOutlined, LoadingOutlined } from '@ant-design/icons'
 import type { RadioChangeEvent, UploadProps } from 'antd'
@@ -8,7 +8,6 @@ import BrowserResolver from 'resolver/browser'
 import { is, notEmpty, resolveCanonical } from 'helpers'
 import Link from 'next/link'
 import { debounce } from 'lodash'
-import LoadIndicator from './LoadIndicator'
 
 const CPG_PATHWAY_DEF =
   'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-pathwaydefinition'

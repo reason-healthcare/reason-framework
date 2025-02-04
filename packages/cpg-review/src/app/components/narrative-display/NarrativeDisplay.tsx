@@ -8,16 +8,37 @@ import {
   notEmpty,
 } from '../../helpers'
 import { useLocation, useNavigate } from 'react-router-dom'
-import BrowserResolver from 'resolver/browser'
-import BackButton from '../BackButton'
-import CodeBlock from './CodeBlock'
-import '@/styles/NarrativeDisplay.css'
 import { useEffect, useState } from 'react'
 import { CloseOutlined } from '@ant-design/icons'
 import type { RadioChangeEvent } from 'antd'
 import { Radio } from 'antd'
-import { NodeContent } from '../../types/NodeProps'
+import BrowserResolver from 'resolver/browser'
+import CodeBlock from './CodeBlock'
+import BackButton from '../BackButton'
 import SingleDisplayItem from './SingleDisplayItem'
+import { NodeContent } from '@/types/NodeProps'
+import '@/styles/NarrativeDisplay.css'
+
+const META = [
+  'id',
+  'publisher',
+  'title',
+  'status',
+  'date',
+  'resourceType',
+  'text',
+  'meta',
+  'url',
+  'contact',
+  'name',
+  'version',
+  'content',
+  'mapping',
+  'snapshot',
+  'parameter',
+  'jurisdiction',
+  'count',
+]
 
 interface NarrativeDisplayProps {
   resolver: BrowserResolver | undefined
@@ -35,7 +56,7 @@ const NarrativeDisplay = ({
   >()
   const [cql, setCql] = useState<string | undefined>()
   const [partOfIdentifier, setPartOfIdentifier] = useState<string | undefined>()
-  const [format, setFormat] = useState<'text' | 'json'>('text')
+  const [contentFormat, setContentFormat] = useState<'text' | 'json'>('text')
 
   const navigate = useNavigate()
   const path = useLocation().pathname
@@ -71,71 +92,45 @@ const NarrativeDisplay = ({
     }
   }, [path, narrativeContent])
 
-  const handleClose = () => {
+  const handleNarrativeClose = () => {
     setSelectedNode(undefined)
   }
 
-  const onFormatChange = (e: RadioChangeEvent) => {
-    setFormat(e.target.value)
+  const onContentFormatChange = (e: RadioChangeEvent) => {
+    setContentFormat(e.target.value)
   }
 
   let resourceDisplay
   if (resource != null) {
-    const meta = [
-      'id',
-      'publisher',
-      'title',
-      'status',
-      'date',
-      'resourceType',
-      'text',
-      'meta',
-      'url',
-      'contact',
-      'name',
-      'version',
-      'content',
-      'mapping',
-      'snapshot',
-      'parameter',
-      'jurisdiction',
-      'count',
-    ]
-
-    const formattedProperties = Object.entries(resource)
-      .map((e: [string, any]) => {
-        const [k, v] = e
-        if (!meta.includes(k)) {
-          return formatProperty(v, resolver, navigate, k)
-        }
-      })
-      .filter(notEmpty)
+    const formattedContent =
+      contentFormat === 'text' ? (
+        Object.entries(resource)
+          .map((e: [string, any]) => {
+            const [key, value] = e
+            if (!META.includes(key)) {
+              return formatProperty(value, resolver, navigate, key)
+            }
+          })
+          .filter(notEmpty)
+      ) : (
+        <CodeBlock code={JSON.stringify(resource, null, 1)} />
+      )
 
     resourceDisplay = (
       <div className="narrative-container-outer">
         <div className="narrative-container-inner">
-          <h2>{`${formatResourceType(resource) ?? 'Action'}: ${formatTitle(
-            resource
-          )}`}</h2>
+          <h2>{`${formatResourceType(resource)}: ${formatTitle(resource)}`}</h2>
           {partOfIdentifier != null && (
             <SingleDisplayItem
               heading="Part Of"
               content={formatUrl(partOfIdentifier, resolver, navigate)}
             />
           )}
-          {format === 'text' && cql != null ? (
-            <>
-              {formattedProperties}
-              <CodeBlock cql={cql} />
-            </>
-          ) : format === 'json' ? (
-            <CodeBlock cql={JSON.stringify(resource, null, 1)} />
-          ) : (
-            <>{formattedProperties}</>
-          )}
+          {formattedContent}
+          {cql != null && contentFormat === 'text' && <CodeBlock code={cql} />}
           <Radio.Group
-            onChange={onFormatChange}
-            value={format}
+            onChange={onContentFormatChange}
+            value={contentFormat}
             optionType="button"
             buttonStyle="solid"
             style={{ marginTop: '3rem' }}
@@ -152,7 +147,7 @@ const NarrativeDisplay = ({
     <>
       <div className="buttons-container">
         <BackButton />
-        <CloseOutlined onClick={handleClose} />
+        <CloseOutlined onClick={handleNarrativeClose} />
       </div>
       {resourceDisplay != null ? (
         resourceDisplay
