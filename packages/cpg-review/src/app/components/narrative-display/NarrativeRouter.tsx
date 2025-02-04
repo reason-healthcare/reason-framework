@@ -1,4 +1,4 @@
-import '@/styles/NarrativeDisplay.css'
+import '@/styles/narrativeDisplay.css'
 import BrowserResolver from 'resolver/browser'
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'

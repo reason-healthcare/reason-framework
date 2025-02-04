@@ -17,7 +17,7 @@ import CodeBlock from './CodeBlock'
 import BackButton from '../BackButton'
 import SingleDisplayItem from './SingleDisplayItem'
 import { NodeContent } from '@/types/NodeProps'
-import '@/styles/NarrativeDisplay.css'
+import '@/styles/narrativeDisplay.css'
 
 const META = [
   'id',

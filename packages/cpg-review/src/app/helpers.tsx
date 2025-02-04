@@ -792,8 +792,10 @@ export const isUrl = (content: any) => {
   )
 }
 
-export const capitalize = (string: any) => {
-  return string.charAt(0).toUpperCase() + string.slice(1)
+export const capitalize = (string: string | undefined) => {
+  if (string != null) {
+    return string.charAt(0).toUpperCase() + string.slice(1)
+  }
 }
 
 export const addSpaces = (string: any | undefined): string | undefined => {
