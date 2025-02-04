@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react'
-import { Form, message, Upload, Select, Radio, Input } from 'antd'
-import { InboxOutlined } from '@ant-design/icons'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { Form, message, Upload, Select, Radio, Input, Spin } from 'antd'
+import { InboxOutlined, LoadingOutlined } from '@ant-design/icons'
 import type { RadioChangeEvent, UploadProps } from 'antd'
 import '@/styles/uploadSection.css'
 import type { RcFile, UploadFile } from 'antd/es/upload'
@@ -8,6 +8,7 @@ import BrowserResolver from 'resolver/browser'
 import { is, notEmpty, resolveCanonical } from 'helpers'
 import Link from 'next/link'
 import { debounce } from 'lodash'
+import LoadIndicator from './LoadIndicator'
 
 const CPG_PATHWAY_DEF =
   'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-pathwaydefinition'
@@ -63,7 +64,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
     setShowUploadPage,
   } = uploadSectionProps
 
-  // const [isLoading, setIsLoading] = useState(false)
+  const [loadingEndpoint, setLoadingEndpoint] = useState(false)
   const [uploaded, setUploaded] = useState<RcFile | Blob | undefined>()
   const [form] = Form.useForm()
 
@@ -128,12 +129,16 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
       } else if (value !== '') {
         message.error('Not a valid URL')
       }
+      setLoadingEndpoint(false)
     }, 2000)
   ).current
 
-  const handleEndpointChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handleEndpointInput(e.target.value)
+  const handleEndpointChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setLoadingEndpoint(true)
     setEndpointPayload(e.target.value)
+    await handleEndpointInput(e.target.value)?.then()
   }
 
   const resetForm = () => {
@@ -181,7 +186,6 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
   }
 
   const handleUploadFile = async (rawData: RcFile | Blob) => {
-    // setIsLoading(true)
     if (rawData) {
       let resolver = new BrowserResolver()
       resolver.decompress(rawData).then((decompressed) => {
@@ -294,11 +298,20 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
         <p className="form-description">
           Specify endpoint address for r4 FHIR implementation guide package.
         </p>
-        <Input
-          placeholder="https://packages.simplifier.net/hl7.fhir.uv.cpg/2.0.0"
-          onChange={handleEndpointChange}
-          value={endpointPayload}
-        />
+        <div className="endpoint-input-wrapper">
+          <Input
+            placeholder="https://packages.simplifier.net/hl7.fhir.uv.cpg/2.0.0"
+            onChange={handleEndpointChange}
+            value={endpointPayload}
+          />
+          {loadingEndpoint === true ? (
+            <Spin
+              indicator={<LoadingOutlined spin />}
+              className="load-icon"
+              size="small"
+            />
+          ) : null}
+        </div>
       </Form.Item>
     )
   }
