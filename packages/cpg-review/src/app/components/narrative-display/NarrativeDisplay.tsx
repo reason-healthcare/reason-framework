@@ -108,7 +108,7 @@ const NarrativeDisplay = ({
           .map((e: [string, any]) => {
             const [key, value] = e
             if (key === 'meta' && value.profile != null) {
-              return formatProperty(value.profile, resolver, navigate, 'profile')
+              return formatProperty(value.profile, resolver, navigate, 'meta.profile')
             } else if (!META.includes(key)) {
               return formatProperty(value, resolver, navigate, key)
             }
