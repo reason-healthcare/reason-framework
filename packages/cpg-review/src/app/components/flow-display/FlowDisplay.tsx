@@ -70,11 +70,11 @@ export default function FlowDisplay({
   useEffect(() => {
     if (visibleNodes != null) {
       const node = visibleNodes.find((n) => n.id === selectedNode)
-      setVisibleNodes(Flow.setSelectedNode(visibleNodes, node?.id))
+      setVisibleNodes(Flow.setSelectedNode(visibleNodes, node?.id ?? undefined))
       if (node != null) {
         setNarrativeContent(node.data.nodeContent)
       } else {
-        // Error handling
+        console.log(`Unable to find selected node ${selectedNode}`)
       }
     }
   }, [selectedNode])
@@ -113,7 +113,9 @@ export default function FlowDisplay({
             setSelectedNode(sourceNode.id)
           })
       } else {
-        // TODO error handling
+        console.log(
+          `Unable to find source node ${nodeToExpand} for graph expansion.`
+        )
       }
     }
   }, [nodeToExpand])

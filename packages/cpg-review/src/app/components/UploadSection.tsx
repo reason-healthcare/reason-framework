@@ -45,7 +45,7 @@ export interface UploadSectionProps {
   setShowUploadPage: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-type PlanType = (typeof SORTED_CPG_PLAN_TYPES)[number]
+type PlanType = typeof SORTED_CPG_PLAN_TYPES[number]
 
 export interface PlanDefinitionSelectionOption {
   planDefinition: fhir4.PlanDefinition
@@ -75,7 +75,9 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
   const [uploaded, setUploaded] = useState<RcFile | Blob | undefined>()
   const [form] = Form.useForm()
 
-  const getPlanOptionType = (planDefinition: fhir4.PlanDefinition) => {
+  const getPlanOptionType = (
+    planDefinition: fhir4.PlanDefinition
+  ): PlanType => {
     let type
     const { meta } = planDefinition
     if (meta?.profile?.find((profile) => profile === CPG_PATHWAY_DEF)) {
@@ -105,13 +107,19 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
       })
       .sort((a, b) => {
         return (
-          SORTED_CPG_PLAN_TYPES.indexOf(a.type) - SORTED_CPG_PLAN_TYPES.indexOf(b.type) ||
+          SORTED_CPG_PLAN_TYPES.indexOf(a.type) -
+            SORTED_CPG_PLAN_TYPES.indexOf(b.type) ||
           a.label?.localeCompare(b.label ?? '') ||
           0
         )
       })
   }
 
+  /**
+   * Reference to debounced function with delayed execution:
+   * The function validates endpoint protocol (http/https) and fetches if valid; returns error if not
+   * Called on endpoint input change (handleInputChange()) such that endpoint is used to fetch or return error message 2000ms after user stops typing.
+   */
   const handleEndpointInput = useRef(
     debounce(async (value) => {
       if (value.startsWith('https://') || value.startsWith('http://')) {
@@ -139,7 +147,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
   ) => {
     setLoadingEndpoint(true)
     setEndpointPayload(e.target.value)
-    await handleEndpointInput(e.target.value)
+    handleEndpointInput(e.target.value)
   }
 
   const resetForm = () => {
@@ -162,7 +170,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
   }
 
   const handleSubmit = (e: Event) => {
-    if (resolver instanceof BrowserResolver) {
+    if (resolver != null) {
       const plan = resolveCanonical(planDefinitionPayload, resolver)
       if (is.PlanDefinition(plan)) {
         setPlanDefinition(plan)
@@ -171,23 +179,8 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
     }
   }
 
-  const beforeFileUpload = (file: RcFile) => {
-    const isTar = file.type === 'application/gzip'
-    if (isTar && uploaded == null) {
-      setUploaded(file)
-      setFileList([file])
-    } else {
-      if (uploaded != null) {
-        message.error('May only upload one compressed package')
-      } else if (!isTar) {
-        message.error('File must be a tarball ending in .tgz')
-      }
-      return Upload.LIST_IGNORE
-    }
-  }
-
   const handleUploadFile = async (rawData: RcFile | Blob) => {
-    if (rawData) {
+    if (rawData != null) {
       let resolver = new BrowserResolver()
       resolver.decompress(rawData).then((decompressed) => {
         if (decompressed instanceof Error) {
@@ -204,7 +197,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
               }
             })
             .filter(notEmpty)
-          if (plans.length > 0) {
+          if (plans?.length > 0) {
             setPlanDefinitionSelectionOptions(formatPlanOptions(plans))
             localStorage.clear()
             setPlanDefinition(undefined)
@@ -229,6 +222,21 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
       message.error(
         'Please upload a compressed FHIR Implementation Guide Package ending in .tgz'
       )
+    }
+  }
+
+  const beforeFileUpload = (file: RcFile) => {
+    const isTar = file.type === 'application/gzip'
+    if (isTar && uploaded == null) {
+      setUploaded(file)
+      setFileList([file])
+    } else {
+      if (uploaded != null) {
+        message.error('May only upload one compressed package')
+      } else if (!isTar) {
+        message.error('File must be a tarball ending in .tgz')
+      }
+      return Upload.LIST_IGNORE
     }
   }
 
@@ -305,12 +313,9 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
             onChange={handleEndpointChange}
             value={endpointPayload}
           />
-          {loadingEndpoint === true ? (
-            <Spin
-              indicator={<LoadingOutlined spin />}
-              className="load-icon"
-            />
-          ) : null}
+          {loadingEndpoint && (
+            <Spin indicator={<LoadingOutlined spin />} className="load-icon" />
+          )}
         </div>
       </Form.Item>
     )

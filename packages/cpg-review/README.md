@@ -1,6 +1,11 @@
 # CPG Preview Tool
 
-This project renders a flow diagram dynamically based on desired CPG FHIR plan definition.
+The CPG (Clinical Practice Guidelines) Review tool renders a flow diagram dynamically based on desired FHIR plan definition. Each plan action is displayed as a node in the diagram. Where a resource is nested as action.definitionCanonical, the resolved resource is represented as:
+  * Child action nodes, where the resolved resource is a plan definition; OR
+  * A child Activity Definition node; OR
+  * A child Questionnaire node
+
+Refer to [Clinical Practice Guidelines IG](https://hl7.org/fhir/uv/cpg/STU2/index.html) for documentation on representing Clinical Practice Guidelines as FHIR Plan Definitions.
 
 ## Local Development
 

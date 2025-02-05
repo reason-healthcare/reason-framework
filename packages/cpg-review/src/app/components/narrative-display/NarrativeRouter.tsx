@@ -18,7 +18,6 @@ const NarrativeRouter = ({
 }: NarrativeRouterProps) => {
   const navigate = useNavigate()
 
-  /** Node data includes the resource or action that the node represents. In the case of an action, preference to track and display the data as opposed to resolving the action via action title/id. Action titles and Ids are not required and are not always unique. */
   useEffect(() => {
     navigate('/')
   }, [narrativeContent])

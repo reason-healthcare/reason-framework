@@ -5,7 +5,7 @@ import { v4 } from 'uuid'
 import Graph from './Graph'
 import BrowserResolver from 'resolver/browser'
 
-export interface FlowShape {
+interface FlowShape {
   nodes: Node[] | undefined
   edges: Edge[] | undefined
 }
@@ -68,6 +68,7 @@ class Flow implements FlowShape {
 
   private createApplicabilityNode(
     id: string,
+    parentId: string,
     condition: fhir4.PlanDefinitionActionCondition,
     action: fhir4.PlanDefinitionAction,
     planDefinition: fhir4.PlanDefinition
@@ -83,6 +84,7 @@ class Flow implements FlowShape {
         handle: ['target', 'source'],
         nodeContent: { resource: action, partOf: planDefinition },
         isExpandable: false,
+        parentNodeId: parentId,
       },
       type: 'applicabilityNode',
       position: { x: 0, y: 0 },
@@ -162,6 +164,7 @@ class Flow implements FlowShape {
         condition.forEach((condition) => {
           const applicabilityNode = this.createApplicabilityNode(
             `condition-${nodeId}`,
+            nodeId,
             condition,
             action,
             planDefinition
@@ -250,7 +253,7 @@ class Flow implements FlowShape {
           node
         )
       } else {
-        // TODO error handling
+        console.log('There are no plan definition actions to display')
       }
     }
     return this

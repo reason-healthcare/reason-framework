@@ -64,6 +64,7 @@ const NarrativeDisplay = ({
     setResource(undefined)
     setPartOfIdentifier(undefined)
     setCql(undefined)
+    /** Narrative content is set from node select. Preferred to resolving a canonical or reference to the content considering Action nodes do not represent Canonical resources */
     if (narrativeContent != null) {
       const { resource, partOf } = narrativeContent
       if (partOf != null) {
@@ -108,7 +109,12 @@ const NarrativeDisplay = ({
           .map((e: [string, any]) => {
             const [key, value] = e
             if (key === 'meta' && value.profile != null) {
-              return formatProperty(value.profile, resolver, navigate, 'meta.profile')
+              return formatProperty(
+                value.profile,
+                resolver,
+                navigate,
+                'meta.profile'
+              )
             } else if (!META.includes(key)) {
               return formatProperty(value, resolver, navigate, key)
             }
