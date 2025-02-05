@@ -30,6 +30,8 @@ export const is = {
   },
   PlanDefinitionAction: (object: any): object is fhir4.PlanDefinitionAction => {
     const keys = [
+      'id',
+      '_id',
       'extension',
       'action',
       'cardinalityBehavior',
