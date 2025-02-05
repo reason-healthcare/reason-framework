@@ -1,36 +1,26 @@
-import '@/styles/NarrativeDisplay.css'
+import '@/styles/narrativeDisplay.css'
 import BrowserResolver from 'resolver/browser'
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import NarrativeDisplay from './NarrativeDisplay'
-import { NodeData } from '../../types/NodeData'
-import { is } from 'helpers'
+import { NodeContent } from '../../types/NodeProps'
 
 interface NarrativeRouterProps {
-  nodeData: NodeData | undefined
+  narrativeContent: NodeContent | undefined
   resolver: BrowserResolver | undefined
   setSelectedNode: React.Dispatch<React.SetStateAction<string | undefined>>
 }
 
 const NarrativeRouter = ({
-  nodeData,
-
+  narrativeContent,
   resolver,
   setSelectedNode,
 }: NarrativeRouterProps) => {
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (
-      nodeData?.nodeDetails != null &&
-      is.FhirResource(nodeData?.nodeDetails)
-    ) {
-      const { resourceType, id } = nodeData.nodeDetails
-      navigate(`${resourceType}/${id}`)
-    } else {
-      navigate('/')
-    }
-  }, [nodeData])
+    navigate('/')
+  }, [narrativeContent])
 
   return (
     <div className="narrative-section">
@@ -41,7 +31,7 @@ const NarrativeRouter = ({
             <NarrativeDisplay
               resolver={resolver}
               setSelectedNode={setSelectedNode}
-              nodeDetails={nodeData}
+              narrativeContent={narrativeContent}
             />
           }
         />

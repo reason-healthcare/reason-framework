@@ -30,6 +30,9 @@ export const is = {
   },
   PlanDefinitionAction: (object: any): object is fhir4.PlanDefinitionAction => {
     const keys = [
+      'id',
+      '_id',
+      'extension',
       'action',
       'cardinalityBehavior',
       '_cardinalityBehavior',
@@ -745,6 +748,13 @@ export const is = {
   },
 }
 
+export const getNodeIdFromResource = (
+  resource: fhir4.ActivityDefinition | fhir4.Questionnaire
+) => {
+  const { title, name, url, id } = resource
+  return title ?? name ?? url ?? id
+}
+
 export const resolveCanonical = (
   canonical: string | undefined,
   resolver: BrowserResolver
@@ -784,8 +794,10 @@ export const isUrl = (content: any) => {
   )
 }
 
-export const capitalize = (string: any) => {
-  return string.charAt(0).toUpperCase() + string.slice(1)
+export const capitalize = (string: string | undefined) => {
+  if (string != null) {
+    return string.charAt(0).toUpperCase() + string.slice(1)
+  }
 }
 
 export const addSpaces = (string: any | undefined): string | undefined => {
@@ -800,13 +812,14 @@ export const addSpaces = (string: any | undefined): string | undefined => {
 export const formatTitle = (
   resource: fhir4.FhirResource | fhir4.PlanDefinitionAction
 ) => {
-  const { title, name, url, id } = resource as {
+  const { title, name, url, id, description } = resource as {
     title?: string
     name?: string
     url?: string
     id?: string
+    description?: string
   }
-  return title ?? addSpaces(name) ?? url ?? id
+  return title ?? addSpaces(name) ?? url ?? id ?? description
 }
 
 export const formatResourceType = (
@@ -814,6 +827,8 @@ export const formatResourceType = (
 ) => {
   if ('resourceType' in resource) {
     return addSpaces(resource.resourceType)
+  } else if (is.PlanDefinitionAction(resource)) {
+    return 'Action'
   }
 }
 
@@ -1062,19 +1077,8 @@ export const formatUsageContext = (
 
 /** Plan Definition Types */
 
-export const formatActions = (actions: fhir4.PlanDefinitionAction[]) => {
-  let index = 0
-  return actions
-    .map((a) => {
-      const header = formatTitle(a)
-      index += 1
-      return (
-        <li key={v4()}>
-          {header ?? `Action ${index} (no identifier available)`}
-        </li>
-      )
-    })
-    .filter(notEmpty)
+export const formatAction = (action: fhir4.PlanDefinitionAction) => {
+  return formatTitle(action)
 }
 
 export const formatCondition = (
@@ -1109,6 +1113,8 @@ export const formatValue = (
     formattedValue = formatUrl(value, resolver, navigate)
   } else if (isPrimitive(value)) {
     formattedValue = value.toString()
+  } else if (is.PlanDefinitionAction(value)) {
+    formattedValue = formatAction(value)
   } else if (is.Reference(value)) {
     formattedValue = formatReference(value, resolver, navigate)
   } else if (is.Coding(value)) {
@@ -1138,10 +1144,17 @@ export const formatValue = (
   } else if (is.TimingRepeat(value)) {
     formattedValue = formatTimingRepeat(value)
   }
-
   return formattedValue
 }
 
+/**
+ * Recurses over complex JSON property/value pairs and formats as JSX Elements
+ * @param value Json value to format
+ * @param resolver Content resolver for canonicals and references
+ * @param navigate React navigation for internal links
+ * @param key Json property key
+ * @returns JSX Element
+ */
 export const formatProperty = (
   value: any,
   resolver?: BrowserResolver | undefined,
@@ -1149,40 +1162,29 @@ export const formatProperty = (
   key?: string | undefined
 ) => {
   let content
-  if (key === 'action') {
-    content = formatActions(value)
-  } else if (Array.isArray(value) && value.length > 1) {
-    content = value.map((v) => {
+  const heading = addSpaces(capitalize(key))
+  if (Array.isArray(value) && value.length > 1) {
+    const content = value.map((v) => {
       return <li key={v4()}>{formatProperty(v, resolver, navigate)}</li>
     })
+    return <ListDisplayItem key={heading} heading={heading} content={content} />
   } else {
     const singleValue = Array.isArray(value) ? value[0] : value
     content = formatValue(singleValue, resolver, navigate)
-    if (content == null && typeof value === 'object') {
+    if (content != null) {
+      return (
+        <SingleDisplayItem key={heading} heading={heading} content={content} />
+      )
+    } else if (typeof value === 'object') {
       content = Object.entries(singleValue)
         .map((e: [string, any]) => {
           const [k, v] = e
           return formatProperty(v, resolver, navigate, k)
         })
         .filter(notEmpty)
+      return (
+        <ListDisplayItem key={heading} heading={heading} content={content} />
+      )
     }
-  }
-  const keyFormatted = key != null ? addSpaces(capitalize(key)) : undefined
-  if (Array.isArray(content)) {
-    return (
-      <ListDisplayItem
-        key={keyFormatted}
-        heading={keyFormatted}
-        content={content}
-      />
-    )
-  } else {
-    return (
-      <SingleDisplayItem
-        key={keyFormatted}
-        heading={keyFormatted}
-        content={content}
-      />
-    )
   }
 }

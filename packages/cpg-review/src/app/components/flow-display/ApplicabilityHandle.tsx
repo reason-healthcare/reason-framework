@@ -1,7 +1,5 @@
 import { Handle, Position } from 'reactflow'
 import '@/styles/node.css'
-import { useState } from 'react'
-import { DownOutlined } from '@ant-design/icons'
 
 type TargetHandleProps = {}
 

@@ -21,6 +21,7 @@
     ],
     "baseUrl": "./src/app/",
     "paths": {
+      "@/types/*": ["types/*"],
       "@/components/*": ["components/*"],
       "@/styles/*": ["styles/*"],
       "@/images/*": ["../public/images/*"]
