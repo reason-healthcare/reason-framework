@@ -2,12 +2,12 @@ import { useState, useRef } from 'react'
 import { Form, message, Upload, Select, Radio, Input, Spin } from 'antd'
 import { InboxOutlined, LoadingOutlined } from '@ant-design/icons'
 import type { RadioChangeEvent, UploadProps } from 'antd'
-import '@/styles/uploadSection.css'
 import type { RcFile, UploadFile } from 'antd/es/upload'
-import BrowserResolver from 'resolver/browser'
-import { is, notEmpty, resolveCanonical } from 'helpers'
 import Link from 'next/link'
 import { debounce } from 'lodash'
+import { is, notEmpty, resolveCanonical } from 'helpers'
+import BrowserResolver from 'resolver/browser'
+import '@/styles/uploadSection.css'
 
 const CPG_PATHWAY_DEF =
   'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-pathwaydefinition'
@@ -15,6 +15,12 @@ const CPG_STRATEGY_DEF =
   'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-strategydefinition'
 const CPG_RECOMMENDATION_DEF =
   'http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-recommendationdefinition'
+const SORTED_CPG_PLAN_TYPES = [
+  'CPG Pathway',
+  'CPG Strategy',
+  'CPG Recommendation',
+  'Plan Definition',
+]
 
 export interface UploadSectionProps {
   setResolver: React.Dispatch<React.SetStateAction<BrowserResolver | undefined>>
@@ -39,10 +45,12 @@ export interface UploadSectionProps {
   setShowUploadPage: React.Dispatch<React.SetStateAction<boolean>>
 }
 
+type PlanType = (typeof SORTED_CPG_PLAN_TYPES)[number]
+
 export interface PlanDefinitionSelectionOption {
   planDefinition: fhir4.PlanDefinition
   label: string | undefined
-  type: string
+  type: PlanType
 }
 
 const UploadSection = (uploadSectionProps: UploadSectionProps) => {
@@ -96,14 +104,8 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
         }
       })
       .sort((a, b) => {
-        const sortOrder = [
-          'CPG Pathway',
-          'CPG Strategy',
-          'CPG Recommendation',
-          'Plan Definition',
-        ]
         return (
-          sortOrder.indexOf(a.type) - sortOrder.indexOf(b.type) ||
+          SORTED_CPG_PLAN_TYPES.indexOf(a.type) - SORTED_CPG_PLAN_TYPES.indexOf(b.type) ||
           a.label?.localeCompare(b.label ?? '') ||
           0
         )
@@ -137,7 +139,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
   ) => {
     setLoadingEndpoint(true)
     setEndpointPayload(e.target.value)
-    await handleEndpointInput(e.target.value)?.then()
+    await handleEndpointInput(e.target.value)
   }
 
   const resetForm = () => {
