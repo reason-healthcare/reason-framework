@@ -307,7 +307,6 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
             <Spin
               indicator={<LoadingOutlined spin />}
               className="load-icon"
-              size="small"
             />
           ) : null}
         </div>
