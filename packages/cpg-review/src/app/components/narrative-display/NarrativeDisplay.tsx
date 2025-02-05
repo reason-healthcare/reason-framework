@@ -64,14 +64,15 @@ const NarrativeDisplay = ({
     setResource(undefined)
     setPartOfIdentifier(undefined)
     setCql(undefined)
-    /** Narrative content is set from node select. Preferred to resolving a canonical or reference to the content considering Action nodes do not represent Canonical resources */
+    /** Narrative content is set on node select */
     if (narrativeContent != null) {
       const { resource, partOf } = narrativeContent
       if (partOf != null) {
         setPartOfIdentifier(partOf.url)
       }
       setResource(resource)
-    } else if (resolver != null) {
+    /** Where node content is not passed to Narrative Display, resolve resource by reference */
+    } else if (resolver != null && path != null) {
       const reference = path.split('/').slice(-2).join('/')
       const rawResource = resolver.resolveReference(reference)
       if (is.ActivityDefinition(rawResource) || is.Questionnaire(rawResource)) {
