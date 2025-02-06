@@ -71,7 +71,7 @@ const NarrativeDisplay = ({
         setPartOfIdentifier(partOf.url)
       }
       setResource(resource)
-    /** Where node content is not passed to Narrative Display, resolve resource by reference */
+      /** Where node content is not passed to Narrative Display, resolve resource by reference */
     } else if (resolver != null && path != null) {
       const reference = path.split('/').slice(-2).join('/')
       const rawResource = resolver.resolveReference(reference)

@@ -123,17 +123,14 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
   const handleEndpointInput = useRef(
     debounce(async (value) => {
       if (value.startsWith('https://') || value.startsWith('http://')) {
-        try {
-          const response = await fetch(value)
-          if (!response.ok) {
-            throw response
-          }
+        const response = await fetch(`/api/fhir-package?url=${value}`)
+        if (response.status === 200) {
           const blob = await response.blob()
           setUploaded(blob)
           await handleUploadFile(blob)
-        } catch (e) {
-          message.error('Unable to resolve endpoint')
-          console.error(`Problem fetching resource: ${e}`)
+        } else {
+          const json = await response.json()
+          message.error(json.message)
         }
       } else if (value !== '') {
         message.error('Not a valid URL')
