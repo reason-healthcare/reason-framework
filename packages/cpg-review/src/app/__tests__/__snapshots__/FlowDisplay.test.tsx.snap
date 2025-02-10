@@ -1,0 +1,212 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Flow Display Renders graph with simple plan definition 1`] = `
+<DocumentFragment>
+  <div
+    class="flow-container"
+  >
+    <div
+      class="react-flow"
+      data-testid="rf__wrapper"
+      style="width: 100%; height: 100%; overflow: hidden; position: relative; z-index: 0;"
+    >
+      <div
+        class="react-flow__renderer"
+        style="position: absolute; width: 100%; height: 100%; top: 0px; left: 0px;"
+      >
+        <div
+          class="react-flow__pane"
+          style="position: absolute; width: 100%; height: 100%; top: 0px; left: 0px;"
+        >
+          <div
+            class="react-flow__viewport react-flow__container"
+            style="transform: translate(0px,0px) scale(1);"
+          >
+            <svg
+              class="react-flow__edges react-flow__container"
+              height="100"
+              style="z-index: 0;"
+              width="100"
+            >
+              <defs />
+              <g />
+            </svg>
+            <div
+              class="react-flow__edgelabel-renderer"
+            />
+            <div
+              class="react-flow__nodes"
+              style="position: absolute; width: 100%; height: 100%; top: 0px; left: 0px;"
+            />
+          </div>
+        </div>
+      </div>
+      <svg
+        class="react-flow__background"
+        data-testid="rf__background"
+        style="position: absolute; width: 100%; height: 100%; top: 0px; left: 0px;"
+      >
+        <pattern
+          height="20"
+          id="pattern-1undefined"
+          patternTransform="translate(-0.5,-0.5)"
+          patternUnits="userSpaceOnUse"
+          width="20"
+          x="0"
+          y="0"
+        >
+          <circle
+            cx="0.5"
+            cy="0.5"
+            fill="#fafafa"
+            r="0.5"
+          />
+        </pattern>
+        <rect
+          fill="url(#pattern-1undefined)"
+          height="100%"
+          width="100%"
+          x="0"
+          y="0"
+        />
+      </svg>
+      <div
+        class="react-flow__panel react-flow__minimap bottom left"
+        data-testid="rf__minimap"
+        style="pointer-events: all;"
+      >
+        <svg
+          aria-labelledby="react-flow__minimap-desc-1"
+          height="150"
+          role="img"
+          viewBox="-19.99999999999999 -3.333333333333333 139.99999999999997 106.66666666666667"
+          width="200"
+        >
+          <title
+            id="react-flow__minimap-desc-1"
+          >
+            React Flow mini map
+          </title>
+          <path
+            class="react-flow__minimap-mask"
+            d="M-23.33333333333332,-6.666666666666666h146.66666666666663v113.33333333333334h-146.66666666666663z
+        M0,0h100v100h-100z"
+            fill="rgb(240, 240, 240, 0.6)"
+            fill-rule="evenodd"
+            pointer-events="none"
+            stroke="none"
+            stroke-width="1"
+          />
+        </svg>
+      </div>
+      <div
+        class="react-flow__panel react-flow__controls bottom right"
+        data-testid="rf__controls"
+        style="pointer-events: all;"
+      >
+        <button
+          aria-label="zoom in"
+          class="react-flow__controls-button react-flow__controls-zoomin"
+          title="zoom in"
+          type="button"
+        >
+          <svg
+            viewBox="0 0 32 32"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M32 18.133H18.133V32h-4.266V18.133H0v-4.266h13.867V0h4.266v13.867H32z"
+            />
+          </svg>
+        </button>
+        <button
+          aria-label="zoom out"
+          class="react-flow__controls-button react-flow__controls-zoomout"
+          title="zoom out"
+          type="button"
+        >
+          <svg
+            viewBox="0 0 32 5"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M0 0h32v4.2H0z"
+            />
+          </svg>
+        </button>
+        <button
+          aria-label="fit view"
+          class="react-flow__controls-button react-flow__controls-fitview"
+          title="fit view"
+          type="button"
+        >
+          <svg
+            viewBox="0 0 32 30"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M3.692 4.63c0-.53.4-.938.939-.938h5.215V0H4.708C2.13 0 0 2.054 0 4.63v5.216h3.692V4.631zM27.354 0h-5.2v3.692h5.17c.53 0 .984.4.984.939v5.215H32V4.631A4.624 4.624 0 0027.354 0zm.954 24.83c0 .532-.4.94-.939.94h-5.215v3.768h5.215c2.577 0 4.631-2.13 4.631-4.707v-5.139h-3.692v5.139zm-23.677.94c-.531 0-.939-.4-.939-.94v-5.138H0v5.139c0 2.577 2.13 4.707 4.708 4.707h5.138V25.77H4.631z"
+            />
+          </svg>
+        </button>
+        <button
+          class="react-flow__controls-button"
+          type="button"
+        >
+          <span
+            aria-label="fullscreen-exit"
+            class="anticon anticon-fullscreen-exit"
+            role="img"
+          >
+            <svg
+              aria-hidden="true"
+              data-icon="fullscreen-exit"
+              fill="currentColor"
+              focusable="false"
+              height="1em"
+              viewBox="64 64 896 896"
+              width="1em"
+            >
+              <path
+                d="M391 240.9c-.8-6.6-8.9-9.4-13.6-4.7l-43.7 43.7L200 146.3a8.03 8.03 0 00-11.3 0l-42.4 42.3a8.03 8.03 0 000 11.3L280 333.6l-43.9 43.9a8.01 8.01 0 004.7 13.6L401 410c5.1.6 9.5-3.7 8.9-8.9L391 240.9zm10.1 373.2L240.8 633c-6.6.8-9.4 8.9-4.7 13.6l43.9 43.9L146.3 824a8.03 8.03 0 000 11.3l42.4 42.3c3.1 3.1 8.2 3.1 11.3 0L333.7 744l43.7 43.7A8.01 8.01 0 00391 783l18.9-160.1c.6-5.1-3.7-9.4-8.8-8.8zm221.8-204.2L783.2 391c6.6-.8 9.4-8.9 4.7-13.6L744 333.6 877.7 200c3.1-3.1 3.1-8.2 0-11.3l-42.4-42.3a8.03 8.03 0 00-11.3 0L690.3 279.9l-43.7-43.7a8.01 8.01 0 00-13.6 4.7L614.1 401c-.6 5.2 3.7 9.5 8.8 8.9zM744 690.4l43.9-43.9a8.01 8.01 0 00-4.7-13.6L623 614c-5.1-.6-9.5 3.7-8.9 8.9L633 783.1c.8 6.6 8.9 9.4 13.6 4.7l43.7-43.7L824 877.7c3.1 3.1 8.2 3.1 11.3 0l42.4-42.3c3.1-3.1 3.1-8.2 0-11.3L744 690.4z"
+              />
+            </svg>
+          </span>
+        </button>
+      </div>
+      <div
+        class="react-flow__panel react-flow__attribution bottom right"
+        data-message="Please only hide this attribution when you are subscribed to React Flow Pro: https://reactflow.dev/pro"
+        style="pointer-events: all;"
+      >
+        <a
+          aria-label="React Flow attribution"
+          href="https://reactflow.dev"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          React Flow
+        </a>
+      </div>
+      <div
+        id="react-flow__node-desc-1"
+        style="display: none;"
+      >
+        Press enter or space to select a node.You can then use the arrow keys to move the node around. Press delete to remove it and escape to cancel. 
+      </div>
+      <div
+        id="react-flow__edge-desc-1"
+        style="display: none;"
+      >
+        Press enter or space to select an edge. You can then press delete to remove it or escape to cancel.
+      </div>
+      <div
+        aria-atomic="true"
+        aria-live="assertive"
+        id="react-flow__aria-live-1"
+        style="position: absolute; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(100%);"
+      />
+    </div>
+  </div>
+</DocumentFragment>
+`;

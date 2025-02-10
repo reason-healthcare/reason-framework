@@ -1,0 +1,86 @@
+[
+  {
+    "id": "RheumatoidArthritisGuideline - action-Beginning of treatment-26e5e339-a650-44dc-8f36-34e0d19aed7d",
+    "source": "RheumatoidArthritisGuideline",
+    "type": "smoothstep",
+    "className": "edge",
+    "target": "action-Beginning of treatment-26e5e339-a650-44dc-8f36-34e0d19aed7d"
+  },
+  {
+    "id": "RheumatoidArthritisGuideline - action-Screening-63872a6f-0b91-4793-b7d1-daef35bd95af",
+    "source": "RheumatoidArthritisGuideline",
+    "type": "smoothstep",
+    "className": "edge",
+    "target": "action-Screening-63872a6f-0b91-4793-b7d1-daef35bd95af"
+  },
+  {
+    "id": "RheumatoidArthritisGuideline - action-Monitoring of treatment-96cdde87-cfed-4cce-bb1a-29179f972a2e",
+    "source": "RheumatoidArthritisGuideline",
+    "type": "smoothstep",
+    "className": "edge",
+    "target": "action-Monitoring of treatment-96cdde87-cfed-4cce-bb1a-29179f972a2e"
+  },
+  {
+    "id": "action-Monitoring of treatment-96cdde87-cfed-4cce-bb1a-29179f972a2e - action-Recommend monitoring tests for RA therapy-decfe3de-37ba-4380-90e6-b4d8273fef54",
+    "source": "action-Monitoring of treatment-96cdde87-cfed-4cce-bb1a-29179f972a2e",
+    "type": "smoothstep",
+    "className": "edge",
+    "target": "action-Recommend monitoring tests for RA therapy-decfe3de-37ba-4380-90e6-b4d8273fef54"
+  },
+  {
+    "id": "action-Recommend monitoring tests for RA therapy-decfe3de-37ba-4380-90e6-b4d8273fef54 - action-Recommend testing due to Methotrexate-1cb97259-77f9-4708-b4ef-96381be8612f",
+    "source": "action-Recommend monitoring tests for RA therapy-decfe3de-37ba-4380-90e6-b4d8273fef54",
+    "type": "smoothstep",
+    "className": "edge",
+    "target": "action-Recommend testing due to Methotrexate-1cb97259-77f9-4708-b4ef-96381be8612f"
+  },
+  {
+    "id": "action-Recommend testing due to Methotrexate-1cb97259-77f9-4708-b4ef-96381be8612f - condition-action-Order monitoring tests for antirheumatic drug therapy (Methotrexate).-dc834371-2493-48f9-a3a0-71dd8f502413",
+    "source": "action-Recommend testing due to Methotrexate-1cb97259-77f9-4708-b4ef-96381be8612f",
+    "type": "smoothstep",
+    "className": "edge",
+    "target": "condition-action-Order monitoring tests for antirheumatic drug therapy (Methotrexate).-dc834371-2493-48f9-a3a0-71dd8f502413"
+  },
+  {
+    "id": "action-Recommend testing due to Methotrexate-1cb97259-77f9-4708-b4ef-96381be8612f - action-Order monitoring tests for antirheumatic drug therapy (Methotrexate).-dc834371-2493-48f9-a3a0-71dd8f502413",
+    "source": "condition-action-Order monitoring tests for antirheumatic drug therapy (Methotrexate).-dc834371-2493-48f9-a3a0-71dd8f502413",
+    "type": "smoothstep",
+    "className": "edge",
+    "target": "action-Order monitoring tests for antirheumatic drug therapy (Methotrexate).-dc834371-2493-48f9-a3a0-71dd8f502413"
+  },
+  {
+    "id": "action-Order monitoring tests for antirheumatic drug therapy (Methotrexate).-dc834371-2493-48f9-a3a0-71dd8f502413 - OrderCBCActivity",
+    "source": "action-Order monitoring tests for antirheumatic drug therapy (Methotrexate).-dc834371-2493-48f9-a3a0-71dd8f502413",
+    "type": "smoothstep",
+    "className": "edge",
+    "target": "OrderCBCActivity"
+  },
+  {
+    "id": "action-Recommend monitoring tests for RA therapy-decfe3de-37ba-4380-90e6-b4d8273fef54 - action-Recommend testing due to Sulfasalazine-d82cfb31-46bc-4d4f-92dd-6a67512f6e57",
+    "source": "action-Recommend monitoring tests for RA therapy-decfe3de-37ba-4380-90e6-b4d8273fef54",
+    "type": "smoothstep",
+    "className": "edge",
+    "target": "action-Recommend testing due to Sulfasalazine-d82cfb31-46bc-4d4f-92dd-6a67512f6e57"
+  },
+  {
+    "id": "action-Recommend testing due to Sulfasalazine-d82cfb31-46bc-4d4f-92dd-6a67512f6e57 - condition-action-Order monitoring tests for antirheumatic drug therapy (Sulfasalazine).-1fdce1fc-dcd4-4fd8-892b-8f27b311d064",
+    "source": "action-Recommend testing due to Sulfasalazine-d82cfb31-46bc-4d4f-92dd-6a67512f6e57",
+    "type": "smoothstep",
+    "className": "edge",
+    "target": "condition-action-Order monitoring tests for antirheumatic drug therapy (Sulfasalazine).-1fdce1fc-dcd4-4fd8-892b-8f27b311d064"
+  },
+  {
+    "id": "action-Recommend testing due to Sulfasalazine-d82cfb31-46bc-4d4f-92dd-6a67512f6e57 - action-Order monitoring tests for antirheumatic drug therapy (Sulfasalazine).-1fdce1fc-dcd4-4fd8-892b-8f27b311d064",
+    "source": "condition-action-Order monitoring tests for antirheumatic drug therapy (Sulfasalazine).-1fdce1fc-dcd4-4fd8-892b-8f27b311d064",
+    "type": "smoothstep",
+    "className": "edge",
+    "target": "action-Order monitoring tests for antirheumatic drug therapy (Sulfasalazine).-1fdce1fc-dcd4-4fd8-892b-8f27b311d064"
+  },
+  {
+    "id": "action-Order monitoring tests for antirheumatic drug therapy (Sulfasalazine).-1fdce1fc-dcd4-4fd8-892b-8f27b311d064 - OrderCBCActivity",
+    "source": "action-Order monitoring tests for antirheumatic drug therapy (Sulfasalazine).-1fdce1fc-dcd4-4fd8-892b-8f27b311d064",
+    "type": "smoothstep",
+    "className": "edge",
+    "target": "OrderCBCActivity"
+  }
+]

@@ -18,7 +18,7 @@ import { Radio } from 'antd'
 import { NodeData } from '../../types/NodeData'
 import SingleDisplayItem from './SingleDisplayItem'
 
-interface NarrativeDisplayProps {
+export interface NarrativeDisplayProps {
   resolver: BrowserResolver | undefined
   setSelectedNode: React.Dispatch<React.SetStateAction<string | undefined>>
   nodeDetails?: NodeData | undefined

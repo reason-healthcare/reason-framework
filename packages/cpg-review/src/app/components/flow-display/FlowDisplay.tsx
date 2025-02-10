@@ -17,7 +17,7 @@ import StartNode from './StartNode'
 import { NodeData } from '../../types/NodeData'
 import ApplicabilityNode from './ApplicabilityNode'
 
-interface FlowDisplayProps {
+export interface FlowDisplayProps {
   resolver: BrowserResolver | undefined
   planDefinition: fhir4.PlanDefinition
   setNodeData: React.Dispatch<React.SetStateAction<NodeData | undefined>>

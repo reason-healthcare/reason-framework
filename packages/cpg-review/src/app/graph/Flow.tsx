@@ -2,7 +2,7 @@ import { Edge, Node, ReactFlowInstance, getOutgoers } from 'reactflow'
 import { is, notEmpty } from '../helpers'
 import '@/styles/node.css'
 import { ElkNode } from 'elkjs'
-import { v4 } from 'uuid'
+import * as uuid from 'uuid'
 import Graph from './Graph'
 import BrowserResolver from 'resolver/browser'
 
@@ -160,7 +160,7 @@ class Flow implements FlowShape {
       /**
        * Create node for each action
        */
-      const id = `action-${action.title ?? action.id}-${v4()}`
+      const id = `action-${action.title ?? action.id}-${uuid.v4()}`
       const node = this.createActionNode(id, action, planDefinition)
 
       //* Handle Applicability - becomes parent of current action node */

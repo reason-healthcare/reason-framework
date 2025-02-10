@@ -2,9 +2,7 @@ import { Handle, Position } from 'reactflow'
 import '@/styles/node.css'
 import { useState } from 'react'
 import {
-  UpCircleFilled,
   DownCircleFilled,
-  DownOutlined,
 } from '@ant-design/icons'
 
 type InteractiveHandleProps = {

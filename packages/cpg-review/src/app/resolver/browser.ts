@@ -32,6 +32,9 @@ class BrowserResolver {
           stream.on('end', () => {
             if (fileContent && header.name.endsWith('json')) {
               const rawResource = JSON.parse(fileContent)
+              if (rawResource.text != null) {
+                delete rawResource.text
+              }
               if (rawResource.url != null) {
                 this.resourcesByCanonical[rawResource.url] = rawResource
               }

@@ -1,0 +1,1744 @@
+{"nodes": [
+    {
+      "id": "RheumatoidArthritisGuideline",
+      "data": {
+        "nodeData": {
+          "nodeDetails": {
+            "resourceType": "PlanDefinition",
+            "id": "RheumatoidArthritisGuideline",
+            "meta": {
+              "profile": [
+                "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-pathwaydefinition"
+              ]
+            },
+            "url": "http://example.org/PlanDefinition/RheumatoidArthritisGuideline",
+            "version": "0.1.0",
+            "name": "RheumatoidArthritisGuideline",
+            "title": "Rheumatoid Arthritis Guideline",
+            "type": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/plan-definition-type",
+                  "code": "clinical-protocol"
+                }
+              ]
+            },
+            "status": "draft",
+            "experimental": true,
+            "date": "2025-01-15T11:43:53-05:00",
+            "publisher": "Example Publisher",
+            "description": "### Essentials\n* If rheumatoid arthritis (RA) is suspected, the patient should be referred without delay to a rheumatology outpatient clinic.\n  * RA as an immunological disorder may begin several years before the appearance of symptoms, which may, at first, be unspecific, making it impossible to distinguish incipient RA from other types of arthritis.\n  * If there is inflammation in several, particularly small, joints, and rheumatoid factor and/or citrullinated peptide antibodies in blood, the patient probably has RA. Seronegative polyarthritis differs from seropositive polyarthritis as regards genetics and its more favourable prognosis, and it may prove in follow-up to be psoriatic arthropathy, for example.\n  * ESR and CRP may be normal.\n  * Systemic glucocorticoids interfere with the diagnosis and should therefore not be started in primary health care, but a glucocorticoid can be injected as first aid into inflamed joints.\n  * New patients with symptoms of arthritis need to see a rheumatologist unless the diagnosis is evident and treatment can be provided on the primary care level, as is often the case with gout or reactive arthritis.\n* RA is a progressive, debilitating disease but effective medication started early can make more than half of newly diagnosed patients asymptomatic within six months.\n* The basic medication consists of a combination of methotrexate, sulfasalazine and hydroxychloroquine. Low glucocorticoid doses should be added to the regimen for at least a few months.\n* Inflamed joints should be treated with glucocorticoid injections.\n* RA not responding to combination drug therapy should be treated with biologicals biologicals or with a janus kinase (JAK) inhibitor.\n* Physical exercise will improve the patient's functional ability and reduce the risk of cardiovascular disease.\n\n### Epidemiology\n* About 40 adults per 100 000 per year develop RA.\n* The age at onset is most commonly 65-70 years but two in three of those developing the disease are younger than 65 years old.\n* Two in three patients are women.\n* Some people are genetically susceptible to RA.\n* Smoking doubles the risk of the disease.\n\n### Symptoms\n* The onset of RA is usually insidious.\n* Morning stiffness, tender and swollen joints are typical.\n* Proximal interphalangeal and metacarpophalangeal joints, wrists, and balls of the feet are most commonly affected but basically any joint may become inflamed.\n* Fatigue, malaise and mild fever may occur as systemic symptoms.\n\n### Investigations in primary care\n* See the article Clinical examination of patients with joint inflammation in primary health care 1.\n* Palpation can be used to find out whether a patient with joint symptoms has arthritis.\n* An inflamed joint is characterized by soft swelling, tenderness, pain on movement and a limited range of motion.\n  * Fist closure is often limited in patients with inflammation of small finger joints or with flexor tenosynovitis.\n  * Tenderness on lateral squeezing of the knuckles or balls of the feet suggests arthritis.\n  * It may be difficult to distinguish arthritis from osteoarthritis. In fingers, osteoarthritis occurs in the distal or proximal interphalangeal joints, RA in proximal interphalangeal and metacarpophalangeal joints. Patients with osteoarthritis may develop rheumatoid arthritis.\n* Laboratory tests: ESR, CRP, basic blood count with platelets, RF, anti-CCP antibodies\n  * ALT, ALP, creatinine, urate, Borrelia antibodies, chemical screening of urine, ANAs, antibodies to diagnose reactive arthritis, as considered necessary (see Reactive arthritis > Diagnosis 2).\n* If intra-articular injections are given, a synovial fluid sample should be taken at the same time for examination (synovial fluid leucocytes + differential count from synovial fluid, bacterial culture, possibly synovial fluid crystals), if fluid can be aspirated; see the article 3.\n  * In patients with arthritis, synovial fluid is cloudy, with a leucocyte count exceeding 2 000 x 106/l.\n  * Highly cloudy synovial fluid suggests bacterial arthritis, usually monoarthritis.\n* Imaging of patients with arthritis should mainly be performed at a rheumatology outpatient clinic.\n\n### Principles of drug treatment\n* RA should be diagnosed and medication begun at a rheumatology outpatient clinic.\n---",
+            "action": [
+              {
+                "title": "Beginning of treatment",
+                "description": "Strategy for beginning treatment for RA",
+                "code": [
+                  {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                        "code": "guideline-based-care"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "title": "Screening",
+                "description": "Strategy for screening before starting to use immunosuppressive medication",
+                "code": [
+                  {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                        "code": "guideline-based-care"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "title": "Monitoring of treatment",
+                "description": "Strategy for monitoring during antirheumatic medication treatment",
+                "code": [
+                  {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                        "code": "guideline-based-care"
+                      }
+                    ]
+                  }
+                ],
+                "definitionCanonical": "http://example.org/PlanDefinition/MonitoringTestsForAntirheumaticDrugTherapy"
+              }
+            ]
+          }
+        },
+        "isCollapsed": false,
+        "handle": [
+          "target"
+        ]
+      },
+      "position": {
+        "x": 412,
+        "y": 12
+      },
+      "type": "startNode",
+      "className": "start-node node"
+    },
+    {
+      "id": "action-Beginning of treatment-4ee68894-67bb-4705-bfb7-9aab31470dfd",
+      "data": {
+        "label": "Beginning of treatment",
+        "handle": [
+          "target"
+        ],
+        "nodeData": {
+          "nodeDetails": {
+            "title": "Beginning of treatment",
+            "description": "Strategy for beginning treatment for RA",
+            "code": [
+              {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                    "code": "guideline-based-care"
+                  }
+                ]
+              }
+            ]
+          },
+          "partOf": {
+            "resourceType": "PlanDefinition",
+            "id": "RheumatoidArthritisGuideline",
+            "meta": {
+              "profile": [
+                "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-pathwaydefinition"
+              ]
+            },
+            "url": "http://example.org/PlanDefinition/RheumatoidArthritisGuideline",
+            "version": "0.1.0",
+            "name": "RheumatoidArthritisGuideline",
+            "title": "Rheumatoid Arthritis Guideline",
+            "type": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/plan-definition-type",
+                  "code": "clinical-protocol"
+                }
+              ]
+            },
+            "status": "draft",
+            "experimental": true,
+            "date": "2025-01-15T11:43:53-05:00",
+            "publisher": "Example Publisher",
+            "description": "### Essentials\n* If rheumatoid arthritis (RA) is suspected, the patient should be referred without delay to a rheumatology outpatient clinic.\n  * RA as an immunological disorder may begin several years before the appearance of symptoms, which may, at first, be unspecific, making it impossible to distinguish incipient RA from other types of arthritis.\n  * If there is inflammation in several, particularly small, joints, and rheumatoid factor and/or citrullinated peptide antibodies in blood, the patient probably has RA. Seronegative polyarthritis differs from seropositive polyarthritis as regards genetics and its more favourable prognosis, and it may prove in follow-up to be psoriatic arthropathy, for example.\n  * ESR and CRP may be normal.\n  * Systemic glucocorticoids interfere with the diagnosis and should therefore not be started in primary health care, but a glucocorticoid can be injected as first aid into inflamed joints.\n  * New patients with symptoms of arthritis need to see a rheumatologist unless the diagnosis is evident and treatment can be provided on the primary care level, as is often the case with gout or reactive arthritis.\n* RA is a progressive, debilitating disease but effective medication started early can make more than half of newly diagnosed patients asymptomatic within six months.\n* The basic medication consists of a combination of methotrexate, sulfasalazine and hydroxychloroquine. Low glucocorticoid doses should be added to the regimen for at least a few months.\n* Inflamed joints should be treated with glucocorticoid injections.\n* RA not responding to combination drug therapy should be treated with biologicals biologicals or with a janus kinase (JAK) inhibitor.\n* Physical exercise will improve the patient's functional ability and reduce the risk of cardiovascular disease.\n\n### Epidemiology\n* About 40 adults per 100 000 per year develop RA.\n* The age at onset is most commonly 65-70 years but two in three of those developing the disease are younger than 65 years old.\n* Two in three patients are women.\n* Some people are genetically susceptible to RA.\n* Smoking doubles the risk of the disease.\n\n### Symptoms\n* The onset of RA is usually insidious.\n* Morning stiffness, tender and swollen joints are typical.\n* Proximal interphalangeal and metacarpophalangeal joints, wrists, and balls of the feet are most commonly affected but basically any joint may become inflamed.\n* Fatigue, malaise and mild fever may occur as systemic symptoms.\n\n### Investigations in primary care\n* See the article Clinical examination of patients with joint inflammation in primary health care 1.\n* Palpation can be used to find out whether a patient with joint symptoms has arthritis.\n* An inflamed joint is characterized by soft swelling, tenderness, pain on movement and a limited range of motion.\n  * Fist closure is often limited in patients with inflammation of small finger joints or with flexor tenosynovitis.\n  * Tenderness on lateral squeezing of the knuckles or balls of the feet suggests arthritis.\n  * It may be difficult to distinguish arthritis from osteoarthritis. In fingers, osteoarthritis occurs in the distal or proximal interphalangeal joints, RA in proximal interphalangeal and metacarpophalangeal joints. Patients with osteoarthritis may develop rheumatoid arthritis.\n* Laboratory tests: ESR, CRP, basic blood count with platelets, RF, anti-CCP antibodies\n  * ALT, ALP, creatinine, urate, Borrelia antibodies, chemical screening of urine, ANAs, antibodies to diagnose reactive arthritis, as considered necessary (see Reactive arthritis > Diagnosis 2).\n* If intra-articular injections are given, a synovial fluid sample should be taken at the same time for examination (synovial fluid leucocytes + differential count from synovial fluid, bacterial culture, possibly synovial fluid crystals), if fluid can be aspirated; see the article 3.\n  * In patients with arthritis, synovial fluid is cloudy, with a leucocyte count exceeding 2 000 x 106/l.\n  * Highly cloudy synovial fluid suggests bacterial arthritis, usually monoarthritis.\n* Imaging of patients with arthritis should mainly be performed at a rheumatology outpatient clinic.\n\n### Principles of drug treatment\n* RA should be diagnosed and medication begun at a rheumatology outpatient clinic.\n---",
+            "action": [
+              {
+                "title": "Beginning of treatment",
+                "description": "Strategy for beginning treatment for RA",
+                "code": [
+                  {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                        "code": "guideline-based-care"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "title": "Screening",
+                "description": "Strategy for screening before starting to use immunosuppressive medication",
+                "code": [
+                  {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                        "code": "guideline-based-care"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "title": "Monitoring of treatment",
+                "description": "Strategy for monitoring during antirheumatic medication treatment",
+                "code": [
+                  {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                        "code": "guideline-based-care"
+                      }
+                    ]
+                  }
+                ],
+                "definitionCanonical": "http://example.org/PlanDefinition/MonitoringTestsForAntirheumaticDrugTherapy"
+              }
+            ]
+          }
+        },
+        "isCollapsed": false
+      },
+      "position": {
+        "x": 12,
+        "y": 212
+      },
+      "type": "contentNode",
+      "className": "node"
+    },
+    {
+      "id": "action-Screening-9a6c8391-03e0-4641-b356-02935ea3cb1d",
+      "data": {
+        "label": "Screening",
+        "handle": [
+          "target"
+        ],
+        "nodeData": {
+          "nodeDetails": {
+            "title": "Screening",
+            "description": "Strategy for screening before starting to use immunosuppressive medication",
+            "code": [
+              {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                    "code": "guideline-based-care"
+                  }
+                ]
+              }
+            ]
+          },
+          "partOf": {
+            "resourceType": "PlanDefinition",
+            "id": "RheumatoidArthritisGuideline",
+            "meta": {
+              "profile": [
+                "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-pathwaydefinition"
+              ]
+            },
+            "url": "http://example.org/PlanDefinition/RheumatoidArthritisGuideline",
+            "version": "0.1.0",
+            "name": "RheumatoidArthritisGuideline",
+            "title": "Rheumatoid Arthritis Guideline",
+            "type": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/plan-definition-type",
+                  "code": "clinical-protocol"
+                }
+              ]
+            },
+            "status": "draft",
+            "experimental": true,
+            "date": "2025-01-15T11:43:53-05:00",
+            "publisher": "Example Publisher",
+            "description": "### Essentials\n* If rheumatoid arthritis (RA) is suspected, the patient should be referred without delay to a rheumatology outpatient clinic.\n  * RA as an immunological disorder may begin several years before the appearance of symptoms, which may, at first, be unspecific, making it impossible to distinguish incipient RA from other types of arthritis.\n  * If there is inflammation in several, particularly small, joints, and rheumatoid factor and/or citrullinated peptide antibodies in blood, the patient probably has RA. Seronegative polyarthritis differs from seropositive polyarthritis as regards genetics and its more favourable prognosis, and it may prove in follow-up to be psoriatic arthropathy, for example.\n  * ESR and CRP may be normal.\n  * Systemic glucocorticoids interfere with the diagnosis and should therefore not be started in primary health care, but a glucocorticoid can be injected as first aid into inflamed joints.\n  * New patients with symptoms of arthritis need to see a rheumatologist unless the diagnosis is evident and treatment can be provided on the primary care level, as is often the case with gout or reactive arthritis.\n* RA is a progressive, debilitating disease but effective medication started early can make more than half of newly diagnosed patients asymptomatic within six months.\n* The basic medication consists of a combination of methotrexate, sulfasalazine and hydroxychloroquine. Low glucocorticoid doses should be added to the regimen for at least a few months.\n* Inflamed joints should be treated with glucocorticoid injections.\n* RA not responding to combination drug therapy should be treated with biologicals biologicals or with a janus kinase (JAK) inhibitor.\n* Physical exercise will improve the patient's functional ability and reduce the risk of cardiovascular disease.\n\n### Epidemiology\n* About 40 adults per 100 000 per year develop RA.\n* The age at onset is most commonly 65-70 years but two in three of those developing the disease are younger than 65 years old.\n* Two in three patients are women.\n* Some people are genetically susceptible to RA.\n* Smoking doubles the risk of the disease.\n\n### Symptoms\n* The onset of RA is usually insidious.\n* Morning stiffness, tender and swollen joints are typical.\n* Proximal interphalangeal and metacarpophalangeal joints, wrists, and balls of the feet are most commonly affected but basically any joint may become inflamed.\n* Fatigue, malaise and mild fever may occur as systemic symptoms.\n\n### Investigations in primary care\n* See the article Clinical examination of patients with joint inflammation in primary health care 1.\n* Palpation can be used to find out whether a patient with joint symptoms has arthritis.\n* An inflamed joint is characterized by soft swelling, tenderness, pain on movement and a limited range of motion.\n  * Fist closure is often limited in patients with inflammation of small finger joints or with flexor tenosynovitis.\n  * Tenderness on lateral squeezing of the knuckles or balls of the feet suggests arthritis.\n  * It may be difficult to distinguish arthritis from osteoarthritis. In fingers, osteoarthritis occurs in the distal or proximal interphalangeal joints, RA in proximal interphalangeal and metacarpophalangeal joints. Patients with osteoarthritis may develop rheumatoid arthritis.\n* Laboratory tests: ESR, CRP, basic blood count with platelets, RF, anti-CCP antibodies\n  * ALT, ALP, creatinine, urate, Borrelia antibodies, chemical screening of urine, ANAs, antibodies to diagnose reactive arthritis, as considered necessary (see Reactive arthritis > Diagnosis 2).\n* If intra-articular injections are given, a synovial fluid sample should be taken at the same time for examination (synovial fluid leucocytes + differential count from synovial fluid, bacterial culture, possibly synovial fluid crystals), if fluid can be aspirated; see the article 3.\n  * In patients with arthritis, synovial fluid is cloudy, with a leucocyte count exceeding 2 000 x 106/l.\n  * Highly cloudy synovial fluid suggests bacterial arthritis, usually monoarthritis.\n* Imaging of patients with arthritis should mainly be performed at a rheumatology outpatient clinic.\n\n### Principles of drug treatment\n* RA should be diagnosed and medication begun at a rheumatology outpatient clinic.\n---",
+            "action": [
+              {
+                "title": "Beginning of treatment",
+                "description": "Strategy for beginning treatment for RA",
+                "code": [
+                  {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                        "code": "guideline-based-care"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "title": "Screening",
+                "description": "Strategy for screening before starting to use immunosuppressive medication",
+                "code": [
+                  {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                        "code": "guideline-based-care"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "title": "Monitoring of treatment",
+                "description": "Strategy for monitoring during antirheumatic medication treatment",
+                "code": [
+                  {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                        "code": "guideline-based-care"
+                      }
+                    ]
+                  }
+                ],
+                "definitionCanonical": "http://example.org/PlanDefinition/MonitoringTestsForAntirheumaticDrugTherapy"
+              }
+            ]
+          }
+        },
+        "isCollapsed": false
+      },
+      "position": {
+        "x": 212,
+        "y": 212
+      },
+      "type": "contentNode",
+      "className": "node"
+    },
+    {
+      "id": "condition-action-Order monitoring tests for antirheumatic drug therapy (Methotrexate).-3b6f4059-93cf-4d59-819b-10ff9f08179a",
+      "data": {
+        "label": "Should order CBC if on Methotrexate therapy and missing test",
+        "handle": [
+          "target",
+          "source"
+        ],
+        "nodeData": {
+          "nodeDetails": {
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/cqf-qualityOfEvidence",
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/evidence-quality",
+                      "code": "high"
+                    }
+                  ]
+                }
+              },
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/cqf-strengthOfRecommendation",
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/recommendation-strength",
+                      "code": "strong"
+                    }
+                  ]
+                }
+              },
+              {
+                "url": "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-directionOfRecommendation",
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-recommendation-direction",
+                      "code": "for"
+                    }
+                  ]
+                }
+              }
+            ],
+            "title": "Order monitoring tests for antirheumatic drug therapy (Methotrexate).",
+            "description": "Order monitoring tests for antirheumatic drug therapy (Methotrexate).",
+            "code": [
+              {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                    "code": "diagnostic-testing"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "kind": "applicability",
+                "expression": {
+                  "language": "text/cql-identifier",
+                  "expression": "Should order CBC if on Methotrexate therapy and missing test"
+                }
+              }
+            ],
+            "input": [
+              {
+                "type": "Observation",
+                "profile": [
+                  "http://example.org/StructureDefinition/ActiveMethotrexateFeature"
+                ]
+              },
+              {
+                "type": "Observation",
+                "profile": [
+                  "http://example.org/StructureDefinition/LastCbcPanelReportDateFeature"
+                ]
+              }
+            ],
+            "definitionCanonical": "http://example.org/ActivityDefinition/OrderCBCActivity"
+          },
+          "partOf": {
+            "resourceType": "PlanDefinition",
+            "id": "MethotrexateMonitoringRecommendation",
+            "meta": {
+              "profile": [
+                "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-recommendationdefinition"
+              ]
+            },
+            "url": "http://example.org/PlanDefinition/MethotrexateMonitoringRecommendation",
+            "version": "0.1.0",
+            "name": "MethotrexateMonitoringRecommendation",
+            "title": "Methotrexate Monitoring Recommendation",
+            "type": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/plan-definition-type",
+                  "code": "eca-rule"
+                }
+              ]
+            },
+            "status": "draft",
+            "experimental": true,
+            "date": "2025-01-15T11:43:53-05:00",
+            "publisher": "Example Publisher",
+            "description": "Monitoring tests for antirheumatic drug therapy for Methotrexate.",
+            "relatedArtifact": [
+              {
+                "type": "citation",
+                "citation": "Criswell LA, Saag KG, Sems KM et al. Moderate-term, low-dose corticosteroids for rheumatoid arthritis. Cochrane Database Syst Rev 2000;(2):CD001158 PubMed.",
+                "url": "https://pubmed.ncbi.nlm.nih.gov/10796420",
+                "document": {
+                  "url": "https://pubmed.ncbi.nlm.nih.gov/10796420"
+                }
+              }
+            ],
+            "library": [
+              "http://example.org/Library/ApplicabilityLogic"
+            ],
+            "action": [
+              {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-qualityOfEvidence",
+                    "valueCodeableConcept": {
+                      "coding": [
+                        {
+                          "system": "http://terminology.hl7.org/CodeSystem/evidence-quality",
+                          "code": "high"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-strengthOfRecommendation",
+                    "valueCodeableConcept": {
+                      "coding": [
+                        {
+                          "system": "http://terminology.hl7.org/CodeSystem/recommendation-strength",
+                          "code": "strong"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "url": "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-directionOfRecommendation",
+                    "valueCodeableConcept": {
+                      "coding": [
+                        {
+                          "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-recommendation-direction",
+                          "code": "for"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "title": "Order monitoring tests for antirheumatic drug therapy (Methotrexate).",
+                "description": "Order monitoring tests for antirheumatic drug therapy (Methotrexate).",
+                "code": [
+                  {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                        "code": "diagnostic-testing"
+                      }
+                    ]
+                  }
+                ],
+                "condition": [
+                  {
+                    "kind": "applicability",
+                    "expression": {
+                      "language": "text/cql-identifier",
+                      "expression": "Should order CBC if on Methotrexate therapy and missing test"
+                    }
+                  }
+                ],
+                "input": [
+                  {
+                    "type": "Observation",
+                    "profile": [
+                      "http://example.org/StructureDefinition/ActiveMethotrexateFeature"
+                    ]
+                  },
+                  {
+                    "type": "Observation",
+                    "profile": [
+                      "http://example.org/StructureDefinition/LastCbcPanelReportDateFeature"
+                    ]
+                  }
+                ],
+                "definitionCanonical": "http://example.org/ActivityDefinition/OrderCBCActivity"
+              }
+            ]
+          }
+        },
+        "isCollapsed": false
+      },
+      "position": {
+        "x": 212,
+        "y": 812
+      },
+      "type": "applicabilityNode",
+      "className": "node"
+    },
+    {
+      "id": "OrderCBCActivity",
+      "data": {
+        "label": "Order CBC Activity",
+        "nodeData": {
+          "nodeDetails": {
+            "resourceType": "ActivityDefinition",
+            "id": "OrderCBCActivity",
+            "meta": {
+              "profile": [
+                "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-servicerequestactivity"
+              ]
+            },
+            "url": "http://example.org/ActivityDefinition/OrderCBCActivity",
+            "version": "0.1.0",
+            "name": "OrderCBCActivity",
+            "title": "Order CBC Activity",
+            "status": "draft",
+            "experimental": true,
+            "date": "2025-01-15T11:43:53-05:00",
+            "publisher": "Example Publisher",
+            "description": "Order hemogram plus platelet count labratory panel",
+            "kind": "ServiceRequest",
+            "profile": "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-servicerequest",
+            "intent": "proposal",
+            "doNotPerform": false,
+            "productCodeableConcept": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "58410-2",
+                  "display": "CBC panel - Blood by Automated count"
+                }
+              ]
+            }
+          }
+        },
+        "isCollapsed": false,
+        "handle": [
+          "target"
+        ]
+      },
+      "type": "contentNode",
+      "position": {
+        "x": 412,
+        "y": 1212
+      },
+      "className": "node"
+    },
+    {
+      "id": "action-Order monitoring tests for antirheumatic drug therapy (Methotrexate).-3b6f4059-93cf-4d59-819b-10ff9f08179a",
+      "data": {
+        "label": "Order monitoring tests for antirheumatic drug therapy (Methotrexate).",
+        "handle": [
+          "target",
+          "source"
+        ],
+        "nodeData": {
+          "nodeDetails": {
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/cqf-qualityOfEvidence",
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/evidence-quality",
+                      "code": "high"
+                    }
+                  ]
+                }
+              },
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/cqf-strengthOfRecommendation",
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/recommendation-strength",
+                      "code": "strong"
+                    }
+                  ]
+                }
+              },
+              {
+                "url": "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-directionOfRecommendation",
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-recommendation-direction",
+                      "code": "for"
+                    }
+                  ]
+                }
+              }
+            ],
+            "title": "Order monitoring tests for antirheumatic drug therapy (Methotrexate).",
+            "description": "Order monitoring tests for antirheumatic drug therapy (Methotrexate).",
+            "code": [
+              {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                    "code": "diagnostic-testing"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "kind": "applicability",
+                "expression": {
+                  "language": "text/cql-identifier",
+                  "expression": "Should order CBC if on Methotrexate therapy and missing test"
+                }
+              }
+            ],
+            "input": [
+              {
+                "type": "Observation",
+                "profile": [
+                  "http://example.org/StructureDefinition/ActiveMethotrexateFeature"
+                ]
+              },
+              {
+                "type": "Observation",
+                "profile": [
+                  "http://example.org/StructureDefinition/LastCbcPanelReportDateFeature"
+                ]
+              }
+            ],
+            "definitionCanonical": "http://example.org/ActivityDefinition/OrderCBCActivity"
+          },
+          "partOf": {
+            "resourceType": "PlanDefinition",
+            "id": "MethotrexateMonitoringRecommendation",
+            "meta": {
+              "profile": [
+                "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-recommendationdefinition"
+              ]
+            },
+            "url": "http://example.org/PlanDefinition/MethotrexateMonitoringRecommendation",
+            "version": "0.1.0",
+            "name": "MethotrexateMonitoringRecommendation",
+            "title": "Methotrexate Monitoring Recommendation",
+            "type": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/plan-definition-type",
+                  "code": "eca-rule"
+                }
+              ]
+            },
+            "status": "draft",
+            "experimental": true,
+            "date": "2025-01-15T11:43:53-05:00",
+            "publisher": "Example Publisher",
+            "description": "Monitoring tests for antirheumatic drug therapy for Methotrexate.",
+            "relatedArtifact": [
+              {
+                "type": "citation",
+                "citation": "Criswell LA, Saag KG, Sems KM et al. Moderate-term, low-dose corticosteroids for rheumatoid arthritis. Cochrane Database Syst Rev 2000;(2):CD001158 PubMed.",
+                "url": "https://pubmed.ncbi.nlm.nih.gov/10796420",
+                "document": {
+                  "url": "https://pubmed.ncbi.nlm.nih.gov/10796420"
+                }
+              }
+            ],
+            "library": [
+              "http://example.org/Library/ApplicabilityLogic"
+            ],
+            "action": [
+              {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-qualityOfEvidence",
+                    "valueCodeableConcept": {
+                      "coding": [
+                        {
+                          "system": "http://terminology.hl7.org/CodeSystem/evidence-quality",
+                          "code": "high"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-strengthOfRecommendation",
+                    "valueCodeableConcept": {
+                      "coding": [
+                        {
+                          "system": "http://terminology.hl7.org/CodeSystem/recommendation-strength",
+                          "code": "strong"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "url": "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-directionOfRecommendation",
+                    "valueCodeableConcept": {
+                      "coding": [
+                        {
+                          "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-recommendation-direction",
+                          "code": "for"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "title": "Order monitoring tests for antirheumatic drug therapy (Methotrexate).",
+                "description": "Order monitoring tests for antirheumatic drug therapy (Methotrexate).",
+                "code": [
+                  {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                        "code": "diagnostic-testing"
+                      }
+                    ]
+                  }
+                ],
+                "condition": [
+                  {
+                    "kind": "applicability",
+                    "expression": {
+                      "language": "text/cql-identifier",
+                      "expression": "Should order CBC if on Methotrexate therapy and missing test"
+                    }
+                  }
+                ],
+                "input": [
+                  {
+                    "type": "Observation",
+                    "profile": [
+                      "http://example.org/StructureDefinition/ActiveMethotrexateFeature"
+                    ]
+                  },
+                  {
+                    "type": "Observation",
+                    "profile": [
+                      "http://example.org/StructureDefinition/LastCbcPanelReportDateFeature"
+                    ]
+                  }
+                ],
+                "definitionCanonical": "http://example.org/ActivityDefinition/OrderCBCActivity"
+              }
+            ]
+          }
+        },
+        "isCollapsed": false
+      },
+      "position": {
+        "x": 212,
+        "y": 1012
+      },
+      "type": "contentNode",
+      "className": "node"
+    },
+    {
+      "id": "action-Recommend testing due to Methotrexate-13d1f954-873a-473b-ae49-7ecbfdd72085",
+      "data": {
+        "label": "Recommend testing due to Methotrexate",
+        "handle": [
+          "target",
+          "source"
+        ],
+        "nodeData": {
+          "nodeDetails": {
+            "title": "Recommend testing due to Methotrexate",
+            "description": "Recommend testing due to Methotrexate",
+            "code": [
+              {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                    "code": "guideline-based-care"
+                  }
+                ]
+              }
+            ],
+            "definitionCanonical": "http://example.org/PlanDefinition/MethotrexateMonitoringRecommendation"
+          },
+          "partOf": {
+            "resourceType": "PlanDefinition",
+            "id": "MonitoringTestsForAntirheumaticDrugTherapy",
+            "meta": {
+              "profile": [
+                "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-strategydefinition"
+              ]
+            },
+            "url": "http://example.org/PlanDefinition/MonitoringTestsForAntirheumaticDrugTherapy",
+            "version": "0.1.0",
+            "name": "MonitoringTestsForAntirheumaticDrugTherapy",
+            "title": "Monitoring Tests for Antirheumatic Drug Therapy",
+            "type": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/plan-definition-type",
+                  "code": "workflow-definition"
+                }
+              ]
+            },
+            "status": "draft",
+            "experimental": true,
+            "date": "2025-01-15T11:43:53-05:00",
+            "publisher": "Example Publisher",
+            "description": "* As the individual efficacy and tolerability of drug therapy cannot be predicted, patients should be closely monitored by laboratory tests (see safety monitoring tables 1 and 2) and clinically.\n* Recommendations concerning safety monitoring of antirheumatic medication vary to some extent in different areas. Consult local recommendations.\n\n*Table 1. Monitoring tests for antirheumatic drug therapy.*\nTests should also be performed 2-3 weeks after any increase in drug dose. ESR and CRP should be checked on visits to the doctor and otherwise as needed.\n\n| Drug         | Safety monitoring tests  |\n|  :--- |  :--- |\n| Methotrexate\t                         ||\n| At 3 weeks, 6 weeks, 12 weeks, then every 3-6 months | Basic blood count with platelets + differential count, ALT |\n| Every 6 months  | Creatinine (in case of impaired renal function, dose reduction) |\n| Sulfasalazine                     ||\n| Every 6 months  | Basic blood count with platelets + differential count |\n| Hydroxychloroquine                     ||\n| No laboratory monitoring needed. Checkup by an ophthalmologist after 5 years of use||\n\n### One month after starting treatment\n* Visit to a rheumatology nurse or, if necessary, a physician\n\n### Tree-month visit\n* If remission has not been achieved, medication should be intensified.\n* If methotrexate has been given orally, use of an injectable dosage form should now be started, and if the dose has been below 25 mg, it should be raised to this level now, unless there are contraindications to this.\n* Poor response to treatment, several swollen joints and a high CRP level predict treatment failure. In such cases, a biological agent or a JAK inhibitor should be added to the regimen.\n\n### Six-month visit\n* If remission has been achieved, glucocorticoid medication should be gradually reduced.\n* If the patient still has objective signs of arthritis, a biological agent or JAK inhibitor should be started. The EULAR recommendation for management updated in 2016 prefers biological agents because the available safety data covers a longer period of use.\n\n### After six months\n* The frequency of monitoring depends on disease activity.\n* If remission has been achieved, follow-up visits should be scheduled for one and two years after the beginning of treatment.\n* If, due to disease activity, major changes have had to be made to the medication or a biological agent or JAK inhibitor has had to be started, follow-up should be started from the beginning again, scheduling visits at 3 and 6 months.",
+            "useContext": [
+              {
+                "code": {
+                  "code": "venue"
+                },
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                      "code": "PC",
+                      "display": "Primary care clinic"
+                    }
+                  ]
+                }
+              },
+              {
+                "code": {
+                  "code": "venue"
+                },
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                      "code": "OF",
+                      "display": "Outpatient Facility"
+                    }
+                  ]
+                }
+              }
+            ],
+            "action": [
+              {
+                "title": "Recommend monitoring tests for RA therapy",
+                "description": "Recommend monitoring tests for RA therapy",
+                "code": [
+                  {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                        "code": "guideline-based-care"
+                      }
+                    ]
+                  }
+                ],
+                "trigger": [
+                  {
+                    "type": "named-event",
+                    "name": "patient-view"
+                  }
+                ],
+                "action": [
+                  {
+                    "title": "Recommend testing due to Methotrexate",
+                    "description": "Recommend testing due to Methotrexate",
+                    "code": [
+                      {
+                        "coding": [
+                          {
+                            "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                            "code": "guideline-based-care"
+                          }
+                        ]
+                      }
+                    ],
+                    "definitionCanonical": "http://example.org/PlanDefinition/MethotrexateMonitoringRecommendation"
+                  },
+                  {
+                    "title": "Recommend testing due to Sulfasalazine",
+                    "description": "Recommend testing due to Sulfasalazine",
+                    "code": [
+                      {
+                        "coding": [
+                          {
+                            "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                            "code": "guideline-based-care"
+                          }
+                        ]
+                      }
+                    ],
+                    "definitionCanonical": "http://example.org/PlanDefinition/SulfasalazineMonitoringRecommendation"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "isCollapsed": false
+      },
+      "position": {
+        "x": 212,
+        "y": 612
+      },
+      "type": "contentNode",
+      "className": "node"
+    },
+    {
+      "id": "condition-action-Order monitoring tests for antirheumatic drug therapy (Sulfasalazine).-215f9ebb-1d3c-4d99-86ea-def109ddae12",
+      "data": {
+        "label": "Should order CBC if on Sulfasalazine therapy and missing test",
+        "handle": [
+          "target",
+          "source"
+        ],
+        "nodeData": {
+          "nodeDetails": {
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/cqf-qualityOfEvidence",
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/evidence-quality",
+                      "code": "high"
+                    }
+                  ]
+                }
+              },
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/cqf-strengthOfRecommendation",
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/recommendation-strength",
+                      "code": "strong"
+                    }
+                  ]
+                }
+              },
+              {
+                "url": "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-directionOfRecommendation",
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-recommendation-direction",
+                      "code": "for"
+                    }
+                  ]
+                }
+              }
+            ],
+            "title": "Order monitoring tests for antirheumatic drug therapy (Sulfasalazine).",
+            "description": "Order monitoring tests for antirheumatic drug therapy (Sulfasalazine).",
+            "code": [
+              {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                    "code": "diagnostic-testing"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "kind": "applicability",
+                "expression": {
+                  "language": "text/cql-identifier",
+                  "expression": "Should order CBC if on Sulfasalazine therapy and missing test"
+                }
+              }
+            ],
+            "input": [
+              {
+                "type": "Observation",
+                "profile": [
+                  "http://example.org/StructureDefinition/ActiveSulfasalazineFeature"
+                ]
+              },
+              {
+                "type": "Observation",
+                "profile": [
+                  "http://example.org/StructureDefinition/LastCbcPanelReportDateFeature"
+                ]
+              }
+            ],
+            "definitionCanonical": "http://example.org/ActivityDefinition/OrderCBCActivity"
+          },
+          "partOf": {
+            "resourceType": "PlanDefinition",
+            "id": "SulfasalazineMonitoringRecommendation",
+            "meta": {
+              "profile": [
+                "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-recommendationdefinition"
+              ]
+            },
+            "url": "http://example.org/PlanDefinition/SulfasalazineMonitoringRecommendation",
+            "version": "0.1.0",
+            "name": "SulfasalazineMonitoringRecommendation",
+            "title": "Sulfasalazine Monitoring Recommendation",
+            "type": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/plan-definition-type",
+                  "code": "eca-rule"
+                }
+              ]
+            },
+            "status": "draft",
+            "experimental": true,
+            "date": "2025-01-15T11:43:53-05:00",
+            "publisher": "Example Publisher",
+            "description": "Monitoring tests for antirheumatic drug therapy for Sulfasalazine.",
+            "relatedArtifact": [
+              {
+                "type": "citation",
+                "citation": "Criswell LA, Saag KG, Sems KM et al. Moderate-term, low-dose corticosteroids for rheumatoid arthritis. Cochrane Database Syst Rev 2000;(2):CD001158 PubMed.",
+                "url": "https://pubmed.ncbi.nlm.nih.gov/10796420",
+                "document": {
+                  "url": "https://pubmed.ncbi.nlm.nih.gov/10796420"
+                }
+              }
+            ],
+            "library": [
+              "http://example.org/Library/ApplicabilityLogic"
+            ],
+            "action": [
+              {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-qualityOfEvidence",
+                    "valueCodeableConcept": {
+                      "coding": [
+                        {
+                          "system": "http://terminology.hl7.org/CodeSystem/evidence-quality",
+                          "code": "high"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-strengthOfRecommendation",
+                    "valueCodeableConcept": {
+                      "coding": [
+                        {
+                          "system": "http://terminology.hl7.org/CodeSystem/recommendation-strength",
+                          "code": "strong"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "url": "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-directionOfRecommendation",
+                    "valueCodeableConcept": {
+                      "coding": [
+                        {
+                          "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-recommendation-direction",
+                          "code": "for"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "title": "Order monitoring tests for antirheumatic drug therapy (Sulfasalazine).",
+                "description": "Order monitoring tests for antirheumatic drug therapy (Sulfasalazine).",
+                "code": [
+                  {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                        "code": "diagnostic-testing"
+                      }
+                    ]
+                  }
+                ],
+                "condition": [
+                  {
+                    "kind": "applicability",
+                    "expression": {
+                      "language": "text/cql-identifier",
+                      "expression": "Should order CBC if on Sulfasalazine therapy and missing test"
+                    }
+                  }
+                ],
+                "input": [
+                  {
+                    "type": "Observation",
+                    "profile": [
+                      "http://example.org/StructureDefinition/ActiveSulfasalazineFeature"
+                    ]
+                  },
+                  {
+                    "type": "Observation",
+                    "profile": [
+                      "http://example.org/StructureDefinition/LastCbcPanelReportDateFeature"
+                    ]
+                  }
+                ],
+                "definitionCanonical": "http://example.org/ActivityDefinition/OrderCBCActivity"
+              }
+            ]
+          }
+        },
+        "isCollapsed": false
+      },
+      "position": {
+        "x": 412,
+        "y": 812
+      },
+      "type": "applicabilityNode",
+      "className": "node"
+    },
+    {
+      "id": "action-Order monitoring tests for antirheumatic drug therapy (Sulfasalazine).-215f9ebb-1d3c-4d99-86ea-def109ddae12",
+      "data": {
+        "label": "Order monitoring tests for antirheumatic drug therapy (Sulfasalazine).",
+        "handle": [
+          "target",
+          "source"
+        ],
+        "nodeData": {
+          "nodeDetails": {
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/cqf-qualityOfEvidence",
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/evidence-quality",
+                      "code": "high"
+                    }
+                  ]
+                }
+              },
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/cqf-strengthOfRecommendation",
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/recommendation-strength",
+                      "code": "strong"
+                    }
+                  ]
+                }
+              },
+              {
+                "url": "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-directionOfRecommendation",
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-recommendation-direction",
+                      "code": "for"
+                    }
+                  ]
+                }
+              }
+            ],
+            "title": "Order monitoring tests for antirheumatic drug therapy (Sulfasalazine).",
+            "description": "Order monitoring tests for antirheumatic drug therapy (Sulfasalazine).",
+            "code": [
+              {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                    "code": "diagnostic-testing"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "kind": "applicability",
+                "expression": {
+                  "language": "text/cql-identifier",
+                  "expression": "Should order CBC if on Sulfasalazine therapy and missing test"
+                }
+              }
+            ],
+            "input": [
+              {
+                "type": "Observation",
+                "profile": [
+                  "http://example.org/StructureDefinition/ActiveSulfasalazineFeature"
+                ]
+              },
+              {
+                "type": "Observation",
+                "profile": [
+                  "http://example.org/StructureDefinition/LastCbcPanelReportDateFeature"
+                ]
+              }
+            ],
+            "definitionCanonical": "http://example.org/ActivityDefinition/OrderCBCActivity"
+          },
+          "partOf": {
+            "resourceType": "PlanDefinition",
+            "id": "SulfasalazineMonitoringRecommendation",
+            "meta": {
+              "profile": [
+                "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-recommendationdefinition"
+              ]
+            },
+            "url": "http://example.org/PlanDefinition/SulfasalazineMonitoringRecommendation",
+            "version": "0.1.0",
+            "name": "SulfasalazineMonitoringRecommendation",
+            "title": "Sulfasalazine Monitoring Recommendation",
+            "type": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/plan-definition-type",
+                  "code": "eca-rule"
+                }
+              ]
+            },
+            "status": "draft",
+            "experimental": true,
+            "date": "2025-01-15T11:43:53-05:00",
+            "publisher": "Example Publisher",
+            "description": "Monitoring tests for antirheumatic drug therapy for Sulfasalazine.",
+            "relatedArtifact": [
+              {
+                "type": "citation",
+                "citation": "Criswell LA, Saag KG, Sems KM et al. Moderate-term, low-dose corticosteroids for rheumatoid arthritis. Cochrane Database Syst Rev 2000;(2):CD001158 PubMed.",
+                "url": "https://pubmed.ncbi.nlm.nih.gov/10796420",
+                "document": {
+                  "url": "https://pubmed.ncbi.nlm.nih.gov/10796420"
+                }
+              }
+            ],
+            "library": [
+              "http://example.org/Library/ApplicabilityLogic"
+            ],
+            "action": [
+              {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-qualityOfEvidence",
+                    "valueCodeableConcept": {
+                      "coding": [
+                        {
+                          "system": "http://terminology.hl7.org/CodeSystem/evidence-quality",
+                          "code": "high"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-strengthOfRecommendation",
+                    "valueCodeableConcept": {
+                      "coding": [
+                        {
+                          "system": "http://terminology.hl7.org/CodeSystem/recommendation-strength",
+                          "code": "strong"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "url": "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-directionOfRecommendation",
+                    "valueCodeableConcept": {
+                      "coding": [
+                        {
+                          "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-recommendation-direction",
+                          "code": "for"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "title": "Order monitoring tests for antirheumatic drug therapy (Sulfasalazine).",
+                "description": "Order monitoring tests for antirheumatic drug therapy (Sulfasalazine).",
+                "code": [
+                  {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                        "code": "diagnostic-testing"
+                      }
+                    ]
+                  }
+                ],
+                "condition": [
+                  {
+                    "kind": "applicability",
+                    "expression": {
+                      "language": "text/cql-identifier",
+                      "expression": "Should order CBC if on Sulfasalazine therapy and missing test"
+                    }
+                  }
+                ],
+                "input": [
+                  {
+                    "type": "Observation",
+                    "profile": [
+                      "http://example.org/StructureDefinition/ActiveSulfasalazineFeature"
+                    ]
+                  },
+                  {
+                    "type": "Observation",
+                    "profile": [
+                      "http://example.org/StructureDefinition/LastCbcPanelReportDateFeature"
+                    ]
+                  }
+                ],
+                "definitionCanonical": "http://example.org/ActivityDefinition/OrderCBCActivity"
+              }
+            ]
+          }
+        },
+        "isCollapsed": false
+      },
+      "position": {
+        "x": 412,
+        "y": 1012
+      },
+      "type": "contentNode",
+      "className": "node"
+    },
+    {
+      "id": "action-Recommend testing due to Sulfasalazine-5d570bbb-2293-49e3-bf27-e71c559a2988",
+      "data": {
+        "label": "Recommend testing due to Sulfasalazine",
+        "handle": [
+          "target",
+          "source"
+        ],
+        "nodeData": {
+          "nodeDetails": {
+            "title": "Recommend testing due to Sulfasalazine",
+            "description": "Recommend testing due to Sulfasalazine",
+            "code": [
+              {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                    "code": "guideline-based-care"
+                  }
+                ]
+              }
+            ],
+            "definitionCanonical": "http://example.org/PlanDefinition/SulfasalazineMonitoringRecommendation"
+          },
+          "partOf": {
+            "resourceType": "PlanDefinition",
+            "id": "MonitoringTestsForAntirheumaticDrugTherapy",
+            "meta": {
+              "profile": [
+                "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-strategydefinition"
+              ]
+            },
+            "url": "http://example.org/PlanDefinition/MonitoringTestsForAntirheumaticDrugTherapy",
+            "version": "0.1.0",
+            "name": "MonitoringTestsForAntirheumaticDrugTherapy",
+            "title": "Monitoring Tests for Antirheumatic Drug Therapy",
+            "type": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/plan-definition-type",
+                  "code": "workflow-definition"
+                }
+              ]
+            },
+            "status": "draft",
+            "experimental": true,
+            "date": "2025-01-15T11:43:53-05:00",
+            "publisher": "Example Publisher",
+            "description": "* As the individual efficacy and tolerability of drug therapy cannot be predicted, patients should be closely monitored by laboratory tests (see safety monitoring tables 1 and 2) and clinically.\n* Recommendations concerning safety monitoring of antirheumatic medication vary to some extent in different areas. Consult local recommendations.\n\n*Table 1. Monitoring tests for antirheumatic drug therapy.*\nTests should also be performed 2-3 weeks after any increase in drug dose. ESR and CRP should be checked on visits to the doctor and otherwise as needed.\n\n| Drug         | Safety monitoring tests  |\n|  :--- |  :--- |\n| Methotrexate\t                         ||\n| At 3 weeks, 6 weeks, 12 weeks, then every 3-6 months | Basic blood count with platelets + differential count, ALT |\n| Every 6 months  | Creatinine (in case of impaired renal function, dose reduction) |\n| Sulfasalazine                     ||\n| Every 6 months  | Basic blood count with platelets + differential count |\n| Hydroxychloroquine                     ||\n| No laboratory monitoring needed. Checkup by an ophthalmologist after 5 years of use||\n\n### One month after starting treatment\n* Visit to a rheumatology nurse or, if necessary, a physician\n\n### Tree-month visit\n* If remission has not been achieved, medication should be intensified.\n* If methotrexate has been given orally, use of an injectable dosage form should now be started, and if the dose has been below 25 mg, it should be raised to this level now, unless there are contraindications to this.\n* Poor response to treatment, several swollen joints and a high CRP level predict treatment failure. In such cases, a biological agent or a JAK inhibitor should be added to the regimen.\n\n### Six-month visit\n* If remission has been achieved, glucocorticoid medication should be gradually reduced.\n* If the patient still has objective signs of arthritis, a biological agent or JAK inhibitor should be started. The EULAR recommendation for management updated in 2016 prefers biological agents because the available safety data covers a longer period of use.\n\n### After six months\n* The frequency of monitoring depends on disease activity.\n* If remission has been achieved, follow-up visits should be scheduled for one and two years after the beginning of treatment.\n* If, due to disease activity, major changes have had to be made to the medication or a biological agent or JAK inhibitor has had to be started, follow-up should be started from the beginning again, scheduling visits at 3 and 6 months.",
+            "useContext": [
+              {
+                "code": {
+                  "code": "venue"
+                },
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                      "code": "PC",
+                      "display": "Primary care clinic"
+                    }
+                  ]
+                }
+              },
+              {
+                "code": {
+                  "code": "venue"
+                },
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                      "code": "OF",
+                      "display": "Outpatient Facility"
+                    }
+                  ]
+                }
+              }
+            ],
+            "action": [
+              {
+                "title": "Recommend monitoring tests for RA therapy",
+                "description": "Recommend monitoring tests for RA therapy",
+                "code": [
+                  {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                        "code": "guideline-based-care"
+                      }
+                    ]
+                  }
+                ],
+                "trigger": [
+                  {
+                    "type": "named-event",
+                    "name": "patient-view"
+                  }
+                ],
+                "action": [
+                  {
+                    "title": "Recommend testing due to Methotrexate",
+                    "description": "Recommend testing due to Methotrexate",
+                    "code": [
+                      {
+                        "coding": [
+                          {
+                            "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                            "code": "guideline-based-care"
+                          }
+                        ]
+                      }
+                    ],
+                    "definitionCanonical": "http://example.org/PlanDefinition/MethotrexateMonitoringRecommendation"
+                  },
+                  {
+                    "title": "Recommend testing due to Sulfasalazine",
+                    "description": "Recommend testing due to Sulfasalazine",
+                    "code": [
+                      {
+                        "coding": [
+                          {
+                            "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                            "code": "guideline-based-care"
+                          }
+                        ]
+                      }
+                    ],
+                    "definitionCanonical": "http://example.org/PlanDefinition/SulfasalazineMonitoringRecommendation"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "isCollapsed": false
+      },
+      "position": {
+        "x": 412,
+        "y": 612
+      },
+      "type": "contentNode",
+      "className": "node"
+    },
+    {
+      "id": "action-Recommend monitoring tests for RA therapy-156cdfbc-db0f-46b3-a47d-5454c3af74c9",
+      "data": {
+        "label": "Recommend monitoring tests for RA therapy",
+        "handle": [
+          "target",
+          "source"
+        ],
+        "nodeData": {
+          "nodeDetails": {
+            "title": "Recommend monitoring tests for RA therapy",
+            "description": "Recommend monitoring tests for RA therapy",
+            "code": [
+              {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                    "code": "guideline-based-care"
+                  }
+                ]
+              }
+            ],
+            "trigger": [
+              {
+                "type": "named-event",
+                "name": "patient-view"
+              }
+            ],
+            "action": [
+              {
+                "title": "Recommend testing due to Methotrexate",
+                "description": "Recommend testing due to Methotrexate",
+                "code": [
+                  {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                        "code": "guideline-based-care"
+                      }
+                    ]
+                  }
+                ],
+                "definitionCanonical": "http://example.org/PlanDefinition/MethotrexateMonitoringRecommendation"
+              },
+              {
+                "title": "Recommend testing due to Sulfasalazine",
+                "description": "Recommend testing due to Sulfasalazine",
+                "code": [
+                  {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                        "code": "guideline-based-care"
+                      }
+                    ]
+                  }
+                ],
+                "definitionCanonical": "http://example.org/PlanDefinition/SulfasalazineMonitoringRecommendation"
+              }
+            ]
+          },
+          "partOf": {
+            "resourceType": "PlanDefinition",
+            "id": "MonitoringTestsForAntirheumaticDrugTherapy",
+            "meta": {
+              "profile": [
+                "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-strategydefinition"
+              ]
+            },
+            "url": "http://example.org/PlanDefinition/MonitoringTestsForAntirheumaticDrugTherapy",
+            "version": "0.1.0",
+            "name": "MonitoringTestsForAntirheumaticDrugTherapy",
+            "title": "Monitoring Tests for Antirheumatic Drug Therapy",
+            "type": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/plan-definition-type",
+                  "code": "workflow-definition"
+                }
+              ]
+            },
+            "status": "draft",
+            "experimental": true,
+            "date": "2025-01-15T11:43:53-05:00",
+            "publisher": "Example Publisher",
+            "description": "* As the individual efficacy and tolerability of drug therapy cannot be predicted, patients should be closely monitored by laboratory tests (see safety monitoring tables 1 and 2) and clinically.\n* Recommendations concerning safety monitoring of antirheumatic medication vary to some extent in different areas. Consult local recommendations.\n\n*Table 1. Monitoring tests for antirheumatic drug therapy.*\nTests should also be performed 2-3 weeks after any increase in drug dose. ESR and CRP should be checked on visits to the doctor and otherwise as needed.\n\n| Drug         | Safety monitoring tests  |\n|  :--- |  :--- |\n| Methotrexate\t                         ||\n| At 3 weeks, 6 weeks, 12 weeks, then every 3-6 months | Basic blood count with platelets + differential count, ALT |\n| Every 6 months  | Creatinine (in case of impaired renal function, dose reduction) |\n| Sulfasalazine                     ||\n| Every 6 months  | Basic blood count with platelets + differential count |\n| Hydroxychloroquine                     ||\n| No laboratory monitoring needed. Checkup by an ophthalmologist after 5 years of use||\n\n### One month after starting treatment\n* Visit to a rheumatology nurse or, if necessary, a physician\n\n### Tree-month visit\n* If remission has not been achieved, medication should be intensified.\n* If methotrexate has been given orally, use of an injectable dosage form should now be started, and if the dose has been below 25 mg, it should be raised to this level now, unless there are contraindications to this.\n* Poor response to treatment, several swollen joints and a high CRP level predict treatment failure. In such cases, a biological agent or a JAK inhibitor should be added to the regimen.\n\n### Six-month visit\n* If remission has been achieved, glucocorticoid medication should be gradually reduced.\n* If the patient still has objective signs of arthritis, a biological agent or JAK inhibitor should be started. The EULAR recommendation for management updated in 2016 prefers biological agents because the available safety data covers a longer period of use.\n\n### After six months\n* The frequency of monitoring depends on disease activity.\n* If remission has been achieved, follow-up visits should be scheduled for one and two years after the beginning of treatment.\n* If, due to disease activity, major changes have had to be made to the medication or a biological agent or JAK inhibitor has had to be started, follow-up should be started from the beginning again, scheduling visits at 3 and 6 months.",
+            "useContext": [
+              {
+                "code": {
+                  "code": "venue"
+                },
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                      "code": "PC",
+                      "display": "Primary care clinic"
+                    }
+                  ]
+                }
+              },
+              {
+                "code": {
+                  "code": "venue"
+                },
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                      "code": "OF",
+                      "display": "Outpatient Facility"
+                    }
+                  ]
+                }
+              }
+            ],
+            "action": [
+              {
+                "title": "Recommend monitoring tests for RA therapy",
+                "description": "Recommend monitoring tests for RA therapy",
+                "code": [
+                  {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                        "code": "guideline-based-care"
+                      }
+                    ]
+                  }
+                ],
+                "trigger": [
+                  {
+                    "type": "named-event",
+                    "name": "patient-view"
+                  }
+                ],
+                "action": [
+                  {
+                    "title": "Recommend testing due to Methotrexate",
+                    "description": "Recommend testing due to Methotrexate",
+                    "code": [
+                      {
+                        "coding": [
+                          {
+                            "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                            "code": "guideline-based-care"
+                          }
+                        ]
+                      }
+                    ],
+                    "definitionCanonical": "http://example.org/PlanDefinition/MethotrexateMonitoringRecommendation"
+                  },
+                  {
+                    "title": "Recommend testing due to Sulfasalazine",
+                    "description": "Recommend testing due to Sulfasalazine",
+                    "code": [
+                      {
+                        "coding": [
+                          {
+                            "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                            "code": "guideline-based-care"
+                          }
+                        ]
+                      }
+                    ],
+                    "definitionCanonical": "http://example.org/PlanDefinition/SulfasalazineMonitoringRecommendation"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "isCollapsed": false
+      },
+      "position": {
+        "x": 412,
+        "y": 412
+      },
+      "type": "contentNode",
+      "className": "node"
+    },
+    {
+      "id": "action-Monitoring of treatment-57d2cf52-e05b-4a08-8567-8a00e6445b8a",
+      "data": {
+        "label": "Monitoring of treatment",
+        "handle": [
+          "target",
+          "source"
+        ],
+        "nodeData": {
+          "nodeDetails": {
+            "title": "Monitoring of treatment",
+            "description": "Strategy for monitoring during antirheumatic medication treatment",
+            "code": [
+              {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                    "code": "guideline-based-care"
+                  }
+                ]
+              }
+            ],
+            "definitionCanonical": "http://example.org/PlanDefinition/MonitoringTestsForAntirheumaticDrugTherapy"
+          },
+          "partOf": {
+            "resourceType": "PlanDefinition",
+            "id": "RheumatoidArthritisGuideline",
+            "meta": {
+              "profile": [
+                "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-pathwaydefinition"
+              ]
+            },
+            "url": "http://example.org/PlanDefinition/RheumatoidArthritisGuideline",
+            "version": "0.1.0",
+            "name": "RheumatoidArthritisGuideline",
+            "title": "Rheumatoid Arthritis Guideline",
+            "type": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/plan-definition-type",
+                  "code": "clinical-protocol"
+                }
+              ]
+            },
+            "status": "draft",
+            "experimental": true,
+            "date": "2025-01-15T11:43:53-05:00",
+            "publisher": "Example Publisher",
+            "description": "### Essentials\n* If rheumatoid arthritis (RA) is suspected, the patient should be referred without delay to a rheumatology outpatient clinic.\n  * RA as an immunological disorder may begin several years before the appearance of symptoms, which may, at first, be unspecific, making it impossible to distinguish incipient RA from other types of arthritis.\n  * If there is inflammation in several, particularly small, joints, and rheumatoid factor and/or citrullinated peptide antibodies in blood, the patient probably has RA. Seronegative polyarthritis differs from seropositive polyarthritis as regards genetics and its more favourable prognosis, and it may prove in follow-up to be psoriatic arthropathy, for example.\n  * ESR and CRP may be normal.\n  * Systemic glucocorticoids interfere with the diagnosis and should therefore not be started in primary health care, but a glucocorticoid can be injected as first aid into inflamed joints.\n  * New patients with symptoms of arthritis need to see a rheumatologist unless the diagnosis is evident and treatment can be provided on the primary care level, as is often the case with gout or reactive arthritis.\n* RA is a progressive, debilitating disease but effective medication started early can make more than half of newly diagnosed patients asymptomatic within six months.\n* The basic medication consists of a combination of methotrexate, sulfasalazine and hydroxychloroquine. Low glucocorticoid doses should be added to the regimen for at least a few months.\n* Inflamed joints should be treated with glucocorticoid injections.\n* RA not responding to combination drug therapy should be treated with biologicals biologicals or with a janus kinase (JAK) inhibitor.\n* Physical exercise will improve the patient's functional ability and reduce the risk of cardiovascular disease.\n\n### Epidemiology\n* About 40 adults per 100 000 per year develop RA.\n* The age at onset is most commonly 65-70 years but two in three of those developing the disease are younger than 65 years old.\n* Two in three patients are women.\n* Some people are genetically susceptible to RA.\n* Smoking doubles the risk of the disease.\n\n### Symptoms\n* The onset of RA is usually insidious.\n* Morning stiffness, tender and swollen joints are typical.\n* Proximal interphalangeal and metacarpophalangeal joints, wrists, and balls of the feet are most commonly affected but basically any joint may become inflamed.\n* Fatigue, malaise and mild fever may occur as systemic symptoms.\n\n### Investigations in primary care\n* See the article Clinical examination of patients with joint inflammation in primary health care 1.\n* Palpation can be used to find out whether a patient with joint symptoms has arthritis.\n* An inflamed joint is characterized by soft swelling, tenderness, pain on movement and a limited range of motion.\n  * Fist closure is often limited in patients with inflammation of small finger joints or with flexor tenosynovitis.\n  * Tenderness on lateral squeezing of the knuckles or balls of the feet suggests arthritis.\n  * It may be difficult to distinguish arthritis from osteoarthritis. In fingers, osteoarthritis occurs in the distal or proximal interphalangeal joints, RA in proximal interphalangeal and metacarpophalangeal joints. Patients with osteoarthritis may develop rheumatoid arthritis.\n* Laboratory tests: ESR, CRP, basic blood count with platelets, RF, anti-CCP antibodies\n  * ALT, ALP, creatinine, urate, Borrelia antibodies, chemical screening of urine, ANAs, antibodies to diagnose reactive arthritis, as considered necessary (see Reactive arthritis > Diagnosis 2).\n* If intra-articular injections are given, a synovial fluid sample should be taken at the same time for examination (synovial fluid leucocytes + differential count from synovial fluid, bacterial culture, possibly synovial fluid crystals), if fluid can be aspirated; see the article 3.\n  * In patients with arthritis, synovial fluid is cloudy, with a leucocyte count exceeding 2 000 x 106/l.\n  * Highly cloudy synovial fluid suggests bacterial arthritis, usually monoarthritis.\n* Imaging of patients with arthritis should mainly be performed at a rheumatology outpatient clinic.\n\n### Principles of drug treatment\n* RA should be diagnosed and medication begun at a rheumatology outpatient clinic.\n---",
+            "action": [
+              {
+                "title": "Beginning of treatment",
+                "description": "Strategy for beginning treatment for RA",
+                "code": [
+                  {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                        "code": "guideline-based-care"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "title": "Screening",
+                "description": "Strategy for screening before starting to use immunosuppressive medication",
+                "code": [
+                  {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                        "code": "guideline-based-care"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "title": "Monitoring of treatment",
+                "description": "Strategy for monitoring during antirheumatic medication treatment",
+                "code": [
+                  {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+                        "code": "guideline-based-care"
+                      }
+                    ]
+                  }
+                ],
+                "definitionCanonical": "http://example.org/PlanDefinition/MonitoringTestsForAntirheumaticDrugTherapy"
+              }
+            ]
+          }
+        },
+        "isCollapsed": false
+      },
+      "position": {
+        "x": 412,
+        "y": 212
+      },
+      "type": "contentNode",
+      "className": "node"
+    }
+  ]
+}
