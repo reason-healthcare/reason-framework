@@ -122,7 +122,7 @@
   width: 0px;
 }
 
-.button-group .ant-form-item-control-input-content {
+.button-group {
   display: flex;
   gap: 1rem;
   padding: 1rem;

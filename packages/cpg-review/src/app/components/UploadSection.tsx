@@ -262,6 +262,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
   if (packageTypePayload === 'file') {
     uploadItem = (
       <Form.Item name="upload" className="form-item upload">
+        <div>
         <h1 className="form-title">Upload package</h1>
         <p className="form-description">
           Add an r4 FHIR implementation guide package. Use the generated{' '}
@@ -288,6 +289,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
           </p>
           <p className="ant-upload-hint">Provide one tarball ending in .tgz</p>
         </Dragger>
+      </div>
       </Form.Item>
     )
   } else {
@@ -298,6 +300,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
         getValueFromEvent={(e) => e.fileList}
         className="form-item upload"
       >
+        <div>
         <h1 className="form-title">Set content endpoint</h1>
         <p className="form-description">
           Specify endpoint address for r4 FHIR implementation guide package.
@@ -307,6 +310,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
           onChange={handleInputChange}
           value={endpointPayload}
         />
+      </div>
       </Form.Item>
     )
   }
@@ -319,6 +323,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
         autoComplete="off"
       >
         <Form.Item name="packageTypePayload" className="form-item">
+          <div>
           <h1 className="form-title">Select FHIR package type</h1>
           <p className="form-description">
             Choose to upload FHIR package from local filesystem or rest
@@ -332,9 +337,11 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
             <Radio value="file">File</Radio>
             <Radio value="rest">Rest</Radio>
           </Radio.Group>
+        </div>
         </Form.Item>
         {uploadItem}
         <Form.Item name="select" className="form-item">
+          <div>
           <h1 className="form-title">Select plan definition</h1>
           <p className="form-description">
             Select a plan definition for review. Recommend using a{' '}
@@ -360,8 +367,10 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
           >
             {formatPlanOptions()}
           </Select>
+        </div>
         </Form.Item>
-        <Form.Item className="button-group">
+        <Form.Item >
+          <div className="button-group">
           <button
             type="submit"
             className={
@@ -377,6 +386,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
           >
             Reset
           </button>
+        </div>
         </Form.Item>
       </Form>
     </>
