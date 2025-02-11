@@ -311,10 +311,7 @@ class Flow implements FlowShape {
     return this
   }
 
-  public async collapseAllFromSource(
-    id: string,
-    reactFlow: ReactFlowInstance<any, any>
-  ) {
+  public async collapseAllFromSource(id: string) {
     let children: Node[] | undefined
     if (this.nodes && this.edges) {
       const sourceNode = this.nodes?.find((n) => n.id === id)
