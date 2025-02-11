@@ -4,11 +4,11 @@ class ResizeObserver {
   callback: globalThis.ResizeObserverCallback
 
   constructor(callback: globalThis.ResizeObserverCallback) {
-    this.callback = callback;
+    this.callback = callback
   }
 
   observe(target: Element) {
-    this.callback([{ target } as globalThis.ResizeObserverEntry], this);
+    this.callback([{ target } as globalThis.ResizeObserverEntry], this)
   }
 
   unobserve() {}
@@ -17,7 +17,7 @@ class ResizeObserver {
 }
 
 class DOMMatrixReadOnly {
-  m22: number;
+  m22: number
   constructor(transform: string) {
     const scale = transform?.match(/scale\(([1-9.])\)/)?.[1]
     this.m22 = scale !== undefined ? +scale : 1
@@ -47,9 +47,9 @@ export const mockReactFlow = () => {
         return parseFloat(this.style.width) || 1
       },
     },
-  });
+  })
 
-  (global.SVGElement as any).prototype.getBBox = () => ({
+  ;(global.SVGElement as any).prototype.getBBox = () => ({
     x: 0,
     y: 0,
     width: 0,

@@ -1,4 +1,5 @@
-{"nodes": [
+{
+  "nodes": [
     {
       "id": "RheumatoidArthritisGuideline",
       "data": {
@@ -76,9 +77,7 @@
           }
         },
         "isCollapsed": false,
-        "handle": [
-          "target"
-        ]
+        "handle": ["target"]
       },
       "position": {
         "x": 412,
@@ -91,9 +90,7 @@
       "id": "action-Beginning of treatment-4ee68894-67bb-4705-bfb7-9aab31470dfd",
       "data": {
         "label": "Beginning of treatment",
-        "handle": [
-          "target"
-        ],
+        "handle": ["target"],
         "nodeData": {
           "nodeDetails": {
             "title": "Beginning of treatment",
@@ -194,9 +191,7 @@
       "id": "action-Screening-9a6c8391-03e0-4641-b356-02935ea3cb1d",
       "data": {
         "label": "Screening",
-        "handle": [
-          "target"
-        ],
+        "handle": ["target"],
         "nodeData": {
           "nodeDetails": {
             "title": "Screening",
@@ -297,10 +292,7 @@
       "id": "condition-action-Order monitoring tests for antirheumatic drug therapy (Methotrexate).-3b6f4059-93cf-4d59-819b-10ff9f08179a",
       "data": {
         "label": "Should order CBC if on Methotrexate therapy and missing test",
-        "handle": [
-          "target",
-          "source"
-        ],
+        "handle": ["target", "source"],
         "nodeData": {
           "nodeDetails": {
             "extension": [
@@ -410,9 +402,7 @@
                 }
               }
             ],
-            "library": [
-              "http://example.org/Library/ApplicabilityLogic"
-            ],
+            "library": ["http://example.org/Library/ApplicabilityLogic"],
             "action": [
               {
                 "extension": [
@@ -537,9 +527,7 @@
           }
         },
         "isCollapsed": false,
-        "handle": [
-          "target"
-        ]
+        "handle": ["target"]
       },
       "type": "contentNode",
       "position": {
@@ -552,10 +540,7 @@
       "id": "action-Order monitoring tests for antirheumatic drug therapy (Methotrexate).-3b6f4059-93cf-4d59-819b-10ff9f08179a",
       "data": {
         "label": "Order monitoring tests for antirheumatic drug therapy (Methotrexate).",
-        "handle": [
-          "target",
-          "source"
-        ],
+        "handle": ["target", "source"],
         "nodeData": {
           "nodeDetails": {
             "extension": [
@@ -665,9 +650,7 @@
                 }
               }
             ],
-            "library": [
-              "http://example.org/Library/ApplicabilityLogic"
-            ],
+            "library": ["http://example.org/Library/ApplicabilityLogic"],
             "action": [
               {
                 "extension": [
@@ -758,10 +741,7 @@
       "id": "action-Recommend testing due to Methotrexate-13d1f954-873a-473b-ae49-7ecbfdd72085",
       "data": {
         "label": "Recommend testing due to Methotrexate",
-        "handle": [
-          "target",
-          "source"
-        ],
+        "handle": ["target", "source"],
         "nodeData": {
           "nodeDetails": {
             "title": "Recommend testing due to Methotrexate",
@@ -902,10 +882,7 @@
       "id": "condition-action-Order monitoring tests for antirheumatic drug therapy (Sulfasalazine).-215f9ebb-1d3c-4d99-86ea-def109ddae12",
       "data": {
         "label": "Should order CBC if on Sulfasalazine therapy and missing test",
-        "handle": [
-          "target",
-          "source"
-        ],
+        "handle": ["target", "source"],
         "nodeData": {
           "nodeDetails": {
             "extension": [
@@ -1015,9 +992,7 @@
                 }
               }
             ],
-            "library": [
-              "http://example.org/Library/ApplicabilityLogic"
-            ],
+            "library": ["http://example.org/Library/ApplicabilityLogic"],
             "action": [
               {
                 "extension": [
@@ -1108,10 +1083,7 @@
       "id": "action-Order monitoring tests for antirheumatic drug therapy (Sulfasalazine).-215f9ebb-1d3c-4d99-86ea-def109ddae12",
       "data": {
         "label": "Order monitoring tests for antirheumatic drug therapy (Sulfasalazine).",
-        "handle": [
-          "target",
-          "source"
-        ],
+        "handle": ["target", "source"],
         "nodeData": {
           "nodeDetails": {
             "extension": [
@@ -1221,9 +1193,7 @@
                 }
               }
             ],
-            "library": [
-              "http://example.org/Library/ApplicabilityLogic"
-            ],
+            "library": ["http://example.org/Library/ApplicabilityLogic"],
             "action": [
               {
                 "extension": [
@@ -1314,10 +1284,7 @@
       "id": "action-Recommend testing due to Sulfasalazine-5d570bbb-2293-49e3-bf27-e71c559a2988",
       "data": {
         "label": "Recommend testing due to Sulfasalazine",
-        "handle": [
-          "target",
-          "source"
-        ],
+        "handle": ["target", "source"],
         "nodeData": {
           "nodeDetails": {
             "title": "Recommend testing due to Sulfasalazine",
@@ -1458,10 +1425,7 @@
       "id": "action-Recommend monitoring tests for RA therapy-156cdfbc-db0f-46b3-a47d-5454c3af74c9",
       "data": {
         "label": "Recommend monitoring tests for RA therapy",
-        "handle": [
-          "target",
-          "source"
-        ],
+        "handle": ["target", "source"],
         "nodeData": {
           "nodeDetails": {
             "title": "Recommend monitoring tests for RA therapy",
@@ -1639,10 +1603,7 @@
       "id": "action-Monitoring of treatment-57d2cf52-e05b-4a08-8567-8a00e6445b8a",
       "data": {
         "label": "Monitoring of treatment",
-        "handle": [
-          "target",
-          "source"
-        ],
+        "handle": ["target", "source"],
         "nodeData": {
           "nodeDetails": {
             "title": "Monitoring of treatment",

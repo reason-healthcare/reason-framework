@@ -9,21 +9,22 @@ import jest from 'jest-mock'
 import { ReactFlowProvider, useStore } from 'reactflow'
 import React from 'react'
 
-
 const props: FlowDisplayProps = {
-  resolver: new BrowserResolver(JSON.stringify(resolverData)) as BrowserResolver,
+  resolver: new BrowserResolver(
+    JSON.stringify(resolverData)
+  ) as BrowserResolver,
   planDefinition: simplePlanDefinition as fhir4.PlanDefinition,
   setNodeData: jest.fn(),
   selectedNode: undefined,
-  setSelectedNode: jest.fn()
+  setSelectedNode: jest.fn(),
 }
 
 // TODO: nodes and edges are not rendering ??
-describe("Flow Display", () => {
+describe('Flow Display', () => {
   it('Renders graph with simple plan definition', () => {
     const { asFragment } = render(
       <ReactFlowProvider>
-        <FlowDisplay {...props}/>
+        <FlowDisplay {...props} />
       </ReactFlowProvider>
     )
     expect(asFragment()).toMatchSnapshot()

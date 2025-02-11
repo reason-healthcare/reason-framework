@@ -1,9 +1,7 @@
 import { Handle, Position } from 'reactflow'
 import '@/styles/node.css'
 import { useState } from 'react'
-import {
-  DownCircleFilled,
-} from '@ant-design/icons'
+import { DownCircleFilled } from '@ant-design/icons'
 
 type InteractiveHandleProps = {
   setCollapsed: React.Dispatch<React.SetStateAction<boolean>>
