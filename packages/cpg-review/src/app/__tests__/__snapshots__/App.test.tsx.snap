@@ -1,0 +1,377 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CPG Review Tool App Renders correctly without Plan Definition 1`] = `
+<DocumentFragment>
+  <div
+    class="app-container"
+  >
+    <div
+      class="header-container"
+    >
+      <a
+        aria-label="visit reason healthcare"
+        class="logo"
+        href="https://www.vermonster.com/products"
+        target="_blank"
+      >
+        <span
+          class="r"
+        >
+          r
+        </span>
+        <span>
+          .
+        </span>
+        <span>
+          h
+        </span>
+      </a>
+      <div
+        class="links"
+      >
+        <button
+          aria-label="add new plan"
+          class="nav-button nav-button-disabled"
+        >
+          Review
+        </button>
+        <a
+          aria-label="documentation"
+          class="nav-button"
+          href="https://github.com/reason-healthcare/reason-framework"
+          target="_blank"
+        >
+          Github
+        </a>
+      </div>
+    </div>
+    <div
+      class="content-container"
+    >
+      <form
+        autocomplete="off"
+        class="ant-form ant-form-horizontal css-dev-only-do-not-override-kghr11 form"
+      >
+        <div
+          class="ant-form-item form-item css-dev-only-do-not-override-kghr11"
+        >
+          <div
+            class="ant-row ant-form-item-row css-dev-only-do-not-override-kghr11"
+          >
+            <div
+              class="ant-col ant-form-item-control css-dev-only-do-not-override-kghr11"
+            >
+              <div
+                class="ant-form-item-control-input"
+              >
+                <div
+                  class="ant-form-item-control-input-content"
+                >
+                  <div
+                    id="packageTypePayload"
+                  >
+                    <h1
+                      class="form-title"
+                    >
+                      Select FHIR package type
+                    </h1>
+                    <p
+                      class="form-description"
+                    >
+                      Choose to upload FHIR package from local filesystem or rest endpoint.
+                    </p>
+                    <div
+                      class="ant-radio-group ant-radio-group-outline radio-group css-dev-only-do-not-override-kghr11"
+                    >
+                      <label
+                        class="ant-radio-wrapper ant-radio-wrapper-checked ant-radio-wrapper-in-form-item css-dev-only-do-not-override-kghr11"
+                      >
+                        <span
+                          class="ant-radio ant-wave-target ant-radio-checked"
+                        >
+                          <input
+                            checked=""
+                            class="ant-radio-input"
+                            type="radio"
+                            value="file"
+                          />
+                          <span
+                            class="ant-radio-inner"
+                          />
+                        </span>
+                        <span>
+                          File
+                        </span>
+                      </label>
+                      <label
+                        class="ant-radio-wrapper ant-radio-wrapper-in-form-item css-dev-only-do-not-override-kghr11"
+                      >
+                        <span
+                          class="ant-radio ant-wave-target"
+                        >
+                          <input
+                            class="ant-radio-input"
+                            type="radio"
+                            value="rest"
+                          />
+                          <span
+                            class="ant-radio-inner"
+                          />
+                        </span>
+                        <span>
+                          Rest
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="ant-form-item form-item upload css-dev-only-do-not-override-kghr11"
+        >
+          <div
+            class="ant-row ant-form-item-row css-dev-only-do-not-override-kghr11"
+          >
+            <div
+              class="ant-col ant-form-item-control css-dev-only-do-not-override-kghr11"
+            >
+              <div
+                class="ant-form-item-control-input"
+              >
+                <div
+                  class="ant-form-item-control-input-content"
+                >
+                  <div
+                    id="upload"
+                  >
+                    <h1
+                      class="form-title"
+                    >
+                      Upload package
+                    </h1>
+                    <p
+                      class="form-description"
+                    >
+                      Add an r4 FHIR implementation guide package. Use the generated 
+                      <span>
+                        <a
+                          href="https://confluence.hl7.org/display/FHIR/IG+Publisher+Documentation#IGPublisherDocumentation-Summary"
+                          target="_blank"
+                        >
+                          ImplementationGuide/output/package.r4.tgz
+                        </a>
+                      </span>
+                       file.
+                    </p>
+                    <span
+                      class="ant-upload-wrapper form-item  css-dev-only-do-not-override-kghr11"
+                    >
+                      <div
+                        class="css-dev-only-do-not-override-kghr11 ant-upload ant-upload-drag"
+                      >
+                        <span
+                          class="ant-upload ant-upload-btn"
+                          role="button"
+                          tabindex="0"
+                        >
+                          <input
+                            accept="tgz"
+                            style="display: none;"
+                            type="file"
+                          />
+                          <div
+                            class="ant-upload-drag-container"
+                          >
+                            <p
+                              class="ant-upload-drag-icon"
+                            >
+                              <span
+                                aria-label="inbox"
+                                class="anticon anticon-inbox"
+                                role="img"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  data-icon="inbox"
+                                  fill="currentColor"
+                                  focusable="false"
+                                  height="1em"
+                                  viewBox="0 0 1024 1024"
+                                  width="1em"
+                                >
+                                  <path
+                                    d="M885.2 446.3l-.2-.8-112.2-285.1c-5-16.1-19.9-27.2-36.8-27.2H281.2c-17 0-32.1 11.3-36.9 27.6L139.4 443l-.3.7-.2.8c-1.3 4.9-1.7 9.9-1 14.8-.1 1.6-.2 3.2-.2 4.8V830a60.9 60.9 0 0060.8 60.8h627.2c33.5 0 60.8-27.3 60.9-60.8V464.1c0-1.3 0-2.6-.1-3.7.4-4.9 0-9.6-1.3-14.1zm-295.8-43l-.3 15.7c-.8 44.9-31.8 75.1-77.1 75.1-22.1 0-41.1-7.1-54.8-20.6S436 441.2 435.6 419l-.3-15.7H229.5L309 210h399.2l81.7 193.3H589.4zm-375 76.8h157.3c24.3 57.1 76 90.8 140.4 90.8 33.7 0 65-9.4 90.3-27.2 22.2-15.6 39.5-37.4 50.7-63.6h156.5V814H214.4V480.1z"
+                                  />
+                                </svg>
+                              </span>
+                            </p>
+                            <p
+                              class="ant-upload-text"
+                            >
+                              Click or drag files to this area to upload
+                            </p>
+                            <p
+                              class="ant-upload-hint"
+                            >
+                              Provide one tarball ending in .tgz
+                            </p>
+                          </div>
+                        </span>
+                      </div>
+                      <div
+                        class="ant-upload-list ant-upload-list-text"
+                      />
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="ant-form-item form-item css-dev-only-do-not-override-kghr11"
+        >
+          <div
+            class="ant-row ant-form-item-row css-dev-only-do-not-override-kghr11"
+          >
+            <div
+              class="ant-col ant-form-item-control css-dev-only-do-not-override-kghr11"
+            >
+              <div
+                class="ant-form-item-control-input"
+              >
+                <div
+                  class="ant-form-item-control-input-content"
+                >
+                  <div
+                    id="select"
+                  >
+                    <h1
+                      class="form-title"
+                    >
+                      Select plan definition
+                    </h1>
+                    <p
+                      class="form-description"
+                    >
+                      Select a plan definition for review. Recommend using a 
+                      <span>
+                        <a
+                          href="https://build.fhir.org/ig/HL7/cqf-recommendations/documentation-approach-12-03-cpg-plan.html#pathways"
+                          target="_blank"
+                        >
+                          Clinical Practice Guidelines Pathway
+                        </a>
+                      </span>
+                      .
+                    </p>
+                    <div
+                      class="ant-select ant-select-outlined ant-select-in-form-item css-dev-only-do-not-override-kghr11 ant-select-single ant-select-show-arrow ant-select-disabled"
+                    >
+                      <div
+                        class="ant-select-selector"
+                      >
+                        <span
+                          class="ant-select-selection-search"
+                        >
+                          <input
+                            aria-autocomplete="list"
+                            aria-controls="rc_select_TEST_OR_SSR_list"
+                            aria-expanded="false"
+                            aria-haspopup="listbox"
+                            aria-owns="rc_select_TEST_OR_SSR_list"
+                            autocomplete="off"
+                            class="ant-select-selection-search-input"
+                            disabled=""
+                            id="rc_select_TEST_OR_SSR"
+                            readonly=""
+                            role="combobox"
+                            style="opacity: 0;"
+                            type="search"
+                            unselectable="on"
+                            value=""
+                          />
+                        </span>
+                        <span
+                          class="ant-select-selection-placeholder"
+                        >
+                          Upload content to view plans
+                        </span>
+                      </div>
+                      <span
+                        aria-hidden="true"
+                        class="ant-select-arrow"
+                        style="user-select: none;"
+                        unselectable="on"
+                      >
+                        <span
+                          aria-label="down"
+                          class="anticon anticon-down ant-select-suffix"
+                          role="img"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            data-icon="down"
+                            fill="currentColor"
+                            focusable="false"
+                            height="1em"
+                            viewBox="64 64 896 896"
+                            width="1em"
+                          >
+                            <path
+                              d="M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z"
+                            />
+                          </svg>
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="ant-form-item css-dev-only-do-not-override-kghr11"
+        >
+          <div
+            class="ant-row ant-form-item-row css-dev-only-do-not-override-kghr11"
+          >
+            <div
+              class="ant-col ant-form-item-control css-dev-only-do-not-override-kghr11"
+            >
+              <div
+                class="ant-form-item-control-input"
+              >
+                <div
+                  class="ant-form-item-control-input-content"
+                >
+                  <div
+                    class="button-group"
+                  >
+                    <button
+                      class="button disabled"
+                      type="submit"
+                    >
+                      View Content
+                    </button>
+                    <button
+                      class="button button-secondary"
+                      type="submit"
+                    >
+                      Reset
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</DocumentFragment>
+`;

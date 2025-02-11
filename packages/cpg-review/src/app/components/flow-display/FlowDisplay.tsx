@@ -17,7 +17,7 @@ import StartNode from './StartNode'
 import { NodeData } from '../../types/NodeData'
 import ApplicabilityNode from './ApplicabilityNode'
 
-interface FlowDisplayProps {
+export interface FlowDisplayProps {
   resolver: BrowserResolver | undefined
   planDefinition: fhir4.PlanDefinition
   setNodeData: React.Dispatch<React.SetStateAction<NodeData | undefined>>
@@ -73,7 +73,7 @@ export default function FlowDisplay({
   useEffect(() => {
     const newFlow = new Flow(expandedFlow?.nodes, expandedFlow?.edges)
     if (!expandedView && planDefinition.id != null) {
-      newFlow?.collapseAllFromSource(planDefinition.id, reactFlow).then(() => {
+      newFlow?.collapseAllFromSource(planDefinition.id).then(() => {
         setDisplayNodes(newFlow.nodes)
         setDisplayEdges(newFlow.edges)
         const newKey = key + 1

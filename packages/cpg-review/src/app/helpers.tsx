@@ -1,6 +1,6 @@
 import { Link, NavigateFunction, useNavigate } from 'react-router-dom'
 import BrowserResolver from 'resolver/browser'
-import { v4 } from 'uuid'
+import * as uuid from 'uuid'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import SingleDisplayItem from './components/narrative-display/SingleDisplayItem'
@@ -1069,7 +1069,7 @@ export const formatActions = (actions: fhir4.PlanDefinitionAction[]) => {
       const header = formatTitle(a)
       index += 1
       return (
-        <li key={v4()}>
+        <li key={uuid.v4()}>
           {header ?? `Action ${index} (no identifier available)`}
         </li>
       )
@@ -1153,7 +1153,7 @@ export const formatProperty = (
     content = formatActions(value)
   } else if (Array.isArray(value) && value.length > 1) {
     content = value.map((v) => {
-      return <li key={v4()}>{formatProperty(v, resolver, navigate)}</li>
+      return <li key={uuid.v4()}>{formatProperty(v, resolver, navigate)}</li>
     })
   } else {
     const singleValue = Array.isArray(value) ? value[0] : value

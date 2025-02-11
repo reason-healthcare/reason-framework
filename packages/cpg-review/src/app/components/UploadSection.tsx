@@ -262,32 +262,36 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
   if (packageTypePayload === 'file') {
     uploadItem = (
       <Form.Item name="upload" className="form-item upload">
-        <h1 className="form-title">Upload package</h1>
-        <p className="form-description">
-          Add an r4 FHIR implementation guide package. Use the generated{' '}
-          <span>
-            <Link
-              href="https://confluence.hl7.org/display/FHIR/IG+Publisher+Documentation#IGPublisherDocumentation-Summary"
-              target="_blank"
-            >
-              ImplementationGuide/output/package.r4.tgz
-            </Link>
-          </span>{' '}
-          file.
-        </p>
-        <Dragger
-          {...props}
-          className={`form-item ${fileList.length ? 'hidden' : ''}`}
-          fileList={fileList}
-        >
-          <p className="ant-upload-drag-icon">
-            <InboxOutlined />
+        <div>
+          <h1 className="form-title">Upload package</h1>
+          <p className="form-description">
+            Add an r4 FHIR implementation guide package. Use the generated{' '}
+            <span>
+              <Link
+                href="https://confluence.hl7.org/display/FHIR/IG+Publisher+Documentation#IGPublisherDocumentation-Summary"
+                target="_blank"
+              >
+                ImplementationGuide/output/package.r4.tgz
+              </Link>
+            </span>{' '}
+            file.
           </p>
-          <p className="ant-upload-text">
-            Click or drag files to this area to upload
-          </p>
-          <p className="ant-upload-hint">Provide one tarball ending in .tgz</p>
-        </Dragger>
+          <Dragger
+            {...props}
+            className={`form-item ${fileList.length ? 'hidden' : ''}`}
+            fileList={fileList}
+          >
+            <p className="ant-upload-drag-icon">
+              <InboxOutlined />
+            </p>
+            <p className="ant-upload-text">
+              Click or drag files to this area to upload
+            </p>
+            <p className="ant-upload-hint">
+              Provide one tarball ending in .tgz
+            </p>
+          </Dragger>
+        </div>
       </Form.Item>
     )
   } else {
@@ -298,15 +302,17 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
         getValueFromEvent={(e) => e.fileList}
         className="form-item upload"
       >
-        <h1 className="form-title">Set content endpoint</h1>
-        <p className="form-description">
-          Specify endpoint address for r4 FHIR implementation guide package.
-        </p>
-        <Input
-          placeholder="https://packages.simplifier.net/hl7.fhir.uv.cpg/2.0.0"
-          onChange={handleInputChange}
-          value={endpointPayload}
-        />
+        <div>
+          <h1 className="form-title">Set content endpoint</h1>
+          <p className="form-description">
+            Specify endpoint address for r4 FHIR implementation guide package.
+          </p>
+          <Input
+            placeholder="https://packages.simplifier.net/hl7.fhir.uv.cpg/2.0.0"
+            onChange={handleInputChange}
+            value={endpointPayload}
+          />
+        </div>
       </Form.Item>
     )
   }
@@ -319,64 +325,72 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
         autoComplete="off"
       >
         <Form.Item name="packageTypePayload" className="form-item">
-          <h1 className="form-title">Select FHIR package type</h1>
-          <p className="form-description">
-            Choose to upload FHIR package from local filesystem or rest
-            endpoint.
-          </p>
-          <Radio.Group
-            value={packageTypePayload}
-            onChange={handlePackageTypePayloadChange}
-            className="radio-group"
-          >
-            <Radio value="file">File</Radio>
-            <Radio value="rest">Rest</Radio>
-          </Radio.Group>
+          <div>
+            <h1 className="form-title">Select FHIR package type</h1>
+            <p className="form-description">
+              Choose to upload FHIR package from local filesystem or rest
+              endpoint.
+            </p>
+            <Radio.Group
+              value={packageTypePayload}
+              onChange={handlePackageTypePayloadChange}
+              className="radio-group"
+            >
+              <Radio value="file">File</Radio>
+              <Radio value="rest">Rest</Radio>
+            </Radio.Group>
+          </div>
         </Form.Item>
         {uploadItem}
         <Form.Item name="select" className="form-item">
-          <h1 className="form-title">Select plan definition</h1>
-          <p className="form-description">
-            Select a plan definition for review. Recommend using a{' '}
-            <span>
-              <Link
-                href="https://build.fhir.org/ig/HL7/cqf-recommendations/documentation-approach-12-03-cpg-plan.html#pathways"
-                target="_blank"
-              >
-                Clinical Practice Guidelines Pathway
-              </Link>
-            </span>
-            .
-          </p>
-          <Select
-            onChange={handlePDChange}
-            placeholder={
-              planDefinitionSelectionOptions == null
-                ? 'Upload content to view plans'
-                : 'Select a plan definition'
-            }
-            popupMatchSelectWidth={true}
-            disabled={planDefinitionSelectionOptions == null}
-          >
-            {formatPlanOptions()}
-          </Select>
+          <div>
+            <h1 className="form-title">Select plan definition</h1>
+            <p className="form-description">
+              Select a plan definition for review. Recommend using a{' '}
+              <span>
+                <Link
+                  href="https://build.fhir.org/ig/HL7/cqf-recommendations/documentation-approach-12-03-cpg-plan.html#pathways"
+                  target="_blank"
+                >
+                  Clinical Practice Guidelines Pathway
+                </Link>
+              </span>
+              .
+            </p>
+            <Select
+              onChange={handlePDChange}
+              placeholder={
+                planDefinitionSelectionOptions == null
+                  ? 'Upload content to view plans'
+                  : 'Select a plan definition'
+              }
+              popupMatchSelectWidth={true}
+              disabled={planDefinitionSelectionOptions == null}
+            >
+              {formatPlanOptions()}
+            </Select>
+          </div>
         </Form.Item>
-        <Form.Item className="button-group">
-          <button
-            type="submit"
-            className={
-              planDefinitionPayload == undefined ? 'button disabled' : 'button'
-            }
-          >
-            View Content
-          </button>
-          <button
-            type="submit"
-            className="button button-secondary"
-            onClick={reset}
-          >
-            Reset
-          </button>
+        <Form.Item>
+          <div className="button-group">
+            <button
+              type="submit"
+              className={
+                planDefinitionPayload == undefined
+                  ? 'button disabled'
+                  : 'button'
+              }
+            >
+              View Content
+            </button>
+            <button
+              type="submit"
+              className="button button-secondary"
+              onClick={reset}
+            >
+              Reset
+            </button>
+          </div>
         </Form.Item>
       </Form>
     </>

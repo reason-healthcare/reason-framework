@@ -1,0 +1,71 @@
+{
+  "resourceType": "PlanDefinition",
+  "id": "RheumatoidArthritisGuideline",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-pathwaydefinition"
+    ]
+  },
+  "url": "http://example.org/PlanDefinition/RheumatoidArthritisGuideline",
+  "version": "0.1.0",
+  "name": "RheumatoidArthritisGuideline",
+  "title": "Rheumatoid Arthritis Guideline",
+  "type": {
+    "coding": [
+      {
+        "system": "http://terminology.hl7.org/CodeSystem/plan-definition-type",
+        "code": "clinical-protocol"
+      }
+    ]
+  },
+  "status": "draft",
+  "experimental": true,
+  "date": "2025-01-15T11:43:53-05:00",
+  "publisher": "Example Publisher",
+  "description": "### Essentials\n* If rheumatoid arthritis (RA) is suspected, the patient should be referred without delay to a rheumatology outpatient clinic.\n  * RA as an immunological disorder may begin several years before the appearance of symptoms, which may, at first, be unspecific, making it impossible to distinguish incipient RA from other types of arthritis.\n  * If there is inflammation in several, particularly small, joints, and rheumatoid factor and/or citrullinated peptide antibodies in blood, the patient probably has RA. Seronegative polyarthritis differs from seropositive polyarthritis as regards genetics and its more favourable prognosis, and it may prove in follow-up to be psoriatic arthropathy, for example.\n  * ESR and CRP may be normal.\n  * Systemic glucocorticoids interfere with the diagnosis and should therefore not be started in primary health care, but a glucocorticoid can be injected as first aid into inflamed joints.\n  * New patients with symptoms of arthritis need to see a rheumatologist unless the diagnosis is evident and treatment can be provided on the primary care level, as is often the case with gout or reactive arthritis.\n* RA is a progressive, debilitating disease but effective medication started early can make more than half of newly diagnosed patients asymptomatic within six months.\n* The basic medication consists of a combination of methotrexate, sulfasalazine and hydroxychloroquine. Low glucocorticoid doses should be added to the regimen for at least a few months.\n* Inflamed joints should be treated with glucocorticoid injections.\n* RA not responding to combination drug therapy should be treated with biologicals biologicals or with a janus kinase (JAK) inhibitor.\n* Physical exercise will improve the patient's functional ability and reduce the risk of cardiovascular disease.\n\n### Epidemiology\n* About 40 adults per 100 000 per year develop RA.\n* The age at onset is most commonly 65-70 years but two in three of those developing the disease are younger than 65 years old.\n* Two in three patients are women.\n* Some people are genetically susceptible to RA.\n* Smoking doubles the risk of the disease.\n\n### Symptoms\n* The onset of RA is usually insidious.\n* Morning stiffness, tender and swollen joints are typical.\n* Proximal interphalangeal and metacarpophalangeal joints, wrists, and balls of the feet are most commonly affected but basically any joint may become inflamed.\n* Fatigue, malaise and mild fever may occur as systemic symptoms.\n\n### Investigations in primary care\n* See the article Clinical examination of patients with joint inflammation in primary health care 1.\n* Palpation can be used to find out whether a patient with joint symptoms has arthritis.\n* An inflamed joint is characterized by soft swelling, tenderness, pain on movement and a limited range of motion.\n  * Fist closure is often limited in patients with inflammation of small finger joints or with flexor tenosynovitis.\n  * Tenderness on lateral squeezing of the knuckles or balls of the feet suggests arthritis.\n  * It may be difficult to distinguish arthritis from osteoarthritis. In fingers, osteoarthritis occurs in the distal or proximal interphalangeal joints, RA in proximal interphalangeal and metacarpophalangeal joints. Patients with osteoarthritis may develop rheumatoid arthritis.\n* Laboratory tests: ESR, CRP, basic blood count with platelets, RF, anti-CCP antibodies\n  * ALT, ALP, creatinine, urate, Borrelia antibodies, chemical screening of urine, ANAs, antibodies to diagnose reactive arthritis, as considered necessary (see Reactive arthritis > Diagnosis 2).\n* If intra-articular injections are given, a synovial fluid sample should be taken at the same time for examination (synovial fluid leucocytes + differential count from synovial fluid, bacterial culture, possibly synovial fluid crystals), if fluid can be aspirated; see the article 3.\n  * In patients with arthritis, synovial fluid is cloudy, with a leucocyte count exceeding 2 000 x 106/l.\n  * Highly cloudy synovial fluid suggests bacterial arthritis, usually monoarthritis.\n* Imaging of patients with arthritis should mainly be performed at a rheumatology outpatient clinic.\n\n### Principles of drug treatment\n* RA should be diagnosed and medication begun at a rheumatology outpatient clinic.\n---",
+  "action": [
+    {
+      "title": "Beginning of treatment",
+      "description": "Strategy for beginning treatment for RA",
+      "code": [
+        {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+              "code": "guideline-based-care"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Screening",
+      "description": "Strategy for screening before starting to use immunosuppressive medication",
+      "code": [
+        {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+              "code": "guideline-based-care"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Monitoring of treatment",
+      "description": "Strategy for monitoring during antirheumatic medication treatment",
+      "code": [
+        {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process",
+              "code": "guideline-based-care"
+            }
+          ]
+        }
+      ],
+      "definitionCanonical": "http://example.org/PlanDefinition/MonitoringTestsForAntirheumaticDrugTherapy"
+    }
+  ]
+}

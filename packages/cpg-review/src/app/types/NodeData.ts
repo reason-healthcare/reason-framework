@@ -3,5 +3,5 @@ export interface NodeData {
     | fhir4.PlanDefinitionAction
     | fhir4.ActivityDefinition
     | fhir4.Questionnaire
-  partOf: fhir4.PlanDefinition
+  partOf?: fhir4.PlanDefinition | undefined
 }

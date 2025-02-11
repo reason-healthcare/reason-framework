@@ -13,7 +13,7 @@ import { NodeData } from './types/NodeData'
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels'
 import { UploadFile } from 'antd'
 
-export default function Home() {
+export default function App() {
   const [resolver, setResolver] = useState<BrowserResolver | undefined>()
   const [planDefinition, setPlanDefinition] = useState<
     fhir4.PlanDefinition | undefined

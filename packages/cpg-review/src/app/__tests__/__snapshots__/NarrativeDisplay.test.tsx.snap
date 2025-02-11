@@ -1,0 +1,842 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Renders action details as JSON on toggle 1`] = `
+<DocumentFragment>
+  <div
+    class="buttons-container"
+  >
+    <div />
+    <span
+      aria-label="close"
+      class="anticon anticon-close"
+      role="img"
+      tabindex="-1"
+    >
+      <svg
+        aria-hidden="true"
+        data-icon="close"
+        fill="currentColor"
+        fill-rule="evenodd"
+        focusable="false"
+        height="1em"
+        viewBox="64 64 896 896"
+        width="1em"
+      >
+        <path
+          d="M799.86 166.31c.02 0 .04.02.08.06l57.69 57.7c.04.03.05.05.06.08a.12.12 0 010 .06c0 .03-.02.05-.06.09L569.93 512l287.7 287.7c.04.04.05.06.06.09a.12.12 0 010 .07c0 .02-.02.04-.06.08l-57.7 57.69c-.03.04-.05.05-.07.06a.12.12 0 01-.07 0c-.03 0-.05-.02-.09-.06L512 569.93l-287.7 287.7c-.04.04-.06.05-.09.06a.12.12 0 01-.07 0c-.02 0-.04-.02-.08-.06l-57.69-57.7c-.04-.03-.05-.05-.06-.07a.12.12 0 010-.07c0-.03.02-.05.06-.09L454.07 512l-287.7-287.7c-.04-.04-.05-.06-.06-.09a.12.12 0 010-.07c0-.02.02-.04.06-.08l57.7-57.69c.03-.04.05-.05.07-.06a.12.12 0 01.07 0c.03 0 .05.02.09.06L512 454.07l287.7-287.7c.04-.04.06-.05.09-.06a.12.12 0 01.07 0z"
+        />
+      </svg>
+    </span>
+  </div>
+  <div
+    class="narrative-container-outer"
+  >
+    <div
+      class="narrative-container-inner"
+    >
+      <h2>
+        Action: Order monitoring tests for antirheumatic drug therapy (Methotrexate).
+      </h2>
+      <div
+        class="single-item"
+      >
+        <span
+          class="narrative-description"
+        >
+          Part Of
+        </span>
+        <span>
+          : 
+        </span>
+        <span>
+          <a
+            href="/PlanDefinition/MethotrexateMonitoringRecommendation"
+          >
+            Methotrexate Monitoring Recommendation
+          </a>
+        </span>
+      </div>
+      <div
+        class="cql-container"
+      >
+        <pre
+          style="white-space: break-spaces; word-break: break-word;"
+        >
+          <code
+            class="hljs language-prolog"
+            data-highlighted="yes"
+          >
+            {
+ 
+            <span
+              class="hljs-string"
+            >
+              "extension"
+            </span>
+            : [
+  {
+   
+            <span
+              class="hljs-string"
+            >
+              "url"
+            </span>
+            : 
+            <span
+              class="hljs-string"
+            >
+              "http://hl7.org/fhir/StructureDefinition/cqf-qualityOfEvidence"
+            </span>
+            ,
+   
+            <span
+              class="hljs-string"
+            >
+              "valueCodeableConcept"
+            </span>
+            : {
+    
+            <span
+              class="hljs-string"
+            >
+              "coding"
+            </span>
+            : [
+     {
+      
+            <span
+              class="hljs-string"
+            >
+              "system"
+            </span>
+            : 
+            <span
+              class="hljs-string"
+            >
+              "http://terminology.hl7.org/CodeSystem/evidence-quality"
+            </span>
+            ,
+      
+            <span
+              class="hljs-string"
+            >
+              "code"
+            </span>
+            : 
+            <span
+              class="hljs-string"
+            >
+              "high"
+            </span>
+            
+     }
+    ]
+   }
+  },
+  {
+   
+            <span
+              class="hljs-string"
+            >
+              "url"
+            </span>
+            : 
+            <span
+              class="hljs-string"
+            >
+              "http://hl7.org/fhir/StructureDefinition/cqf-strengthOfRecommendation"
+            </span>
+            ,
+   
+            <span
+              class="hljs-string"
+            >
+              "valueCodeableConcept"
+            </span>
+            : {
+    
+            <span
+              class="hljs-string"
+            >
+              "coding"
+            </span>
+            : [
+     {
+      
+            <span
+              class="hljs-string"
+            >
+              "system"
+            </span>
+            : 
+            <span
+              class="hljs-string"
+            >
+              "http://terminology.hl7.org/CodeSystem/recommendation-strength"
+            </span>
+            ,
+      
+            <span
+              class="hljs-string"
+            >
+              "code"
+            </span>
+            : 
+            <span
+              class="hljs-string"
+            >
+              "strong"
+            </span>
+            
+     }
+    ]
+   }
+  },
+  {
+   
+            <span
+              class="hljs-string"
+            >
+              "url"
+            </span>
+            : 
+            <span
+              class="hljs-string"
+            >
+              "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-directionOfRecommendation"
+            </span>
+            ,
+   
+            <span
+              class="hljs-string"
+            >
+              "valueCodeableConcept"
+            </span>
+            : {
+    
+            <span
+              class="hljs-string"
+            >
+              "coding"
+            </span>
+            : [
+     {
+      
+            <span
+              class="hljs-string"
+            >
+              "system"
+            </span>
+            : 
+            <span
+              class="hljs-string"
+            >
+              "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-recommendation-direction"
+            </span>
+            ,
+      
+            <span
+              class="hljs-string"
+            >
+              "code"
+            </span>
+            : 
+            <span
+              class="hljs-string"
+            >
+              "for"
+            </span>
+            
+     }
+    ]
+   }
+  }
+ ],
+ 
+            <span
+              class="hljs-string"
+            >
+              "title"
+            </span>
+            : 
+            <span
+              class="hljs-string"
+            >
+              "Order monitoring tests for antirheumatic drug therapy (Methotrexate)."
+            </span>
+            ,
+ 
+            <span
+              class="hljs-string"
+            >
+              "description"
+            </span>
+            : 
+            <span
+              class="hljs-string"
+            >
+              "Order monitoring tests for antirheumatic drug therapy (Methotrexate)."
+            </span>
+            ,
+ 
+            <span
+              class="hljs-string"
+            >
+              "code"
+            </span>
+            : [
+  {
+   
+            <span
+              class="hljs-string"
+            >
+              "coding"
+            </span>
+            : [
+    {
+     
+            <span
+              class="hljs-string"
+            >
+              "system"
+            </span>
+            : 
+            <span
+              class="hljs-string"
+            >
+              "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process"
+            </span>
+            ,
+     
+            <span
+              class="hljs-string"
+            >
+              "code"
+            </span>
+            : 
+            <span
+              class="hljs-string"
+            >
+              "diagnostic-testing"
+            </span>
+            
+    }
+   ]
+  }
+ ],
+ 
+            <span
+              class="hljs-string"
+            >
+              "condition"
+            </span>
+            : [
+  {
+   
+            <span
+              class="hljs-string"
+            >
+              "kind"
+            </span>
+            : 
+            <span
+              class="hljs-string"
+            >
+              "applicability"
+            </span>
+            ,
+   
+            <span
+              class="hljs-string"
+            >
+              "expression"
+            </span>
+            : {
+    
+            <span
+              class="hljs-string"
+            >
+              "language"
+            </span>
+            : 
+            <span
+              class="hljs-string"
+            >
+              "text/cql-identifier"
+            </span>
+            ,
+    
+            <span
+              class="hljs-string"
+            >
+              "expression"
+            </span>
+            : 
+            <span
+              class="hljs-string"
+            >
+              "Should order CBC if on Methotrexate therapy and missing test"
+            </span>
+            
+   }
+  }
+ ],
+ 
+            <span
+              class="hljs-string"
+            >
+              "input"
+            </span>
+            : [
+  {
+   
+            <span
+              class="hljs-string"
+            >
+              "type"
+            </span>
+            : 
+            <span
+              class="hljs-string"
+            >
+              "Observation"
+            </span>
+            ,
+   
+            <span
+              class="hljs-string"
+            >
+              "profile"
+            </span>
+            : [
+    
+            <span
+              class="hljs-string"
+            >
+              "http://example.org/StructureDefinition/ActiveMethotrexateFeature"
+            </span>
+            
+   ]
+  },
+  {
+   
+            <span
+              class="hljs-string"
+            >
+              "type"
+            </span>
+            : 
+            <span
+              class="hljs-string"
+            >
+              "Observation"
+            </span>
+            ,
+   
+            <span
+              class="hljs-string"
+            >
+              "profile"
+            </span>
+            : [
+    
+            <span
+              class="hljs-string"
+            >
+              "http://example.org/StructureDefinition/LastCbcPanelReportDateFeature"
+            </span>
+            
+   ]
+  }
+ ],
+ 
+            <span
+              class="hljs-string"
+            >
+              "definitionCanonical"
+            </span>
+            : 
+            <span
+              class="hljs-string"
+            >
+              "http://example.org/ActivityDefinition/OrderCBCActivity"
+            </span>
+            
+}
+          </code>
+        </pre>
+      </div>
+      <div
+        class="ant-radio-group ant-radio-group-solid css-dev-only-do-not-override-kghr11"
+        style="margin-top: 3rem;"
+      >
+        <label
+          class="ant-radio-button-wrapper css-dev-only-do-not-override-kghr11"
+        >
+          <span
+            class="ant-radio-button"
+          >
+            <input
+              checked=""
+              class="ant-radio-button-input"
+              type="radio"
+              value="text"
+            />
+            <span
+              class="ant-radio-button-inner"
+            />
+          </span>
+          <span>
+            Text
+          </span>
+        </label>
+        <label
+          class="ant-radio-button-wrapper ant-radio-button-wrapper-checked css-dev-only-do-not-override-kghr11"
+        >
+          <span
+            class="ant-radio-button ant-radio-button-checked"
+          >
+            <input
+              class="ant-radio-button-input"
+              type="radio"
+              value="json"
+            />
+            <span
+              class="ant-radio-button-inner"
+            />
+          </span>
+          <span>
+            JSON
+          </span>
+        </label>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;
+
+exports[`Renders display panel with PD action details as formatted text 1`] = `
+<DocumentFragment>
+  <div
+    class="buttons-container"
+  >
+    <div />
+    <span
+      aria-label="close"
+      class="anticon anticon-close"
+      role="img"
+      tabindex="-1"
+    >
+      <svg
+        aria-hidden="true"
+        data-icon="close"
+        fill="currentColor"
+        fill-rule="evenodd"
+        focusable="false"
+        height="1em"
+        viewBox="64 64 896 896"
+        width="1em"
+      >
+        <path
+          d="M799.86 166.31c.02 0 .04.02.08.06l57.69 57.7c.04.03.05.05.06.08a.12.12 0 010 .06c0 .03-.02.05-.06.09L569.93 512l287.7 287.7c.04.04.05.06.06.09a.12.12 0 010 .07c0 .02-.02.04-.06.08l-57.7 57.69c-.03.04-.05.05-.07.06a.12.12 0 01-.07 0c-.03 0-.05-.02-.09-.06L512 569.93l-287.7 287.7c-.04.04-.06.05-.09.06a.12.12 0 01-.07 0c-.02 0-.04-.02-.08-.06l-57.69-57.7c-.04-.03-.05-.05-.06-.07a.12.12 0 010-.07c0-.03.02-.05.06-.09L454.07 512l-287.7-287.7c-.04-.04-.05-.06-.06-.09a.12.12 0 010-.07c0-.02.02-.04.06-.08l57.7-57.69c.03-.04.05-.05.07-.06a.12.12 0 01.07 0c.03 0 .05.02.09.06L512 454.07l287.7-287.7c.04-.04.06-.05.09-.06a.12.12 0 01.07 0z"
+        />
+      </svg>
+    </span>
+  </div>
+  <div
+    class="narrative-container-outer"
+  >
+    <div
+      class="narrative-container-inner"
+    >
+      <h2>
+        Action: Order monitoring tests for antirheumatic drug therapy (Methotrexate).
+      </h2>
+      <div
+        class="single-item"
+      >
+        <span
+          class="narrative-description"
+        >
+          Part Of
+        </span>
+        <span>
+          : 
+        </span>
+        <span>
+          <a
+            href="/PlanDefinition/MethotrexateMonitoringRecommendation"
+          >
+            Methotrexate Monitoring Recommendation
+          </a>
+        </span>
+      </div>
+      <div
+        class="list-items"
+      >
+        <span
+          class="narrative-description"
+        >
+          Extension
+        </span>
+        <span>
+          :
+        </span>
+        <ul>
+          <li>
+            <div
+              class="single-item"
+            >
+              <span>
+                <span>
+                  cqf-qualityOfEvidence
+                </span>
+                : 
+                <span>
+                  <span>
+                    "high" from 
+                  </span>
+                  <span>
+                    <a
+                      href="http://terminology.hl7.org/CodeSystem/evidence-quality"
+                      target="_blank"
+                    >
+                      http://terminology.hl7.org/CodeSystem/evidence-quality
+                    </a>
+                  </span>
+                  <span />
+                </span>
+              </span>
+            </div>
+          </li>
+          <li>
+            <div
+              class="single-item"
+            >
+              <span>
+                <span>
+                  cqf-strengthOfRecommendation
+                </span>
+                : 
+                <span>
+                  <span>
+                    "strong" from 
+                  </span>
+                  <span>
+                    <a
+                      href="http://terminology.hl7.org/CodeSystem/recommendation-strength"
+                      target="_blank"
+                    >
+                      http://terminology.hl7.org/CodeSystem/recommendation-strength
+                    </a>
+                  </span>
+                  <span />
+                </span>
+              </span>
+            </div>
+          </li>
+          <li>
+            <div
+              class="single-item"
+            >
+              <span>
+                <span>
+                  cpg-directionOfRecommendation
+                </span>
+                : 
+                <span>
+                  <span>
+                    "for" from 
+                  </span>
+                  <span>
+                    <a
+                      href="http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-recommendation-direction"
+                      target="_blank"
+                    >
+                      http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-recommendation-direction
+                    </a>
+                  </span>
+                  <span />
+                </span>
+              </span>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div
+        class="single-item"
+      >
+        <span
+          class="narrative-description"
+        >
+          Description
+        </span>
+        <span>
+          : 
+        </span>
+        <span>
+          Order monitoring tests for antirheumatic drug therapy (Methotrexate).
+        </span>
+      </div>
+      <div
+        class="single-item"
+      >
+        <span
+          class="narrative-description"
+        >
+          Code
+        </span>
+        <span>
+          : 
+        </span>
+        <span>
+          <span>
+            "diagnostic-testing" from 
+          </span>
+          <span>
+            <a
+              href="http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process"
+              target="_blank"
+            >
+              http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process
+            </a>
+          </span>
+          <span />
+        </span>
+      </div>
+      <div
+        class="single-item"
+      >
+        <span
+          class="narrative-description"
+        >
+          Condition
+        </span>
+        <span>
+          : 
+        </span>
+        <span>
+          <span>
+            <span>
+              Should order CBC if on Methotrexate therapy and missing test as text/cql-identifier
+            </span>
+            <span />
+          </span>
+          <span>
+             (applicability)
+          </span>
+        </span>
+      </div>
+      <div
+        class="list-items"
+      >
+        <span
+          class="narrative-description"
+        >
+          Input
+        </span>
+        <span>
+          :
+        </span>
+        <ul>
+          <li>
+            <div
+              class="single-item"
+            >
+              <span>
+                Observation: 
+                <span>
+                  <a
+                    href="/StructureDefinition/ActiveMethotrexateFeature"
+                  >
+                    Active Methotrexate Feature
+                  </a>
+                </span>
+              </span>
+            </div>
+          </li>
+          <li>
+            <div
+              class="single-item"
+            >
+              <span>
+                Observation: 
+                <span>
+                  <a
+                    href="/StructureDefinition/LastCbcPanelReportDateFeature"
+                  >
+                    Last CBC Panel Report Date Feature
+                  </a>
+                </span>
+              </span>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div
+        class="single-item"
+      >
+        <span
+          class="narrative-description"
+        >
+          Definition Canonical
+        </span>
+        <span>
+          : 
+        </span>
+        <span>
+          <a
+            href="/ActivityDefinition/OrderCBCActivity"
+          >
+            Order CBC Activity
+          </a>
+        </span>
+      </div>
+      <div
+        class="ant-radio-group ant-radio-group-solid css-dev-only-do-not-override-kghr11"
+        style="margin-top: 3rem;"
+      >
+        <label
+          class="ant-radio-button-wrapper ant-radio-button-wrapper-checked css-dev-only-do-not-override-kghr11"
+        >
+          <span
+            class="ant-radio-button ant-radio-button-checked"
+          >
+            <input
+              checked=""
+              class="ant-radio-button-input"
+              type="radio"
+              value="text"
+            />
+            <span
+              class="ant-radio-button-inner"
+            />
+          </span>
+          <span>
+            Text
+          </span>
+        </label>
+        <label
+          class="ant-radio-button-wrapper css-dev-only-do-not-override-kghr11"
+        >
+          <span
+            class="ant-radio-button"
+          >
+            <input
+              class="ant-radio-button-input"
+              type="radio"
+              value="json"
+            />
+            <span
+              class="ant-radio-button-inner"
+            />
+          </span>
+          <span>
+            JSON
+          </span>
+        </label>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;
