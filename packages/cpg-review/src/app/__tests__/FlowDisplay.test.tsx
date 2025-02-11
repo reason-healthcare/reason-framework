@@ -19,7 +19,6 @@ const props: FlowDisplayProps = {
   setSelectedNode: jest.fn(),
 }
 
-// TODO: nodes and edges are not rendering ??
 describe('Flow Display', () => {
   it('Renders graph with simple plan definition', () => {
     const { asFragment } = render(
