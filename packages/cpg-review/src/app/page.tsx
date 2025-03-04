@@ -5,28 +5,34 @@ import FlowDisplay from './components/flow-display/FlowDisplay'
 import LoadIndicator from './components/LoadIndicator'
 import NarrativeRouter from './components/narrative-display/NarrativeRouter'
 import { ReactFlowProvider } from 'reactflow'
-import UploadSection, { UploadSectionProps } from './components/UploadSection'
+import UploadSection, {
+  PlanDefinitionSelectionOption,
+  UploadSectionProps,
+} from './components/UploadSection'
 import { MemoryRouter } from 'react-router-dom'
 import { formatTitle } from 'helpers'
-import Link from 'next/link'
-import { NodeData } from './types/NodeData'
+import { NodeContent } from './types/NodeProps'
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels'
 import { UploadFile } from 'antd'
+import Nav, { NavProps } from './components/Nav'
 
-export default function Home() {
+export default function App() {
   const [resolver, setResolver] = useState<BrowserResolver | undefined>()
   const [planDefinition, setPlanDefinition] = useState<
     fhir4.PlanDefinition | undefined
   >()
-  const [nodeData, setNodeData] = useState<NodeData | undefined>()
-  const [showUpload, setShowUpload] = useState<boolean>(false)
+  const [narrativeContent, setNarrativeContent] = useState<
+    NodeContent | undefined
+  >()
+  const [showUploadPage, setShowUploadPage] = useState<boolean>(false)
   const [selectedNode, setSelectedNode] = useState<string>()
 
+  /** Page.tsx manages upload form payload to preserve form after submit */
   const [packageTypePayload, setPackageTypePayload] = useState<string>('file')
   const [endpointPayload, setEndpointPayload] = useState<string | undefined>()
   const [fileList, setFileList] = useState<UploadFile<any>[]>([])
   const [planDefinitionSelectionOptions, setPlanDefinitionSelectionOptions] =
-    useState<fhir4.PlanDefinition[]>()
+    useState<PlanDefinitionSelectionOption[]>()
   const [planDefinitionPayload, setPlanDefinitionPayload] = useState<
     string | undefined
   >()
@@ -34,10 +40,10 @@ export default function Home() {
   useEffect(() => {
     const storedContent = localStorage.getItem('resolver')
     const storedPlan = localStorage.getItem('planDefinition')
-    if (storedContent) {
+    if (storedContent != null) {
       const browserResolver = new BrowserResolver(storedContent)
       setResolver(browserResolver)
-      if (storedPlan) {
+      if (storedPlan != null) {
         setPlanDefinition(JSON.parse(storedPlan))
       }
     }
@@ -45,10 +51,11 @@ export default function Home() {
 
   useEffect(() => {
     setSelectedNode(undefined)
+    setNarrativeContent(undefined)
     if (resolver instanceof BrowserResolver && planDefinition != null) {
-      setShowUpload(false)
+      setShowUploadPage(false)
     } else {
-      setShowUpload(true)
+      setShowUploadPage(true)
     }
   }, [resolver, planDefinition])
 
@@ -66,7 +73,14 @@ export default function Home() {
     setPlanDefinitionSelectionOptions,
     planDefinitionPayload,
     setPlanDefinitionPayload,
-    setShowUpload,
+    setShowUploadPage,
+  }
+
+  const navProps: NavProps = {
+    resolver,
+    planDefinition,
+    showUploadPage,
+    setShowUploadPage,
   }
 
   const contentDisplay = (
@@ -81,7 +95,7 @@ export default function Home() {
               <FlowDisplay
                 resolver={resolver}
                 planDefinition={planDefinition}
-                setNodeData={setNodeData}
+                setNarrativeContent={setNarrativeContent}
                 selectedNode={selectedNode}
                 setSelectedNode={setSelectedNode}
               />
@@ -97,7 +111,7 @@ export default function Home() {
               <MemoryRouter>
                 {selectedNode != null && (
                   <NarrativeRouter
-                    nodeData={nodeData}
+                    narrativeContent={narrativeContent}
                     resolver={resolver}
                     setSelectedNode={setSelectedNode}
                   ></NarrativeRouter>
@@ -113,56 +127,10 @@ export default function Home() {
   return (
     <div className="app-container">
       <div className="header-container">
-        <Link
-          href="https://www.vermonster.com/products"
-          target="_blank"
-          aria-label="visit reason healthcare"
-          className="logo"
-        >
-          <span className="r">r</span>
-          <span>.</span>
-          <span>h</span>
-        </Link>
-        <div className="links">
-          {!showUpload && (
-            <button
-              className="nav-button"
-              aria-label="add new plan"
-              onClick={() => setShowUpload(true)}
-            >
-              Upload
-            </button>
-          )}
-          {showUpload && resolver != null && planDefinition != null ? (
-            <button
-              className="nav-button"
-              aria-label="add new plan"
-              onClick={() => setShowUpload(false)}
-            >
-              Review
-            </button>
-          ) : (
-            showUpload && (
-              <button
-                className="nav-button nav-button-disabled"
-                aria-label="add new plan"
-              >
-                Review
-              </button>
-            )
-          )}
-          <Link
-            href="https://github.com/reason-healthcare/reason-framework"
-            target="_blank"
-            className="nav-button"
-            aria-label="documentation"
-          >
-            Github
-          </Link>
-        </div>
+        <Nav {...navProps} />
       </div>
       <div className="content-container">
-        {!showUpload ? (
+        {!showUploadPage ? (
           contentDisplay
         ) : (
           <UploadSection {...uploadSectionProps} />

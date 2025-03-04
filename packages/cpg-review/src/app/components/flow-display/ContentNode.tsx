@@ -1,5 +1,3 @@
-import { Handle, Position } from 'reactflow'
-import { useState, useEffect } from 'react'
 import '@/styles/node.css'
 import InteractiveHandle from './InteractiveHandle'
 import { is } from 'helpers'
@@ -12,52 +10,39 @@ const ContentNode = ({ data: nodeProps, id }: NodeProps) => {
   const {
     label,
     handle,
-    nodeData,
-    isCollapsed,
+    nodeContent,
+    isExpandable,
+    isSelected,
     setNodeToExpand,
-    selectedNode,
     setSelectedNode,
-    setNodeData,
   } = nodeProps
-  const { nodeDetails, partOf } = nodeData
-  const [collapsed, setCollapsed] = useState<boolean>(false)
-  const [highlight, setHighlight] = useState<boolean>()
-
-  useEffect(() => {
-    setCollapsed(isCollapsed)
-    if (selectedNode === id) {
-      setHighlight(true)
-    } else {
-      setHighlight(false)
-    }
-  }, [isCollapsed, selectedNode])
+  const { resource } = nodeContent
 
   let selectionDetail
   if (
-    !is.ActivityDefinition(nodeDetails) &&
-    !is.Questionnaire(nodeDetails) &&
-    nodeDetails.selectionBehavior &&
-    !collapsed
+    !is.ActivityDefinition(resource) &&
+    !is.Questionnaire(resource) &&
+    resource.selectionBehavior &&
+    !isExpandable
   ) {
     selectionDetail = (
       <div className="action-selection-label">
-        {`Select ${nodeDetails.selectionBehavior}`}
+        {`Select ${resource.selectionBehavior}`}
       </div>
     )
   }
 
   const handleNodeClick = () => {
     setSelectedNode(id)
-    setNodeData(nodeData)
   }
 
   return (
     <>
       <div
         className={`clickable node-container ${
-          highlight ? 'node-highlight' : 'node-unhighlight'
+          isSelected ? 'node-highlight' : 'node-unhighlight'
         } ${
-          is.ActivityDefinition(nodeDetails) || is.Questionnaire(nodeDetails)
+          is.ActivityDefinition(resource) || is.Questionnaire(resource)
             ? 'activity-node'
             : ''
         }`}
@@ -77,8 +62,7 @@ const ContentNode = ({ data: nodeProps, id }: NodeProps) => {
         </div>
         {handle?.includes('source') && (
           <InteractiveHandle
-            setCollapsed={setCollapsed}
-            collapsed={collapsed}
+            isExpandable={isExpandable}
             setNodeToExpand={setNodeToExpand}
             id={id}
           />

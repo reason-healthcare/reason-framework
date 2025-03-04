@@ -4,7 +4,7 @@ interface SingleDisplayProps {
 }
 
 const SingleDisplayItem = ({ content, heading }: SingleDisplayProps) => {
-  if (content) {
+  if (content != null) {
     return (
       <div className="single-item">
         {heading != null && (

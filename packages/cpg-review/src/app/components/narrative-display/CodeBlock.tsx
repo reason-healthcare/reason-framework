@@ -1,24 +1,24 @@
 import hljs from 'highlight.js'
 import { FC, useEffect, useRef } from 'react'
-import '@/styles/NarrativeDisplay.css'
+import '@/styles/narrativeDisplay.css'
 
 interface CodeBlock {
-  cql: string
+  code: string
 }
 
-const CodeBlock: FC<CodeBlock> = ({ cql }) => {
+const CodeBlock: FC<CodeBlock> = ({ code }) => {
   const codeRef = useRef(null)
 
   useEffect(() => {
     if (codeRef.current) {
       hljs.highlightElement(codeRef.current)
     }
-  }, [cql])
+  }, [code])
 
   return (
-    <div className="cql-container">
+    <div className="code-container">
       <pre style={{ whiteSpace: 'break-spaces', wordBreak: 'break-word' }}>
-        <code ref={codeRef}>{cql}</code>
+        <code ref={codeRef}>{code}</code>
       </pre>
     </div>
   )

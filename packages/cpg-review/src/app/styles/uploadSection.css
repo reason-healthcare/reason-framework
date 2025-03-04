@@ -127,3 +127,14 @@
   gap: 1rem;
   padding: 1rem;
 }
+
+.endpoint-input-wrapper {
+  display: flex;
+  position: relative;
+  align-items: center;
+}
+
+.endpoint-input-wrapper .ant-spin-spinning {
+  position: absolute !important;
+  right: 0.7rem !important;
+}

@@ -1,15 +1,21 @@
-import { NodeData } from './NodeData'
+export interface NodeContent {
+  resource:
+    | fhir4.PlanDefinitionAction
+    | fhir4.ActivityDefinition
+    | fhir4.Questionnaire
+  partOf?: fhir4.PlanDefinition
+}
 
 export interface NodeProps {
   data: {
     label: string
     handle: ('source' | 'target')[]
-    nodeData: NodeData
-    isCollapsed: boolean
+    nodeContent: NodeContent
+    isExpandable: boolean
+    isSelected: boolean
+    parentNodeId?: string
     setNodeToExpand: React.Dispatch<React.SetStateAction<string>>
-    selectedNode: string | undefined
     setSelectedNode: React.Dispatch<React.SetStateAction<string | undefined>>
-    setNodeData: React.Dispatch<React.SetStateAction<NodeData | undefined>>
   }
   id: string
 }
