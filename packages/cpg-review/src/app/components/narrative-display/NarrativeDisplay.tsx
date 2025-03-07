@@ -68,7 +68,11 @@ const NarrativeDisplay = ({
     if (narrativeContent != null) {
       const { resource, partOf } = narrativeContent
       if (partOf != null) {
-        setPartOfIdentifier(partOf.url)
+        if (is.PlanDefinition(partOf)) {
+          setPartOfIdentifier(partOf.url)
+        } else {
+          setPartOfIdentifier(`${partOf.resourceType}/${partOf.id}`)
+        }
       }
       setResource(resource)
       /** Where node content is not passed to Narrative Display, resolve resource by reference */
@@ -102,7 +106,6 @@ const NarrativeDisplay = ({
     setContentFormat(e.target.value)
   }
 
-  let resourceDisplay
   if (resource != null) {
     const formattedContent =
       contentFormat === 'text' ? (
@@ -125,9 +128,10 @@ const NarrativeDisplay = ({
         <CodeBlock code={JSON.stringify(resource, null, 1)} />
       )
 
-    resourceDisplay = (
+    return (
       <div className="narrative-container-outer">
-        <div className="narrative-container-inner">
+        <BackButton/>
+        <div className="narrative-container-inner" style={{marginTop: '1rem'}}>
           <h2>{`${formatResourceType(resource)}: ${formatTitle(resource)}`}</h2>
           {partOfIdentifier != null && (
             <SingleDisplayItem
@@ -152,19 +156,7 @@ const NarrativeDisplay = ({
     )
   }
 
-  return (
-    <>
-      <div className="buttons-container">
-        <BackButton />
-        <CloseOutlined onClick={handleNarrativeClose} />
-      </div>
-      {resourceDisplay != null ? (
-        resourceDisplay
-      ) : (
-        <p>{`Unable to load ${path}`}</p>
-      )}
-    </>
-  )
+  return <p>{`Unable to load ${path}`}</p>
 }
 
 export default NarrativeDisplay

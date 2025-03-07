@@ -36,7 +36,6 @@ class BrowserResolver {
                 this.resourcesByCanonical[rawResource.url] = rawResource
               }
               if (rawResource.id != null && rawResource.resourceType != null) {
-                const reference = `${rawResource.resourceType}/${rawResource.id}`
                 this.resourcesByReference[
                   `${rawResource.resourceType}/${rawResource.id}`
                 ] = rawResource
@@ -57,6 +56,22 @@ class BrowserResolver {
     } catch (error) {
       console.error('Error processing the .tgz file:', error)
     }
+  }
+
+  public addResourcesFromBundle(bundle: fhir4.Bundle) {
+    bundle.entry?.forEach((entry) => {
+      if (entry.resource != null) {
+        const resource = entry.resource
+        if ('url' in resource && resource.url != null) {
+          this.resourcesByCanonical[resource.url] = resource
+        }
+        if (resource.id != null && resource.resourceType != null) {
+          this.resourcesByReference[`${resource.resourceType}/${resource.id}`] =
+            resource
+        }
+      }
+    })
+    return this
   }
 
   public resolveCanonical(canonical: string | undefined) {

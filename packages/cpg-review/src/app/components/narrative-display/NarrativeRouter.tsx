@@ -3,7 +3,7 @@ import BrowserResolver from 'resolver/browser'
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import NarrativeDisplay from './NarrativeDisplay'
-import { NodeContent } from '../../types/NodeProps'
+import { NodeContent } from '@/types/NodeProps'
 
 interface NarrativeRouterProps {
   narrativeContent: NodeContent | undefined
@@ -23,29 +23,27 @@ const NarrativeRouter = ({
   }, [narrativeContent])
 
   return (
-    <div className="narrative-section">
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <NarrativeDisplay
-              resolver={resolver}
-              setSelectedNode={setSelectedNode}
-              narrativeContent={narrativeContent}
-            />
-          }
-        />
-        <Route
-          path="/:resourceType/:id"
-          element={
-            <NarrativeDisplay
-              resolver={resolver}
-              setSelectedNode={setSelectedNode}
-            />
-          }
-        />
-      </Routes>
-    </div>
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <NarrativeDisplay
+            resolver={resolver}
+            setSelectedNode={setSelectedNode}
+            narrativeContent={narrativeContent}
+          />
+        }
+      />
+      <Route
+        path="/:resourceType/:id"
+        element={
+          <NarrativeDisplay
+            resolver={resolver}
+            setSelectedNode={setSelectedNode}
+          />
+        }
+      />
+    </Routes>
   )
 }
 

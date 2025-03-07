@@ -19,12 +19,15 @@
         "name": "next"
       }
     ],
+    "typeRoots": ["type", "node_modules/@types"],
     "baseUrl": "./src/app/",
     "paths": {
       "@/types/*": ["types/*"],
       "@/components/*": ["components/*"],
       "@/styles/*": ["styles/*"],
-      "@/images/*": ["../public/images/*"]
+      "@/images/*": ["../public/images/*"],
+      "@aehrc/smart-forms-renderer": ["../../../../node_modules/@aehrc/smart-forms-renderer"]
+
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

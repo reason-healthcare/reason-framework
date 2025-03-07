@@ -1,17 +1,20 @@
 import Link from 'next/link'
 import BrowserResolver from 'resolver/browser'
+import '@/styles/globals.css'
 
-export interface NavProps {
+export interface HeaderProps {
   resolver: BrowserResolver | undefined
   planDefinition: fhir4.PlanDefinition | undefined
   showUploadPage: boolean
   setShowUploadPage: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-export default function Nav(navProps: NavProps) {
-  const { resolver, planDefinition, showUploadPage, setShowUploadPage } =
-    navProps
-
+export default function Header({
+  resolver,
+  planDefinition,
+  showUploadPage,
+  setShowUploadPage,
+}: HeaderProps) {
   return (
     <>
       <Link
@@ -34,23 +37,14 @@ export default function Nav(navProps: NavProps) {
             Upload
           </button>
         )}
-        {showUploadPage && resolver != null && planDefinition != null ? (
+        {showUploadPage && resolver != null && planDefinition != null && (
           <button
             className="nav-button"
-            aria-label="add new plan"
+            aria-label="review current plan"
             onClick={() => setShowUploadPage(false)}
           >
             Review
           </button>
-        ) : (
-          showUploadPage && (
-            <button
-              className="nav-button nav-button-disabled"
-              aria-label="add new plan"
-            >
-              Review
-            </button>
-          )
         )}
         <Link
           href="https://github.com/reason-healthcare/reason-framework"

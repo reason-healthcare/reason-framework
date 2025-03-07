@@ -7,7 +7,7 @@ import ApplicabilityHandle from './ApplicabilityHandle'
 import { Handle, Position } from 'reactflow'
 
 const ApplicabilityNode = ({ data: nodeProps, id }: NodeProps) => {
-  const { label, handle, parentNodeId, setSelectedNode } = nodeProps
+  const { label, handle, parentNodeId, inactive, setSelectedNode } = nodeProps
 
   const handleNodeClick = () => {
     setSelectedNode(parentNodeId)
@@ -15,7 +15,7 @@ const ApplicabilityNode = ({ data: nodeProps, id }: NodeProps) => {
 
   return (
     <>
-      <div className={`clickable node-container applicability`}>
+      <div className={`clickable node-container applicability ${inactive ? ' opacity' : ''}`}>
         {handle?.includes('target') ? <ApplicabilityHandle /> : null}
         <div className="diamond-container" onClick={handleNodeClick}>
           <Image
@@ -42,12 +42,12 @@ const ApplicabilityNode = ({ data: nodeProps, id }: NodeProps) => {
           <Handle
             type="source"
             position={Position.Bottom}
-            className="hidden-handle"
+            className={`hidden-handle ${inactive ? 'opacity' : ''}`}
           />
         )}
       </div>
       {handle?.includes('source') && (
-        <div className="action-selection-label">{'Yes'}</div>
+        <div className={`action-selection-label ${inactive ? 'opacity' : ''}`}>{'Yes'}</div>
       )}
     </>
   )

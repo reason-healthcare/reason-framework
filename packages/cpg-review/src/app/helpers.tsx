@@ -18,15 +18,72 @@ export type KnowledgeArtifact =
   | fhir4.Library
 export type TerminologyArtifact = fhir4.ValueSet | fhir4.CodeSystem
 
+export type RequestResource =
+  | fhir4.Appointment
+  | fhir4.AppointmentResponse
+  | fhir4.CarePlan
+  | fhir4.Claim
+  | fhir4.CommunicationRequest
+  | fhir4.Contract
+  | fhir4.DeviceRequest
+  | fhir4.EnrollmentRequest
+  | fhir4.ImmunizationRecommendation
+  | fhir4.MedicationRequest
+  | fhir4.NutritionOrder
+  | fhir4.RequestGroup
+  | fhir4.ServiceRequest
+  | fhir4.SupplyRequest
+  | fhir4.Task
+  | fhir4.VisionPrescription
+
+export const requestResourceTypes = [
+  'Appointment',
+  'AppointmentResponse',
+  'CarePlan',
+  'Claim',
+  'CommunicationRequest',
+  'Contract',
+  'DeviceRequest',
+  'EnrollmentRequest',
+  'ImmunizationRecommendation',
+  'MedicationRequest',
+  'NutritionOrder',
+  'ServiceRequest',
+  'SupplyRequest',
+  'Task',
+  'VisionPrescription',
+] as const
+
+export type RequestResourceType = typeof requestResourceTypes[number]
+
 export const is = {
   FhirResource: (resource: any): resource is fhir4.FhirResource => {
     return resource?.resourceType != null
   },
+  Parameters: (resource: any): resource is fhir4.Parameters => {
+    return resource?.resourceType === 'Parameters'
+  },
   PlanDefinition: (resource: any): resource is fhir4.PlanDefinition => {
     return resource?.resourceType === 'PlanDefinition'
   },
+  RequestGroup: (resource: any): resource is fhir4.RequestGroup => {
+    return resource?.resourceType === 'RequestGroup'
+  },
+  RequestResource: (resource: any): resource is RequestResource => {
+    return is.RequestResourceType(resource?.resourceType)
+  },
+  RequestResourceType: (
+    resourceType: string | undefined
+  ): resourceType is RequestResourceType => {
+    return requestResourceTypes?.find((a) => a === resourceType) != null
+  },
   Questionnaire: (resource: any): resource is fhir4.Questionnaire => {
     return resource?.resourceType === 'Questionnaire'
+  },
+  QuestionnaireResponse: (
+    resource: any
+  ): resource is fhir4.QuestionnaireResponse => {
+    return resource?.resourceType === 'QuestionnaireResponse'
   },
   PlanDefinitionAction: (object: any): object is fhir4.PlanDefinitionAction => {
     const keys = [
@@ -96,6 +153,116 @@ export const is = {
         object.definitionCanonical === undefined) &&
       (typeof object.definitionUri === 'string' ||
         object.definitionUri === undefined) &&
+      (typeof object.description === 'string' ||
+        object.description === undefined) &&
+      (Array.isArray(object.documentation) ||
+        object.documentation === undefined) &&
+      (Array.isArray(object.dynamicValue) ||
+        object.dynamicValue === undefined) &&
+      (Array.isArray(object.goalId) || object.goalId === undefined) &&
+      (typeof object.groupingBehavior === 'string' ||
+        object.groupingBehavior === undefined) &&
+      (Array.isArray(object.input) || object.input === undefined) &&
+      (Array.isArray(object.output) || object.output === undefined) &&
+      (Array.isArray(object.participant) || object.participant === undefined) &&
+      (typeof object.precheckBehavior === 'string' ||
+        object.precheckBehavior === undefined) &&
+      (typeof object.prefix === 'string' || object.prefix === undefined) &&
+      (typeof object.priority === 'string' || object.priority === undefined) &&
+      (Array.isArray(object.reason) || object.reason === undefined) &&
+      (Array.isArray(object.relatedAction) ||
+        object.relatedAction === undefined) &&
+      (typeof object.requiredBehavior === 'string' ||
+        object.requiredBehavior === undefined) &&
+      (typeof object.selectionBehavior === 'string' ||
+        object.selectionBehavior === undefined) &&
+      (typeof object.subjectCodeableConcept === 'object' ||
+        object.subjectCodeableConcept === undefined) &&
+      (typeof object.subjectReference === 'object' ||
+        object.subjectReference === undefined) &&
+      (typeof object.textEquivalent === 'string' ||
+        object.textEquivalent === undefined) &&
+      (typeof object.timingDateTime === 'string' ||
+        object.timingDateTime === undefined) &&
+      (typeof object.timingAge === 'object' ||
+        object.timingAge === undefined) &&
+      (typeof object.timingPeriod === 'object' ||
+        object.timingPeriod === undefined) &&
+      (typeof object.timingDuration === 'object' ||
+        object.timingDuration === undefined) &&
+      (typeof object.timingRange === 'object' ||
+        object.timingRange === undefined) &&
+      (typeof object.timingTiming === 'object' ||
+        object.timingTiming === undefined) &&
+      (typeof object.title === 'string' || object.title === undefined) &&
+      (typeof object.transform === 'string' ||
+        object.transform === undefined) &&
+      (Array.isArray(object.trigger) || object.trigger === undefined) &&
+      (typeof object.type === 'object' || object.type === undefined)
+    )
+  },
+  RequestGroupAction: (object: any): object is fhir4.RequestGroupAction => {
+    const keys = [
+      'id',
+      '_id',
+      'extension',
+      'action',
+      'cardinalityBehavior',
+      '_cardinalityBehavior',
+      'code',
+      'condition',
+      'resource',
+      'description',
+      '_description',
+      'documentation',
+      'dynamicValue',
+      'goalId',
+      '_goalId',
+      'groupingBehavior',
+      '_groupingBehavior',
+      'input',
+      'output',
+      'participant',
+      'precheckBehavior',
+      '_precheckBehavior',
+      'prefix',
+      '_prefix',
+      'priority',
+      '_priority',
+      'reason',
+      'relatedAction',
+      'requiredBehavior',
+      '_requiredBehavior',
+      'selectionBehavior',
+      '_selectionBehavior',
+      'subjectCodeableConcept',
+      'subjectReference',
+      'textEquivalent',
+      '_textEquivalent',
+      'timingDateTime',
+      '_timingDateTime',
+      'timingAge',
+      'timingPeriod',
+      'timingDuration',
+      'timingRange',
+      'timingTiming',
+      'title',
+      '_title',
+      'transform',
+      '_transform',
+      'trigger',
+      'type',
+    ]
+
+    return (
+      object &&
+      Object.keys(object).every((key) => keys.includes(key)) &&
+      (Array.isArray(object.action) || object.action === undefined) &&
+      (typeof object.cardinalityBehavior === 'string' ||
+        object.cardinalityBehavior === undefined) &&
+      (Array.isArray(object.code) || object.code === undefined) &&
+      (Array.isArray(object.condition) || object.condition === undefined) &&
+      (typeof object.resource === 'object' || object.resource === undefined) &&
       (typeof object.description === 'string' ||
         object.description === undefined) &&
       (Array.isArray(object.documentation) ||
@@ -748,11 +915,22 @@ export const is = {
   },
 }
 
-export const getNodeIdFromResource = (
-  resource: fhir4.ActivityDefinition | fhir4.Questionnaire
+export const getNodeLabelFromResource = (
+  resource: fhir4.ActivityDefinition | fhir4.Questionnaire | RequestResource
 ) => {
-  const { title, name, url, id } = resource
-  return title ?? name ?? url ?? id
+  if (is.RequestResource(resource)) {
+    const { id, resourceType, text } = resource
+    return resourceType ?? text ?? id
+  } else {
+    const { title, name, url, id } = resource
+    return title ?? name ?? url ?? id
+  }
+}
+
+export const getNodeIdFromResource = (
+  resource: fhir4.ActivityDefinition | fhir4.Questionnaire | RequestResource
+) => {
+  return `${getNodeLabelFromResource(resource)}-${resource.id}`
 }
 
 export const resolveCanonical = (
@@ -801,16 +979,21 @@ export const capitalize = (string: string | undefined) => {
 }
 
 export const addSpaces = (string: any | undefined): string | undefined => {
-  return string
-    ?.replace(/([a-z])([A-Z])/g, '$1 $2')
-    .replace(/(\d)([a-zA-Z])/g, '$1 $2')
-    .replace(/([a-zA-Z])(\d)/g, '$1 $2')
+  if (typeof string === 'string') {
+    return string
+      ?.replace(/([a-z])([A-Z])/g, '$1 $2')
+      .replace(/(\d)([a-zA-Z])/g, '$1 $2')
+      .replace(/([a-zA-Z])(\d)/g, '$1 $2')
+  }
 }
 
 /** General purpose */
 
 export const formatTitle = (
-  resource: fhir4.FhirResource | fhir4.PlanDefinitionAction
+  resource:
+    | fhir4.FhirResource
+    | fhir4.PlanDefinitionAction
+    | fhir4.RequestGroupAction
 ) => {
   const { title, name, url, id, description } = resource as {
     title?: string
@@ -827,7 +1010,10 @@ export const formatResourceType = (
 ) => {
   if ('resourceType' in resource) {
     return addSpaces(resource.resourceType)
-  } else if (is.PlanDefinitionAction(resource)) {
+  } else if (
+    is.PlanDefinitionAction(resource) ||
+    is.RequestGroupAction(resource)
+  ) {
     return 'Action'
   }
 }
@@ -845,7 +1031,8 @@ export const formatUrl = (
 ) => {
   if (resolver != null && navigate != null) {
     const [canonical, version] = url.split('|')
-    const resource = resolver.resolveCanonical(canonical)
+    const resource =
+      resolver.resolveCanonical(canonical) ?? resolver.resolveReference(url)
     if (resource != null) {
       const path = canonical.split('/').slice(-2).join('/')
       return (
@@ -1077,7 +1264,9 @@ export const formatUsageContext = (
 
 /** Plan Definition Types */
 
-export const formatAction = (action: fhir4.PlanDefinitionAction) => {
+export const formatAction = (
+  action: fhir4.PlanDefinitionAction | fhir4.RequestGroupAction
+) => {
   return formatTitle(action)
 }
 
@@ -1113,7 +1302,7 @@ export const formatValue = (
     formattedValue = formatUrl(value, resolver, navigate)
   } else if (isPrimitive(value)) {
     formattedValue = value.toString()
-  } else if (is.PlanDefinitionAction(value)) {
+  } else if (is.PlanDefinitionAction(value) || is.RequestGroupAction(value)) {
     formattedValue = formatAction(value)
   } else if (is.Reference(value)) {
     formattedValue = formatReference(value, resolver, navigate)
