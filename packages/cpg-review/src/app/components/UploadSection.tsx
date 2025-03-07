@@ -1,7 +1,16 @@
 import { useState, useRef } from 'react'
-import { Form, message, Upload, Select, Radio, Input, Spin } from 'antd'
+import {
+  Form,
+  message,
+  Upload,
+  Select,
+  Radio,
+  Input,
+  Spin,
+  RadioChangeEvent,
+  UploadProps,
+} from 'antd'
 import { InboxOutlined, LoadingOutlined } from '@ant-design/icons'
-import type { RadioChangeEvent, UploadProps } from 'antd'
 import type { RcFile, UploadFile } from 'antd/es/upload'
 import Link from 'next/link'
 import { debounce } from 'lodash'

@@ -1,20 +1,16 @@
 'use client'
 import { useState, useEffect } from 'react'
 import BrowserResolver from './resolver/browser'
-import FlowDisplay from './components/flow-display/FlowDisplay'
-import LoadIndicator from './components/LoadIndicator'
-import NarrativeRouter from './components/narrative-display/NarrativeRouter'
-import { ReactFlowProvider } from 'reactflow'
 import UploadSection, {
   PlanDefinitionSelectionOption,
   UploadSectionProps,
 } from './components/UploadSection'
-import { MemoryRouter } from 'react-router-dom'
-import { formatTitle } from 'helpers'
 import { NodeContent } from './types/NodeProps'
-import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels'
 import { UploadFile } from 'antd'
-import Nav, { NavProps } from './components/Nav'
+import Header from './components/Header'
+import ContentSection from './components/ContentSection'
+
+export type SidePanelView = 'apply' | 'narrative' | undefined
 
 export default function App() {
   const [resolver, setResolver] = useState<BrowserResolver | undefined>()
@@ -24,8 +20,9 @@ export default function App() {
   const [narrativeContent, setNarrativeContent] = useState<
     NodeContent | undefined
   >()
-  const [showUploadPage, setShowUploadPage] = useState<boolean>(false)
-  const [selectedNode, setSelectedNode] = useState<string>()
+  const [sidePanelView, setSidePanelView] = useState<SidePanelView>(undefined)
+  const [showUploadPage, setShowUploadPage] = useState<boolean>(true)
+  const [selectedNode, setSelectedNode] = useState<string | undefined>()
 
   /** Page.tsx manages upload form payload to preserve form after submit */
   const [packageTypePayload, setPackageTypePayload] = useState<string>('file')
@@ -52,12 +49,31 @@ export default function App() {
   useEffect(() => {
     setSelectedNode(undefined)
     setNarrativeContent(undefined)
+    setSidePanelView(undefined)
     if (resolver instanceof BrowserResolver && planDefinition != null) {
       setShowUploadPage(false)
     } else {
       setShowUploadPage(true)
     }
   }, [resolver, planDefinition])
+
+  useEffect(() => {
+    if (narrativeContent != null && selectedNode != null) {
+      setSidePanelView('narrative')
+    }
+  }, [selectedNode])
+
+  const contentSectionProps = {
+    resolver,
+    planDefinition,
+    narrativeContent,
+    setNarrativeContent,
+    setSelectedNode,
+    setSidePanelView,
+    sidePanelView,
+    endpointPayload,
+    selectedNode,
+  }
 
   const uploadSectionProps: UploadSectionProps = {
     setResolver,
@@ -76,62 +92,19 @@ export default function App() {
     setShowUploadPage,
   }
 
-  const navProps: NavProps = {
-    resolver,
-    planDefinition,
-    showUploadPage,
-    setShowUploadPage,
-  }
-
-  const contentDisplay = (
-    <>
-      <div className="plan-title">
-        {planDefinition != null && <h1>{formatTitle(planDefinition)}</h1>}
-      </div>
-      <PanelGroup direction="horizontal" className="data-panel-group">
-        <Panel minSize={25}>
-          {resolver != null && planDefinition != null ? (
-            <ReactFlowProvider>
-              <FlowDisplay
-                resolver={resolver}
-                planDefinition={planDefinition}
-                setNarrativeContent={setNarrativeContent}
-                selectedNode={selectedNode}
-                setSelectedNode={setSelectedNode}
-              />
-            </ReactFlowProvider>
-          ) : (
-            <LoadIndicator />
-          )}
-        </Panel>
-        {selectedNode != null && (
-          <>
-            <PanelResizeHandle className="panel-separator" />
-            <Panel minSize={25}>
-              <MemoryRouter>
-                {selectedNode != null && (
-                  <NarrativeRouter
-                    narrativeContent={narrativeContent}
-                    resolver={resolver}
-                    setSelectedNode={setSelectedNode}
-                  ></NarrativeRouter>
-                )}
-              </MemoryRouter>
-            </Panel>
-          </>
-        )}
-      </PanelGroup>
-    </>
-  )
-
   return (
     <div className="app-container">
       <div className="header-container">
-        <Nav {...navProps} />
+        <Header
+          resolver={resolver}
+          planDefinition={planDefinition}
+          showUploadPage={showUploadPage}
+          setShowUploadPage={setShowUploadPage}
+        />
       </div>
       <div className="content-container">
         {!showUploadPage ? (
-          contentDisplay
+          <ContentSection {...contentSectionProps} />
         ) : (
           <UploadSection {...uploadSectionProps} />
         )}

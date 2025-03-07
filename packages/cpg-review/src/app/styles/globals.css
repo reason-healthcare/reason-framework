@@ -101,38 +101,6 @@ body {
   font-weight: bold;
 }
 
-.plan-title {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 0.8rem;
-  width: 100%;
-  margin-bottom: 0.5rem;
-
-  & h1 {
-    font-size: 1rem;
-    font-weight: 500;
-  }
-}
-
-.data-panel-group {
-  display: flex;
-  justify-content: center;
-  gap: 3.5rem;
-  box-sizing: border-box;
-}
-
-.panel-separator {
-  width: 1px;
-  background: lightgray;
-  height: 90%;
-}
-
-.flow-container {
-  height: 90%;
-  width: 100%;
-}
-
 h1 {
   font-size: 1.3rem;
   margin: 0;
@@ -175,17 +143,19 @@ button:hover {
   background-color: var(--teal);
   color: #fff;
   font-size: 0.9rem;
-  border: 0px;
-  border-radius: 6px;
-  padding: 0.8rem 0.6rem !important;
-  font-weight: bold;
+  border: 1px solid var(--teal);
+  border-radius: 4px;
+  padding: 0.5rem 0.6rem !important;
+  font-weight: 600;
 
   &.disabled {
     cursor: not-allowed;
     background-color: #efeff0;
     color: #bbbbbb;
+    border: 1px solid #efeff0;
 
     &:hover {
+      border: 1px solid #efeff0;
       cursor: not-allowed;
       background-color: #efeff0;
       color: #bbbbbb;
@@ -193,10 +163,12 @@ button:hover {
   }
 }
 
-.button.button-secondary {
+.button-secondary {
   background-color: var(--background);
   color: var(--teal);
   border: 1px solid var(--teal);
+  border-radius: 4px;
+  font-weight: 600;
 
   &:hover {
     color: var(--brTeal);
@@ -205,7 +177,31 @@ button:hover {
   }
 }
 
+.button-simple {
+  border: 0px;
+  background-color: var(--background);
+  color: var(--teal);
+  text-decoration: underline;
+  font-weight: 400;
+  padding: 0px;
+}
+
+.button-simple:focus {
+  color: var(--brTeal);
+}
+.button-simple:hover {
+  color: var(--brTeal);
+}
+
 .button:hover {
   background-color: var(--brTeal);
   color: white;
+  border: 1px solid var(--brTeal);
+}
+
+.button-secondary.small {
+  /* text-decoration: underline; */
+  font-weight: 400;
+  border-radius: 6px;
+  padding: 0.1rem 0.6rem;
 }

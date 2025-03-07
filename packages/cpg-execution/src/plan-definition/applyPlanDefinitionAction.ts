@@ -226,6 +226,11 @@ export const applyPlanDefinitionAction = async (
   }
 
   // Priority
+  if (id != null) {
+    requestGroupAction.id = id
+  }
+
+  // Priority
   if (priority != null) {
     requestGroupAction.priority = priority
   }

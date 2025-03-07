@@ -17,15 +17,19 @@ import BrowserResolver from 'resolver/browser'
 import StartNode from './StartNode'
 import { NodeContent } from '../../types/NodeProps'
 import ApplicabilityNode from './ApplicabilityNode'
+import { Button } from 'antd'
+import { SidePanelView } from 'page'
 
 interface FlowDisplayProps {
-  resolver: BrowserResolver | undefined
+  resolver: BrowserResolver
   planDefinition: fhir4.PlanDefinition
   setNarrativeContent: React.Dispatch<
     React.SetStateAction<NodeContent | undefined>
   >
   selectedNode: string | undefined
   setSelectedNode: React.Dispatch<React.SetStateAction<string | undefined>>
+  setSidePanelView: React.Dispatch<React.SetStateAction<SidePanelView>>
+  requestsBundle: fhir4.Bundle | undefined
 }
 
 export default function FlowDisplay({
@@ -34,6 +38,8 @@ export default function FlowDisplay({
   setNarrativeContent,
   selectedNode,
   setSelectedNode,
+  setSidePanelView,
+  requestsBundle,
 }: FlowDisplayProps) {
   const [initialFlow, setInitialFlow] = useState<Flow | undefined>()
   const [visibleNodes, setVisibleNodes] = useState<Node[] | undefined>()
@@ -51,9 +57,9 @@ export default function FlowDisplay({
   ) as NodeTypes
 
   useEffect(() => {
-    const flow = new Flow()
+    const flow = new Flow(planDefinition, resolver)
     if (resolver && resolver.resourcesByCanonical) {
-      flow.generateInitialFlow(planDefinition, resolver)
+      flow.generateInitialFlow()
       flow
         .positionNodes({
           setNodeToExpand,
@@ -68,11 +74,12 @@ export default function FlowDisplay({
   }, [])
 
   useEffect(() => {
-    if (visibleNodes != null) {
+    if (visibleNodes != null && selectedNode != null) {
       const node = visibleNodes.find((n) => n.id === selectedNode)
       setVisibleNodes(Flow.setSelectedNode(visibleNodes, node?.id ?? undefined))
       if (node != null) {
         setNarrativeContent(node.data.nodeContent)
+        setSidePanelView('narrative')
       } else {
         console.log(`Unable to find selected node ${selectedNode}`)
       }
@@ -82,7 +89,12 @@ export default function FlowDisplay({
   useEffect(() => {
     if (initialFlow?.nodes != null && initialFlow?.edges != null) {
       if (!expandedView) {
-        const newFlow = new Flow(initialFlow.nodes, initialFlow.edges)
+        const newFlow = new Flow(
+          planDefinition,
+          resolver,
+          initialFlow.nodes,
+          initialFlow.edges
+        )
         newFlow.collapseAllChildren().then(() => {
           setVisibleNodes(newFlow.nodes)
           setVisibleEdges(newFlow.edges)
@@ -103,7 +115,12 @@ export default function FlowDisplay({
     ) {
       const sourceNode = initialFlow.nodes.find((n) => n.id === nodeToExpand)
       if (sourceNode != null) {
-        const newFlow = new Flow(visibleNodes, visibleEdges)
+        const newFlow = new Flow(
+          planDefinition,
+          resolver,
+          visibleNodes,
+          visibleEdges
+        )
         newFlow
           .expandChild(sourceNode, initialFlow.nodes, initialFlow.edges)
           .then((updatedFlow) => {
@@ -119,6 +136,30 @@ export default function FlowDisplay({
       }
     }
   }, [nodeToExpand])
+
+  useEffect(() => {
+    if (initialFlow != null && requestsBundle != null) {
+      resolver.addResourcesFromBundle(requestsBundle)
+      const newFlow = new Flow(planDefinition, resolver)
+      newFlow.generateRequestGroupFlow(requestsBundle, planDefinition)
+      if (newFlow != null) {
+        newFlow
+          .positionNodes({
+            setNodeToExpand,
+            setSelectedNode,
+          })
+          .then((updatedFlow) => {
+            setVisibleNodes(updatedFlow.nodes)
+            setVisibleEdges(updatedFlow.edges)
+          })
+      } else {
+        console.log('Unable to generate Request Group')
+      }
+    } else if (initialFlow != null) {
+      setVisibleNodes(initialFlow.nodes)
+      setVisibleEdges(initialFlow.edges)
+    }
+  }, [requestsBundle])
 
   const handleExpandedViewClick = () => {
     setExpandedView(!expandedView)
