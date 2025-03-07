@@ -68,7 +68,11 @@ const NarrativeDisplay = ({
     if (narrativeContent != null) {
       const { resource, partOf } = narrativeContent
       if (partOf != null) {
-        setPartOfIdentifier(partOf.url)
+        if (is.PlanDefinition(partOf)) {
+          setPartOfIdentifier(partOf.url)
+        } else {
+          setPartOfIdentifier(`${partOf.resourceType}/${partOf.id}`)
+        }
       }
       setResource(resource)
       /** Where node content is not passed to Narrative Display, resolve resource by reference */

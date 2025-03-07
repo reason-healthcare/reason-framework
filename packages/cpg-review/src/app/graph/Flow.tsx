@@ -1,19 +1,26 @@
 import { Edge, Node, ReactFlowInstance, getOutgoers } from 'reactflow'
-import { is, notEmpty, getNodeIdFromResource } from '../helpers'
+import { is, notEmpty, RequestResource, getNodeLabelFromResource, getNodeIdFromResource } from '../helpers'
 import '@/styles/node.css'
 import { v4 } from 'uuid'
 import Graph from './Graph'
 import BrowserResolver from 'resolver/browser'
+import { PlanDefinition } from 'fhir/r4'
 
 export interface FlowShape {
   nodes: Node[] | undefined
   edges: Edge[] | undefined
+  planDefinition: fhir4.PlanDefinition | undefined
+  resolver: BrowserResolver | undefined
 }
 
 class Flow implements FlowShape {
+  planDefinition: PlanDefinition
+  resolver: BrowserResolver
   nodes: Node[] | undefined
   edges: Edge[] | undefined
-  constructor(nodes?: Node[] | undefined, edges?: Edge[] | undefined) {
+  constructor(planDefinition: fhir4.PlanDefinition, resolver: BrowserResolver, nodes?: Node[] | undefined, edges?: Edge[] | undefined) {
+    this.planDefinition = planDefinition
+    this.resolver = resolver
     this.nodes = nodes
     this.edges = edges
   }
@@ -27,13 +34,12 @@ class Flow implements FlowShape {
   }
 
   private createEndNode(
-    resource: fhir4.ActivityDefinition | fhir4.Questionnaire
+    resource: fhir4.ActivityDefinition | fhir4.Questionnaire | RequestResource
   ): Node {
-    const id = getNodeIdFromResource(resource)
     return {
-      id,
+      id: getNodeIdFromResource(resource),
       data: {
-        label: id,
+        label: getNodeLabelFromResource(resource),
         handle: ['target'],
         nodeContent: { resource },
         isExpandable: false,
@@ -47,8 +53,8 @@ class Flow implements FlowShape {
 
   private createActionNode(
     id: string,
-    action: fhir4.PlanDefinitionAction,
-    planDefinition: fhir4.PlanDefinition
+    action: fhir4.PlanDefinitionAction | fhir4.RequestGroupAction,
+    resource: fhir4.PlanDefinition | fhir4.RequestGroup
   ) {
     const { title, id: actionId, description } = action
     return {
@@ -56,7 +62,7 @@ class Flow implements FlowShape {
       data: {
         label: title ?? actionId ?? description,
         handle: ['target', 'source'],
-        nodeContent: { resource: action, partOf: planDefinition },
+        nodeContent: { resource: action, partOf: resource },
         isExpandable: false,
         isSelected: false,
       },
@@ -70,8 +76,8 @@ class Flow implements FlowShape {
     id: string,
     parentId: string,
     condition: fhir4.PlanDefinitionActionCondition,
-    action: fhir4.PlanDefinitionAction,
-    planDefinition: fhir4.PlanDefinition
+    action: fhir4.PlanDefinitionAction | fhir4.RequestGroupAction,
+    planDefinition: fhir4.PlanDefinition | fhir4.RequestGroup
   ) {
     const { expression, kind } = condition
     return {
@@ -92,7 +98,7 @@ class Flow implements FlowShape {
     } as Node
   }
 
-  private createStartNode(id: string, definition: fhir4.PlanDefinition) {
+  private createStartNode(id: string, definition: fhir4.PlanDefinition | fhir4.RequestGroup) {
     return {
       id,
       data: {
@@ -138,20 +144,20 @@ class Flow implements FlowShape {
    * @param parentSelection Selection behavior if any of the parent node (used to create Edge)
    */
   private processActionNodes(
-    planDefinition: fhir4.PlanDefinition,
-    actions: fhir4.PlanDefinitionAction[],
-    resolver: BrowserResolver,
+    resource: fhir4.PlanDefinition | fhir4.RequestGroup,
+    actions: fhir4.PlanDefinitionAction[] | fhir4.RequestGroupAction[],
+    // resolver: BrowserResolver | fhir4.Bundle,
     parent: Node,
     parentSelection?:
       | fhir4.PlanDefinitionAction['selectionBehavior']
-      | undefined
+      | undefined,
+    requestBundle?: fhir4.Bundle
   ) {
     actions?.map((action) => {
       const {
         title,
         id,
         condition,
-        definitionCanonical,
         selectionBehavior,
         action: childActions,
       } = action
@@ -167,7 +173,7 @@ class Flow implements FlowShape {
             nodeId,
             condition,
             action,
-            planDefinition
+            resource
           )
           this.addNewNode(applicabilityNode)
           this.connectNodes(
@@ -182,13 +188,13 @@ class Flow implements FlowShape {
       /**
        * Create action node
        */
-      const node = this.createActionNode(nodeId, action, planDefinition)
+      const node = this.createActionNode(nodeId, action, resource)
 
       /**
        * Handle children
        */
-      if (definitionCanonical != null) {
-        const definition = resolver.resolveCanonical(
+      if (is.PlanDefinitionAction(action) && action.definitionCanonical != null) {
+        const definition = this.resolver.resolveCanonical(
           action.definitionCanonical
         ) as fhir4.PlanDefinition | fhir4.ActivityDefinition | undefined
         /** Process definition canonical = plan definition */
@@ -196,7 +202,6 @@ class Flow implements FlowShape {
           this.processActionNodes(
             definition,
             definition.action,
-            resolver,
             node,
             selectionBehavior
           )
@@ -213,11 +218,28 @@ class Flow implements FlowShape {
           this.connectNodes(node.id, endNode.id, parentSelection)
         }
         /** Process child actions */
+      } else if (!is.PlanDefinitionAction(action) && action.resource?.reference != null && requestBundle != null) {
+        const [resourceType, id] = action.resource?.reference.split('/')
+        const targetResource = requestBundle.entry?.find(e => e.resource?.resourceType === resourceType && e.resource?.id === id)?.resource
+        if (is.RequestGroup(targetResource) && targetResource.action != null) {
+          this.processActionNodes(
+            targetResource,
+            targetResource.action,
+            node,
+            selectionBehavior
+          )
+        } else if (is.RequestResource(targetResource)) {
+          let endNode = this.nodes?.find((n) => n.id === id)
+          if (endNode == null) {
+            endNode = this.createEndNode(targetResource)
+            this.addNewNode(endNode)
+          }
+          this.connectNodes(node.id, endNode.id, parentSelection)
+        }
       } else if (childActions != null) {
         this.processActionNodes(
-          planDefinition,
+          resource,
           childActions,
-          resolver,
           node,
           selectionBehavior
         )
@@ -237,23 +259,55 @@ class Flow implements FlowShape {
    * @returns
    */
   public generateInitialFlow(
-    planDefinition: fhir4.PlanDefinition,
-    resolver: BrowserResolver
   ) {
-    if (is.PlanDefinition(planDefinition)) {
-      const node = this.createStartNode('start', planDefinition)
+    const node = this.createStartNode('start', this.planDefinition)
+    this.addNewNode(node)
+
+    /** Handle children */
+    if (this.planDefinition.action != null) {
+      this.processActionNodes(
+        this.planDefinition,
+        this.planDefinition.action,
+        node
+      )
+    } else {
+      console.log('There are no plan definition actions to display')
+    }
+
+    return this
+  }
+
+  /**
+   * Request Group overlay
+   * Generate initial react flow
+   * Generate request group
+   * How to find corresponding request group node?
+   *
+   */
+  public generateRequestGroup(
+    requestBundle: fhir4.Bundle,
+    planDefinition: fhir4.PlanDefinition
+  ) {
+    this.nodes = []
+    this.edges = []
+    const requestGroup = requestBundle.entry?.find(
+      (entry) => entry.resource?.resourceType === 'RequestGroup' && entry.resource?.instantiatesCanonical?.find(c => c.split('|').shift() === planDefinition.url?.split('|').shift())
+    )?.resource as fhir4.RequestGroup | undefined
+    if (is.RequestGroup(requestGroup)) {
+      const node = this.createStartNode('start', requestGroup)
       this.addNewNode(node)
 
       /** Handle children */
-      if (planDefinition.action != null) {
+      if (requestGroup.action != null) {
         this.processActionNodes(
-          planDefinition,
-          planDefinition.action,
-          resolver,
-          node
+          requestGroup,
+          requestGroup.action,
+          node,
+          undefined,
+          requestBundle,
         )
       } else {
-        console.log('There are no plan definition actions to display')
+        console.log('There are no request group actions to display')
       }
     }
     return this
