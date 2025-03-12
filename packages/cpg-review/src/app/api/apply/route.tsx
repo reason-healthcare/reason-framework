@@ -11,71 +11,77 @@ export interface ApplyPayload {
 }
 
 export async function POST(req: NextRequest) {
-  const { dataPayload, subjectPayload, contentEndpointPayload, txEndpointPayload, planDefinition } = await req.json() as ApplyPayload
+  const {
+    dataPayload,
+    subjectPayload,
+    contentEndpointPayload,
+    txEndpointPayload,
+    planDefinition,
+  } = (await req.json()) as ApplyPayload
   const parameters: fhir4.Parameters = {
-    resourceType: "Parameters",
+    resourceType: 'Parameters',
     parameter: [
       {
-        name: "planDefinition",
-        resource: planDefinition
+        name: 'planDefinition',
+        resource: planDefinition,
       },
       {
-        name: "data",
-        resource: JSON.parse(dataPayload) as fhir4.Bundle
+        name: 'data',
+        resource: JSON.parse(dataPayload) as fhir4.Bundle,
       },
       {
-        name: "subject",
-        valueString: subjectPayload
+        name: 'subject',
+        valueString: subjectPayload,
       },
       {
-        name: "contentEndpoint",
+        name: 'contentEndpoint',
         resource: {
-          resourceType: "Endpoint",
+          resourceType: 'Endpoint',
           address: contentEndpointPayload,
-          status: "active",
+          status: 'active',
           payloadType: [
             {
               coding: [
                 {
-                  code: "content"
-                }
-              ]
-            }
+                  code: 'content',
+                },
+              ],
+            },
           ],
           connectionType: {
-            code: "hl7-fhir-file"
-          }
-        }
+            code: 'hl7-fhir-file',
+          },
+        },
       },
       {
-        name: "terminologyEndpoint",
+        name: 'terminologyEndpoint',
         resource: {
-          resourceType: "Endpoint",
+          resourceType: 'Endpoint',
           address: txEndpointPayload,
-          status: "active",
+          status: 'active',
           payloadType: [
             {
               coding: [
                 {
-                  code: "terminology"
-                }
-              ]
-            }
+                  code: 'terminology',
+                },
+              ],
+            },
           ],
           connectionType: {
-            code: "hl7-fhir-file"
-          }
-        }
-      }
-    ]
+            code: 'hl7-fhir-file',
+          },
+        },
+      },
+    ],
   }
   try {
     const response = await fetch('http://0.0.0.0:9001/PlanDefinition/$apply', {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json"
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(parameters)
+      body: JSON.stringify(parameters),
     })
 
     const json = await response.json()
@@ -83,10 +89,7 @@ export async function POST(req: NextRequest) {
     if (!response.ok) {
       const message = `Error running $apply: ${json}`
       console.error(message)
-      return NextResponse.json(
-        { message },
-        { status: response.status }
-      )
+      return NextResponse.json({ message }, { status: response.status })
     }
     console.log(json)
     return NextResponse.json(json, { status: response.status })

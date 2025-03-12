@@ -66,9 +66,8 @@ class BrowserResolver {
           this.resourcesByCanonical[resource.url] = resource
         }
         if (resource.id != null && resource.resourceType != null) {
-          this.resourcesByReference[
-            `${resource.resourceType}/${resource.id}`
-          ] = resource
+          this.resourcesByReference[`${resource.resourceType}/${resource.id}`] =
+            resource
         }
       }
     })

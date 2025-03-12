@@ -19,7 +19,6 @@ import { NodeContent } from '../../types/NodeProps'
 import ApplicabilityNode from './ApplicabilityNode'
 import { Button } from 'antd'
 
-
 interface FlowDisplayProps {
   resolver: BrowserResolver
   planDefinition: fhir4.PlanDefinition
@@ -39,7 +38,7 @@ export default function FlowDisplay({
   selectedNode,
   setSelectedNode,
   setShowApplyForm,
-  applyBundle
+  applyBundle,
 }: FlowDisplayProps) {
   const [initialFlow, setInitialFlow] = useState<Flow | undefined>()
   const [visibleNodes, setVisibleNodes] = useState<Node[] | undefined>()
@@ -89,7 +88,12 @@ export default function FlowDisplay({
   useEffect(() => {
     if (initialFlow?.nodes != null && initialFlow?.edges != null) {
       if (!expandedView) {
-        const newFlow = new Flow(planDefinition, resolver, initialFlow.nodes, initialFlow.edges)
+        const newFlow = new Flow(
+          planDefinition,
+          resolver,
+          initialFlow.nodes,
+          initialFlow.edges
+        )
         newFlow.collapseAllChildren().then(() => {
           setVisibleNodes(newFlow.nodes)
           setVisibleEdges(newFlow.edges)
@@ -110,7 +114,12 @@ export default function FlowDisplay({
     ) {
       const sourceNode = initialFlow.nodes.find((n) => n.id === nodeToExpand)
       if (sourceNode != null) {
-        const newFlow = new Flow(planDefinition, resolver, visibleNodes, visibleEdges)
+        const newFlow = new Flow(
+          planDefinition,
+          resolver,
+          visibleNodes,
+          visibleEdges
+        )
         newFlow
           .expandChild(sourceNode, initialFlow.nodes, initialFlow.edges)
           .then((updatedFlow) => {
@@ -131,7 +140,10 @@ export default function FlowDisplay({
     if (initialFlow != null && applyBundle != null) {
       console.log(applyBundle)
       resolver.addResourcesFromBundle(applyBundle)
-      const newFlow = initialFlow.generateRequestGroupFlow(applyBundle, planDefinition)
+      const newFlow = initialFlow.generateRequestGroupFlow(
+        applyBundle,
+        planDefinition
+      )
       if (newFlow != null) {
         newFlow
           .positionNodes({

@@ -574,7 +574,7 @@ export default async (options?: FastifyServerOptions) => {
         const data = resourceFromParameters(parameters, 'data') as
           | fhir4.Bundle
           | undefined
-          console.log(JSON.stringify(data, null, 2))
+        console.log(JSON.stringify(data, null, 2))
         const dataEndpoint = resourceFromParameters(
           parameters,
           'dataEndpoint'

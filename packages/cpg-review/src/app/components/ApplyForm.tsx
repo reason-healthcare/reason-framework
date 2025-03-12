@@ -16,13 +16,16 @@ const ApplyForm = ({
   planDefinition,
   contentEndpoint,
   setShowApplyForm,
-  setApplyBundle
+  setApplyBundle,
 }: ApplyFormProps) => {
-
   const [dataPayload, setDataPayload] = useState<string | undefined>()
   const [subjectPayload, setSubjectPayload] = useState<string | undefined>()
-  const [contentEndpointPayload, setContentEndpointPayload] = useState<string | undefined>()
-  const [txEndpointPayload, setTxEndpointPayload] = useState<string | undefined>()
+  const [contentEndpointPayload, setContentEndpointPayload] = useState<
+    string | undefined
+  >()
+  const [txEndpointPayload, setTxEndpointPayload] = useState<
+    string | undefined
+  >()
 
   const resetForm = () => {
     setDataPayload(undefined)
@@ -33,7 +36,11 @@ const ApplyForm = ({
   }
 
   const isValidEndpointFormat = (endpoint: string) => {
-    return endpoint.startsWith('http://') || endpoint.startsWith('https://') || endpoint.startsWith('file://')
+    return (
+      endpoint.startsWith('http://') ||
+      endpoint.startsWith('https://') ||
+      endpoint.startsWith('file://')
+    )
   }
 
   // const isValidForm = () => {
@@ -49,7 +56,9 @@ const ApplyForm = ({
   //   return false
   // }
 
-  const isValidForm = (payload: Partial<ApplyPayload>): payload is ApplyPayload => {
+  const isValidForm = (
+    payload: Partial<ApplyPayload>
+  ): payload is ApplyPayload => {
     try {
       return (
         payload.dataPayload !== undefined &&
@@ -78,23 +87,22 @@ const ApplyForm = ({
     setTxEndpointPayload(e.target.value)
   }
 
-
   const handleSubmit = async (e: Event) => {
     const payload = {
       dataPayload,
       subjectPayload,
       contentEndpointPayload,
       txEndpointPayload,
-      planDefinition
+      planDefinition,
     }
     if (isValidForm(payload)) {
       try {
         const response = await fetch(`/api/apply`, {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json"
+            'Content-Type': 'application/json',
           },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(payload),
         })
         const json = await response.json()
         if (response.status === 200) {
@@ -114,16 +122,12 @@ const ApplyForm = ({
         message.error(errorMsg)
         console.error(errorMsg, error)
       }
-
     } else {
       console.log('Invalid form')
     }
-
   }
 
-
   const [form] = Form.useForm()
-
 
   return (
     <div className="side-panel-content">
@@ -138,10 +142,7 @@ const ApplyForm = ({
           <p className="form-description">
             {/* Add context data as a FHIR JSON Bundle. */}
           </p>
-          <TextArea
-            onChange={handleDataChange}
-            value={dataPayload}
-          />
+          <TextArea onChange={handleDataChange} value={dataPayload} />
         </Form.Item>
         <Form.Item name="subject" className="form-item">
           <h1 className="form-title">Set Reference to Subject</h1>

@@ -1,4 +1,4 @@
-import { RequestResource } from "helpers"
+import { RequestResource } from 'helpers'
 
 export interface NodeContent {
   resource:

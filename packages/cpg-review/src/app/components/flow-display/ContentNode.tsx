@@ -43,7 +43,9 @@ const ContentNode = ({ data: nodeProps, id }: NodeProps) => {
         className={`clickable node-container ${
           isSelected ? 'node-highlight' : 'node-unhighlight'
         } ${
-          is.ActivityDefinition(resource) || is.Questionnaire(resource) || is.RequestResource(resource)
+          is.ActivityDefinition(resource) ||
+          is.Questionnaire(resource) ||
+          is.RequestResource(resource)
             ? 'activity-node'
             : ''
         }`}

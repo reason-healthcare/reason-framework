@@ -118,13 +118,24 @@ export default function App() {
           <>
             <PanelResizeHandle className="panel-separator" />
             <Panel minSize={25}>
-              {(showApplyForm && planDefinition != null) ? (<ApplyForm planDefinition={planDefinition} contentEndpoint={endpointPayload} setShowApplyForm={setShowApplyForm} setApplyBundle={setApplyBundle}/>) : selectedNode != null && (<MemoryRouter>
-                <NarrativeRouter
-                  narrativeContent={narrativeContent}
-                  resolver={resolver}
-                  setSelectedNode={setSelectedNode}
-                ></NarrativeRouter>
-              </MemoryRouter>)}
+              {showApplyForm && planDefinition != null ? (
+                <ApplyForm
+                  planDefinition={planDefinition}
+                  contentEndpoint={endpointPayload}
+                  setShowApplyForm={setShowApplyForm}
+                  setApplyBundle={setApplyBundle}
+                />
+              ) : (
+                selectedNode != null && (
+                  <MemoryRouter>
+                    <NarrativeRouter
+                      narrativeContent={narrativeContent}
+                      resolver={resolver}
+                      setSelectedNode={setSelectedNode}
+                    ></NarrativeRouter>
+                  </MemoryRouter>
+                )
+              )}
             </Panel>
           </>
         )}

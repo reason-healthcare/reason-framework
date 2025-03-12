@@ -51,7 +51,7 @@ export const requestResourceTypes = [
   'ServiceRequest',
   'SupplyRequest',
   'Task',
-  'VisionPrescription'
+  'VisionPrescription',
 ] as const
 
 export type RequestResourceType = typeof requestResourceTypes[number]
@@ -254,8 +254,7 @@ export const is = {
         object.cardinalityBehavior === undefined) &&
       (Array.isArray(object.code) || object.code === undefined) &&
       (Array.isArray(object.condition) || object.condition === undefined) &&
-      (typeof object.resource === 'object' ||
-        object.resource === undefined) &&
+      (typeof object.resource === 'object' || object.resource === undefined) &&
       (typeof object.description === 'string' ||
         object.description === undefined) &&
       (Array.isArray(object.documentation) ||
@@ -909,12 +908,13 @@ export const is = {
 }
 
 export const getNodeLabelFromResource = (
-  resource: fhir4.ActivityDefinition | fhir4.Questionnaire | RequestResource) => {
+  resource: fhir4.ActivityDefinition | fhir4.Questionnaire | RequestResource
+) => {
   if (is.RequestResource(resource)) {
     const { id, resourceType, text } = resource
     return resourceType ?? text ?? id
   } else {
-    const { title, name, url, id} = resource
+    const { title, name, url, id } = resource
     return title ?? name ?? url ?? id
   }
 }
@@ -982,7 +982,10 @@ export const addSpaces = (string: any | undefined): string | undefined => {
 /** General purpose */
 
 export const formatTitle = (
-  resource: fhir4.FhirResource | fhir4.PlanDefinitionAction | fhir4.RequestGroupAction
+  resource:
+    | fhir4.FhirResource
+    | fhir4.PlanDefinitionAction
+    | fhir4.RequestGroupAction
 ) => {
   const { title, name, url, id, description } = resource as {
     title?: string
@@ -999,7 +1002,10 @@ export const formatResourceType = (
 ) => {
   if ('resourceType' in resource) {
     return addSpaces(resource.resourceType)
-  } else if (is.PlanDefinitionAction(resource) || is.RequestGroupAction(resource)) {
+  } else if (
+    is.PlanDefinitionAction(resource) ||
+    is.RequestGroupAction(resource)
+  ) {
     return 'Action'
   }
 }
@@ -1017,7 +1023,8 @@ export const formatUrl = (
 ) => {
   if (resolver != null && navigate != null) {
     const [canonical, version] = url.split('|')
-    const resource = resolver.resolveCanonical(canonical) ?? resolver.resolveReference(url)
+    const resource =
+      resolver.resolveCanonical(canonical) ?? resolver.resolveReference(url)
     if (resource != null) {
       const path = canonical.split('/').slice(-2).join('/')
       return (
@@ -1249,7 +1256,9 @@ export const formatUsageContext = (
 
 /** Plan Definition Types */
 
-export const formatAction = (action: fhir4.PlanDefinitionAction | fhir4.RequestGroupAction) => {
+export const formatAction = (
+  action: fhir4.PlanDefinitionAction | fhir4.RequestGroupAction
+) => {
   return formatTitle(action)
 }
 
