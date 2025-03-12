@@ -138,7 +138,6 @@ export default function FlowDisplay({
 
   useEffect(() => {
     if (initialFlow != null && applyBundle != null) {
-      console.log(applyBundle)
       resolver.addResourcesFromBundle(applyBundle)
       const newFlow = initialFlow.generateRequestGroupFlow(
         applyBundle,

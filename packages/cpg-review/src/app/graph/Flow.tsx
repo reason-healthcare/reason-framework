@@ -165,7 +165,7 @@ class Flow implements FlowShape {
     parentSelection?:
       | fhir4.PlanDefinitionAction['selectionBehavior']
       | undefined,
-    requestBundle?: fhir4.Bundle
+    requestBundle?: fhir4.Bundle | undefined
   ) {
     actions?.map((action) => {
       const {
@@ -236,7 +236,7 @@ class Flow implements FlowShape {
         }
         /** Process child actions */
       } else if (
-        !is.PlanDefinitionAction(action) &&
+        is.RequestGroupAction(action) &&
         action.resource?.reference != null &&
         requestBundle != null
       ) {
@@ -250,7 +250,8 @@ class Flow implements FlowShape {
             targetResource,
             targetResource.action,
             node,
-            selectionBehavior
+            selectionBehavior,
+            requestBundle
           )
         } else if (is.RequestResource(targetResource)) {
           let endNode = this.nodes?.find((n) => n.id === id)
@@ -261,7 +262,7 @@ class Flow implements FlowShape {
           this.connectNodes(node.id, endNode.id, parentSelection)
         }
       } else if (childActions != null) {
-        this.processActionNodes(resource, childActions, node, selectionBehavior)
+        this.processActionNodes(resource, childActions, node, selectionBehavior, requestBundle)
       } else {
         /** Where there are no child nodes, the final node should be of type 'target'  */
         node.data.handle = ['target']
