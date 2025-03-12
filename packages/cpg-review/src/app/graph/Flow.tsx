@@ -262,7 +262,13 @@ class Flow implements FlowShape {
           this.connectNodes(node.id, endNode.id, parentSelection)
         }
       } else if (childActions != null) {
-        this.processActionNodes(resource, childActions, node, selectionBehavior, requestBundle)
+        this.processActionNodes(
+          resource,
+          childActions,
+          node,
+          selectionBehavior,
+          requestBundle
+        )
       } else {
         /** Where there are no child nodes, the final node should be of type 'target'  */
         node.data.handle = ['target']

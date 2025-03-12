@@ -18,6 +18,7 @@ import BackButton from '../BackButton'
 import SingleDisplayItem from './SingleDisplayItem'
 import { NodeContent } from '@/types/NodeProps'
 import '@/styles/narrativeDisplay.css'
+import SidePanel from '../SidePanel'
 
 const META = [
   'id',
@@ -43,6 +44,7 @@ const META = [
 interface NarrativeDisplayProps {
   resolver: BrowserResolver | undefined
   setSelectedNode: React.Dispatch<React.SetStateAction<string | undefined>>
+  setShowNarrativeContent: React.Dispatch<React.SetStateAction<boolean>>
   narrativeContent?: NodeContent | undefined
 }
 
@@ -50,6 +52,7 @@ const NarrativeDisplay = ({
   resolver,
   setSelectedNode,
   narrativeContent,
+  setShowNarrativeContent,
 }: NarrativeDisplayProps) => {
   const [resource, setResource] = useState<
     fhir4.FhirResource | fhir4.PlanDefinitionAction | undefined
@@ -106,7 +109,6 @@ const NarrativeDisplay = ({
     setContentFormat(e.target.value)
   }
 
-  let resourceDisplay
   if (resource != null) {
     const formattedContent =
       contentFormat === 'text' ? (
@@ -129,7 +131,7 @@ const NarrativeDisplay = ({
         <CodeBlock code={JSON.stringify(resource, null, 1)} />
       )
 
-    resourceDisplay = (
+    return (
       <div className="narrative-container-outer">
         <div className="narrative-container-inner">
           <h2>{`${formatResourceType(resource)}: ${formatTitle(resource)}`}</h2>
@@ -156,19 +158,7 @@ const NarrativeDisplay = ({
     )
   }
 
-  return (
-    <>
-      <div className="buttons-container">
-        <BackButton />
-        <CloseOutlined onClick={handleNarrativeClose} />
-      </div>
-      {resourceDisplay != null ? (
-        resourceDisplay
-      ) : (
-        <p>{`Unable to load ${path}`}</p>
-      )}
-    </>
-  )
+  return <p>{`Unable to load ${path}`}</p>
 }
 
 export default NarrativeDisplay

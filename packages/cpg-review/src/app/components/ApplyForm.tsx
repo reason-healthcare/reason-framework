@@ -4,6 +4,7 @@ import TextArea from 'antd/es/input/TextArea'
 import { ApplyPayload } from 'api/apply/route'
 import { is } from 'helpers'
 import { ChangeEvent, ChangeEventHandler, useState } from 'react'
+import SidePanel from './SidePanel'
 
 interface ApplyFormProps {
   planDefinition: fhir4.PlanDefinition
@@ -42,19 +43,6 @@ const ApplyForm = ({
       endpoint.startsWith('file://')
     )
   }
-
-  // const isValidForm = () => {
-  //   let json
-  //   if (dataPayload != undefined && contentEndpointPayload != undefined && txEndpointPayload != undefined && subjectPayload != undefined) {
-  //     try {
-  //       json = JSON.parse(dataPayload.trim())
-  //       return json && isValidEndpointFormat(contentEndpointPayload) && isValidEndpointFormat(txEndpointPayload)
-  //     } catch (error) {
-  //       return false
-  //     }
-  //   }
-  //   return false
-  // }
 
   const isValidForm = (
     payload: Partial<ApplyPayload>
@@ -130,7 +118,7 @@ const ApplyForm = ({
   const [form] = Form.useForm()
 
   return (
-    <div className="side-panel-content">
+    <SidePanel setShowSidePanel={setShowApplyForm}>
       <Form
         onFinish={handleSubmit}
         form={form}
@@ -198,7 +186,7 @@ const ApplyForm = ({
           </button>
         </Form.Item>
       </Form>
-    </div>
+    </SidePanel>
   )
 }
 
