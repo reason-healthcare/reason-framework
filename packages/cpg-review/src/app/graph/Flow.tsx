@@ -284,7 +284,7 @@ class Flow implements FlowShape {
    * How to find corresponding request group node?
    *
    */
-  public generateRequestGroup(
+  public generateRequestGroupFlow(
     requestBundle: fhir4.Bundle,
     planDefinition: fhir4.PlanDefinition
   ) {

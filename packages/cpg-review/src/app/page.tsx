@@ -15,6 +15,7 @@ import { NodeContent } from './types/NodeProps'
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels'
 import { UploadFile } from 'antd'
 import Nav, { NavProps } from './components/Nav'
+import ApplyForm from './components/ApplyForm'
 
 export default function App() {
   const [resolver, setResolver] = useState<BrowserResolver | undefined>()
@@ -24,8 +25,10 @@ export default function App() {
   const [narrativeContent, setNarrativeContent] = useState<
     NodeContent | undefined
   >()
+  const [showApplyForm, setShowApplyForm] = useState<boolean>(false)
   const [showUploadPage, setShowUploadPage] = useState<boolean>(false)
   const [selectedNode, setSelectedNode] = useState<string>()
+  const [applyBundle, setApplyBundle] = useState<fhir4.Bundle | undefined>()
 
   /** Page.tsx manages upload form payload to preserve form after submit */
   const [packageTypePayload, setPackageTypePayload] = useState<string>('file')
@@ -58,6 +61,11 @@ export default function App() {
       setShowUploadPage(true)
     }
   }, [resolver, planDefinition])
+
+  useEffect(() => {
+    setSelectedNode(undefined)
+    setNarrativeContent(undefined)
+  }, [showApplyForm])
 
   const uploadSectionProps: UploadSectionProps = {
     setResolver,
@@ -98,25 +106,25 @@ export default function App() {
                 setNarrativeContent={setNarrativeContent}
                 selectedNode={selectedNode}
                 setSelectedNode={setSelectedNode}
+                setShowApplyForm={setShowApplyForm}
+                applyBundle={applyBundle}
               />
             </ReactFlowProvider>
           ) : (
             <LoadIndicator />
           )}
         </Panel>
-        {selectedNode != null && (
+        {(showApplyForm || selectedNode != null) && (
           <>
             <PanelResizeHandle className="panel-separator" />
             <Panel minSize={25}>
-              <MemoryRouter>
-                {selectedNode != null && (
-                  <NarrativeRouter
-                    narrativeContent={narrativeContent}
-                    resolver={resolver}
-                    setSelectedNode={setSelectedNode}
-                  ></NarrativeRouter>
-                )}
-              </MemoryRouter>
+              {(showApplyForm && planDefinition != null) ? (<ApplyForm planDefinition={planDefinition} contentEndpoint={endpointPayload} setShowApplyForm={setShowApplyForm} setApplyBundle={setApplyBundle}/>) : selectedNode != null && (<MemoryRouter>
+                <NarrativeRouter
+                  narrativeContent={narrativeContent}
+                  resolver={resolver}
+                  setSelectedNode={setSelectedNode}
+                ></NarrativeRouter>
+              </MemoryRouter>)}
             </Panel>
           </>
         )}

@@ -23,7 +23,7 @@ const NarrativeRouter = ({
   }, [narrativeContent])
 
   return (
-    <div className="narrative-section">
+    <div className="side-panel-content">
       <Routes>
         <Route
           path="/"

@@ -258,6 +258,8 @@ export const evaluateCqlExpression = async (
   dataResolver?: ResolverType | undefined,
   libraries?: fhir4.Library[] | undefined
 ): Promise<any> => {
+  console.log(JSON.stringify(dataContext))
+  console.log('here')
   const patients = dataContext?.entry
     ?.filter((e) => is.Patient(e?.resource))
     .map((e) => e.resource)

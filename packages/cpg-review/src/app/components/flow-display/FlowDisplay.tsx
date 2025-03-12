@@ -19,90 +19,6 @@ import { NodeContent } from '../../types/NodeProps'
 import ApplicabilityNode from './ApplicabilityNode'
 import { Button } from 'antd'
 
-const requestBundle: fhir4.Bundle = {
-  "resourceType": "Bundle",
-  "id": "4ApplyOutput1",
-  "type": "collection",
-  "entry": [
-    {
-      "fullUrl": "http://example.org/RequestGroup/RequestGroup1",
-      "resource": {
-        "resourceType": "RequestGroup",
-        "id": "RequestGroup1",
-        "intent": "proposal",
-        "status": "draft",
-        "subject": {
-          "reference": "Patient/Patient1"
-        },
-        "instantiatesCanonical": [
-          "http://example.org/PlanDefinition/SulfasalazineMonitoringRecommendation|0.1.0"
-        ],
-        "action": [
-          {
-            "title": "Order monitoring tests for antirheumatic drug therapy (Sulfasalazine).",
-            "description": "Order monitoring tests for antirheumatic drug therapy (Sulfasalazine).",
-            "code": [
-              {
-                "coding": [
-                  {
-                    "code": "diagnostic-testing",
-                    "system": "http://hl7.org/fhir/uv/cpg/CodeSystem/cpg-common-process"
-                  }
-                ]
-              }
-            ],
-            "type": {
-              "coding": [
-                {
-                  "code": "create",
-                  "system": "http://terminology.hl7.org/CodeSystem/action-type"
-                }
-              ]
-            },
-            "condition": [
-              {
-                "kind": "applicability",
-                "expression": {
-                  "language": "text/cql-identifier",
-                  "expression": "Should order CBC if on Sulfasalazine therapy and missing test"
-                }
-              }
-            ],
-            "resource": {
-              "reference": "ServiceRequest/ServiceRequest1"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "fullUrl": "http://example.org/ServiceRequest/ServiceRequest1",
-      "resource": {
-        "resourceType": "ServiceRequest",
-        "id": "ServiceRequest1",
-        "status": "draft",
-        "intent": "option",
-        "instantiatesCanonical": [
-          "http://example.org/ActivityDefinition/OrderCBCActivity|0.1.0"
-        ],
-        "subject": {
-          "reference": "Patient/Patient1"
-        },
-        "doNotPerform": false,
-        "code": {
-          "coding": [
-            {
-              "code": "58410-2",
-              "system": "http://loinc.org",
-              "display": "CBC panel - Blood by Automated count"
-            }
-          ]
-        }
-      }
-    }
-  ]
-}
-
 
 interface FlowDisplayProps {
   resolver: BrowserResolver
@@ -112,6 +28,8 @@ interface FlowDisplayProps {
   >
   selectedNode: string | undefined
   setSelectedNode: React.Dispatch<React.SetStateAction<string | undefined>>
+  setShowApplyForm: React.Dispatch<React.SetStateAction<boolean>>
+  applyBundle: fhir4.Bundle | undefined
 }
 
 export default function FlowDisplay({
@@ -120,6 +38,8 @@ export default function FlowDisplay({
   setNarrativeContent,
   selectedNode,
   setSelectedNode,
+  setShowApplyForm,
+  applyBundle
 }: FlowDisplayProps) {
   const [initialFlow, setInitialFlow] = useState<Flow | undefined>()
   const [visibleNodes, setVisibleNodes] = useState<Node[] | undefined>()
@@ -162,6 +82,7 @@ export default function FlowDisplay({
       } else {
         console.log(`Unable to find selected node ${selectedNode}`)
       }
+      setShowApplyForm(false)
     }
   }, [selectedNode])
 
@@ -206,6 +127,27 @@ export default function FlowDisplay({
     }
   }, [nodeToExpand])
 
+  useEffect(() => {
+    if (initialFlow != null && applyBundle != null) {
+      console.log(applyBundle)
+      resolver.addResourcesFromBundle(applyBundle)
+      const newFlow = initialFlow.generateRequestGroupFlow(applyBundle, planDefinition)
+      if (newFlow != null) {
+        newFlow
+          .positionNodes({
+            setNodeToExpand,
+            setSelectedNode,
+          })
+          .then((updatedFlow) => {
+            setVisibleNodes(updatedFlow.nodes)
+            setVisibleEdges(updatedFlow.edges)
+          })
+      } else {
+        console.log('Unable to generate Request Group')
+      }
+    }
+  }, [applyBundle])
+
   const handleExpandedViewClick = () => {
     setExpandedView(!expandedView)
     setSelectedNode(undefined)
@@ -223,24 +165,9 @@ export default function FlowDisplay({
     }
   }
 
-  const selectRG = () => {
-    if (initialFlow != null) {
-      resolver.addResourcesFromBundle(requestBundle)
-      const newFlow = initialFlow.generateRequestGroup(requestBundle, planDefinition)
-      if (newFlow != null) {
-        newFlow
-          .positionNodes({
-            setNodeToExpand,
-            setSelectedNode,
-          })
-          .then((updatedFlow) => {
-            setVisibleNodes(updatedFlow.nodes)
-            setVisibleEdges(updatedFlow.edges)
-          })
-      } else {
-        console.log('Unable to generate Request Group')
-      }
-    }
+  const handleApply = () => {
+    setShowApplyForm(true)
+    setNarrativeContent(undefined)
   }
 
   return (
@@ -266,7 +193,7 @@ export default function FlowDisplay({
           </ControlButton>
         </Controls>
       </ReactFlow>
-      <Button onClick={selectRG}>Request Group</Button>
+      <Button onClick={handleApply}>Apply</Button>
     </div>
   )
 }
