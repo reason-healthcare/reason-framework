@@ -91,7 +91,6 @@ export async function POST(req: NextRequest) {
       console.error(message)
       return NextResponse.json({ message }, { status: response.status })
     }
-    console.log(json)
     return NextResponse.json(json, { status: response.status })
   } catch (error) {
     const message = `Problem fetching FHIR package: ${error}`

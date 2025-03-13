@@ -3,7 +3,7 @@ import { Form, Input, message, Radio, Select } from 'antd'
 import TextArea from 'antd/es/input/TextArea'
 import { ApplyPayload } from 'api/apply/route'
 import { is } from 'helpers'
-import { ChangeEvent, ChangeEventHandler, useState } from 'react'
+import { ChangeEvent, useEffect, useState } from 'react'
 import SidePanel from './SidePanel'
 import { SidePanelView } from 'page'
 
@@ -37,6 +37,7 @@ const ApplyForm = ({
     setContentEndpointPayload(undefined)
     setTxEndpointPayload(undefined)
     form.resetFields()
+    localStorage.removeItem('applyPayload')
   }
 
   const isValidEndpointFormat = (endpoint: string) => {
@@ -46,6 +47,18 @@ const ApplyForm = ({
       endpoint.startsWith('file://')
     )
   }
+
+  useEffect(() => {
+    const storedPayload = localStorage.getItem('applyPayload')
+    if (storedPayload != null) {
+      const payload = JSON.parse(storedPayload)
+      const {dataPayload, subjectPayload, contentEndpointPayload, txEndpointPayload} = payload
+      setDataPayload(dataPayload)
+      setSubjectPayload(subjectPayload)
+      setContentEndpointPayload(contentEndpointPayload)
+      setTxEndpointPayload(txEndpointPayload)
+    }
+  }, [])
 
   // TODO: error handling
   const isValidForm = (
@@ -98,6 +111,7 @@ const ApplyForm = ({
       planDefinition,
     }
     if (isValidForm(payload)) {
+      localStorage.setItem('applyPayload', JSON.stringify(payload))
       try {
         const response = await fetch(`/api/apply`, {
           method: 'POST',

@@ -68,11 +68,9 @@ export default function App() {
     }
   }, [resolver, planDefinition])
 
-  console.log(sidePanelView)
 
   useEffect(() => {
     if (narrativeContent != null && selectedNode != null) {
-      console.log('here')
       setSidePanelView('narrative')
     }
   }, [selectedNode])

@@ -140,7 +140,8 @@ export default function FlowDisplay({
   useEffect(() => {
     if (initialFlow != null && requestsBundle != null) {
       resolver.addResourcesFromBundle(requestsBundle)
-      const newFlow = initialFlow.generateRequestGroupFlow(
+      const newFlow = new Flow(planDefinition, resolver)
+      newFlow.generateRequestGroupFlow(
         requestsBundle,
         planDefinition
       )
@@ -157,6 +158,9 @@ export default function FlowDisplay({
       } else {
         console.log('Unable to generate Request Group')
       }
+    } else if (initialFlow != null) {
+      setVisibleNodes(initialFlow.nodes)
+      setVisibleEdges(initialFlow.edges)
     }
   }, [requestsBundle])
 
