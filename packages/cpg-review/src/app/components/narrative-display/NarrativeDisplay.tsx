@@ -18,7 +18,6 @@ import BackButton from '../BackButton'
 import SingleDisplayItem from './SingleDisplayItem'
 import { NodeContent } from '@/types/NodeProps'
 import '@/styles/narrativeDisplay.css'
-import SidePanel from '../SidePanel'
 
 const META = [
   'id',
@@ -44,7 +43,6 @@ const META = [
 interface NarrativeDisplayProps {
   resolver: BrowserResolver | undefined
   setSelectedNode: React.Dispatch<React.SetStateAction<string | undefined>>
-  setShowNarrativeContent: React.Dispatch<React.SetStateAction<boolean>>
   narrativeContent?: NodeContent | undefined
 }
 
@@ -52,7 +50,6 @@ const NarrativeDisplay = ({
   resolver,
   setSelectedNode,
   narrativeContent,
-  setShowNarrativeContent,
 }: NarrativeDisplayProps) => {
   const [resource, setResource] = useState<
     fhir4.FhirResource | fhir4.PlanDefinitionAction | undefined

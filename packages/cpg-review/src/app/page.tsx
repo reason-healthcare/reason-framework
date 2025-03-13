@@ -17,6 +17,8 @@ import { UploadFile } from 'antd'
 import Nav, { NavProps } from './components/Nav'
 import ApplyForm from './components/ApplyForm'
 
+export type SidePanelView = 'apply' | 'narrative' | undefined
+
 export default function App() {
   const [resolver, setResolver] = useState<BrowserResolver | undefined>()
   const [planDefinition, setPlanDefinition] = useState<
@@ -25,12 +27,13 @@ export default function App() {
   const [narrativeContent, setNarrativeContent] = useState<
     NodeContent | undefined
   >()
-  const [showApplyForm, setShowApplyForm] = useState<boolean>(false)
-  const [showNarrativeContent, setShowNarrativeContent] =
-    useState<boolean>(false)
+  const [sidePanelView, setSidePanelView] = useState<SidePanelView>()
+
   const [showUploadPage, setShowUploadPage] = useState<boolean>(false)
-  const [selectedNode, setSelectedNode] = useState<string>()
-  const [applyBundle, setApplyBundle] = useState<fhir4.Bundle | undefined>()
+  const [selectedNode, setSelectedNode] = useState<string | undefined>()
+  const [requestsBundle, setRequestsBundle] = useState<
+    fhir4.Bundle | undefined
+  >()
 
   /** Page.tsx manages upload form payload to preserve form after submit */
   const [packageTypePayload, setPackageTypePayload] = useState<string>('file')
@@ -57,6 +60,7 @@ export default function App() {
   useEffect(() => {
     setSelectedNode(undefined)
     setNarrativeContent(undefined)
+    setSidePanelView(undefined)
     if (resolver instanceof BrowserResolver && planDefinition != null) {
       setShowUploadPage(false)
     } else {
@@ -64,24 +68,14 @@ export default function App() {
     }
   }, [resolver, planDefinition])
 
-  useEffect(() => {
-    setSelectedNode(undefined)
-    setNarrativeContent(undefined)
-    setShowNarrativeContent(false)
-  }, [showApplyForm])
-
-  useEffect(() => {
-    if (showNarrativeContent == false) {
-      setNarrativeContent(undefined)
-    }
-  }, [showNarrativeContent])
+  console.log(sidePanelView)
 
   useEffect(() => {
     if (narrativeContent != null && selectedNode != null) {
       console.log('here')
-      setShowNarrativeContent(true)
+      setSidePanelView('narrative')
     }
-  }, [narrativeContent, selectedNode])
+  }, [selectedNode])
 
   const uploadSectionProps: UploadSectionProps = {
     setResolver,
@@ -107,10 +101,37 @@ export default function App() {
     setShowUploadPage,
   }
 
+  const handleApply = () => {
+    setSidePanelView('apply')
+  }
+
+  const handleContextReset = () => {
+    setRequestsBundle(undefined)
+  }
+
   const contentDisplay = (
     <>
       <div className="plan-title">
-        {planDefinition != null && <h1>{formatTitle(planDefinition)}</h1>}
+        {planDefinition != null && (
+          <h1>{`${formatTitle(planDefinition)}${
+            requestsBundle != null ? ' - Applied Guidance' : ''
+          }`}</h1>
+        )}
+      </div>
+      <div className="plan-title">
+        {/* TODO: use icon instead of text */}
+        <button type="button" className="button-simple" onClick={handleApply}>
+          Add Context
+        </button>
+        {requestsBundle != null && (
+          <button
+            type="button"
+            className="button-secondary small"
+            onClick={handleContextReset}
+          >
+            Reset
+          </button>
+        )}
       </div>
       <PanelGroup direction="horizontal" className="data-panel-group">
         <Panel minSize={25}>
@@ -122,30 +143,30 @@ export default function App() {
                 setNarrativeContent={setNarrativeContent}
                 selectedNode={selectedNode}
                 setSelectedNode={setSelectedNode}
-                setShowApplyForm={setShowApplyForm}
-                applyBundle={applyBundle}
+                setSidePanelView={setSidePanelView}
+                requestsBundle={requestsBundle}
               />
             </ReactFlowProvider>
           ) : (
             <LoadIndicator />
           )}
         </Panel>
-        {showApplyForm && planDefinition != null ? (
+        {sidePanelView === 'apply' && planDefinition != null ? (
           <ApplyForm
             planDefinition={planDefinition}
             contentEndpoint={endpointPayload}
-            setShowApplyForm={setShowApplyForm}
-            setApplyBundle={setApplyBundle}
+            setSidePanelView={setSidePanelView}
+            setRequestsBundle={setRequestsBundle}
           />
         ) : (
-          showNarrativeContent && (
+          sidePanelView === 'narrative' && (
             <MemoryRouter>
               <NarrativeRouter
                 narrativeContent={narrativeContent}
                 resolver={resolver}
                 setSelectedNode={setSelectedNode}
-                setShowNarrativeContent={setShowNarrativeContent}
-              ></NarrativeRouter>
+                setSidePanelView={setSidePanelView}
+              />
             </MemoryRouter>
           )
         )}

@@ -3,22 +3,24 @@ import BrowserResolver from 'resolver/browser'
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import NarrativeDisplay from './NarrativeDisplay'
-import { NodeContent } from '../../types/NodeProps'
 import SidePanel from '../SidePanel'
 import BackButton from '../BackButton'
+import { SidePanelView } from 'page'
+import { Node } from 'reactflow'
+import { NodeContent } from '@/types/NodeProps'
 
 interface NarrativeRouterProps {
   narrativeContent: NodeContent | undefined
   resolver: BrowserResolver | undefined
   setSelectedNode: React.Dispatch<React.SetStateAction<string | undefined>>
-  setShowNarrativeContent: React.Dispatch<React.SetStateAction<boolean>>
+  setSidePanelView: React.Dispatch<React.SetStateAction<SidePanelView>>
 }
 
 const NarrativeRouter = ({
   narrativeContent,
   resolver,
   setSelectedNode,
-  setShowNarrativeContent,
+  setSidePanelView,
 }: NarrativeRouterProps) => {
   const navigate = useNavigate()
 
@@ -27,10 +29,7 @@ const NarrativeRouter = ({
   }, [narrativeContent])
 
   return (
-    <SidePanel
-      setShowSidePanel={setShowNarrativeContent}
-      navigation={<BackButton />}
-    >
+    <SidePanel setSidePanelView={setSidePanelView} navigation={<BackButton />}>
       <Routes>
         <Route
           path="/"
@@ -39,7 +38,6 @@ const NarrativeRouter = ({
               resolver={resolver}
               setSelectedNode={setSelectedNode}
               narrativeContent={narrativeContent}
-              setShowNarrativeContent={setShowNarrativeContent}
             />
           }
         />
@@ -49,7 +47,6 @@ const NarrativeRouter = ({
             <NarrativeDisplay
               resolver={resolver}
               setSelectedNode={setSelectedNode}
-              setShowNarrativeContent={setShowNarrativeContent}
             />
           }
         />

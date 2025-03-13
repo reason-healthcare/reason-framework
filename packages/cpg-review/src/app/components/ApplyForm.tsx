@@ -5,19 +5,22 @@ import { ApplyPayload } from 'api/apply/route'
 import { is } from 'helpers'
 import { ChangeEvent, ChangeEventHandler, useState } from 'react'
 import SidePanel from './SidePanel'
+import { SidePanelView } from 'page'
 
 interface ApplyFormProps {
   planDefinition: fhir4.PlanDefinition
   contentEndpoint: string | undefined
-  setShowApplyForm: React.Dispatch<React.SetStateAction<boolean>>
-  setApplyBundle: React.Dispatch<React.SetStateAction<fhir4.Bundle | undefined>>
+  setSidePanelView: React.Dispatch<React.SetStateAction<SidePanelView>>
+  setRequestsBundle: React.Dispatch<
+    React.SetStateAction<fhir4.Bundle | undefined>
+  >
 }
 
 const ApplyForm = ({
   planDefinition,
   contentEndpoint,
-  setShowApplyForm,
-  setApplyBundle,
+  setSidePanelView,
+  setRequestsBundle,
 }: ApplyFormProps) => {
   const [dataPayload, setDataPayload] = useState<string | undefined>()
   const [subjectPayload, setSubjectPayload] = useState<string | undefined>()
@@ -44,20 +47,31 @@ const ApplyForm = ({
     )
   }
 
+  // TODO: error handling
   const isValidForm = (
     payload: Partial<ApplyPayload>
   ): payload is ApplyPayload => {
+    const {
+      dataPayload,
+      subjectPayload,
+      contentEndpointPayload,
+      txEndpointPayload,
+    } = payload
     try {
+      let json
+      if (dataPayload != undefined) {
+        json = JSON.parse(dataPayload.trim())
+      }
       return (
-        payload.dataPayload !== undefined &&
-        payload.subjectPayload !== undefined &&
-        payload.contentEndpointPayload !== undefined &&
-        payload.txEndpointPayload !== undefined &&
-        JSON.parse(payload.dataPayload.trim()) &&
-        isValidEndpointFormat(payload.contentEndpointPayload) &&
-        isValidEndpointFormat(payload.txEndpointPayload)
+        subjectPayload !== undefined &&
+        contentEndpointPayload !== undefined &&
+        txEndpointPayload !== undefined &&
+        is.Bundle(json) &&
+        isValidEndpointFormat(contentEndpointPayload) &&
+        isValidEndpointFormat(txEndpointPayload)
       )
     } catch {
+      message.error('Context does not appear to be valid JSON')
       return false
     }
   }
@@ -95,7 +109,7 @@ const ApplyForm = ({
         const json = await response.json()
         if (response.status === 200) {
           if (is.Bundle(json)) {
-            setApplyBundle(json)
+            setRequestsBundle(json)
           } else {
             const error = 'Resource does not appear to be a FHIR bundle'
             message.error(error)
@@ -118,7 +132,7 @@ const ApplyForm = ({
   const [form] = Form.useForm()
 
   return (
-    <SidePanel setShowSidePanel={setShowApplyForm}>
+    <SidePanel setSidePanelView={setSidePanelView}>
       <Form
         onFinish={handleSubmit}
         form={form}
@@ -126,17 +140,15 @@ const ApplyForm = ({
         autoComplete="off"
       >
         <Form.Item name="context-data" className="form-item">
-          <h1 className="form-title">Add FHIR Data Bundle</h1>
+          <h1 className="form-title">Context</h1>
           <p className="form-description">
-            {/* Add context data as a FHIR JSON Bundle. */}
+            Add context data as a FHIR JSON Bundle.
           </p>
           <TextArea onChange={handleDataChange} value={dataPayload} />
         </Form.Item>
         <Form.Item name="subject" className="form-item">
-          <h1 className="form-title">Set Reference to Subject</h1>
-          <p className="form-description">
-            {/* Add context data as a FHIR JSON Bundle. */}
-          </p>
+          <h1 className="form-title">Subject</h1>
+          <p className="form-description">Set reference to subject.</p>
           <Input
             placeholder="Patient/Patient-1"
             onChange={handleSubjectChange}
@@ -144,10 +156,8 @@ const ApplyForm = ({
           />
         </Form.Item>
         <Form.Item name="content-endpoint" className="form-item">
-          <h1 className="form-title">Set FHIR Content Endpoint</h1>
-          <p className="form-description">
-            {/* Add context data as a FHIR JSON Bundle. */}
-          </p>
+          <h1 className="form-title">Content Endpoint</h1>
+          <p className="form-description">Set content endpoint address</p>
           <Input
             placeholder="https://packages.simplifier.net/hl7.fhir.uv.cpg/2.0.0"
             onChange={handleContentEndpointChange}
@@ -156,10 +166,8 @@ const ApplyForm = ({
           />
         </Form.Item>
         <Form.Item name="content-endpoint" className="form-item">
-          <h1 className="form-title">Set Terminology Endpoint</h1>
-          <p className="form-description">
-            {/* Add context data as a FHIR JSON Bundle. */}
-          </p>
+          <h1 className="form-title">Terminology Endpoint</h1>
+          <p className="form-description">Set terminology endpoint address.</p>
           <Input
             placeholder="http://tx.fhir.org"
             onChange={handleTxEndpointChange}

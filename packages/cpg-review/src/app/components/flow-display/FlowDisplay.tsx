@@ -18,6 +18,7 @@ import StartNode from './StartNode'
 import { NodeContent } from '../../types/NodeProps'
 import ApplicabilityNode from './ApplicabilityNode'
 import { Button } from 'antd'
+import { SidePanelView } from 'page'
 
 interface FlowDisplayProps {
   resolver: BrowserResolver
@@ -27,8 +28,8 @@ interface FlowDisplayProps {
   >
   selectedNode: string | undefined
   setSelectedNode: React.Dispatch<React.SetStateAction<string | undefined>>
-  setShowApplyForm: React.Dispatch<React.SetStateAction<boolean>>
-  applyBundle: fhir4.Bundle | undefined
+  setSidePanelView: React.Dispatch<React.SetStateAction<SidePanelView>>
+  requestsBundle: fhir4.Bundle | undefined
 }
 
 export default function FlowDisplay({
@@ -37,8 +38,8 @@ export default function FlowDisplay({
   setNarrativeContent,
   selectedNode,
   setSelectedNode,
-  setShowApplyForm,
-  applyBundle,
+  setSidePanelView,
+  requestsBundle,
 }: FlowDisplayProps) {
   const [initialFlow, setInitialFlow] = useState<Flow | undefined>()
   const [visibleNodes, setVisibleNodes] = useState<Node[] | undefined>()
@@ -78,10 +79,10 @@ export default function FlowDisplay({
       setVisibleNodes(Flow.setSelectedNode(visibleNodes, node?.id ?? undefined))
       if (node != null) {
         setNarrativeContent(node.data.nodeContent)
+        setSidePanelView('narrative')
       } else {
         console.log(`Unable to find selected node ${selectedNode}`)
       }
-      setShowApplyForm(false)
     }
   }, [selectedNode])
 
@@ -137,10 +138,10 @@ export default function FlowDisplay({
   }, [nodeToExpand])
 
   useEffect(() => {
-    if (initialFlow != null && applyBundle != null) {
-      resolver.addResourcesFromBundle(applyBundle)
+    if (initialFlow != null && requestsBundle != null) {
+      resolver.addResourcesFromBundle(requestsBundle)
       const newFlow = initialFlow.generateRequestGroupFlow(
-        applyBundle,
+        requestsBundle,
         planDefinition
       )
       if (newFlow != null) {
@@ -157,7 +158,7 @@ export default function FlowDisplay({
         console.log('Unable to generate Request Group')
       }
     }
-  }, [applyBundle])
+  }, [requestsBundle])
 
   const handleExpandedViewClick = () => {
     setExpandedView(!expandedView)
@@ -174,11 +175,6 @@ export default function FlowDisplay({
       default:
         return 'var(--blueGray)'
     }
-  }
-
-  const handleApply = () => {
-    setShowApplyForm(true)
-    setNarrativeContent(undefined)
   }
 
   return (
@@ -204,7 +200,6 @@ export default function FlowDisplay({
           </ControlButton>
         </Controls>
       </ReactFlow>
-      <Button onClick={handleApply}>Apply</Button>
     </div>
   )
 }

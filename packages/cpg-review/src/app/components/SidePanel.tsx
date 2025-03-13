@@ -1,28 +1,33 @@
 import { Panel, PanelResizeHandle } from 'react-resizable-panels'
 import BackButton from './BackButton'
 import { CloseOutlined } from '@ant-design/icons'
+import { SidePanelView } from 'page'
+import { useEffect } from 'react'
 
 interface SidePanelProps {
   children: React.ReactNode
-  setShowSidePanel: React.Dispatch<React.SetStateAction<boolean>>
+  setSidePanelView: React.Dispatch<React.SetStateAction<SidePanelView>>
   navigation?: JSX.Element
 }
 
 const SidePanel = ({
   children,
-  setShowSidePanel,
+  setSidePanelView,
   navigation,
 }: SidePanelProps) => {
   const handleClose = () => {
-    setShowSidePanel(false)
+    setSidePanelView(undefined)
   }
+
+  useEffect(() => {}, [])
+
   return (
     <>
       <PanelResizeHandle className="panel-separator" />
-      <Panel minSize={25}>
+      <Panel style={{ minWidth: '50%' }}>
         <div className="side-panel-content">
           <div className="buttons-container">
-            {navigation ? <BackButton /> : <div />}
+            {navigation ?? <div />}
             <CloseOutlined onClick={handleClose} />
           </div>
           <div className="narrative-container-outer">

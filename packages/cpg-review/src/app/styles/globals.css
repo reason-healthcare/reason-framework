@@ -193,7 +193,7 @@ button:hover {
   }
 }
 
-.button.button-secondary {
+.button-secondary {
   background-color: var(--background);
   color: var(--teal);
   border: 1px solid var(--teal);
@@ -205,7 +205,30 @@ button:hover {
   }
 }
 
+.button-simple {
+  border: 0px;
+  background-color: var(--background);
+  color: var(--teal);
+  text-decoration: underline;
+  font-weight: 400;
+  padding: 0px;
+}
+
+.button-simple:focus {
+  color: var(--brTeal);
+}
+.button-simple:hover {
+  color: var(--brTeal);
+}
+
 .button:hover {
   background-color: var(--brTeal);
   color: white;
+}
+
+.button-secondary.small {
+  /* text-decoration: underline; */
+  font-weight: 400;
+  border-radius: 6px;
+  padding: 0.1rem 0.6rem;
 }
