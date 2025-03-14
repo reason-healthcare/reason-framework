@@ -77,6 +77,9 @@ export const is = {
   Questionnaire: (resource: any): resource is fhir4.Questionnaire => {
     return resource?.resourceType === 'Questionnaire'
   },
+  QuestionnaireResponse: (resource: any): resource is fhir4.QuestionnaireResponse => {
+    return resource?.resourceType === 'QuestionnaireResponse'
+  },
   PlanDefinitionAction: (object: any): object is fhir4.PlanDefinitionAction => {
     const keys = [
       'id',

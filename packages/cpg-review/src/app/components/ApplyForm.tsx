@@ -6,6 +6,7 @@ import { is } from 'helpers'
 import { ChangeEvent, useEffect, useState } from 'react'
 import SidePanel from './SidePanel'
 import { SidePanelView } from 'page'
+import QuestionnaireRenderer from './QuestionnaireRenderer'
 
 interface ApplyFormProps {
   planDefinition: fhir4.PlanDefinition
@@ -30,6 +31,7 @@ const ApplyForm = ({
   const [txEndpointPayload, setTxEndpointPayload] = useState<
     string | undefined
   >()
+  const [questionnaire, setQuestionnaire] = useState<fhir4.Questionnaire>()
 
   const resetForm = () => {
     setDataPayload(undefined)
@@ -59,6 +61,8 @@ const ApplyForm = ({
       setTxEndpointPayload(txEndpointPayload)
     }
   }, [])
+
+  console.log(questionnaire)
 
   // TODO: error handling
   const isValidForm = (
@@ -123,7 +127,15 @@ const ApplyForm = ({
         const json = await response.json()
         if (response.status === 200) {
           if (is.Bundle(json)) {
+            console.log(json)
             setRequestsBundle(json)
+            const questionnaireResponseEntry = json.entry?.find(e => e.resource?.resourceType === 'QuestionnaireResponse')?.resource
+            if (is.QuestionnaireResponse(questionnaireResponseEntry)) {
+              const containedQuestionnaire = questionnaireResponseEntry?.contained?.find(r => r.resourceType === 'Questionnaire')
+              if (is.Questionnaire(containedQuestionnaire)) {
+                setQuestionnaire(containedQuestionnaire)
+              }
+            }
           } else {
             const error = 'Resource does not appear to be a FHIR bundle'
             message.error(error)
@@ -208,6 +220,9 @@ const ApplyForm = ({
           </button>
         </Form.Item>
       </Form>
+      {questionnaire != null && (
+        <QuestionnaireRenderer questionnaire={questionnaire} />
+      )}
     </SidePanel>
   )
 }
