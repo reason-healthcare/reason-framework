@@ -31,7 +31,8 @@ const ApplyForm = ({
   const [txEndpointPayload, setTxEndpointPayload] = useState<
     string | undefined
   >()
-  const [questionnaire, setQuestionnaire] = useState<fhir4.Questionnaire>()
+  const [questionnaireResponseServer, setQuestionnaireResponseServer] = useState<fhir4.QuestionnaireResponse>()
+  const [userQuestionnaireResponse, setUserQuestionnaireResponse] = useState<fhir4.QuestionnaireResponse>()
 
   const resetForm = () => {
     setDataPayload(undefined)
@@ -51,6 +52,25 @@ const ApplyForm = ({
   }
 
   useEffect(() => {
+    if (userQuestionnaireResponse != undefined && dataPayload != undefined) {
+      const json = JSON.parse(dataPayload)
+      const dataWithQr = {...json, entry: [...json.entry, {
+        fullUrl: "http://example.org/QuestionnaireResponse/questionnaireResponseTemp",
+        resource: userQuestionnaireResponse
+      }]}
+      const payloadWithQR ={
+        dataPayload: JSON.stringify(dataWithQr),
+        subjectPayload,
+        contentEndpointPayload,
+        txEndpointPayload,
+        planDefinition
+      }
+      handleApply(payloadWithQR)
+      console.log(payloadWithQR)
+    }
+  }, [userQuestionnaireResponse])
+
+  useEffect(() => {
     const storedPayload = localStorage.getItem('applyPayload')
     if (storedPayload != null) {
       const payload = JSON.parse(storedPayload)
@@ -61,8 +81,6 @@ const ApplyForm = ({
       setTxEndpointPayload(txEndpointPayload)
     }
   }, [])
-
-  console.log(questionnaire)
 
   // TODO: error handling
   const isValidForm = (
@@ -106,14 +124,7 @@ const ApplyForm = ({
     setTxEndpointPayload(e.target.value)
   }
 
-  const handleSubmit = async (e: Event) => {
-    const payload = {
-      dataPayload,
-      subjectPayload,
-      contentEndpointPayload,
-      txEndpointPayload,
-      planDefinition,
-    }
+  const handleApply = async (payload: any) => {
     if (isValidForm(payload)) {
       localStorage.setItem('applyPayload', JSON.stringify(payload))
       try {
@@ -131,10 +142,7 @@ const ApplyForm = ({
             setRequestsBundle(json)
             const questionnaireResponseEntry = json.entry?.find(e => e.resource?.resourceType === 'QuestionnaireResponse')?.resource
             if (is.QuestionnaireResponse(questionnaireResponseEntry)) {
-              const containedQuestionnaire = questionnaireResponseEntry?.contained?.find(r => r.resourceType === 'Questionnaire')
-              if (is.Questionnaire(containedQuestionnaire)) {
-                setQuestionnaire(containedQuestionnaire)
-              }
+              setQuestionnaireResponseServer(questionnaireResponseEntry)
             }
           } else {
             const error = 'Resource does not appear to be a FHIR bundle'
@@ -153,6 +161,17 @@ const ApplyForm = ({
     } else {
       console.log('Invalid form')
     }
+  }
+
+  const handleSubmit = async (e: Event) => {
+    const payload = {
+      dataPayload,
+      subjectPayload,
+      contentEndpointPayload,
+      txEndpointPayload,
+      planDefinition,
+    }
+    handleApply(payload)
   }
 
   const [form] = Form.useForm()
@@ -220,8 +239,8 @@ const ApplyForm = ({
           </button>
         </Form.Item>
       </Form>
-      {questionnaire != null && (
-        <QuestionnaireRenderer questionnaire={questionnaire} />
+      {questionnaireResponseServer != null && (
+        <QuestionnaireRenderer questionnaireResponseServer={questionnaireResponseServer} setUserQuestionnaireResponse={setUserQuestionnaireResponse} />
       )}
     </SidePanel>
   )
