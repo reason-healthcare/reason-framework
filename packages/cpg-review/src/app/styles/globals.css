@@ -232,3 +232,14 @@ button:hover {
   border-radius: 6px;
   padding: 0.1rem 0.6rem;
 }
+
+.context {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+
+  & h3 {
+    font-size: 1rem;
+    font-weight: 500;
+  }
+}

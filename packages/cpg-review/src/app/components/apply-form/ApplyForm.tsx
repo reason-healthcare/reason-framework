@@ -16,6 +16,7 @@ interface ApplyFormProps {
   setRequestsBundle: React.Dispatch<
     React.SetStateAction<fhir4.Bundle | undefined>
   >
+  setContextReference: React.Dispatch<React.SetStateAction<string | undefined>>
 }
 
 const ApplyForm = ({
@@ -23,6 +24,7 @@ const ApplyForm = ({
   contentEndpoint,
   setSidePanelView,
   setRequestsBundle,
+  setContextReference,
 }: ApplyFormProps) => {
   const [dataPayload, setDataPayload] = useState<string | undefined>()
   const [subjectPayload, setSubjectPayload] = useState<string | undefined>()
@@ -177,6 +179,7 @@ const ApplyForm = ({
           message.error(errorMsg)
         }
         setIsApplied(true)
+        setContextReference(subjectPayload)
       } catch (error) {
         const errorMsg = 'Server error: Unable to run $apply'
         message.error(errorMsg)

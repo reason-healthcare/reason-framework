@@ -35,6 +35,8 @@ export default function App() {
     fhir4.Bundle | undefined
   >()
 
+  const [contextReference, setContextReference] = useState<string | undefined>()
+
   /** Page.tsx manages upload form payload to preserve form after submit */
   const [packageTypePayload, setPackageTypePayload] = useState<string>('file')
   const [endpointPayload, setEndpointPayload] = useState<string | undefined>()
@@ -67,7 +69,6 @@ export default function App() {
       setShowUploadPage(true)
     }
   }, [resolver, planDefinition])
-
 
   useEffect(() => {
     if (narrativeContent != null && selectedNode != null) {
@@ -117,17 +118,27 @@ export default function App() {
         )}
       </div>
       <div className="plan-title">
-        {/* TODO: use icon instead of text */}
-        <button type="button" className="button-simple" onClick={handleApply}>
-          Add Context
-        </button>
-        {requestsBundle != null && (
-          <button
-            type="button"
-            className="button-secondary small"
-            onClick={handleContextReset}
-          >
-            Reset
+        {requestsBundle != null && contextReference != null ? (
+          <div className="context">
+            <h3>{contextReference}</h3>
+            <button
+              type="button"
+              className="button-secondary small"
+              onClick={handleContextReset}
+            >
+              Reset
+            </button>
+            <button
+              type="button"
+              className="button-simple"
+              onClick={handleApply}
+            >
+              Edit
+            </button>
+          </div>
+        ) : (
+          <button type="button" className="button-simple" onClick={handleApply}>
+            Add Context
           </button>
         )}
       </div>
@@ -155,6 +166,7 @@ export default function App() {
             contentEndpoint={endpointPayload}
             setSidePanelView={setSidePanelView}
             setRequestsBundle={setRequestsBundle}
+            setContextReference={setContextReference}
           />
         ) : (
           sidePanelView === 'narrative' && (
