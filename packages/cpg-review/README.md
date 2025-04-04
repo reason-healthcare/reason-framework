@@ -31,3 +31,8 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in browser.
+
+## Running with HAPI clinical reasoning module
+
+docker pull hapiproject/hapi:latest
+docker run -p 8080:8080 -e hapi.fhir.cr.enabled=true hapiproject/hapi:latest

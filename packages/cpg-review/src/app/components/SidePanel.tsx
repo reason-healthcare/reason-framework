@@ -2,7 +2,6 @@ import { Panel, PanelResizeHandle } from 'react-resizable-panels'
 import BackButton from './BackButton'
 import { CloseOutlined } from '@ant-design/icons'
 import { SidePanelView } from 'page'
-import { useEffect } from 'react'
 
 interface SidePanelProps {
   children: React.ReactNode
@@ -18,8 +17,6 @@ const SidePanel = ({
   const handleClose = () => {
     setSidePanelView(undefined)
   }
-
-  useEffect(() => {}, [])
 
   return (
     <>

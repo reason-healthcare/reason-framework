@@ -1,0 +1,33 @@
+.apply-section {
+  gap: 3rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.form.apply-form {
+  margin-top: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.apply-steps {
+  margin-top: 0.5rem;
+}
+
+.ant-steps-item-wait .ant-steps-item-icon {
+  background-color: rgba(0, 0, 0, 0.06) !important;
+  border-color: transparent !important;
+}
+
+.ant-steps-item-icon {
+  background-color: var(--brTeal) !important;
+  border-color: var(--brTeal) !important;
+}
+
+.ant-steps-item-title::after {
+  background-color: var(--brTeal) !important;
+}
+
+.ant-steps-item-finish .ant-steps-item-icon > .ant-steps-icon {
+  color: #fff !important;
+}

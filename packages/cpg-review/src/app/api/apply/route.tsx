@@ -76,18 +76,21 @@ export async function POST(req: NextRequest) {
     ],
   }
   try {
-    const response = await fetch('http://0.0.0.0:8080/fhir/PlanDefinition/$r5.apply', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(parameters),
-    })
+    const response = await fetch(
+      'http://0.0.0.0:8080/fhir/PlanDefinition/$r5.apply',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(parameters),
+      }
+    )
 
     const json = await response.json()
 
     if (!response.ok) {
-      const message = `Error running $apply: ${json}`
+      const message = `Error running $apply: ${JSON.stringify(json)}`
       console.error(message)
       return NextResponse.json({ message }, { status: response.status })
     }

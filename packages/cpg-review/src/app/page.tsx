@@ -15,7 +15,7 @@ import { NodeContent } from './types/NodeProps'
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels'
 import { UploadFile } from 'antd'
 import Nav, { NavProps } from './components/Nav'
-import ApplyForm from './components/ApplyForm'
+import ApplyForm from './components/apply-form/ApplyForm'
 
 export type SidePanelView = 'apply' | 'narrative' | undefined
 
@@ -29,7 +29,7 @@ export default function App() {
   >()
   const [sidePanelView, setSidePanelView] = useState<SidePanelView>()
 
-  const [showUploadPage, setShowUploadPage] = useState<boolean>(false)
+  const [showUploadPage, setShowUploadPage] = useState<boolean>(true)
   const [selectedNode, setSelectedNode] = useState<string | undefined>()
   const [requestsBundle, setRequestsBundle] = useState<
     fhir4.Bundle | undefined

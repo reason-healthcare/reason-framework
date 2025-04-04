@@ -141,10 +141,7 @@ export default function FlowDisplay({
     if (initialFlow != null && requestsBundle != null) {
       resolver.addResourcesFromBundle(requestsBundle)
       const newFlow = new Flow(planDefinition, resolver)
-      newFlow.generateRequestGroupFlow(
-        requestsBundle,
-        planDefinition
-      )
+      newFlow.generateRequestGroupFlow(requestsBundle, planDefinition)
       if (newFlow != null) {
         newFlow
           .positionNodes({
