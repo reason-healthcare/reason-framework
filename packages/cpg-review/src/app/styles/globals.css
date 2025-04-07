@@ -101,16 +101,18 @@ body {
   font-weight: bold;
 }
 
+.plan-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  align-self: flex-start;
+  align-items: flex-start;
+}
+
 .plan-title {
   display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 0.8rem;
-  width: 100%;
-  margin-bottom: 0.5rem;
-
   & h1 {
-    font-size: 1rem;
+    font-size: 1.2rem;
     font-weight: 500;
   }
 }
@@ -242,4 +244,26 @@ button:hover {
     font-size: 1rem;
     font-weight: 500;
   }
+}
+
+.context-tag {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+  gap: 0.2rem;
+  padding: 0.2rem 0.4rem;
+  font-size: 14px;
+  background: #e6f4ff;
+  color: #1677ff;
+  border: 1px solid #91caff;
+}
+
+.close-button {
+  border: none;
+  background: none;
+  color: #1677ff;
+  padding: 0;
+  margin-left: 0.6rem;
+  display: flex;
 }

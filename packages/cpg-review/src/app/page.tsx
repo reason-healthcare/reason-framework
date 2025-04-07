@@ -12,8 +12,9 @@ import UploadSection, {
 import { MemoryRouter } from 'react-router-dom'
 import { formatTitle } from 'helpers'
 import { NodeContent } from './types/NodeProps'
-import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels'
+import { PanelGroup, Panel } from 'react-resizable-panels'
 import { UploadFile } from 'antd'
+import { UserOutlined, CloseOutlined } from '@ant-design/icons'
 import Nav, { NavProps } from './components/Nav'
 import ApplyForm from './components/apply-form/ApplyForm'
 
@@ -110,24 +111,38 @@ export default function App() {
 
   const contentDisplay = (
     <>
-      <div className="plan-title">
-        {planDefinition != null && (
-          <h1>{`${formatTitle(planDefinition)}${
-            requestsBundle != null ? ' - Applied Guidance' : ''
-          }`}</h1>
-        )}
-      </div>
-      <div className="plan-title">
+      <div className="plan-header">
+        <div className="plan-title">
+          {planDefinition != null && (
+            <h1>
+              {formatTitle(planDefinition)}
+              {requestsBundle != null && (
+                <span
+                  style={{
+                    color: '#666666',
+                    fontWeight: 'normal',
+                    fontSize: '18px',
+                  }}
+                >
+                  {' - Applied Guidance'}
+                </span>
+              )}
+            </h1>
+          )}
+        </div>
         {requestsBundle != null && contextReference != null ? (
           <div className="context">
-            <h3>{contextReference}</h3>
-            <button
-              type="button"
-              className="button-secondary small"
-              onClick={handleContextReset}
-            >
-              Reset
-            </button>
+            <div className="context-tag">
+              <UserOutlined style={{ fontSize: '14px' }} />
+              {contextReference}
+              <button
+                type="button"
+                className="close-button"
+                onClick={handleContextReset}
+              >
+                <CloseOutlined style={{ fontSize: '12px', marginTop: '1px' }} />
+              </button>
+            </div>
             <button
               type="button"
               className="button-simple"
