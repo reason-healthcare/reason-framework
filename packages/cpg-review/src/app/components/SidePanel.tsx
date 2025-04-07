@@ -21,7 +21,7 @@ const SidePanel = ({
   return (
     <>
       <PanelResizeHandle className="panel-separator" />
-      <Panel style={{ minWidth: '50%' }}>
+      <Panel style={{ minWidth: '35%' }}>
         <div className="side-panel-content">
           <div className="buttons-container">
             {navigation ?? <div />}
