@@ -4,15 +4,12 @@ import TextArea from 'antd/es/input/TextArea'
 import { ApplyPayload } from 'api/apply/route'
 import { is } from 'helpers'
 import { ChangeEvent, useEffect, useState } from 'react'
-import SidePanel from '../SidePanel'
-import { SidePanelView } from 'page'
 import QuestionnaireRenderer from './QuestionnaireRenderer'
 import '@/styles/applyForm.css'
 
 interface ApplyFormProps {
   planDefinition: fhir4.PlanDefinition
   contentEndpoint: string | undefined
-  setSidePanelView: React.Dispatch<React.SetStateAction<SidePanelView>>
   setRequestsBundle: React.Dispatch<
     React.SetStateAction<fhir4.Bundle | undefined>
   >
@@ -22,7 +19,6 @@ interface ApplyFormProps {
 const ApplyForm = ({
   planDefinition,
   contentEndpoint,
-  setSidePanelView,
   setRequestsBundle,
   setContextReference,
 }: ApplyFormProps) => {
@@ -205,85 +201,83 @@ const ApplyForm = ({
 
   const [form] = Form.useForm()
   return (
-    <SidePanel setSidePanelView={setSidePanelView}>
-      <div className="apply-section">
-        <Steps
-          current={
-            userQuestionnaireResponse != null
-              ? 2
-              : questionnaireResponseServer != null && isApplied
-              ? 1
-              : 0
-          }
-          items={[{ title: 'Context' }, { title: 'Questionnaire' }]}
-          className="apply-steps"
+    <div className="apply-section">
+      <Steps
+        current={
+          userQuestionnaireResponse != null
+            ? 2
+            : questionnaireResponseServer != null && isApplied
+            ? 1
+            : 0
+        }
+        items={[{ title: 'Context' }, { title: 'Questionnaire' }]}
+        className="apply-steps"
+      />
+      {questionnaireResponseServer == null ? (
+        <Form
+          onFinish={handleSubmit}
+          form={form}
+          className="form apply-form"
+          autoComplete="off"
+        >
+          <Form.Item name="context-data" className="form-item">
+            <h1 className="form-title">Context</h1>
+            <p className="form-description">
+              Add context data as a FHIR JSON Bundle.
+            </p>
+            <TextArea onChange={handleDataChange} value={dataPayload} />
+          </Form.Item>
+          <Form.Item name="subject" className="form-item">
+            <h1 className="form-title">Subject</h1>
+            <p className="form-description">Set reference to subject.</p>
+            <Input
+              placeholder="Patient/Patient-1"
+              defaultValue="Patient/Patient1"
+              onChange={handleSubjectChange}
+              value={subjectPayload}
+            />
+          </Form.Item>
+          <Form.Item name="content-endpoint" className="form-item">
+            <h1 className="form-title">Content Endpoint</h1>
+            <p className="form-description">Set content endpoint address</p>
+            <Input
+              placeholder="https://packages.simplifier.net/hl7.fhir.uv.cpg/2.0.0"
+              onChange={handleContentEndpointChange}
+              defaultValue={contentEndpoint ?? 'http://localhost:8080/fhir'}
+              value={contentEndpointPayload}
+            />
+          </Form.Item>
+          <Form.Item name="content-endpoint" className="form-item">
+            <h1 className="form-title">Terminology Endpoint</h1>
+            <p className="form-description">
+              Set terminology endpoint address.
+            </p>
+            <Input
+              placeholder="http://tx.fhir.org"
+              onChange={handleTxEndpointChange}
+              value={txEndpointPayload ?? 'http://localhost:8080/fhir'}
+            />
+          </Form.Item>
+          <Form.Item className="button-group">
+            <button type="submit" className={'button'}>
+              Apply
+            </button>
+            <button
+              type="button"
+              className="button button-secondary"
+              onClick={resetForm}
+            >
+              Reset
+            </button>
+          </Form.Item>
+        </Form>
+      ) : (
+        <QuestionnaireRenderer
+          questionnaireResponseServer={questionnaireResponseServer}
+          setUserQuestionnaireResponse={setUserQuestionnaireResponse}
         />
-        {questionnaireResponseServer == null ? (
-          <Form
-            onFinish={handleSubmit}
-            form={form}
-            className="form apply-form"
-            autoComplete="off"
-          >
-            <Form.Item name="context-data" className="form-item">
-              <h1 className="form-title">Context</h1>
-              <p className="form-description">
-                Add context data as a FHIR JSON Bundle.
-              </p>
-              <TextArea onChange={handleDataChange} value={dataPayload} />
-            </Form.Item>
-            <Form.Item name="subject" className="form-item">
-              <h1 className="form-title">Subject</h1>
-              <p className="form-description">Set reference to subject.</p>
-              <Input
-                placeholder="Patient/Patient-1"
-                defaultValue="Patient/Patient1"
-                onChange={handleSubjectChange}
-                value={subjectPayload}
-              />
-            </Form.Item>
-            <Form.Item name="content-endpoint" className="form-item">
-              <h1 className="form-title">Content Endpoint</h1>
-              <p className="form-description">Set content endpoint address</p>
-              <Input
-                placeholder="https://packages.simplifier.net/hl7.fhir.uv.cpg/2.0.0"
-                onChange={handleContentEndpointChange}
-                defaultValue={contentEndpoint ?? 'http://localhost:8080/fhir'}
-                value={contentEndpointPayload}
-              />
-            </Form.Item>
-            <Form.Item name="content-endpoint" className="form-item">
-              <h1 className="form-title">Terminology Endpoint</h1>
-              <p className="form-description">
-                Set terminology endpoint address.
-              </p>
-              <Input
-                placeholder="http://tx.fhir.org"
-                onChange={handleTxEndpointChange}
-                value={txEndpointPayload ?? 'http://localhost:8080/fhir'}
-              />
-            </Form.Item>
-            <Form.Item className="button-group">
-              <button type="submit" className={'button'}>
-                Apply
-              </button>
-              <button
-                type="button"
-                className="button button-secondary"
-                onClick={resetForm}
-              >
-                Reset
-              </button>
-            </Form.Item>
-          </Form>
-        ) : (
-          <QuestionnaireRenderer
-            questionnaireResponseServer={questionnaireResponseServer}
-            setUserQuestionnaireResponse={setUserQuestionnaireResponse}
-          />
-        )}
-      </div>
-    </SidePanel>
+      )}
+    </div>
   )
 }
 
