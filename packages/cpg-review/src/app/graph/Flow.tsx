@@ -5,7 +5,7 @@ import { v4 } from 'uuid'
 import Graph from './Graph'
 import BrowserResolver from 'resolver/browser'
 
-interface FlowShape {
+export interface FlowShape {
   nodes: Node[] | undefined
   edges: Edge[] | undefined
 }
