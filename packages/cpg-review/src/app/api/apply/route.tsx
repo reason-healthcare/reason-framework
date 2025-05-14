@@ -75,6 +75,7 @@ export async function POST(req: NextRequest) {
       },
     ],
   }
+  console.log(parameters)
   try {
     const response = await fetch(
       'http://0.0.0.0:8080/fhir/PlanDefinition/$r5.apply',

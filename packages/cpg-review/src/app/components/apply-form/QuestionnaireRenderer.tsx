@@ -11,6 +11,7 @@ import LoadIndicator from '../LoadIndicator'
 
 interface QuestionnaireRendererProps {
   questionnaireResponseServer: fhir4.QuestionnaireResponse
+  questionnaire: fhir4.Questionnaire | undefined
   setUserQuestionnaireResponse: React.Dispatch<
     React.SetStateAction<fhir4.QuestionnaireResponse | undefined>
   >
@@ -18,11 +19,10 @@ interface QuestionnaireRendererProps {
 
 const QuestionnaireRenderer = ({
   questionnaireResponseServer,
+  questionnaire,
   setUserQuestionnaireResponse,
 }: QuestionnaireRendererProps) => {
-  const questionnaire = questionnaireResponseServer.contained?.find(
-    (resource) => resource.resourceType === 'Questionnaire'
-  )
+
   const queryClient = useRendererQueryClient()
 
   if (!questionnaire) {

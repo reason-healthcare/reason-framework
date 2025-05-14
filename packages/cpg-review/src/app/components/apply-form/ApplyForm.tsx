@@ -34,6 +34,7 @@ const ApplyForm = ({
     useState<fhir4.QuestionnaireResponse>()
   const [userQuestionnaireResponse, setUserQuestionnaireResponse] =
     useState<fhir4.QuestionnaireResponse>()
+  const [questionnaire, setQuestionnaire] = useState<fhir4.Questionnaire|undefined>()
   const [isApplied, setIsApplied] = useState(false)
   const resetForm = () => {
     setDataPayload(undefined)
@@ -57,7 +58,6 @@ const ApplyForm = ({
   useEffect(() => {
     if (userQuestionnaireResponse != undefined && dataPayload != undefined) {
       const json = JSON.parse(dataPayload)
-      console.log(userQuestionnaireResponse)
       const dataWithQr = {
         ...json,
         entry: [
@@ -76,6 +76,7 @@ const ApplyForm = ({
         txEndpointPayload,
         planDefinition,
       }
+      console.log(payloadWithQR)
       handleApply(payloadWithQR)
     }
   }, [userQuestionnaireResponse])
@@ -154,25 +155,29 @@ const ApplyForm = ({
           body: JSON.stringify(payload),
         })
         const json = await response.json()
-        if (response.status === 200) {
-          console.log(json)
-          if (is.Bundle(json)) {
-            setRequestsBundle(json)
-            const questionnaireResponseEntry = json.entry?.find(
-              (e) => e.resource?.resourceType === 'QuestionnaireResponse'
-            )?.resource
-            if (is.QuestionnaireResponse(questionnaireResponseEntry)) {
-              setQuestionnaireResponseServer(questionnaireResponseEntry)
-            }
-          } else {
-            const error = 'Resource does not appear to be a FHIR bundle'
-            message.error(error)
-            console.error(error, json)
-          }
-        } else {
-          const errorMsg = 'Server error: Unable to run $apply'
-          console.error(json.message)
-          message.error(errorMsg)
+        console.log(json)
+        console.log(payload)
+        let bundle
+        if (is.Parameters(json)) {
+          bundle = json.parameter?.find((p) => is.Bundle(p.resource))?.resource ?? json
+        }
+        if (!is.Bundle(bundle)) {
+          throw new Error('Resource does not appear to be a FHIR bundle')
+        }
+        setRequestsBundle(bundle)
+        // Find QuestionnaireResponse
+        const questionnaireResponseEntry = bundle.entry?.find(
+          (e: any) => e.resource?.resourceType === 'QuestionnaireResponse'
+        )?.resource
+        if (is.QuestionnaireResponse(questionnaireResponseEntry)) {
+          setQuestionnaireResponseServer(questionnaireResponseEntry)
+          // Find Questionnaire
+          const questionnaire = questionnaireResponseEntry?.contained?.find(
+            (resource) => is.Questionnaire(resource)
+          ) ?? bundle.entry?.find(
+            (e: any) => is.Questionnaire(e.resource)
+          )?.resource
+          if (is.Questionnaire(questionnaire)) setQuestionnaire(questionnaire)
         }
         setIsApplied(true)
         setContextReference(subjectPayload)
@@ -275,6 +280,7 @@ const ApplyForm = ({
         <QuestionnaireRenderer
           questionnaireResponseServer={questionnaireResponseServer}
           setUserQuestionnaireResponse={setUserQuestionnaireResponse}
+          questionnaire={questionnaire}
         />
       )}
     </div>

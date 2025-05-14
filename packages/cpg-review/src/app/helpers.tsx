@@ -60,6 +60,9 @@ export const is = {
   FhirResource: (resource: any): resource is fhir4.FhirResource => {
     return resource?.resourceType != null
   },
+  Parameters: (resource: any): resource is fhir4.Parameters => {
+    return resource?.resourceType === 'Parameters'
+  },
   PlanDefinition: (resource: any): resource is fhir4.PlanDefinition => {
     return resource?.resourceType === 'PlanDefinition'
   },
