@@ -8,6 +8,7 @@ export interface ApplyPayload {
   contentEndpointPayload: string
   txEndpointPayload: string
   planDefinition: fhir4.PlanDefinition
+  questionnaire: fhir4.Questionnaire | undefined
 }
 
 export async function POST(req: NextRequest) {
@@ -17,7 +18,33 @@ export async function POST(req: NextRequest) {
     contentEndpointPayload,
     txEndpointPayload,
     planDefinition,
+    questionnaire
   } = (await req.json()) as ApplyPayload
+  if (questionnaire != null) {
+    const bundle: fhir4.Bundle = {
+      resourceType: 'Bundle',
+      type: 'transaction',
+      entry: [{
+      fullUrl: `http://example.org/Questionnaire/${questionnaire.id}/${questionnaire.version}`,
+      resource: questionnaire,
+      request: {method:"PUT", url: `Questionnaire/${questionnaire.id}`}
+      }]
+    }
+    try {
+      const response = await fetch(
+        'http://0.0.0.0:8080/fhir/',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(bundle),
+        }
+      )
+    } catch (e) {
+      console.log('Unable to post questionnaire')
+    }
+  }
   const parameters: fhir4.Parameters = {
     resourceType: 'Parameters',
     parameter: [
@@ -75,7 +102,6 @@ export async function POST(req: NextRequest) {
       },
     ],
   }
-  console.log(parameters)
   try {
     const response = await fetch(
       'http://0.0.0.0:8080/fhir/PlanDefinition/$r5.apply',
@@ -87,6 +113,7 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify(parameters),
       }
     )
+
 
     const json = await response.json()
 

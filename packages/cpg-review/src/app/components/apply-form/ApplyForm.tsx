@@ -1,5 +1,5 @@
 import '@/styles/narrativeDisplay.css'
-import { Form, Input, message, Progress, Radio, Select, Steps } from 'antd'
+import { Form, Input, message, Steps } from 'antd'
 import TextArea from 'antd/es/input/TextArea'
 import { ApplyPayload } from 'api/apply/route'
 import { is } from 'helpers'
@@ -23,13 +23,13 @@ const ApplyForm = ({
   setContextReference,
 }: ApplyFormProps) => {
   const [dataPayload, setDataPayload] = useState<string | undefined>()
-  const [subjectPayload, setSubjectPayload] = useState<string | undefined>()
+  const [subjectPayload, setSubjectPayload] = useState<string | undefined>('Patient/Patient1')
   const [contentEndpointPayload, setContentEndpointPayload] = useState<
     string | undefined
-  >()
+  >('http://localhost:8080/fhir')
   const [txEndpointPayload, setTxEndpointPayload] = useState<
     string | undefined
-  >()
+  >('http://localhost:8080/fhir')
   const [questionnaireResponseServer, setQuestionnaireResponseServer] =
     useState<fhir4.QuestionnaireResponse>()
   const [userQuestionnaireResponse, setUserQuestionnaireResponse] =
@@ -75,8 +75,8 @@ const ApplyForm = ({
         contentEndpointPayload,
         txEndpointPayload,
         planDefinition,
+        questionnaire
       }
-      console.log(payloadWithQR)
       handleApply(payloadWithQR)
     }
   }, [userQuestionnaireResponse])
@@ -155,8 +155,6 @@ const ApplyForm = ({
           body: JSON.stringify(payload),
         })
         const json = await response.json()
-        console.log(json)
-        console.log(payload)
         let bundle
         if (is.Parameters(json)) {
           bundle = json.parameter?.find((p) => is.Bundle(p.resource))?.resource ?? json
