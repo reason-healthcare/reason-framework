@@ -19,6 +19,7 @@
         "name": "next"
       }
     ],
+    "typeRoots": ["type", "node_modules/@types"],
     "baseUrl": "./src/app/",
     "paths": {
       "@/types/*": ["types/*"],
