@@ -45,7 +45,8 @@ class Flow implements FlowShape {
   }
 
   private createEndNode(
-    resource: fhir4.ActivityDefinition | fhir4.Questionnaire | RequestResource
+    resource: fhir4.ActivityDefinition | fhir4.Questionnaire | RequestResource,
+    inactive?: boolean
   ): Node {
     return {
       id: getNodeIdFromResource(resource),
@@ -55,6 +56,7 @@ class Flow implements FlowShape {
         nodeContent: { resource },
         isExpandable: false,
         isSelected: false,
+        inactive: inactive ?? false
       },
       type: 'contentNode',
       position: { x: 0, y: 0 },
@@ -65,7 +67,8 @@ class Flow implements FlowShape {
   private createActionNode(
     id: string,
     action: fhir4.PlanDefinitionAction | fhir4.RequestGroupAction,
-    resource: fhir4.PlanDefinition | fhir4.RequestGroup
+    resource: fhir4.PlanDefinition | fhir4.RequestGroup,
+    inactive?: boolean
   ) {
     const { title, id: actionId, description } = action
     return {
@@ -76,6 +79,7 @@ class Flow implements FlowShape {
         nodeContent: { resource: action, partOf: resource },
         isExpandable: false,
         isSelected: false,
+        inactive: inactive ?? false
       },
       type: 'contentNode',
       position: { x: 0, y: 0 },
@@ -88,7 +92,8 @@ class Flow implements FlowShape {
     parentId: string,
     condition: fhir4.PlanDefinitionActionCondition,
     action: fhir4.PlanDefinitionAction | fhir4.RequestGroupAction,
-    planDefinition: fhir4.PlanDefinition | fhir4.RequestGroup
+    planDefinition: fhir4.PlanDefinition | fhir4.RequestGroup,
+    inactive?: boolean
   ) {
     const { expression, kind } = condition
     return {
@@ -102,6 +107,7 @@ class Flow implements FlowShape {
         nodeContent: { resource: action, partOf: planDefinition },
         isExpandable: false,
         parentNodeId: parentId,
+        inactive: inactive ?? false
       },
       type: 'applicabilityNode',
       position: { x: 0, y: 0 },
@@ -125,9 +131,12 @@ class Flow implements FlowShape {
     } as Node
   }
 
-  private createEdge(sourceId: string, targetId: string) {
+  private createEdge(sourceId: string, targetId: string, inactive?: boolean) {
     const edge = {
       id: `${sourceId} - ${targetId}`,
+      data: {
+        inactive: inactive ?? false,
+      },
       source: sourceId,
       target: targetId,
       type: 'smoothstep',
@@ -141,9 +150,10 @@ class Flow implements FlowShape {
     targetId: string,
     selectionBehavior:
       | fhir4.PlanDefinitionAction['selectionBehavior']
-      | undefined
+      | undefined,
+    inactive?: boolean
   ) {
-    const edge = this.createEdge(sourceId, targetId)
+    const edge = this.createEdge(sourceId, targetId, inactive)
     if (selectionBehavior != null) {
       edge.animated = true
     }
@@ -158,23 +168,27 @@ class Flow implements FlowShape {
    * @param parentSelection Selection behavior if any of the parent node (used to create Edge)
    */
   private processActionNodes(
-    resource: fhir4.PlanDefinition | fhir4.RequestGroup,
+    targetResource: fhir4.PlanDefinition | fhir4.RequestGroup,
     actions: fhir4.PlanDefinitionAction[] | fhir4.RequestGroupAction[],
     // resolver: BrowserResolver | fhir4.Bundle,
     parent: Node,
+    requestGroup?: fhir4.PlanDefinition | fhir4.RequestGroup,
     parentSelection?:
       | fhir4.PlanDefinitionAction['selectionBehavior']
       | undefined,
     requestBundle?: fhir4.Bundle | undefined
   ) {
     actions?.map((action) => {
+      const targetAction = requestGroup?.action?.find(rqAction => rqAction.id === action.id) ?? action
+      const inactive = requestGroup && is.PlanDefinitionAction(targetAction)
+
       const {
         title,
         id,
         condition,
         selectionBehavior,
         action: childActions,
-      } = action
+      } = targetAction
       const nodeId = `action-${title ?? id}-${v4()}`
       /**
        * Handle Applicability - becomes parent of current action node
@@ -186,14 +200,16 @@ class Flow implements FlowShape {
             `condition-${nodeId}`,
             nodeId,
             condition,
-            action,
-            resource
+            targetAction,
+            targetResource,
+            inactive
           )
           this.addNewNode(applicabilityNode)
           this.connectNodes(
             currentParent.id,
             applicabilityNode.id,
-            parentSelection
+            parentSelection,
+            inactive
           )
           currentParent = applicabilityNode
         })
@@ -202,17 +218,17 @@ class Flow implements FlowShape {
       /**
        * Create action node
        */
-      const node = this.createActionNode(nodeId, action, resource)
+      const node = this.createActionNode(nodeId, targetAction, targetResource, inactive)
 
       /**
        * Handle children
        */
       if (
-        is.PlanDefinitionAction(action) &&
-        action.definitionCanonical != null
+        is.PlanDefinitionAction(targetAction) &&
+        targetAction.definitionCanonical != null
       ) {
         const definition = this.resolver.resolveCanonical(
-          action.definitionCanonical
+          targetAction.definitionCanonical
         ) as fhir4.PlanDefinition | fhir4.ActivityDefinition | undefined
         /** Process definition canonical = plan definition */
         if (is.PlanDefinition(definition) && definition.action != null) {
@@ -220,6 +236,7 @@ class Flow implements FlowShape {
             definition,
             definition.action,
             node,
+            requestGroup,
             selectionBehavior
           )
           /** Process definition canonical = activity definition or questionnaire */
@@ -229,43 +246,45 @@ class Flow implements FlowShape {
         ) {
           let endNode = this.nodes?.find((n) => n.id === id)
           if (endNode == null) {
-            endNode = this.createEndNode(definition)
+            endNode = this.createEndNode(definition, inactive)
             this.addNewNode(endNode)
           }
-          this.connectNodes(node.id, endNode.id, parentSelection)
+          this.connectNodes(node.id, endNode.id, parentSelection, inactive)
         }
         /** Process child actions */
       } else if (
-        is.RequestGroupAction(action) &&
-        action.resource?.reference != null &&
+        is.RequestGroupAction(targetAction) &&
+        targetAction.resource?.reference != null &&
         requestBundle != null
       ) {
-        const [id] = action.resource?.reference.split('/')
-        const targetResource = requestBundle.entry?.find(
+        const id = targetAction.resource?.reference
+        const requestTarget = requestBundle.entry?.find(
           (e) =>
             e.resource?.id === id
         )?.resource
-        if (is.RequestGroup(targetResource) && targetResource.action != null) {
+        if (is.RequestGroup(requestTarget) && requestTarget.action != null) {
           this.processActionNodes(
-            targetResource,
-            targetResource.action,
+            requestTarget,
+            requestTarget.action,
             node,
+            requestGroup,
             selectionBehavior,
             requestBundle
           )
-        } else if (is.RequestResource(targetResource)) {
+        } else if (is.RequestResource(requestTarget)) {
           let endNode = this.nodes?.find((n) => n.id === id)
           if (endNode == null) {
-            endNode = this.createEndNode(targetResource)
+            endNode = this.createEndNode(requestTarget, inactive)
             this.addNewNode(endNode)
           }
-          this.connectNodes(node.id, endNode.id, parentSelection)
+          this.connectNodes(node.id, endNode.id, parentSelection, inactive)
         }
       } else if (childActions != null) {
         this.processActionNodes(
-          resource,
+          targetResource,
           childActions,
           node,
+          requestGroup,
           selectionBehavior,
           requestBundle
         )
@@ -274,7 +293,7 @@ class Flow implements FlowShape {
         node.data.handle = ['target']
       }
       this.addNewNode(node)
-      this.connectNodes(currentParent.id, node.id, parentSelection)
+      this.connectNodes(currentParent.id, node.id, parentSelection, inactive)
     })
   }
 
@@ -327,11 +346,12 @@ class Flow implements FlowShape {
       this.addNewNode(node)
 
       /** Handle children */
-      if (requestGroup.action != null) {
+      if (planDefinition.action != null) {
         this.processActionNodes(
-          requestGroup,
-          requestGroup.action,
+          planDefinition,
+          planDefinition.action,
           node,
+          requestGroup,
           undefined,
           requestBundle
         )

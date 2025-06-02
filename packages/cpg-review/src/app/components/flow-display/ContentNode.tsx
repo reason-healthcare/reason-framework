@@ -15,6 +15,7 @@ const ContentNode = ({ data: nodeProps, id }: NodeProps) => {
     isSelected,
     setNodeToExpand,
     setSelectedNode,
+    inactive
   } = nodeProps
   const { resource } = nodeContent
 
@@ -40,7 +41,7 @@ const ContentNode = ({ data: nodeProps, id }: NodeProps) => {
   return (
     <>
       <div
-        className={`clickable node-container ${
+        className={`clickable node-container ${inactive ? 'opacity' : ''} ${
           isSelected ? 'node-highlight' : 'node-unhighlight'
         } ${
           is.ActivityDefinition(resource) ||

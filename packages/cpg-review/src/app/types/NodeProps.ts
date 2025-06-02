@@ -17,6 +17,7 @@ export interface NodeProps {
     nodeContent: NodeContent
     isExpandable: boolean
     isSelected: boolean
+    inactive: boolean
     parentNodeId?: string
     setNodeToExpand: React.Dispatch<React.SetStateAction<string>>
     setSelectedNode: React.Dispatch<React.SetStateAction<string | undefined>>

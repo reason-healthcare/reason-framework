@@ -12,6 +12,10 @@
   font-weight: bold;
 }
 
+.opacity {
+  opacity: 0.3;
+}
+
 .node {
   white-space: normal;
   word-break: break-word;
@@ -22,6 +26,7 @@
     font-size: 0.7rem;
     margin: 0;
   }
+
 }
 
 .start-node {
