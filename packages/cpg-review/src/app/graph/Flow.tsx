@@ -240,10 +240,10 @@ class Flow implements FlowShape {
         action.resource?.reference != null &&
         requestBundle != null
       ) {
-        const [resourceType, id] = action.resource?.reference.split('/')
+        const [id] = action.resource?.reference.split('/')
         const targetResource = requestBundle.entry?.find(
           (e) =>
-            e.resource?.resourceType === resourceType && e.resource?.id === id
+            e.resource?.id === id
         )?.resource
         if (is.RequestGroup(targetResource) && targetResource.action != null) {
           this.processActionNodes(
