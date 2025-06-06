@@ -179,8 +179,9 @@ class Flow implements FlowShape {
     requestBundle?: fhir4.Bundle | undefined
   ) {
     actions?.map((action) => {
-      const targetAction = requestGroup?.action?.find(rqAction => rqAction.id === action.id) ?? action
-      const inactive = requestGroup && is.PlanDefinitionAction(targetAction)
+      const requestGroupAction = requestGroup?.action?.find(rqAction => rqAction.id === action.id)
+      const targetAction = requestGroupAction ?? action
+      const inactive = requestGroup && !requestGroupAction
 
       const {
         title,
@@ -224,7 +225,7 @@ class Flow implements FlowShape {
        * Handle children
        */
       if (
-        is.PlanDefinitionAction(targetAction) &&
+        is.PlanDefinitionAction(targetAction) && !requestGroupAction &&
         targetAction.definitionCanonical != null
       ) {
         const definition = this.resolver.resolveCanonical(
@@ -253,7 +254,7 @@ class Flow implements FlowShape {
         }
         /** Process child actions */
       } else if (
-        is.RequestGroupAction(targetAction) &&
+        is.RequestGroupAction(targetAction) && requestGroupAction &&
         targetAction.resource?.reference != null &&
         requestBundle != null
       ) {

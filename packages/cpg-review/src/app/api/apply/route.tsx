@@ -21,6 +21,13 @@ export async function POST(req: NextRequest) {
     questionnaire
   } = (await req.json()) as ApplyPayload
   if (questionnaire != null) {
+    const normalizedQuestionnaire = {...questionnaire, item: questionnaire.item?.map(item => {
+      if (item.type === 'group') {
+        return {...item, repeats: false}
+      }
+      return item
+    }
+    )}
     const bundle: fhir4.Bundle = {
       resourceType: 'Bundle',
       type: 'transaction',

@@ -36,6 +36,7 @@ const ApplyForm = ({
     useState<fhir4.QuestionnaireResponse>()
   const [questionnaire, setQuestionnaire] = useState<fhir4.Questionnaire|undefined>()
   const [isApplied, setIsApplied] = useState(false)
+  const [isApplying, setIsApplying] = useState(false)
   const resetForm = () => {
     setDataPayload(undefined)
     setSubjectPayload(undefined)
@@ -175,7 +176,9 @@ const ApplyForm = ({
           ) ?? bundle.entry?.find(
             (e: any) => is.Questionnaire(e.resource)
           )?.resource
-          if (is.Questionnaire(questionnaire)) setQuestionnaire(questionnaire)
+            if (is.Questionnaire(questionnaire)){
+            setQuestionnaire(questionnaire)
+          }
         }
         setIsApplied(true)
         setContextReference(subjectPayload)
@@ -198,6 +201,7 @@ const ApplyForm = ({
       txEndpointPayload,
       planDefinition,
     }
+    setIsApplying(true)
     localStorage.setItem('applyPayload', JSON.stringify(payload))
     handleApply(payload)
   }
@@ -273,6 +277,11 @@ const ApplyForm = ({
               Reset
             </button>
           </Form.Item>
+          {isApplying && (
+            <div className="loading-indicator">
+              <p>Applying...</p>
+            </div>
+          )}
         </Form>
       ) : (
         <QuestionnaireRenderer

@@ -8,6 +8,7 @@ import {
 import { QueryClientProvider } from '@tanstack/react-query'
 import { message } from 'antd'
 import LoadIndicator from '../LoadIndicator'
+import { is } from 'helpers'
 
 interface QuestionnaireRendererProps {
   questionnaireResponseServer: fhir4.QuestionnaireResponse
@@ -35,6 +36,7 @@ const QuestionnaireRenderer = ({
   }
 
   const isBuilding = useBuildForm(questionnaire, questionnaireResponseServer)
+
 
   if (isBuilding) {
     return <LoadIndicator />
