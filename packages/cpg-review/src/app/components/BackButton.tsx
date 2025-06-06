@@ -7,6 +7,7 @@ const BackButton = () => {
   if (url !== '/') {
     return (
       <ArrowLeftOutlined
+      style={{ paddingBottom: '1rem'}}
         onClick={(e) => {
           e.preventDefault()
           navigate(-2)

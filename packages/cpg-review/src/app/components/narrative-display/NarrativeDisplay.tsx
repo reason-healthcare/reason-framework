@@ -130,7 +130,8 @@ const NarrativeDisplay = ({
 
     return (
       <div className="narrative-container-outer">
-        <div className="narrative-container-inner">
+        <BackButton/>
+        <div className="narrative-container-inner" style={{marginTop: '1rem'}}>
           <h2>{`${formatResourceType(resource)}: ${formatTitle(resource)}`}</h2>
           {partOfIdentifier != null && (
             <SingleDisplayItem
