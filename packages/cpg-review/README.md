@@ -1,4 +1,4 @@
-# CPG Preview Tool
+# CPG Review Tool
 
 The CPG (Clinical Practice Guidelines) Review tool renders a flow diagram dynamically based on desired FHIR plan definition. Each plan action is displayed as a node in the diagram. Where a resource is nested as action.definitionCanonical, the resolved resource is represented as:
 
