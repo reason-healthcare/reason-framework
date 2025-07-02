@@ -25,9 +25,7 @@
       "@/types/*": ["types/*"],
       "@/components/*": ["components/*"],
       "@/styles/*": ["styles/*"],
-      "@/images/*": ["../public/images/*"],
-      "@aehrc/smart-forms-renderer": ["../../../../node_modules/@aehrc/smart-forms-renderer"]
-
+      "@/images/*": ["../public/images/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
