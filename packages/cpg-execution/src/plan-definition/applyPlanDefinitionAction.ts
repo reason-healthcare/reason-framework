@@ -225,7 +225,6 @@ export const applyPlanDefinitionAction = async (
     cardinalityBehavior
   }
 
-  // Priority
   if (id != null) {
     requestGroupAction.id = id
   }

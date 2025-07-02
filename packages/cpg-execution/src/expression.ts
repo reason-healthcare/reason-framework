@@ -59,7 +59,7 @@ export const processDynamicValue = async (
       data,
       dataResolver
     )
-    const result = evaluateFhirpath(
+    const result = await evaluateFhirpath(
       expression.expression ?? '',
       definitionalResource,
       {
@@ -588,7 +588,7 @@ export const evaluateFhirpath = (
   fhirPathExpression: string,
   resourceObject?: fhir4.FhirResource | {},
   environment?: Record<string, any> | undefined
-): any[] => {
+): any[] | Promise<any[]> => {
   return fhirpath.evaluate(
     resourceObject,
     fhirPathExpression,
@@ -642,7 +642,7 @@ export const processFeatureExpression = async (
       data,
       dataResolver
     )
-    const result = evaluateFhirpath(expression.expression ?? '', {
+    const result = await evaluateFhirpath(expression.expression ?? '', {
       subject: subjectResource,
       encounter: encounterResource,
       practitioner: practitionerResource,
