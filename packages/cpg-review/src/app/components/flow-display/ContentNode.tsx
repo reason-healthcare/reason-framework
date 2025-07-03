@@ -15,7 +15,7 @@ const ContentNode = ({ data: nodeProps, id }: NodeProps) => {
     isSelected,
     setNodeToExpand,
     setSelectedNode,
-    inactive
+    inactive,
   } = nodeProps
   const { resource } = nodeContent
 

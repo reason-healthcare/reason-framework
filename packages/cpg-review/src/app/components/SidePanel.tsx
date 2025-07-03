@@ -23,7 +23,7 @@ const SidePanel = ({
       <Panel style={{ minWidth: '35%' }}>
         <div className="side-panel-content">
           <div className="buttons-container">
-            {navigation ?? <div/>}
+            {navigation ?? <div />}
             <CloseOutlined onClick={handleClose} />
           </div>
           <div className="narrative-container-outer">

@@ -10,7 +10,6 @@ import { message, Spin, Alert, Space } from 'antd'
 import LoadIndicator from '../LoadIndicator'
 import { LoadingOutlined } from '@ant-design/icons'
 
-
 interface QuestionnaireRendererProps {
   questionnaireResponseServer: fhir4.QuestionnaireResponse | undefined
   questionnaire: fhir4.Questionnaire | undefined
@@ -26,21 +25,33 @@ const QuestionnaireRenderer = ({
   questionnaire,
   setUserQuestionnaireResponse,
   setCurrentStep,
-  isApplying
+  isApplying,
 }: QuestionnaireRendererProps) => {
-
   const queryClient = useRendererQueryClient()
 
   if (!questionnaire || !questionnaireResponseServer) {
-    return <Alert style={{display: 'flex', gap: '0.8rem'}} message='Missing questionnaire' description="The server response did not contain a questionnaire and questionnaire response. This may occur if the server does not support questionnaire generation or if the plan definition does not have any actions with input data requirements." type="warning" showIcon action={
-          <button className='button-secondary' type="button" onClick={() => setCurrentStep(2)} style={{padding: '0.4rem 0.8rem'}}>
+    return (
+      <Alert
+        style={{ display: 'flex', gap: '0.8rem' }}
+        message="Missing questionnaire"
+        description="The server response did not contain a questionnaire and questionnaire response. This may occur if the server does not support questionnaire generation or if the plan definition does not have any actions with input data requirements."
+        type="warning"
+        showIcon
+        action={
+          <button
+            className="button-secondary"
+            type="button"
+            onClick={() => setCurrentStep(2)}
+            style={{ padding: '0.4rem 0.8rem' }}
+          >
             Ok
           </button>
-      } />
+        }
+      />
+    )
   }
 
   const isBuilding = useBuildForm(questionnaire, questionnaireResponseServer)
-
 
   if (isBuilding) {
     return <LoadIndicator />
@@ -57,23 +68,38 @@ const QuestionnaireRenderer = ({
       <QueryClientProvider client={queryClient}>
         <BaseRenderer />
       </QueryClientProvider>
-      {isApplying ? <button
-        type="button"
-        className={'button'}
-        onClick={handleQuestionnaireSubmit}
-        disabled
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', justifyContent: 'center' }}>
-          Applying
-          <Spin style={{color: '#fff'}} indicator={<LoadingOutlined spin />} size='small' />
-        </div>
-      </button> : <button
-        type="button"
-        className={'button'}
-        onClick={handleQuestionnaireSubmit}
-      >
-        Confirm & Apply
-      </button>}
+      {isApplying ? (
+        <button
+          type="button"
+          className={'button'}
+          onClick={handleQuestionnaireSubmit}
+          disabled
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.6rem',
+              justifyContent: 'center',
+            }}
+          >
+            Applying
+            <Spin
+              style={{ color: '#fff' }}
+              indicator={<LoadingOutlined spin />}
+              size="small"
+            />
+          </div>
+        </button>
+      ) : (
+        <button
+          type="button"
+          className={'button'}
+          onClick={handleQuestionnaireSubmit}
+        >
+          Confirm & Apply
+        </button>
+      )}
     </RendererThemeProvider>
   )
 }

@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import BrowserResolver from './resolver/browser'
-import UploadSection, {
+import {
   PlanDefinitionSelectionOption,
   UploadSectionProps,
 } from './components/UploadSection'
@@ -9,6 +9,13 @@ import { NodeContent } from './types/NodeProps'
 import { UploadFile } from 'antd'
 import Header from './components/Header'
 import ContentSection from './components/ContentSection'
+import dynamic from 'next/dynamic'
+import LoadIndicator from './components/LoadIndicator'
+
+const UploadSection = dynamic(() => import('@/components/UploadSection'), {
+  ssr: false,
+  loading: () => <LoadIndicator />,
+})
 
 export type SidePanelView = 'apply' | 'narrative' | undefined
 

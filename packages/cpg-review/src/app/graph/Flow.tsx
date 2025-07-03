@@ -10,7 +10,11 @@ import '@/styles/node.css'
 import { v4 } from 'uuid'
 import Graph from './Graph'
 import BrowserResolver from 'resolver/browser'
-import { PlanDefinition, PlanDefinitionAction, RequestGroupAction } from 'fhir/r4'
+import {
+  PlanDefinition,
+  PlanDefinitionAction,
+  RequestGroupAction,
+} from 'fhir/r4'
 
 export interface FlowShape {
   nodes: Node[] | undefined
@@ -46,7 +50,7 @@ class Flow implements FlowShape {
 
   private createEndNode(
     resource: fhir4.ActivityDefinition | fhir4.Questionnaire | RequestResource,
-    inactive?: boolean
+    inactive: boolean
   ): Node {
     return {
       id: getNodeIdFromResource(resource),
@@ -56,7 +60,7 @@ class Flow implements FlowShape {
         nodeContent: { resource },
         isExpandable: false,
         isSelected: false,
-        inactive: inactive ?? false
+        inactive,
       },
       type: 'contentNode',
       position: { x: 0, y: 0 },
@@ -68,7 +72,7 @@ class Flow implements FlowShape {
     id: string,
     action: fhir4.PlanDefinitionAction | fhir4.RequestGroupAction,
     resource: fhir4.PlanDefinition | fhir4.RequestGroup,
-    inactive?: boolean
+    inactive: boolean
   ) {
     const { title, id: actionId, description } = action
     return {
@@ -79,7 +83,7 @@ class Flow implements FlowShape {
         nodeContent: { resource: action, partOf: resource },
         isExpandable: false,
         isSelected: false,
-        inactive: inactive ?? false
+        inactive,
       },
       type: 'contentNode',
       position: { x: 0, y: 0 },
@@ -93,7 +97,7 @@ class Flow implements FlowShape {
     condition: fhir4.PlanDefinitionActionCondition,
     action: fhir4.PlanDefinitionAction | fhir4.RequestGroupAction,
     planDefinition: fhir4.PlanDefinition | fhir4.RequestGroup,
-    inactive?: boolean
+    inactive: boolean
   ) {
     const { expression, kind } = condition
     return {
@@ -107,7 +111,7 @@ class Flow implements FlowShape {
         nodeContent: { resource: action, partOf: planDefinition },
         isExpandable: false,
         parentNodeId: parentId,
-        inactive: inactive ?? false
+        inactive,
       },
       type: 'applicabilityNode',
       position: { x: 0, y: 0 },
@@ -131,11 +135,16 @@ class Flow implements FlowShape {
     } as Node
   }
 
-  private createEdge(sourceId: string, targetId: string, inactive?: boolean) {
+  private createEdge(
+    sourceId: string,
+    targetId: string,
+    inactive: boolean,
+    recommended: boolean
+  ) {
     const edge = {
       id: `${sourceId} - ${targetId}`,
       data: {
-        inactive: inactive ?? false,
+        inactive,
       },
       source: sourceId,
       target: targetId,
@@ -151,29 +160,36 @@ class Flow implements FlowShape {
     selectionBehavior:
       | fhir4.PlanDefinitionAction['selectionBehavior']
       | undefined,
-    inactive?: boolean
+    inactive: boolean,
+    recommended: boolean
   ) {
-    const edge = this.createEdge(sourceId, targetId, inactive)
-    if (selectionBehavior != null) {
+    const edge = this.createEdge(sourceId, targetId, inactive, recommended)
+    if (selectionBehavior != null || recommended) {
       edge.animated = true
+    }
+    if (recommended) {
+      edge.style = { stroke: 'var(--brTeal)', strokeWidth: '2px' }
     }
     this.addNewEdge(edge)
   }
 
   private findMatchingRQAction(
-      actions: RequestGroupAction[] | undefined,
-      id: string | undefined
-    ): RequestGroupAction | undefined {
-      if (!actions || !id) return undefined;
-      for (const rqAction of actions) {
-        if (rqAction.id === id) return rqAction;
-        if (rqAction.action) {
-      const found = this.findMatchingRQAction(rqAction.action as RequestGroupAction[], id);
-      if (found) return found;
-        }
+    actions: RequestGroupAction[] | undefined,
+    id: string | undefined
+  ): RequestGroupAction | undefined {
+    if (!actions || !id) return undefined
+    for (const rqAction of actions) {
+      if (rqAction.id === id) return rqAction
+      if (rqAction.action) {
+        const found = this.findMatchingRQAction(
+          rqAction.action as RequestGroupAction[],
+          id
+        )
+        if (found) return found
       }
-      return undefined;
     }
+    return undefined
+  }
 
   /**
    * @param planDefinition Plan definition as source data
@@ -194,21 +210,23 @@ class Flow implements FlowShape {
     requestBundle?: fhir4.Bundle | undefined
   ) {
     actions?.map((action) => {
-      const requestGroupAction = this.findMatchingRQAction(requestGroup?.action, action.id);
+      const requestGroupAction = this.findMatchingRQAction(
+        requestGroup?.action,
+        action.id
+      )
       const targetAction = requestGroupAction ?? action
-      const targetResource = requestGroupAction != null && requestGroup ? requestGroup : planDefinition
+      const targetResource =
+        requestGroupAction != null && requestGroup
+          ? requestGroup
+          : planDefinition
 
       // If building a request group and there is no matching action found, render the PD action as inactive
-      const inactive = requestGroup && !requestGroupAction
+      const inactive = requestGroup != null && !requestGroupAction
+      const recommended = requestGroup != null && requestGroupAction != null
 
       const childActions = action.action
 
-      const {
-        title,
-        id,
-        condition,
-        selectionBehavior
-      } = targetAction
+      const { title, id, condition, selectionBehavior } = targetAction
       const nodeId = `action-${title ?? id}-${v4()}`
       /**
        * Handle Applicability - becomes parent of current action node
@@ -229,7 +247,8 @@ class Flow implements FlowShape {
             currentParent.id,
             applicabilityNode.id,
             parentSelection,
-            inactive
+            inactive,
+            recommended
           )
           currentParent = applicabilityNode
         })
@@ -237,13 +256,19 @@ class Flow implements FlowShape {
       /**
        * Create action node
        */
-      const node = this.createActionNode(nodeId, targetAction, targetResource, inactive)
+      const node = this.createActionNode(
+        nodeId,
+        targetAction,
+        targetResource,
+        inactive
+      )
 
       /**
        * Handle children
        */
       if (
-        is.PlanDefinitionAction(targetAction) && !requestGroupAction &&
+        is.PlanDefinitionAction(targetAction) &&
+        !requestGroupAction &&
         targetAction.definitionCanonical != null
       ) {
         const definition = this.resolver.resolveCanonical(
@@ -268,21 +293,34 @@ class Flow implements FlowShape {
             endNode = this.createEndNode(definition, inactive)
             this.addNewNode(endNode)
           }
-          this.connectNodes(node.id, endNode.id, parentSelection, inactive)
+          this.connectNodes(
+            node.id,
+            endNode.id,
+            parentSelection,
+            inactive,
+            recommended
+          )
         }
         /** Process child actions */
       } else if (
-        is.RequestGroupAction(targetAction) && requestGroupAction &&
+        is.RequestGroupAction(targetAction) &&
+        requestGroupAction &&
         targetAction.resource?.reference != null &&
-        requestBundle != null && action.definitionCanonical != null
+        requestBundle != null &&
+        action.definitionCanonical != null
       ) {
         const id = targetAction.resource?.reference.split('/')?.pop()
         const requestTarget = requestBundle.entry?.find(
-          (e) =>
-            e.resource?.id === id
+          (e) => e.resource?.id === id
         )?.resource
-        const targetPlan = this.resolver.resolveCanonical(action.definitionCanonical) as fhir4.PlanDefinition | undefined
-        if (is.RequestGroup(requestTarget) && is.PlanDefinition(targetPlan) && targetPlan.action != null) {
+        const targetPlan = this.resolver.resolveCanonical(
+          action.definitionCanonical
+        ) as fhir4.PlanDefinition | undefined
+        if (
+          is.RequestGroup(requestTarget) &&
+          is.PlanDefinition(targetPlan) &&
+          targetPlan.action != null
+        ) {
           this.processActionNodes(
             targetPlan,
             targetPlan.action,
@@ -297,7 +335,13 @@ class Flow implements FlowShape {
             endNode = this.createEndNode(requestTarget, inactive)
             this.addNewNode(endNode)
           }
-          this.connectNodes(node.id, endNode.id, parentSelection, inactive)
+          this.connectNodes(
+            node.id,
+            endNode.id,
+            parentSelection,
+            inactive,
+            recommended
+          )
         }
       } else if (childActions != null) {
         this.processActionNodes(
@@ -313,7 +357,13 @@ class Flow implements FlowShape {
         node.data.handle = ['target']
       }
       this.addNewNode(node)
-      this.connectNodes(currentParent.id, node.id, parentSelection, inactive)
+      this.connectNodes(
+        currentParent.id,
+        node.id,
+        parentSelection,
+        inactive,
+        recommended
+      )
     })
   }
 

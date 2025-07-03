@@ -41,7 +41,7 @@ export default function FlowDisplay({
   setSidePanelView,
   requestsBundle,
 }: FlowDisplayProps) {
-  const [initialFlow, setInitialFlow] = useState<Flow | undefined>()
+  const [fullFlow, setFullFlow] = useState<Flow | undefined>()
   const [visibleNodes, setVisibleNodes] = useState<Node[] | undefined>()
   const [visibleEdges, setVisibleEdges] = useState<Edge[] | undefined>()
   const [expandedView, setExpandedView] = useState<boolean>(true)
@@ -56,7 +56,7 @@ export default function FlowDisplay({
     []
   ) as NodeTypes
 
-  useEffect(() => {
+  const generatePlanDefinitionFlow = () => {
     const flow = new Flow(planDefinition, resolver)
     if (resolver && resolver.resourcesByCanonical) {
       flow.generateInitialFlow()
@@ -66,11 +66,15 @@ export default function FlowDisplay({
           setSelectedNode,
         })
         .then((updatedFlow) => {
-          setInitialFlow(updatedFlow)
+          setFullFlow(updatedFlow)
           setVisibleNodes(updatedFlow.nodes)
           setVisibleEdges(updatedFlow.edges)
         })
     }
+  }
+
+  useEffect(() => {
+    generatePlanDefinitionFlow()
   }, [])
 
   useEffect(() => {
@@ -87,21 +91,21 @@ export default function FlowDisplay({
   }, [selectedNode])
 
   useEffect(() => {
-    if (initialFlow?.nodes != null && initialFlow?.edges != null) {
+    if (fullFlow?.nodes != null && fullFlow?.edges != null) {
       if (!expandedView) {
         const newFlow = new Flow(
           planDefinition,
           resolver,
-          initialFlow.nodes,
-          initialFlow.edges
+          fullFlow.nodes,
+          fullFlow.edges
         )
         newFlow.collapseAllChildren().then(() => {
           setVisibleNodes(newFlow.nodes)
           setVisibleEdges(newFlow.edges)
         })
       } else {
-        setVisibleNodes(initialFlow.nodes)
-        setVisibleEdges(initialFlow.edges)
+        setVisibleNodes(fullFlow.nodes)
+        setVisibleEdges(fullFlow.edges)
       }
     }
   }, [expandedView])
@@ -110,10 +114,10 @@ export default function FlowDisplay({
   useEffect(() => {
     if (
       nodeToExpand != null &&
-      initialFlow?.nodes != null &&
-      initialFlow?.edges != null
+      fullFlow?.nodes != null &&
+      fullFlow?.edges != null
     ) {
-      const sourceNode = initialFlow.nodes.find((n) => n.id === nodeToExpand)
+      const sourceNode = fullFlow.nodes.find((n) => n.id === nodeToExpand)
       if (sourceNode != null) {
         const newFlow = new Flow(
           planDefinition,
@@ -122,7 +126,7 @@ export default function FlowDisplay({
           visibleEdges
         )
         newFlow
-          .expandChild(sourceNode, initialFlow.nodes, initialFlow.edges)
+          .expandChild(sourceNode, fullFlow.nodes, fullFlow.edges)
           .then((updatedFlow) => {
             setVisibleNodes(updatedFlow.nodes)
             setVisibleEdges(updatedFlow.edges)
@@ -138,7 +142,7 @@ export default function FlowDisplay({
   }, [nodeToExpand])
 
   useEffect(() => {
-    if (initialFlow != null && requestsBundle != null) {
+    if (fullFlow != null && requestsBundle != null) {
       resolver.addResourcesFromBundle(requestsBundle)
       const newFlow = new Flow(planDefinition, resolver)
       newFlow.generateRequestGroupFlow(requestsBundle, planDefinition)
@@ -151,13 +155,13 @@ export default function FlowDisplay({
           .then((updatedFlow) => {
             setVisibleNodes(updatedFlow.nodes)
             setVisibleEdges(updatedFlow.edges)
+            setFullFlow(updatedFlow)
           })
       } else {
         console.log('Unable to generate Request Group')
       }
-    } else if (initialFlow != null) {
-      setVisibleNodes(initialFlow.nodes)
-      setVisibleEdges(initialFlow.edges)
+    } else if (fullFlow != null) {
+      generatePlanDefinitionFlow()
     }
   }, [requestsBundle])
 

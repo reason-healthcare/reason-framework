@@ -28,14 +28,7 @@ const ContentHeader = ({
   return (
     <div className="plan-header">
       <div className="plan-title">
-        {planDefinition != null && (
-          <h1>
-            {formatTitle(planDefinition)}
-            {requestsBundle != null && (
-              <span className="applied-guidance">{' - Applied Guidance'}</span>
-            )}
-          </h1>
-        )}
+        {planDefinition != null && <h1>{formatTitle(planDefinition)}</h1>}
       </div>
       {requestsBundle != null && contextReference != null ? (
         <div className="context">
