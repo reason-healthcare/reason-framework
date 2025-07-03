@@ -15,7 +15,11 @@ const ApplicabilityNode = ({ data: nodeProps, id }: NodeProps) => {
 
   return (
     <>
-      <div className={`clickable node-container applicability ${inactive ? ' opacity' : ''}`}>
+      <div
+        className={`clickable node-container applicability ${
+          inactive ? ' opacity' : ''
+        }`}
+      >
         {handle?.includes('target') ? <ApplicabilityHandle /> : null}
         <div className="diamond-container" onClick={handleNodeClick}>
           <Image
@@ -47,7 +51,9 @@ const ApplicabilityNode = ({ data: nodeProps, id }: NodeProps) => {
         )}
       </div>
       {handle?.includes('source') && (
-        <div className={`action-selection-label ${inactive ? 'opacity' : ''}`}>{'Yes'}</div>
+        <div className={`action-selection-label ${inactive ? 'opacity' : ''}`}>
+          {'Yes'}
+        </div>
       )}
     </>
   )

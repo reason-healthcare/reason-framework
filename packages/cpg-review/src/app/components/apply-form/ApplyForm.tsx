@@ -9,7 +9,6 @@ import '@/styles/applyForm.css'
 import { LoadingOutlined } from '@ant-design/icons'
 import { SidePanelView } from 'page'
 
-
 interface ApplyFormProps {
   planDefinition: fhir4.PlanDefinition
   contentEndpoint: string | undefined
@@ -25,13 +24,15 @@ const ApplyForm = ({
   contentEndpoint,
   setRequestsBundle,
   setContextReference,
-  setSidePanelView
+  setSidePanelView,
 }: ApplyFormProps) => {
   const [dataPayload, setDataPayload] = useState<string | undefined>()
-  const [subjectPayload, setSubjectPayload] = useState<string | undefined>('Patient/Patient1')
-  const [cpgEngineEndpointPayload, setCpgEngineEndpointPayload] = useState<string | undefined>(
-    'http://localhost:8080/fhir/PlanDefinition/$r5.apply'
+  const [subjectPayload, setSubjectPayload] = useState<string | undefined>(
+    'Patient/Patient1'
   )
+  const [cpgEngineEndpointPayload, setCpgEngineEndpointPayload] = useState<
+    string | undefined
+  >('http://localhost:8080/fhir/PlanDefinition/$r5.apply')
   const [contentEndpointPayload, setContentEndpointPayload] = useState<
     string | undefined
   >('http://localhost:8080/fhir')
@@ -42,7 +43,9 @@ const ApplyForm = ({
     useState<fhir4.QuestionnaireResponse>()
   const [userQuestionnaireResponse, setUserQuestionnaireResponse] =
     useState<fhir4.QuestionnaireResponse>()
-  const [questionnaire, setQuestionnaire] = useState<fhir4.Questionnaire|undefined>()
+  const [questionnaire, setQuestionnaire] = useState<
+    fhir4.Questionnaire | undefined
+  >()
   const [isApplied, setIsApplied] = useState(false)
   const [isApplying, setIsApplying] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
@@ -64,9 +67,7 @@ const ApplyForm = ({
       !endpoint.startsWith('https://') &&
       !endpoint.startsWith('file://')
     ) {
-      message.error(
-        `${endpoint} does not appear to be a valid endpoint`
-      )
+      message.error(`${endpoint} does not appear to be a valid endpoint`)
       return false
     }
     return true
@@ -93,7 +94,7 @@ const ApplyForm = ({
         contentEndpointPayload,
         txEndpointPayload,
         planDefinition,
-        questionnaire
+        questionnaire,
       }
       handleApply(payloadWithQR)
     }
@@ -134,7 +135,9 @@ const ApplyForm = ({
       txEndpointPayload,
     } = payload
     if (dataPayload == undefined) {
-      message.error('Context data is required in the form of a FHIR JSON Bundle')
+      message.error(
+        'Context data is required in the form of a FHIR JSON Bundle'
+      )
       return false
     }
     let json: any
@@ -204,7 +207,8 @@ const ApplyForm = ({
         // Return will be a FHIR parameters resource with a Bundle or a Bundle
         let bundle = json
         if (is.Parameters(json)) {
-          bundle = json.parameter?.find((p) => is.Bundle(p.resource))?.resource ?? json
+          bundle =
+            json.parameter?.find((p) => is.Bundle(p.resource))?.resource ?? json
         }
         if (!is.Bundle(bundle)) {
           throw new Error('Resource does not appear to be a FHIR bundle')
@@ -218,19 +222,20 @@ const ApplyForm = ({
         if (is.QuestionnaireResponse(questionnaireResponseEntry)) {
           setQuestionnaireResponseServer(questionnaireResponseEntry)
           // Find Questionnaire
-          const questionnaire = questionnaireResponseEntry?.contained?.find(
-            (resource) => is.Questionnaire(resource)
-          ) ?? bundle.entry?.find(
-            (e: any) => is.Questionnaire(e.resource)
-          )?.resource
-            if (is.Questionnaire(questionnaire)) {
+          const questionnaire =
+            questionnaireResponseEntry?.contained?.find((resource) =>
+              is.Questionnaire(resource)
+            ) ??
+            bundle.entry?.find((e: any) => is.Questionnaire(e.resource))
+              ?.resource
+          if (is.Questionnaire(questionnaire)) {
             setQuestionnaire(questionnaire)
             skipQuestionnaire = false
           }
         }
         setIsApplied(true)
         setContextReference(subjectPayload)
-        setCurrentStep((currentStep === 0 && !skipQuestionnaire) ? 1 : 2)
+        setCurrentStep(currentStep === 0 && !skipQuestionnaire ? 1 : 2)
       } catch (error) {
         const errorMsg = 'Server error: Unable to run $apply'
         message.error(errorMsg)
@@ -266,9 +271,14 @@ const ApplyForm = ({
           setCurrentStep(step)
         }}
         current={currentStep}
-        items={[{ title: 'Context' }, { title: 'Questionnaire', disabled: !isApplied }, {
-        title: 'Applied', disabled: true
-      },]}
+        items={[
+          { title: 'Context' },
+          { title: 'Questionnaire', disabled: !isApplied },
+          {
+            title: 'Applied',
+            disabled: true,
+          },
+        ]}
         className="apply-steps"
       />
       {currentStep === 0 ? (
@@ -301,7 +311,10 @@ const ApplyForm = ({
             <Input
               placeholder="http://0.0.0.0:8080/fhir/PlanDefinition/$r5.apply"
               onChange={handleEngineEndpointChange}
-              defaultValue={contentEndpoint ?? 'http://0.0.0.0:8080/fhir/PlanDefinition/$r5.apply'}
+              defaultValue={
+                contentEndpoint ??
+                'http://0.0.0.0:8080/fhir/PlanDefinition/$r5.apply'
+              }
               value={cpgEngineEndpointPayload}
             />
           </Form.Item>
@@ -326,33 +339,46 @@ const ApplyForm = ({
               value={txEndpointPayload ?? 'http://localhost:8080/fhir'}
             />
           </Form.Item>
-          {isApplying ? <Form.Item className="button-group">
-            <button
-              type="button"
-              className="button button-secondary"
-              onClick={resetForm}
-            >
-              Cancel
-            </button>
-            <button type="submit" className={'button'} disabled>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                Applying
-                <Spin style={{color: '#fff'}} indicator={<LoadingOutlined spin />} size='small' />
-              </div>
-            </button>
-          </Form.Item> : <Form.Item className="button-group">
-            <button
-              type="button"
-              className="button button-secondary"
-              onClick={resetForm}
-            >
-              Reset
-            </button>
-            <button type="submit" className={'button'}>
-              Apply
-            </button>
-          </Form.Item>}
-
+          {isApplying ? (
+            <Form.Item className="button-group">
+              <button
+                type="button"
+                className="button button-secondary"
+                onClick={resetForm}
+              >
+                Cancel
+              </button>
+              <button type="submit" className={'button'} disabled>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.6rem',
+                  }}
+                >
+                  Applying
+                  <Spin
+                    style={{ color: '#fff' }}
+                    indicator={<LoadingOutlined spin />}
+                    size="small"
+                  />
+                </div>
+              </button>
+            </Form.Item>
+          ) : (
+            <Form.Item className="button-group">
+              <button
+                type="button"
+                className="button button-secondary"
+                onClick={resetForm}
+              >
+                Reset
+              </button>
+              <button type="submit" className={'button'}>
+                Apply
+              </button>
+            </Form.Item>
+          )}
         </Form>
       ) : currentStep === 1 ? (
         <QuestionnaireRenderer
@@ -362,21 +388,49 @@ const ApplyForm = ({
           setCurrentStep={setCurrentStep}
           isApplying={isApplying}
         />
-      ) :
-      <Alert className='success-alert' message='Applied!' description='Return to steps 1 or 2 or clear current patient context to return to plan definition' type="success" showIcon action={
-        <div style={{display: 'flex', gap: '0.5rem', flexDirection: 'column'}}>
-          <button className='button' type="button" onClick={() => {setContextReference(undefined); setSidePanelView(undefined)}}>
-            Return to Plan Definition
-          </button>
-          <button className='button-secondary button' type="button" onClick={() => setCurrentStep(0)}>
-            Edit Context
-          </button>
-          <button className='button-secondary button' type="button" onClick={() => setCurrentStep(1)}>
-            Edit Questionnaire Response
-          </button>
-        </div>
-      } />
-      }
+      ) : (
+        <Alert
+          className="success-alert"
+          message="Applied!"
+          description="Return to steps 1 or 2 or clear current patient context to return to plan definition"
+          type="success"
+          showIcon
+          action={
+            <div
+              style={{
+                display: 'flex',
+                gap: '0.5rem',
+                flexDirection: 'column',
+              }}
+            >
+              <button
+                className="button"
+                type="button"
+                onClick={() => {
+                  setContextReference(undefined)
+                  setSidePanelView(undefined)
+                }}
+              >
+                Return to Plan Definition
+              </button>
+              <button
+                className="button-secondary button"
+                type="button"
+                onClick={() => setCurrentStep(0)}
+              >
+                Edit Context
+              </button>
+              <button
+                className="button-secondary button"
+                type="button"
+                onClick={() => setCurrentStep(1)}
+              >
+                Edit Questionnaire Response
+              </button>
+            </div>
+          }
+        />
+      )}
     </div>
   )
 }

@@ -27,30 +27,28 @@ export async function POST(req: NextRequest) {
     contentEndpointPayload,
     txEndpointPayload,
     planDefinition,
-    questionnaire
+    questionnaire,
   } = (await req.json()) as ApplyPayload
-  console.log(JSON.stringify(planDefinition, null, 2))
   if (questionnaire != null) {
     const bundle: fhir4.Bundle = {
       resourceType: 'Bundle',
       type: 'transaction',
-      entry: [{
-      fullUrl: `http://example.org/Questionnaire/${questionnaire.id}/${questionnaire.version}`,
-      resource: questionnaire,
-      request: {method:"PUT", url: `Questionnaire/${questionnaire.id}`}
-      }]
+      entry: [
+        {
+          fullUrl: `http://example.org/Questionnaire/${questionnaire.id}/${questionnaire.version}`,
+          resource: questionnaire,
+          request: { method: 'PUT', url: `Questionnaire/${questionnaire.id}` },
+        },
+      ],
     }
     try {
-      const response = await fetch(
-        'http://0.0.0.0:8080/fhir/',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(bundle),
-        }
-      )
+      const response = await fetch('http://0.0.0.0:8080/fhir/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(bundle),
+      })
     } catch (e) {
       console.log('Unable to post questionnaire')
     }
@@ -113,17 +111,13 @@ export async function POST(req: NextRequest) {
     ],
   }
   try {
-    const response = await fetch(
-      handleLocalHost(cpgEngineEndpointPayload),
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(parameters),
-      }
-    )
-
+    const response = await fetch(handleLocalHost(cpgEngineEndpointPayload), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(parameters),
+    })
 
     const json = await response.json()
 
@@ -132,7 +126,6 @@ export async function POST(req: NextRequest) {
       console.error(message)
       return NextResponse.json({ message }, { status: response.status })
     }
-    console.log(JSON.stringify(json, null, 2))
     return NextResponse.json(json, { status: response.status })
   } catch (error) {
     const message = `Problem fetching FHIR package: ${error}`
