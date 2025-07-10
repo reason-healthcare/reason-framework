@@ -112,6 +112,8 @@ export const buildQuestionnaireItemGroup = async (
         snapshotDefinition.min > 0
       ) {
         item.required = true
+      } else {
+        item.required = false
       }
 
       if (max && (max === '*' || parseInt(max) > 1)) {
@@ -122,6 +124,8 @@ export const buildQuestionnaireItemGroup = async (
         (snapshotDefinition.max === '*' || parseInt(snapshotDefinition.max) > 1)
       ) {
         item.repeats = true
+      } else {
+        item.repeats = false
       }
 
       if (maxLength && elementType === 'string') {
@@ -252,67 +256,8 @@ export const buildQuestionnaireItemGroup = async (
         }
       }
 
-      const getInitialValue = (resource: any, key: string) => {
-        let initialValue
-        if (elementType === 'CodeableConcept') {
-          initialValue = resource[key as keyof fhir4.ElementDefinition] as
-            | fhir4.CodeableConcept
-            | undefined
-          if (initialValue?.coding?.length) {
-            // Should we use multiple codings here if available?
-            initialValue = initialValue?.coding[0]
-          }
-        } else if (elementType === 'code') {
-          initialValue = {} as fhir4.Coding
-          let code = resource[key as keyof fhir4.ElementDefinition] as string
-          initialValue.code = code
-          initialValue.system = valueSetExpansion?.expansion?.contains?.find(
-            (i) => i.code === code
-          )?.system
-        } else {
-          initialValue = resource[key as keyof fhir4.ElementDefinition]
-        }
-        return initialValue
-      }
-
-      let fixedElementKey = Object.keys(element).find((k) => {
-        return (
-          k.startsWith('fixed') ||
-          k.startsWith('pattern') ||
-          k.startsWith('defaultValue')
-        )
-      })
-
-      if (fixedElementKey != null) {
-        const initialValue = getInitialValue(element, fixedElementKey)
-        if (initialValue != null && valueType != null) {
-          item.initial = [{ [`value${valueType}`]: initialValue }]
-        }
-        if (fixedElementKey == 'pattern' || fixedElementKey == 'fixed') {
-          item.extension = [
-            {
-              url: QUESTIONNAIRE_HIDDEN,
-              valueBoolean: true
-            }
-          ]
-        }
-      } else if (populationContextExpression?.name != null) {
-        const initialExpression = {
-          language: 'text/cql-expression',
-          expression: `%${path.replace(
-            getPathPrefix(path),
-            populationContextExpression.name
-          )}`
-        } as fhir4.Expression
-        ;(item.extension ||= []).push({
-          url: SDC_QUESTIONNAIRE_INITIAL_EXPRESSION,
-          valueExpression: initialExpression
-        })
-      }
-
-      // Add elementBinding expansion as answerOption if value is not fixed/pattern
+      // Add elementBinding expansion
       if (
-        !fixedElementKey &&
         valueSetExpansion?.expansion?.contains &&
         valueSetExpansion?.expansion?.contains.length
       ) {
@@ -320,8 +265,22 @@ export const buildQuestionnaireItemGroup = async (
         valueSetExpansion.expansion.contains.forEach((i) =>
           item.answerOption?.push({ valueCoding: i })
         )
-      } else if (!fixedElementKey) {
+      } else {
         item.answerValueSet = elementBinding?.valueSet
+      }
+
+      // Add element initial expression
+      if (populationContextExpression?.name != null) {
+        const initialExpression = {
+          language: 'text/cql-expression',
+          expression: `%${path
+            .replace(path.split('.')[0], populationContextExpression.name)
+            .replace('[x]', '')}`
+        } as fhir4.Expression
+        ;(item.extension ||= []).push({
+          url: SDC_QUESTIONNAIRE_INITIAL_EXPRESSION,
+          valueExpression: initialExpression
+        })
       }
 
       const childSubGroupElements = subGroupElements.filter(

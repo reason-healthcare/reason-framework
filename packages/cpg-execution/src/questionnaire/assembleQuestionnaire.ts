@@ -16,6 +16,7 @@ import {
   SDC_QUESTIONNAIRE_LAUNCH_CONTEXT,
   SDC_QUESTIONNAIRE_ASSEMBLE_EXPECTATION
 } from '../constants'
+import { isEqual } from 'lodash'
 
 export interface AssembleQuestionnaireArgs {
   questionnaire: fhir4.Questionnaire
@@ -96,7 +97,7 @@ export const assembleQuestionnaire = async (
     url: 'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-assembledFrom',
     valueCanonical: url
   }
-  ;(questionnaireAssembled.extension ||= []).push(assembledFromExt)
+  // ;(questionnaireAssembled.extension ||= []).push(assembledFromExt)
 
   // TODO this should recurse to resolve nested sub-questionnaires
   // Resolve all subQuestionnaire extensions as described in the Modular Forms page. If there is an issue resolving any of the subQuestionnaires or applying the resolution process results in any errors, the operation SHOULD fail.
@@ -179,7 +180,10 @@ export const assembleQuestionnaire = async (
                 // propagate to the 'root' of the base Questionnaire
                 if (
                   rootExtensions.includes(e.url) &&
-                  !extension?.some((ext) => ext.url === e.url)
+                  !extension?.find((ext) => isEqual(ext, e)) &&
+                  !questionnaireAssembled.extension?.find((ext) =>
+                    isEqual(ext, e)
+                  )
                 ) {
                   ;(questionnaireAssembled.extension ||= []).push(e)
                 }

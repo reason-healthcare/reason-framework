@@ -13,6 +13,7 @@ import {
 import Resolver from '../resolver'
 import { v4 as uuidv4 } from 'uuid'
 import { SDC_QUESTIONNAIRE_SUB_QUESTIONNAIRE } from '../constants'
+import { assembleQuestionnaire } from '../questionnaire/assembleQuestionnaire'
 
 const getNestedPlanDefinitions = async (
   planDefinition: fhir4.PlanDefinition,
@@ -88,7 +89,7 @@ export interface buildModularQuestionnaireArgs {
   contentEndpoint?: fhir4.Endpoint | undefined
   terminologyEndpoint?: fhir4.Endpoint | undefined
   supportedOnly?: boolean | undefined
-  minimal?: boolean | undefined
+  minimalOnly?: boolean | undefined
 }
 
 export const buildModularQuestionnaire = async (
@@ -100,7 +101,7 @@ export const buildModularQuestionnaire = async (
     contentEndpoint,
     terminologyEndpoint,
     supportedOnly,
-    minimal
+    minimalOnly
   } = args
 
   if (!is.PlanDefinition(planDefinition)) {
@@ -167,7 +168,7 @@ export const buildModularQuestionnaire = async (
                 contentEndpoint,
                 terminologyEndpoint,
                 supportedOnly,
-                minimal
+                minimalOnly
               } as BuildQuestionnaireArgs
             )
             if (is.Questionnaire(questionnaire)) {
@@ -195,5 +196,11 @@ export const buildModularQuestionnaire = async (
     modularQuestionnaire.item = items
   }
 
-  return modularQuestionnaire
+  const assembledQuestionnaire = await assembleQuestionnaire({
+    questionnaire: modularQuestionnaire,
+    artifactEndpointConfigurable,
+    contentEndpoint
+  })
+
+  return assembledQuestionnaire
 }
