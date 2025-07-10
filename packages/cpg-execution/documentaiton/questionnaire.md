@@ -2,7 +2,7 @@
 
 Questionnaire generation may be enabled for PlanDefinition/$apply to elicit user feedback on required data elements. Propose a process where
 
-1. For each PlanDefinition with action.input, call [StructureDefinition/$questionnaire](https://hl7.org/fhir/R4/structuredefinition-operation-questionnaire.html) in minimal mode
+1. For each PlanDefinition with action.input, call [StructureDefinition/$questionnaire](https://hl7.org/fhir/R4/structuredefinition-operation-questionnaire.html) in minimalOnly mode
 
 2. Build a modular questionnaire with sub-questionnaires for each questionnaire generated in Step 1. Call [Questionnaire/$assemble](https://hl7.org/fhir/uv/sdc/OperationDefinition-Questionnaire-assemble.html) to produce a single questionnaire with contained sub-questionnaires
 
@@ -28,7 +28,7 @@ Propose this process be wrapped into $apply based on heuristics. Where there is 
 
 See [core $questionnaire operation](https://hl7.org/fhir/R4/structuredefinition-operation-questionnaire.html)
 
-Propose parameter "minimal" where:
+Propose parameter "minimalOnly" where:
 
 Elements from the structure definition should be processed to questionnaire items if:
 

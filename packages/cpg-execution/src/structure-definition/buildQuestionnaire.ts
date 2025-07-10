@@ -19,7 +19,7 @@ export interface BuildQuestionnaireArgs {
   contentEndpoint?: fhir4.Endpoint | undefined
   terminologyEndpoint?: fhir4.Endpoint | undefined
   supportedOnly?: boolean | undefined
-  minimal?: boolean | undefined
+  minimalOnly?: boolean | undefined
 }
 
 export const buildQuestionnaire = async (args: BuildQuestionnaireArgs) => {
@@ -29,7 +29,7 @@ export const buildQuestionnaire = async (args: BuildQuestionnaireArgs) => {
     contentEndpoint,
     terminologyEndpoint,
     supportedOnly,
-    minimal
+    minimalOnly
   } = args
 
   if (!is.StructureDefinition(structureDefinition)) {
@@ -56,7 +56,7 @@ export const buildQuestionnaire = async (args: BuildQuestionnaireArgs) => {
   let subGroupElements: fhir4.ElementDefinition[] | undefined =
     structureDefinition?.differential?.element
 
-  if (minimal === true) {
+  if (minimalOnly === true) {
     const isChildElement = (
       element: fhir4.ElementDefinition,
       subGroupElements: fhir4.ElementDefinition[] | undefined
@@ -79,6 +79,10 @@ export const buildQuestionnaire = async (args: BuildQuestionnaireArgs) => {
       ) {
         subGroupElements?.push(element)
       }
+    })
+    subGroupElements = subGroupElements?.filter((element) => {
+      const keys = Object.keys(element)
+      return !keys.includes('fixed') && !keys.includes('pattern')
     })
   } else if (structureDefinition.snapshot?.element != null) {
     const meta = [
