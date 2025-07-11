@@ -651,9 +651,9 @@ export default async (options?: FastifyServerOptions) => {
           'supportedOnly',
           'valueBoolean'
         )
-        const minimal = valueFromParameters(
+        const minimalOnly = valueFromParameters(
           parameters,
-          'minimal',
+          'minimalOnly',
           'valueBoolean'
         )
         const terminologyEndpoint =
@@ -717,7 +717,7 @@ export default async (options?: FastifyServerOptions) => {
           contentEndpoint,
           terminologyEndpoint,
           supportedOnly,
-          minimal,
+          minimalOnly,
         }
 
         if (process.env.DEBUG != null) {
@@ -740,9 +740,9 @@ export default async (options?: FastifyServerOptions) => {
           'supportedOnly',
           'valueBoolean'
         )
-        const minimal = valueFromParameters(
+        const minimalOnly = valueFromParameters(
           parameters,
-          'minimal',
+          'minimalOnly',
           'valueBoolean'
         )
         const terminologyEndpoint =
@@ -804,7 +804,7 @@ export default async (options?: FastifyServerOptions) => {
           contentEndpoint,
           terminologyEndpoint,
           supportedOnly,
-          minimal,
+          minimalOnly,
         }
 
         if (process.env.DEBUG != null) {

@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
-import { questionnaireBaseUrl, getPathPrefix, is, inspect } from '../helpers'
+import { questionnaireBaseUrl, getPathPrefix, is, inspect, notEmpty } from '../helpers'
 import { buildQuestionnaireItemGroup } from './buildQuestionnaireItemGroup'
 import Resolver from '../resolver'
 import {
@@ -44,24 +44,31 @@ export const buildQuestionnaire = async (args: BuildQuestionnaireArgs) => {
     id: uuidv4(),
     resourceType: 'Questionnaire',
     description: `Questionnaire generated from ${structureDefinition.url}`,
-    status: 'draft'
+    status: 'active'
   }
+
   questionnaire.url = `${questionnaireBaseUrl}/Questionnaire/${questionnaire.id}`
 
-  const rootElement = structureDefinition.snapshot?.element.find(
-    (e) => e.path === structureDefinition.type
-  )
+  console.log(structureDefinition)
+  console.log(structureDefinition.differential)
+
+  const rootElement = structureDefinition.type
 
   // Add differential elements to process first
   let subGroupElements: fhir4.ElementDefinition[] | undefined =
-    structureDefinition?.differential?.element
+  structureDefinition?.differential?.element
 
   if (minimalOnly === true) {
+    const isFixedValue = (element: fhir4.ElementDefinition) => {
+      const keys = Object.keys(element)
+      return keys.find(key => key.startsWith('fixed')) || keys.find(key => key.startsWith('pattern')) || element.extension?.find(ext => ext.url === 'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-definitionExtractValue')
+    }
+    subGroupElements = subGroupElements?.filter((e) => !isFixedValue(e))
     const isChildElement = (
       element: fhir4.ElementDefinition,
       subGroupElements: fhir4.ElementDefinition[] | undefined
     ) => {
-      if (getPathPrefix(element.path) === rootElement?.path) {
+      if (getPathPrefix(element.path) === rootElement) {
         return true
       }
       // if the path prefix matches an item already in the array of subGroupElements, its parent has a cardinality of 1 and the element should be added for processing
@@ -80,10 +87,6 @@ export const buildQuestionnaire = async (args: BuildQuestionnaireArgs) => {
         subGroupElements?.push(element)
       }
     })
-    subGroupElements = subGroupElements?.filter((element) => {
-      const keys = Object.keys(element)
-      return !keys.includes('fixed') && !keys.includes('pattern')
-    })
   } else if (structureDefinition.snapshot?.element != null) {
     const meta = [
       'meta',
@@ -99,7 +102,7 @@ export const buildQuestionnaire = async (args: BuildQuestionnaireArgs) => {
       structureDefinition.snapshot?.element.filter(
         (element) =>
           !meta.some((metaElement) =>
-            element.path.startsWith(`${rootElement?.path}.${metaElement}`)
+            element.path.startsWith(`${rootElement}.${metaElement}`)
           ) && !subGroupElements?.some((e) => e.path === element.path)
       )
     )
@@ -119,10 +122,34 @@ export const buildQuestionnaire = async (args: BuildQuestionnaireArgs) => {
       {
         linkId: uuidv4(),
         type: 'group',
-        definition: `${structureDefinition.url}#${rootElement.path}`,
-        text: rootElement.short ?? rootElement.path
+        definition: `${structureDefinition.url}#${rootElement}`,
+        text: structureDefinition.title ?? structureDefinition.name ?? rootElement,
+        required: false,
+        repeats: true
       }
     ]
+
+    const extractionValueExtensions = structureDefinition.differential?.element?.flatMap(element => {
+      return element.extension?.map(extension => {
+        if (extension.url === 'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-definitionExtractValue') {
+          return extension
+        }
+        return null
+      }).filter(notEmpty)
+    }).filter(notEmpty)
+
+    if (extractionValueExtensions != null && extractionValueExtensions.length) {
+      const extractDefinitionExtension = {
+        "extension": [
+          {
+            "url": "definition",
+            "valueCanonical": structureDefinition.url
+          }
+        ],
+        "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-definitionExtract"
+      }
+      questionnaire.item[0].extension = [extractDefinitionExtension, ...extractionValueExtensions]
+    }
 
     const featureExpression = structureDefinition.extension?.find(
       (e) => e.url === CPG_FEATURE_EXPRESSION
@@ -137,7 +164,8 @@ export const buildQuestionnaire = async (args: BuildQuestionnaireArgs) => {
             url: 'name',
             valueCoding: {
               system: 'http://hl7.org/fhir/uv/sdc/CodeSystem/launchContext',
-              code: 'patient'
+              code: 'patient',
+              display: 'Patient'
             }
           },
           {
@@ -163,7 +191,7 @@ export const buildQuestionnaire = async (args: BuildQuestionnaireArgs) => {
     if (subGroupElements != null) {
       const childItems = await buildQuestionnaireItemGroup(
         structureDefinition,
-        rootElement.path,
+        rootElement,
         subGroupElements,
         terminologyResolver,
         contentResolver,
