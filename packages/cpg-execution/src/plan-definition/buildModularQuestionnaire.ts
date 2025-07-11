@@ -13,6 +13,7 @@ import {
 import Resolver from '../resolver'
 import { v4 as uuidv4 } from 'uuid'
 import { SDC_QUESTIONNAIRE_SUB_QUESTIONNAIRE } from '../constants'
+import { assembleQuestionnaire } from '../questionnaire/assembleQuestionnaire'
 
 const getNestedPlanDefinitions = async (
   planDefinition: fhir4.PlanDefinition,
@@ -195,5 +196,11 @@ export const buildModularQuestionnaire = async (
     modularQuestionnaire.item = items
   }
 
-  return modularQuestionnaire
+  const assembledQuestionnaire = await assembleQuestionnaire(
+    {questionnaire: modularQuestionnaire,
+    artifactEndpointConfigurable,
+    contentEndpoint}
+  )
+
+  return assembledQuestionnaire
 }
