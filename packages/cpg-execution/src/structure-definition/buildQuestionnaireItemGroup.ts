@@ -211,13 +211,17 @@ export const buildQuestionnaireItemGroup = async (
           )
         }
       }
-      if (!valueSetResource && terminologyResolver != null) {
+      if (
+        elementBinding?.valueSet &&
+        !valueSetResource &&
+        terminologyResolver != null
+      ) {
         try {
           valueSetResource = await terminologyResolver.resolveCanonical(
-            elementBinding?.valueSet
+            elementBinding.valueSet
           )
         } catch (e) {
-          console.warn(`Unable to find ValueSet ${elementBinding?.valueSet}`)
+          console.warn(`Unable to find ValueSet ${elementBinding.valueSet}`)
         }
       }
       // Expansion will be used to resolve codes and to set answerOption
