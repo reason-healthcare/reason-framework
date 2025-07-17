@@ -63,10 +63,6 @@ export const buildQuestionnaire = async (args: BuildQuestionnaireArgs) => {
 
   questionnaire.url = `${questionnaireBaseUrl}/Questionnaire/${questionnaire.id}`
 
-  // Add differential elements to process first
-  let elementsToProcess: fhir4.ElementDefinition[] | undefined =
-    differential?.element ?? []
-
   const meta = [
     'meta',
     'id',
@@ -78,17 +74,7 @@ export const buildQuestionnaire = async (args: BuildQuestionnaireArgs) => {
     'modifierExtension'
   ]
 
-  // Add snapshot elements to process if not already in differential
-  if (snapshot?.element != null) {
-    elementsToProcess = elementsToProcess.concat(
-      snapshot?.element.filter(
-        (element) =>
-          !meta.some((metaElement) =>
-            element.path.startsWith(`${rootElement}.${metaElement}`)
-          ) && !elementsToProcess?.some((e) => e.path === element.path)
-      )
-    )
-  }
+  let elementsToProcess: fhir4.ElementDefinition[] = []
 
   if (minimalOnly === true) {
     const isFixedValue = (element: fhir4.ElementDefinition) => {
@@ -103,6 +89,8 @@ export const buildQuestionnaire = async (args: BuildQuestionnaireArgs) => {
         )
       )
     }
+    const differentialMinimalElements =
+      differential?.element?.filter((element) => !isFixedValue(element)) ?? []
     const isChildElement = (
       element: fhir4.ElementDefinition,
       elementsToProcess: fhir4.ElementDefinition[] | undefined
@@ -116,12 +104,25 @@ export const buildQuestionnaire = async (args: BuildQuestionnaireArgs) => {
       )
     }
     // Only add snapshot elements if cardinality of 1
-    elementsToProcess = elementsToProcess.filter(
-      (element) =>
-        element.min &&
-        element.min > 0 &&
-        isChildElement(element, elementsToProcess) &&
-        !isFixedValue(element)
+    elementsToProcess = differentialMinimalElements.concat(
+      elementsToProcess.filter(
+        (element) =>
+          element.min &&
+          element.min > 0 &&
+          isChildElement(element, elementsToProcess) &&
+          !isFixedValue(element) &&
+          !differentialMinimalElements?.some((e) => e.path === element.path)
+      )
+    )
+  } else {
+    const differentialElements = differential?.element ?? []
+    elementsToProcess = differentialElements.concat(
+      snapshot?.element.filter(
+        (element) =>
+          !meta.some((metaElement) =>
+            element.path.startsWith(`${rootElement}.${metaElement}`)
+          ) && !elementsToProcess?.some((e) => e.path === element.path)
+      ) ?? []
     )
   }
 
