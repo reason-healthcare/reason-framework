@@ -88,6 +88,7 @@ Archive a completed change in the experimental workflow.
    - Change name
    - Schema that was used
    - Archive location
+   - If this change is linked from an epic ledger, update that candidate row to `archived` and point `Linked Change` at the archive location
    - Whether specs were synced (if applicable)
    - Note about any warnings (incomplete artifacts/tasks)
 
@@ -109,6 +110,7 @@ All artifacts complete. All tasks complete.
 - Use artifact graph (openspec status --json) for completion checking
 - Don't block archive on warnings - just inform and confirm
 - Preserve .openspec.yaml when moving to archive (it moves with the directory)
+- If the change came from an epic, keep the epic's candidate change ledger in sync with the archive result
 - Show clear summary of what happened
 - If sync is requested, use openspec-sync-specs approach (agent-driven)
 - If delta specs exist, always run the sync assessment and show the combined summary before prompting
