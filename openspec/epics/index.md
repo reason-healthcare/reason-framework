@@ -19,4 +19,5 @@ Use this folder to capture product and platform work before it becomes an implem
 |------|----------|--------|-------|
 | `apply-form-patient-data-loading` | high | in-progress | `design-patient-loading-modes` implemented (38 tasks, 41 tests); pending archive |
 | `questionnaire-agent-recommendations` | high | proposed | Add item-level recommended answers with rationale and user accept/reject |
+| `fhir-endpoint-config-panel` | high | proposed | Toggleable FHIR endpoint configuration panel with per-endpoint connection status indicators for the apply form |
 | `fhir-terminology-server-auth` | medium | deferred | Authentication config for FHIR and terminology servers; deferred until after patient loading UX ships |

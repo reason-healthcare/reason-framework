@@ -3,7 +3,7 @@
 import { List, Tag, Typography } from 'antd'
 import { ClockCircleOutlined, ClearOutlined } from '@ant-design/icons'
 import { useState, useEffect } from 'react'
-import { getAllPatients, clearAll, PatientSummary } from 'lib/recentPatientsStore'
+import { getAllPatients, clearAll, PatientSummary } from 'utils/recentPatientsStore'
 
 const { Text } = Typography
 

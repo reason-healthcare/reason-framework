@@ -3,18 +3,14 @@ schema: spec-driven
 # Project context (optional)
 # This is shown to AI when creating artifacts.
 # Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  Tech stack: TypeScript, React, Next.js, Node.js, antd (Ant Design), Jest, Testing Library
+  Monorepo packages: cpg-execution (library), cpg-review (Next.js app), cds-service (Express server), cpg-test-support (Cucumber e2e)
+  We use conventional commits
+  Domain: FHIR-based Clinical Practice Guideline execution and review
 
 # Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+rules:
+  tasks:
+    - After completing each task, run `npx tsc --noEmit` in the affected package and resolve any type errors before moving to the next task
+    - For CPG-review package, Run the package test suite (`cd packages/cpg-review && npx jest --no-coverage`) after all tasks are complete and ensure no new failures are introduced

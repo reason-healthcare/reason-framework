@@ -57,8 +57,8 @@ jest.mock('antd', () => {
 })
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
-jest.mock('lib/fhirClient', () => ({ fhirClient: jest.fn() }))
-jest.mock('lib/recentPatientsStore', () => ({
+jest.mock('utils/fhirClient', () => ({ fhirClient: jest.fn() }))
+jest.mock('utils/recentPatientsStore', () => ({
   addPatient: jest.fn(),
   renderPatientName: jest.fn((names: any[]) => {
     if (!names?.length) return 'Unknown'
@@ -67,8 +67,8 @@ jest.mock('lib/recentPatientsStore', () => ({
   }),
 }))
 
-import { fhirClient } from 'lib/fhirClient'
-import { addPatient } from 'lib/recentPatientsStore'
+import { fhirClient } from 'utils/fhirClient'
+import { addPatient } from 'utils/recentPatientsStore'
 
 const mockFhirClient = fhirClient as jest.MockedFunction<typeof fhirClient>
 

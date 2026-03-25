@@ -4,7 +4,7 @@ import { Input, Segmented, Tooltip, Typography } from 'antd'
 import { useEffect, useState } from 'react'
 import FhirPatientSearchPanel from 'components/apply-form/FhirPatientSearchPanel'
 import RecentPatientsPanel from 'components/apply-form/RecentPatientsPanel'
-import { getAllPatients, PatientSummary } from 'lib/recentPatientsStore'
+import { getAllPatients, PatientSummary } from 'utils/recentPatientsStore'
 
 const { Text } = Typography
 
@@ -50,7 +50,7 @@ const PatientLoadModeSwitcher = ({
   }
 
   const options = [
-    { value: 'manual', label: 'Manual' },
+    { value: 'manual', label: 'FHIR Bundle' },
     {
       value: 'fhir',
       label: (
