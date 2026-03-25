@@ -2,14 +2,14 @@ import React from 'react'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import RecentPatientsPanel from 'components/apply-form/RecentPatientsPanel'
-import { PatientSummary } from 'lib/recentPatientsStore'
+import { PatientSummary } from 'utils/recentPatientsStore'
 
-jest.mock('lib/recentPatientsStore', () => ({
+jest.mock('utils/recentPatientsStore', () => ({
   getAllPatients: jest.fn(),
   clearAll: jest.fn(),
 }))
 
-import { getAllPatients, clearAll } from 'lib/recentPatientsStore'
+import { getAllPatients, clearAll } from 'utils/recentPatientsStore'
 
 const mockGetAllPatients = getAllPatients as jest.MockedFunction<typeof getAllPatients>
 const mockClearAll = clearAll as jest.MockedFunction<typeof clearAll>

@@ -2,10 +2,13 @@ import '@/styles/narrativeDisplay.css'
 import { Alert, Form, Input, message, Spin, Steps } from 'antd'
 import { ApplyPayload } from 'api/apply/route'
 import { is } from 'helpers'
-import { ChangeEvent, useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import QuestionnaireRenderer from './QuestionnaireRenderer'
 import PatientLoadModeSwitcher from 'components/apply-form/PatientLoadModeSwitcher'
-import { addPatient, PatientSummary, renderPatientName } from 'lib/recentPatientsStore'
+import EndpointsConfiguration, {
+  EndpointsConfigurationHandle,
+} from 'components/apply-form/EndpointsConfiguration'
+import { addPatient, PatientSummary, renderPatientName } from 'utils/recentPatientsStore'
 import '@/styles/applyForm.css'
 import { LoadingOutlined } from '@ant-design/icons'
 import { SidePanelView } from 'page'
@@ -53,6 +56,7 @@ const ApplyForm = ({
   const [isApplied, setIsApplied] = useState(false)
   const [isApplying, setIsApplying] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
+  const endpointsRef = useRef<EndpointsConfigurationHandle>(null)
 
   const clearApplyOutputs = () => {
     setQuestionnaireResponseServer(undefined)
@@ -72,14 +76,11 @@ const ApplyForm = ({
     resetApplyUiState()
     setDataPayload(undefined)
     setSubjectPayload(undefined)
-    setCpgEngineEndpointPayload(undefined)
-    setContentEndpointPayload(undefined)
-    setTxEndpointPayload(undefined)
-    setDataEndpointPayload(undefined)
     setQuestionnaireResponseServer(undefined)
     setUserQuestionnaireResponse(undefined)
     form.resetFields()
     localStorage.removeItem('applyPayload')
+    endpointsRef.current?.reset()
   }
 
   const isValidEndpointFormat = (endpoint: string) => {
@@ -208,16 +209,6 @@ const ApplyForm = ({
   const handlePatientSelect = (subject: string, summary: PatientSummary) => {
     setSubjectPayload(subject)
   }
-  const handleEngineEndpointChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setCpgEngineEndpointPayload(e.target.value)
-  }
-  const handleContentEndpointChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setContentEndpointPayload(e.target.value)
-  }
-  const handleTxEndpointChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setTxEndpointPayload(e.target.value)
-  }
-
   const handleApply = async (payload: any) => {
     if (isValidForm(payload)) {
       setIsApplying(true)
@@ -325,17 +316,13 @@ const ApplyForm = ({
           className="form apply-form"
           autoComplete="off"
         >
-          <Form.Item name="data-endpoint" className="form-item">
-            <h1 className="form-title">Data Endpoint</h1>
-            <p className="form-description">
-              FHIR server used as the <code>dataEndpoint</code> for{' '}
-              <code>$apply</code>. Used to search for patients and to supply
-              clinical data to the CPG engine.
-            </p>
-            <Input
-              placeholder="http://localhost:8080/fhir"
-              onChange={(e) => setDataEndpointPayload(e.target.value)}
-              value={dataEndpointPayload}
+          <Form.Item name="endpoints-configuration" className="form-item">
+            <EndpointsConfiguration
+              ref={endpointsRef}
+              onCpgEngineEndpointChange={setCpgEngineEndpointPayload}
+              onContentEndpointChange={setContentEndpointPayload}
+              onTxEndpointChange={setTxEndpointPayload}
+              onDataEndpointChange={setDataEndpointPayload}
             />
           </Form.Item>
           <Form.Item name="patient-context" className="form-item">
@@ -349,41 +336,7 @@ const ApplyForm = ({
               onPatientSelect={handlePatientSelect}
             />
           </Form.Item>
-          <Form.Item name="cpg-engine-endpoint" className="form-item">
-            <h1 className="form-title">CPG Engine Endpoint</h1>
-            <p className="form-description">Set CPG engine endpoint address</p>
-            <Input
-              placeholder="http://localhost:8080/fhir/PlanDefinition/$r5.apply"
-              onChange={handleEngineEndpointChange}
-              defaultValue={
-                cpgEngineEndpointPayload ??
-                'http://localhost:8080/fhir/PlanDefinition/$r5.apply'
-              }
-              value={cpgEngineEndpointPayload}
-            />
-          </Form.Item>
-          <Form.Item name="content-endpoint" className="form-item">
-            <h1 className="form-title">Content Endpoint</h1>
-            <p className="form-description">Set content endpoint address</p>
-            <Input
-              placeholder="http://localhost:8080/fhir"
-              onChange={handleContentEndpointChange}
-              defaultValue={contentEndpoint ?? 'http://localhost:8080/fhir'}
-              value={contentEndpointPayload}
-            />
-          </Form.Item>
-          <Form.Item name="terminology-endpoint" className="form-item">
-            <h1 className="form-title">Terminology Endpoint</h1>
-            <p className="form-description">
-              Set terminology endpoint address.
-            </p>
-            <Input
-              placeholder="http://tx.fhir.org"
-              onChange={handleTxEndpointChange}
-              defaultValue={contentEndpoint ?? 'http://localhost:8080/fhir'}
-              value={txEndpointPayload}
-            />
-          </Form.Item>
+
           {isApplying ? (
             <Form.Item className="button-group">
               <button

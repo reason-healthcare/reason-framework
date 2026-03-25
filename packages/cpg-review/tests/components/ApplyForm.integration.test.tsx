@@ -26,18 +26,18 @@ jest.mock('api/apply/route', () => ({
   ApplyPayload: undefined, // type-only export, no runtime value needed
 }))
 
-jest.mock('lib/recentPatientsStore', () => ({
+jest.mock('utils/recentPatientsStore', () => ({
   addPatient: jest.fn(),
   renderPatientName: jest.fn((names: any[]) => (names?.[0]?.family ?? 'Unknown')),
   getAllPatients: jest.fn(() => []),
 }))
 
-jest.mock('lib/fhirClient', () => ({
+jest.mock('utils/fhirClient', () => ({
   fhirClient: jest.fn(),
 }))
 
-import { addPatient } from 'lib/recentPatientsStore'
-import { fhirClient } from 'lib/fhirClient'
+import { addPatient } from 'utils/recentPatientsStore'
+import { fhirClient } from 'utils/fhirClient'
 
 const mockAddPatient = addPatient as jest.MockedFunction<typeof addPatient>
 const mockFhirClient = fhirClient as jest.MockedFunction<typeof fhirClient>

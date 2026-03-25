@@ -62,5 +62,6 @@ function example() {
 
 ## Validation Before Handoff
 
+- **Always run `npx tsc --noEmit` in the affected package before marking a task complete.** TypeScript errors must be resolved — do not leave type errors introduced by your changes.
 - Run the narrowest relevant command first (package tests/lint/build), then broader checks as needed.
 - For cross-package changes, run `npm run build` at the repository root.

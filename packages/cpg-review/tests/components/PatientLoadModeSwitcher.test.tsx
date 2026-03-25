@@ -16,11 +16,11 @@ jest.mock('components/apply-form/RecentPatientsPanel', () => ({
   default: () => <div data-testid="recent-panel">Recent Panel</div>,
 }))
 
-jest.mock('lib/recentPatientsStore', () => ({
+jest.mock('utils/recentPatientsStore', () => ({
   getAllPatients: jest.fn(),
 }))
 
-import { getAllPatients } from 'lib/recentPatientsStore'
+import { getAllPatients } from 'utils/recentPatientsStore'
 const mockGetAllPatients = getAllPatients as jest.MockedFunction<typeof getAllPatients>
 
 const BASE_PROPS = {

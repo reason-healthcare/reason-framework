@@ -3,8 +3,8 @@
 import { Select, Typography } from 'antd'
 import { WarningOutlined } from '@ant-design/icons'
 import { useRef, useState } from 'react'
-import { fhirClient } from 'lib/fhirClient'
-import { addPatient, renderPatientName, PatientSummary } from 'lib/recentPatientsStore'
+import { fhirClient } from 'utils/fhirClient'
+import { addPatient, renderPatientName, PatientSummary } from 'utils/recentPatientsStore'
 
 const { Text } = Typography
 
