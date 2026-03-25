@@ -34,15 +34,13 @@
 
 /* ── Teal overrides for patient context components ── */
 
-/* Tabs active tab text + ink bar */
-.ant-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+/* Segmented active item fill */
+.ant-segmented .ant-segmented-item-selected {
+  background-color: var(--teal) !important;
+  color: #fff !important;
+}
+.ant-segmented .ant-segmented-item:hover:not(.ant-segmented-item-selected):not(.ant-segmented-item-disabled) {
   color: var(--teal) !important;
-}
-.ant-tabs .ant-tabs-ink-bar {
-  background-color: var(--brTeal) !important;
-}
-.ant-tabs .ant-tabs-tab:hover {
-  color: var(--brTeal) !important;
 }
 
 /* Patient list item hover */
