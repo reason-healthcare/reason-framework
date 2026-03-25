@@ -17,4 +17,6 @@ Use this folder to capture product and platform work before it becomes an implem
 
 | Epic | Priority | Status | Notes |
 |------|----------|--------|-------|
-| _Add epics here_ |  |  |  |
+| `apply-form-patient-data-loading` | high | proposed | Add in-form patient data loading UX and validation for apply flow; unauthenticated servers only in v1 |
+| `questionnaire-agent-recommendations` | high | proposed | Add item-level recommended answers with rationale and user accept/reject |
+| `fhir-terminology-server-auth` | medium | deferred | Authentication config for FHIR and terminology servers; deferred until after patient loading UX ships |
