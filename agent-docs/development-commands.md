@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Node.js `18.17.0` (see `.tool-versions`).
+- Node.js `20.19.0` or newer `20.x` (see `.tool-versions`).
 - For Implementation Guide generation: Java 17, Ruby 3.1, and `fsh-sushi`.
 
 ## Root Commands
