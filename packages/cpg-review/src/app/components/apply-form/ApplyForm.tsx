@@ -1,10 +1,11 @@
 import '@/styles/narrativeDisplay.css'
 import { Alert, Form, Input, message, Spin, Steps } from 'antd'
-import TextArea from 'antd/es/input/TextArea'
 import { ApplyPayload } from 'api/apply/route'
 import { is } from 'helpers'
 import { ChangeEvent, useEffect, useState } from 'react'
 import QuestionnaireRenderer from './QuestionnaireRenderer'
+import PatientLoadModeSwitcher from 'components/apply-form/PatientLoadModeSwitcher'
+import { addPatient, PatientSummary, renderPatientName } from 'lib/recentPatientsStore'
 import '@/styles/applyForm.css'
 import { LoadingOutlined } from '@ant-design/icons'
 import { SidePanelView } from 'page'
@@ -39,6 +40,9 @@ const ApplyForm = ({
   const [txEndpointPayload, setTxEndpointPayload] = useState<
     string | undefined
   >('http://localhost:8080/fhir')
+  const [dataEndpointPayload, setDataEndpointPayload] = useState<
+    string | undefined
+  >('http://localhost:8080/fhir')
   const [questionnaireResponseServer, setQuestionnaireResponseServer] =
     useState<fhir4.QuestionnaireResponse>()
   const [userQuestionnaireResponse, setUserQuestionnaireResponse] =
@@ -71,6 +75,9 @@ const ApplyForm = ({
     setCpgEngineEndpointPayload(undefined)
     setContentEndpointPayload(undefined)
     setTxEndpointPayload(undefined)
+    setDataEndpointPayload(undefined)
+    setQuestionnaireResponseServer(undefined)
+    setUserQuestionnaireResponse(undefined)
     form.resetFields()
     localStorage.removeItem('applyPayload')
   }
@@ -115,6 +122,7 @@ const ApplyForm = ({
         cpgEngineEndpointPayload,
         contentEndpointPayload,
         txEndpointPayload,
+        dataEndpointPayload,
         planDefinition,
         questionnaire,
       }
@@ -132,12 +140,14 @@ const ApplyForm = ({
         cpgEngineEndpointPayload,
         contentEndpointPayload,
         txEndpointPayload,
+        dataEndpointPayload,
       } = payload
       setDataPayload(dataPayload)
       setSubjectPayload(subjectPayload)
       setCpgEngineEndpointPayload(cpgEngineEndpointPayload)
       setContentEndpointPayload(contentEndpointPayload)
       setTxEndpointPayload(txEndpointPayload)
+      if (dataEndpointPayload) setDataEndpointPayload(dataEndpointPayload)
     }
   }, [])
 
@@ -156,9 +166,9 @@ const ApplyForm = ({
       contentEndpointPayload,
       txEndpointPayload,
     } = payload
-    if (dataPayload == undefined) {
+    if (dataPayload == undefined && !payload.dataEndpointPayload) {
       message.error(
-        'Context data is required in the form of a FHIR JSON Bundle'
+        'Either context data (FHIR JSON Bundle) or a data endpoint is required'
       )
       return false
     }
@@ -189,11 +199,14 @@ const ApplyForm = ({
     )
   }
 
-  const handleDataChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    setDataPayload(e.target.value)
+  const handleDataChange = (val: string | undefined) => {
+    setDataPayload(val)
   }
-  const handleSubjectChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setSubjectPayload(e.target.value)
+  const handleSubjectChange = (val: string) => {
+    setSubjectPayload(val)
+  }
+  const handlePatientSelect = (subject: string, summary: PatientSummary) => {
+    setSubjectPayload(subject)
   }
   const handleEngineEndpointChange = (e: ChangeEvent<HTMLInputElement>) => {
     setCpgEngineEndpointPayload(e.target.value)
@@ -277,6 +290,7 @@ const ApplyForm = ({
       cpgEngineEndpointPayload: cpgEngineEndpointPayload?.trim(),
       contentEndpointPayload: contentEndpointPayload?.trim(),
       txEndpointPayload: txEndpointPayload?.trim(),
+      dataEndpointPayload: dataEndpointPayload?.trim(),
       planDefinition,
     }
     localStorage.setItem('applyPayload', JSON.stringify(payload))
@@ -311,21 +325,28 @@ const ApplyForm = ({
           className="form apply-form"
           autoComplete="off"
         >
-          <Form.Item name="context-data" className="form-item">
-            <h1 className="form-title">Context</h1>
+          <Form.Item name="data-endpoint" className="form-item">
+            <h1 className="form-title">Data Endpoint</h1>
             <p className="form-description">
-              Add context data as a FHIR JSON Bundle.
+              FHIR server used as the <code>dataEndpoint</code> for{' '}
+              <code>$apply</code>. Used to search for patients and to supply
+              clinical data to the CPG engine.
             </p>
-            <TextArea onChange={handleDataChange} value={dataPayload} />
-          </Form.Item>
-          <Form.Item name="subject" className="form-item">
-            <h1 className="form-title">Subject</h1>
-            <p className="form-description">Set reference to subject.</p>
             <Input
-              placeholder="Patient/Patient-1"
-              defaultValue="Patient/Patient1"
-              onChange={handleSubjectChange}
-              value={subjectPayload}
+              placeholder="http://localhost:8080/fhir"
+              onChange={(e) => setDataEndpointPayload(e.target.value)}
+              value={dataEndpointPayload}
+            />
+          </Form.Item>
+          <Form.Item name="patient-context" className="form-item">
+            <h1 className="form-title">Patient Context</h1>
+            <PatientLoadModeSwitcher
+              dataEndpointUrl={dataEndpointPayload}
+              dataPayload={dataPayload}
+              onDataPayloadChange={handleDataChange}
+              subjectPayload={subjectPayload}
+              onSubjectChange={handleSubjectChange}
+              onPatientSelect={handlePatientSelect}
             />
           </Form.Item>
           <Form.Item name="cpg-engine-endpoint" className="form-item">

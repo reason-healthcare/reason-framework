@@ -15,6 +15,7 @@ export interface ApplyPayload {
   cpgEngineEndpointPayload: string
   contentEndpointPayload: string
   txEndpointPayload: string
+  dataEndpointPayload?: string
   planDefinition: fhir4.PlanDefinition
   questionnaire: fhir4.Questionnaire | undefined
 }
@@ -26,6 +27,7 @@ export async function POST(req: NextRequest) {
     cpgEngineEndpointPayload,
     contentEndpointPayload,
     txEndpointPayload,
+    dataEndpointPayload,
     planDefinition,
     questionnaire,
   } = (await req.json()) as ApplyPayload
@@ -68,6 +70,30 @@ export async function POST(req: NextRequest) {
         name: 'subject',
         valueString: subjectPayload,
       },
+      ...(dataEndpointPayload
+        ? [
+            {
+              name: 'dataEndpoint',
+              resource: {
+                resourceType: 'Endpoint',
+                address: dataEndpointPayload,
+                status: 'active',
+                payloadType: [
+                  {
+                    coding: [
+                      {
+                        code: 'data',
+                      },
+                    ],
+                  },
+                ],
+                connectionType: {
+                  code: 'hl7-fhir-rest',
+                },
+              } as fhir4.Endpoint,
+            },
+          ]
+        : []),
       {
         name: 'contentEndpoint',
         resource: {

@@ -32,6 +32,25 @@
   color: #fff !important;
 }
 
+/* ── Teal overrides for patient context components ── */
+
+/* Tabs active tab text + ink bar */
+.ant-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: var(--teal) !important;
+}
+.ant-tabs .ant-tabs-ink-bar {
+  background-color: var(--brTeal) !important;
+}
+.ant-tabs .ant-tabs-tab:hover {
+  color: var(--brTeal) !important;
+}
+
+/* Patient list item hover */
+.ant-list .patient-list-item:hover {
+  background-color: var(--ltTeal);
+  transition: background-color 0.15s ease;
+}
+
 .success-alert {
   display: flex;
   gap: 0.8rem;

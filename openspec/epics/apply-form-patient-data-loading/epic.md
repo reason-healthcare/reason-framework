@@ -1,7 +1,7 @@
 # Apply Form Patient Data Loading
 
 - **Slug:** `apply-form-patient-data-loading`
-- **Status:** proposed
+- **Status:** in-progress
 - **Priority:** high
 - **Owner:** cpg-review
 
@@ -36,10 +36,7 @@ Use this table as the epic progress ledger. Update it when a change is proposed,
 
 | Candidate Change | Summary | Why now | Readiness | Status | Linked Change | Notes |
 |------------------|---------|---------|-----------|--------|---------------|-------|
-| `design-patient-loading-modes` | Define UX for two-mode loading (existing manual + FHIR server picker), mode switcher layout, and validation states | Must be resolved before implementation to prevent rework | ready | not-started | `openspec/changes/design-patient-loading-modes` | Cover empty, loading, error, and populated states for both modes |
-| `implement-fhir-server-patient-search` | Add FHIR server patient search panel to apply form with configurable server URL and patient query | Core new capability; unblocks recent-patients feature | needs-design | not-started | `openspec/changes/implement-fhir-server-patient-search` | Unauthenticated servers only; HTTP fetch layer must be abstracted to allow auth injection later without rework |
-| `implement-recent-patients-tab` | Track patients from both loading modes in a localStorage-backed recent patients tab for fast re-selection | Reduces repeated search friction across sessions for all users regardless of load mode | needs-design | not-started | `openspec/changes/implement-recent-patients-tab` | FHIR entries scoped per server URL; manual entries stored under a generic key; shared max recents limit applies across both |
-| `integrate-patient-modes-apply-form` | Wire both loading modes into apply form state so either path populates patient context before submit | Connects all pieces into the full user flow | needs-design | not-started | `openspec/changes/integrate-patient-modes-apply-form` | Depends on FHIR search and recent-patients changes |
+| `design-patient-loading-modes` | Two-mode patient loading UX (manual + FHIR data endpoint searchable dropdown), mode switcher, recent patients tab, localStorage store, apply form integration, fhirClient abstraction, Jest setup | All three originally separate changes were implemented together as a single cohesive change | ready | archived | `openspec/changes/archive/2026-03-25-design-patient-loading-modes` | Absorbed `implement-fhir-server-patient-search`, `implement-recent-patients-tab`, and `integrate-patient-modes-apply-form`; all 38 tasks complete; 41 tests passing; delta specs synced to `openspec/specs/` |
 
 ## Dependencies
 - Existing apply form architecture in `packages/cpg-review`.
