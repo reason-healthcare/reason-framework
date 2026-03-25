@@ -3,7 +3,7 @@ import { ValueSet } from 'cql-execution'
 import Cache from '../cache'
 import { Resolver } from '../resolver'
 import BaseResolver from './base'
-import { canonicalResources, inspect, is, notEmpty } from '../helpers'
+import { canonicalResources, inspect, is, nonPatientScopedResources, notEmpty } from '../helpers'
 
 class RestResolver extends BaseResolver implements Resolver {
   client: Client
@@ -69,7 +69,7 @@ class RestResolver extends BaseResolver implements Resolver {
     patient?: string | undefined
   ) {
     const searchParams: any = { _count: 1000 }
-    if (patient != null) {
+    if (patient != null && !nonPatientScopedResources.includes(resourceType)) {
       searchParams.patient = patient
     }
     const bundle = await this.client.search({

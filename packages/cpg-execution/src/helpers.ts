@@ -44,6 +44,24 @@ export const canonicalResources = [
   'ValueSet'
 ]
 
+/**
+ * Resource types that do not support patient-scoped search in FHIR R4.
+ * Canonical/definitional resources plus infrastructure resources that are
+ * patient-independent. Callers should NOT append a `patient` search param
+ * when retrieving these resource types from a REST endpoint.
+ */
+export const nonPatientScopedResources = [
+  ...canonicalResources,
+  // Clinical/infrastructure resources with no `patient` search parameter in R4
+  'HealthcareService',
+  'Location',
+  'Medication',
+  'Organization',
+  'Practitioner',
+  'PractitionerRole',
+  'Substance'
+]
+
 export type CanonicalResource =
   | fhir4.ActivityDefinition
   | fhir4.CapabilityStatement
