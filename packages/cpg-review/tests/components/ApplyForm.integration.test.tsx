@@ -177,15 +177,13 @@ describe('Task 7.5 – FHIR tab patient selection updates subject', () => {
     renderForm()
 
     // Switch to FHIR tab (it's enabled because Data Endpoint field defaults to http://localhost:8080/fhir)
-    const fhirTab = screen.getByRole('tab', { name: /fhir data endpoint/i })
-    await userEvent.click(fhirTab)
+    await userEvent.click(screen.getByText('FHIR Data Endpoint'))
 
     // Use the stub to select a patient
     await userEvent.click(screen.getByRole('button', { name: /select fhir patient/i }))
 
     // Switch back to Manual tab to verify subject was set
-    const manualTab = screen.getByRole('tab', { name: /manual/i })
-    await userEvent.click(manualTab)
+    await userEvent.click(screen.getByText('Manual'))
 
     await waitFor(() => {
       const subjectInput = screen.getByDisplayValue('Patient/fhir-pt')

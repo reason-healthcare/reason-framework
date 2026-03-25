@@ -39,49 +39,52 @@ describe('PatientLoadModeSwitcher', () => {
     mockGetAllPatients.mockReturnValue([])
   })
 
-  it('renders the three tabs', () => {
+  it('renders the three segment options', () => {
     render(<PatientLoadModeSwitcher {...BASE_PROPS} />)
-    expect(screen.getByRole('tab', { name: /manual/i })).toBeInTheDocument()
-    expect(screen.getByRole('tab', { name: /fhir data endpoint/i })).toBeInTheDocument()
-    expect(screen.getByRole('tab', { name: /recent/i })).toBeInTheDocument()
+    expect(screen.getByText('Manual')).toBeInTheDocument()
+    expect(screen.getByText('FHIR Data Endpoint')).toBeInTheDocument()
+    expect(screen.getByText('Recent')).toBeInTheDocument()
   })
 
-  it('defaults to Manual tab', () => {
+  it('defaults to Manual content', () => {
     render(<PatientLoadModeSwitcher {...BASE_PROPS} />)
-    const manualTab = screen.getByRole('tab', { name: /manual/i })
-    expect(manualTab).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('heading', { name: /Context Data/i })).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Patient/Patient-1')).toBeInTheDocument()
   })
 
-  it('disables the FHIR tab when no dataEndpointUrl', () => {
+  it('does not show FHIR panel when FHIR option is disabled (no endpoint)', async () => {
     render(<PatientLoadModeSwitcher {...BASE_PROPS} dataEndpointUrl={undefined} />)
-    const fhirTab = screen.getByRole('tab', { name: /fhir data endpoint/i })
-    expect(fhirTab).toHaveAttribute('aria-disabled', 'true')
+    await userEvent.click(screen.getByText('FHIR Data Endpoint'))
+    // Manual content should still be visible — disabled option can't activate
+    expect(screen.getByRole('heading', { name: /Context Data/i })).toBeInTheDocument()
+    expect(screen.queryByTestId('fhir-panel')).not.toBeInTheDocument()
   })
 
-  it('disables the Recent tab when there are no recent patients', () => {
+  it('does not show Recent panel when Recent option is disabled (no recents)', async () => {
     mockGetAllPatients.mockReturnValue([])
     render(<PatientLoadModeSwitcher {...BASE_PROPS} />)
-    const recentTab = screen.getByRole('tab', { name: /recent/i })
-    expect(recentTab).toHaveAttribute('aria-disabled', 'true')
+    await userEvent.click(screen.getByText('Recent'))
+    expect(screen.getByRole('heading', { name: /Context Data/i })).toBeInTheDocument()
+    expect(screen.queryByTestId('recent-panel')).not.toBeInTheDocument()
   })
 
-  it('enables the Recent tab when recent patients exist', () => {
+  it('enables and activates Recent option when recent patients exist', async () => {
     mockGetAllPatients.mockReturnValue([
       { id: 'p1', name: 'Alice', source: 'manual', addedAt: new Date().toISOString() } as any,
     ])
     render(<PatientLoadModeSwitcher {...BASE_PROPS} />)
-    const recentTab = screen.getByRole('tab', { name: /recent/i })
-    expect(recentTab).not.toHaveAttribute('aria-disabled', 'true')
+    await userEvent.click(screen.getByText('Recent'))
+    expect(screen.getByTestId('recent-panel')).toBeInTheDocument()
   })
 
-  it('switches to FHIR panel on tab click and persists to sessionStorage', async () => {
+  it('switches to FHIR panel on option click and persists to sessionStorage', async () => {
     render(<PatientLoadModeSwitcher {...BASE_PROPS} />)
-    await userEvent.click(screen.getByRole('tab', { name: /fhir data endpoint/i }))
+    await userEvent.click(screen.getByText('FHIR Data Endpoint'))
     expect(screen.getByTestId('fhir-panel')).toBeInTheDocument()
     expect(sessionStorage.getItem('cpg-review:patient-load-mode')).toBe('fhir')
   })
 
-  it('restores last active tab from sessionStorage', () => {
+  it('restores last active segment from sessionStorage', () => {
     sessionStorage.setItem('cpg-review:patient-load-mode', 'fhir')
     mockGetAllPatients.mockReturnValue([])
     render(<PatientLoadModeSwitcher {...BASE_PROPS} />)

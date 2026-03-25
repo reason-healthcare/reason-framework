@@ -53,30 +53,35 @@ const RecentPatientsPanel = ({ endpointUrl, onPatientSelect }: RecentPatientsPan
         </button>
       </div>
 
-      <List
-        size="small"
-        bordered
-        dataSource={patients}
-        renderItem={(p) => (
-          <List.Item
-            className="patient-list-item"
-            style={{ cursor: 'pointer' }}
-            extra={
-              <Tag color={p.source === 'endpoint' ? 'blue' : 'default'}>
-                {p.source === 'endpoint' ? 'Data Endpoint' : 'Manual'}
-              </Tag>
-            }
-            onClick={() => handleSelect(p)}
-          >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Text strong>{p.name || `Patient/${p.id}`}</Text>
-              <Text type="secondary" style={{ fontSize: '12px' }}>
-                DOB: {p.dob ?? '—'} &nbsp;·&nbsp; Gender: {p.gender ?? '—'} &nbsp;·&nbsp; ID: {p.id}
-              </Text>
-            </div>
-          </List.Item>
-        )}
-      />
+      <div
+        className="recent-patients-scroll"
+        style={{ maxHeight: 320, overflowY: 'auto' }}
+      >
+        <List
+          size="small"
+          bordered
+          dataSource={patients}
+          renderItem={(p) => (
+            <List.Item
+              className="patient-list-item"
+              style={{ cursor: 'pointer' }}
+              extra={
+                <Tag color={p.source === 'endpoint' ? 'blue' : 'default'}>
+                  {p.source === 'endpoint' ? 'Data Endpoint' : 'Manual'}
+                </Tag>
+              }
+              onClick={() => handleSelect(p)}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Text strong>{p.name || `Patient/${p.id}`}</Text>
+                <Text type="secondary" style={{ fontSize: '12px' }}>
+                  DOB: {p.dob ?? '—'} &nbsp;·&nbsp; Gender: {p.gender ?? '—'} &nbsp;·&nbsp; ID: {p.id}
+                </Text>
+              </div>
+            </List.Item>
+          )}
+        />
+      </div>
     </div>
   )
 }

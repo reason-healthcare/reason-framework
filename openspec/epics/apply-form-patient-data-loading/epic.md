@@ -37,6 +37,7 @@ Use this table as the epic progress ledger. Update it when a change is proposed,
 | Candidate Change | Summary | Why now | Readiness | Status | Linked Change | Notes |
 |------------------|---------|---------|-----------|--------|---------------|-------|
 | `design-patient-loading-modes` | Two-mode patient loading UX (manual + FHIR data endpoint searchable dropdown), mode switcher, recent patients tab, localStorage store, apply form integration, fhirClient abstraction, Jest setup | All three originally separate changes were implemented together as a single cohesive change | ready | archived | `openspec/changes/archive/2026-03-25-design-patient-loading-modes` | Absorbed `implement-fhir-server-patient-search`, `implement-recent-patients-tab`, and `integrate-patient-modes-apply-form`; all 38 tasks complete; 41 tests passing; delta specs synced to `openspec/specs/` |
+| `refine-patient-context-panel` | Replace tab underline style with segmented button-group; add fixed-height scroll to recent patients list | First-pass UI gaps identified after v1 delivery | ready | archived | `openspec/changes/archive/2026-03-25-refine-patient-context-panel` | All 9 tasks complete; 42 tests passing; delta specs synced to `openspec/specs/` |
 
 ## Dependencies
 - Existing apply form architecture in `packages/cpg-review`.

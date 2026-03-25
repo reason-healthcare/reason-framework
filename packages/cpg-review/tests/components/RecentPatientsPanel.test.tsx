@@ -88,4 +88,13 @@ describe('RecentPatientsPanel', () => {
       expect(screen.getByText(/no recently loaded patients/i)).toBeInTheDocument()
     )
   })
+
+  it('renders a scroll container around the patient list', () => {
+    mockGetAllPatients.mockReturnValue([endpointPatient])
+    render(<RecentPatientsPanel endpointUrl={EP_URL} onPatientSelect={onPatientSelect} />)
+    const scrollEl = document.querySelector('.recent-patients-scroll') as HTMLElement
+    expect(scrollEl).toBeInTheDocument()
+    expect(scrollEl.style.maxHeight).toBe('320px')
+    expect(scrollEl.style.overflowY).toBe('auto')
+  })
 })
