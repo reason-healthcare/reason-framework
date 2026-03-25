@@ -20,11 +20,28 @@ When ready to implement, run /opsx:apply
 
 ---
 
-**Input**: The user's request should include a change name (kebab-case) OR a description of what they want to build.
+**Input**: The user's request should include a change name (kebab-case), a description of what they want to build, OR an epic name plus a candidate change to propose.
 
 **Steps**
 
-1. **If no clear input provided, ask what they want to build**
+1. **If an epic is provided, resolve the change from the epic first**
+
+   - Read `openspec/epics/<epic-name>/epic.md`
+   - Find the `Candidate Changes` section
+   - If the user already named a candidate change, use it
+   - If there is only one strong candidate, use it
+   - If there are multiple viable candidate changes, ask the user to choose one
+
+   Derive the change name from the chosen candidate if needed.
+
+   Before finishing, update the chosen candidate row in the epic ledger to reflect:
+   - `Status: proposed`
+   - `Linked Change: openspec/changes/<name>`
+   - any brief note that helps future follow-up
+
+   **IMPORTANT**: When working from an epic, keep the resulting change scoped to a single candidate change, not the whole epic.
+
+2. **If no clear input provided, ask what they want to build**
 
    Use the **AskUserQuestion tool** (open-ended, no preset options) to ask:
    > "What change do you want to work on? Describe what you want to build or fix."
@@ -33,13 +50,13 @@ When ready to implement, run /opsx:apply
 
    **IMPORTANT**: Do NOT proceed without understanding what the user wants to build.
 
-2. **Create the change directory**
+3. **Create the change directory**
    ```bash
    openspec new change "<name>"
    ```
    This creates a scaffolded change at `openspec/changes/<name>/` with `.openspec.yaml`.
 
-3. **Get the artifact build order**
+4. **Get the artifact build order**
    ```bash
    openspec status --change "<name>" --json
    ```
@@ -47,7 +64,7 @@ When ready to implement, run /opsx:apply
    - `applyRequires`: array of artifact IDs needed before implementation (e.g., `["tasks"]`)
    - `artifacts`: list of all artifacts with their status and dependencies
 
-4. **Create artifacts in sequence until apply-ready**
+5. **Create artifacts in sequence until apply-ready**
 
    Use the **TodoWrite tool** to track progress through the artifacts.
 
@@ -79,7 +96,7 @@ When ready to implement, run /opsx:apply
       - Use **AskUserQuestion tool** to clarify
       - Then continue with creation
 
-5. **Show final status**
+6. **Show final status**
    ```bash
    openspec status --change "<name>"
    ```
@@ -87,6 +104,7 @@ When ready to implement, run /opsx:apply
 **Output**
 
 After completing all artifacts, summarize:
+- Epic used (if any)
 - Change name and location
 - List of artifacts created with brief descriptions
 - What's ready: "All artifacts created! Ready for implementation."
@@ -103,6 +121,9 @@ After completing all artifacts, summarize:
   - These guide what you write, but should never appear in the output
 
 **Guardrails**
+- When an epic is provided, always read the epic before drafting artifacts
+- Treat the epic as planning context and the candidate change as the implementation unit
+- When an epic is provided, update its candidate change ledger so future sessions can see progress
 - Create ALL artifacts needed for implementation (as defined by schema's `apply.requires`)
 - Always read dependency artifacts before creating a new one
 - If context is critically unclear, ask the user - but prefer making reasonable decisions to keep momentum

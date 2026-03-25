@@ -84,6 +84,7 @@ Implement tasks from an OpenSpec change.
    Display:
    - Tasks completed this session
    - Overall progress: "N/M tasks complete"
+   - If this change is linked from an epic ledger, update that candidate row to `done` when all tasks are complete
    - If all done: suggest archive
    - If paused: explain why and wait for guidance
 
@@ -145,6 +146,7 @@ What would you like to do?
 - If implementation reveals issues, pause and suggest artifact updates
 - Keep code changes minimal and scoped to each task
 - Update task checkbox immediately after completing each task
+- If the change came from an epic, keep the epic's candidate change ledger in sync with implementation completion
 - Pause on errors, blockers, or unclear requirements - don't guess
 - Use contextFiles from CLI output, don't assume specific file names
 
