@@ -8,6 +8,8 @@ works.
 
 ## Install
 
+Use Node.js `20.19.0` or newer `20.x`.
+
 Run `npm install` in the root of this monorepo
 
 ## Build

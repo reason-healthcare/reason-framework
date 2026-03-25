@@ -30,3 +30,4 @@ Quick reference for AI agents and developers. Detailed documentation: @agent-doc
 | Git Workflow | @agent-docs/git-workflow.md | Commit and pull request structure. |
 | Security | @agent-docs/security-config.md | Managing secrets and configuration safely. |
 | Environment Variables | @agent-docs/environment-variables.md | Defining and using environment variables. |
+| Node Upgrade | @agent-docs/node-upgrade-notes.md | Node version migration status, follow-up dependencies, and breakage risks. |
