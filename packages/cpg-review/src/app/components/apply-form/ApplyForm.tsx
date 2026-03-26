@@ -5,11 +5,13 @@ import { is } from 'helpers'
 import { useEffect, useRef, useState } from 'react'
 import QuestionnaireRenderer from './QuestionnaireRenderer'
 import PatientLoadModeSwitcher from 'components/apply-form/PatientLoadModeSwitcher'
+import SelectedPatientPreviewCard from 'components/apply-form/SelectedPatientPreviewCard'
 import EndpointsConfiguration, {
   EndpointsConfigurationHandle,
 } from 'components/apply-form/EndpointsConfiguration'
 import { addPatient, PatientSummary, renderPatientName } from 'utils/recentPatientsStore'
 import '@/styles/applyForm.css'
+import '@/styles/uploadSection.css'
 import { LoadingOutlined } from '@ant-design/icons'
 import { SidePanelView } from 'page'
 
@@ -56,6 +58,9 @@ const ApplyForm = ({
   const [isApplied, setIsApplied] = useState(false)
   const [isApplying, setIsApplying] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
+  const [selectedPatientSummary, setSelectedPatientSummary] = useState<
+    PatientSummary | undefined
+  >()
   const endpointsRef = useRef<EndpointsConfigurationHandle>(null)
 
   const clearApplyOutputs = () => {
@@ -76,6 +81,7 @@ const ApplyForm = ({
     resetApplyUiState()
     setDataPayload(undefined)
     setSubjectPayload(undefined)
+    setSelectedPatientSummary(undefined)
     setQuestionnaireResponseServer(undefined)
     setUserQuestionnaireResponse(undefined)
     form.resetFields()
@@ -205,9 +211,15 @@ const ApplyForm = ({
   }
   const handleSubjectChange = (val: string) => {
     setSubjectPayload(val)
+    setSelectedPatientSummary(undefined)
   }
   const handlePatientSelect = (subject: string, summary: PatientSummary) => {
     setSubjectPayload(subject)
+    setSelectedPatientSummary(summary)
+  }
+  const handleClearSelectedPatient = () => {
+    setSubjectPayload(undefined)
+    setSelectedPatientSummary(undefined)
   }
   const handleApply = async (payload: any) => {
     if (isValidForm(payload)) {
@@ -285,7 +297,34 @@ const ApplyForm = ({
       planDefinition,
     }
     localStorage.setItem('applyPayload', JSON.stringify(payload))
-    const result = await handleApply(payload)
+
+    // Track manual-mode submission in recent patients
+    if (payload.dataPayload && payload.subjectPayload) {
+      try {
+        const bundle = JSON.parse(payload.dataPayload) as fhir4.Bundle
+        const patientId = payload.subjectPayload.replace(/^Patient\//, '')
+        const patientResource = bundle.entry
+          ?.map((e) => e.resource)
+          .find(
+            (r): r is fhir4.Patient =>
+              r?.resourceType === 'Patient' && (r.id === patientId || !patientId)
+          )
+        const summary: PatientSummary = {
+          id: patientResource?.id ?? patientId,
+          name: renderPatientName(patientResource?.name),
+          dob: patientResource?.birthDate,
+          gender: patientResource?.gender,
+          source: 'manual',
+          addedAt: new Date().toISOString(),
+        }
+        addPatient(summary)
+        setSelectedPatientSummary(summary)
+      } catch {
+        // Non-fatal — store write is best-effort
+      }
+    }
+
+    const result = handleApply(payload)
   }
 
   const [form] = Form.useForm()
@@ -313,7 +352,7 @@ const ApplyForm = ({
         <Form
           onFinish={handleSubmit}
           form={form}
-          className="form apply-form"
+          className="form"
           autoComplete="off"
         >
           <Form.Item name="endpoints-configuration" className="form-item">
@@ -326,7 +365,10 @@ const ApplyForm = ({
             />
           </Form.Item>
           <Form.Item name="patient-context" className="form-item">
-            <h1 className="form-title">Patient Context</h1>
+            <div>
+              <h2 className="form-title">Patient Context</h2>
+              <p className='form-description'>Upload a patient context file or search for a patient</p>
+            </div>
             <PatientLoadModeSwitcher
               dataEndpointUrl={dataEndpointPayload}
               dataPayload={dataPayload}
@@ -334,6 +376,13 @@ const ApplyForm = ({
               subjectPayload={subjectPayload}
               onSubjectChange={handleSubjectChange}
               onPatientSelect={handlePatientSelect}
+            />
+
+            <SelectedPatientPreviewCard
+              subjectPayload={subjectPayload}
+              dataPayload={dataPayload}
+              selectedPatient={selectedPatientSummary}
+              onClear={handleClearSelectedPatient}
             />
           </Form.Item>
 

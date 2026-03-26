@@ -1,5 +1,5 @@
 .apply-section {
-  gap: 3rem;
+  gap: 0.5rem;
   display: flex;
   flex-direction: column;
 }
@@ -8,6 +8,9 @@
   margin-top: 0;
   width: 100%;
   max-width: 100%;
+  display: 'flex';
+  flex-direction: 'column';
+  gap: '1.5rem';
 }
 
 .apply-steps {
@@ -34,7 +37,7 @@
 
 /* ── Teal overrides for patient context components ── */
 .ant-segmented-item {
-  backgroundColor: 'rgba(0, 0, 0, 0.02) !important';
+  background-color: rgba(0, 0, 0, 0.02) !important;
 }
 
 /* Segmented active item fill */
@@ -46,10 +49,294 @@
   color: var(--teal) !important;
 }
 
+.patient-mode-switcher {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+.patient-mode-manual-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.patient-mode-fhir-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 /* Patient list item hover */
 .ant-list .patient-list-item:hover {
   background-color: var(--ltTeal);
   transition: background-color 0.15s ease;
+}
+
+.recent-patients-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.recent-patients-toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.recent-patient-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 0.75rem;
+}
+
+.recent-patient-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.recent-patient-name {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.recent-patient-meta {
+  font-size: 12px;
+}
+
+.recent-patients-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 1.5rem 0;
+}
+
+.recent-patients-empty-icon {
+  font-size: 24px;
+  color: #bfbfbf;
+}
+
+.selected-patient-preview-card {
+  border: 1px solid #a8d9d4;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  background: #e9f6f4;
+}
+
+.selected-patient-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.selected-patient-preview-header-summary {
+  padding: 0.9rem 1rem;
+}
+
+.selected-patient-preview-header-actions {
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.selected-patient-summary-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.selected-patient-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--teal);
+  background: rgba(73, 170, 155, 0.2);
+  font-size: 18px;
+  flex: 0 0 auto;
+}
+
+.selected-patient-summary-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.selected-patient-summary-name {
+  font-size: 1.05rem;
+  line-height: 1.25;
+}
+
+.selected-patient-summary-meta {
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.selected-patient-header-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+}
+
+.selected-patient-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.18rem 0.65rem;
+  border: 1px solid #cfd8d7;
+  border-radius: 999px;
+  background: #edf2f1;
+  color: #1f1f1f;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.selected-patient-clear-link {
+  border: none;
+  background: transparent;
+  color: var(--teal);
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.2rem 0.3rem;
+  cursor: pointer;
+}
+
+.selected-patient-clear-link:hover {
+  text-decoration: underline;
+}
+
+.selected-patient-chevron-toggle {
+  border: none;
+  background: transparent;
+  color: #595959;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.selected-patient-chevron-toggle:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.selected-patient-preview-body {
+  background: #e9f6f4;
+  padding: 0.9rem 1rem 1rem;
+  border-top: 1px solid rgba(168, 217, 212, 0.55);
+}
+
+.selected-patient-preview-title {
+  margin: 0;
+}
+
+.selected-patient-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  width: 100%;
+}
+
+.selected-patient-tab {
+  border: 1px solid #d9d9d9;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.55);
+  color: #262626;
+  font-size: 0.92rem;
+  padding: 0.4rem 0.7rem;
+  cursor: pointer;
+}
+
+.selected-patient-tab:hover {
+  border-color: #b8d8d2;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.selected-patient-tab-active {
+  background: #ffffff;
+  border-color: #b8d8d2;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.selected-patient-tab-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.selected-patient-overview-grid {
+  display: grid;
+  grid-template-columns: max-content 1fr max-content 1fr;
+  row-gap: 10px;
+  column-gap: 16px;
+  margin-top: 0.9rem;
+}
+
+.selected-patient-overview-grid .ant-typography {
+  margin-bottom: 0;
+}
+
+.selected-patient-list {
+  margin: 0.85rem 0 0;
+  padding-left: 1rem;
+}
+
+.selected-patient-resource-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.85rem;
+}
+
+.selected-patient-resource-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 0.6rem 0.7rem;
+}
+
+.selected-patient-resource-label {
+  color: #1f1f1f;
+}
+
+.selected-patient-resource-status {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #36b39b;
+  color: #fff;
+  font-size: 0.82rem;
+  line-height: 1;
+  padding: 0.35rem 0.6rem;
+  text-transform: lowercase;
+}
+
+.selected-patient-raw-json {
+  margin: 0.85rem 0 0;
+  max-height: 240px;
+  overflow: auto;
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  padding: 0.75rem;
 }
 
 .success-alert {
@@ -71,16 +358,6 @@
 
 .endpoints-config-collapse .endpoints-config-title {
   font-weight: 600;
-}
-
-.endpoints-config-summary {
-  font-size: 0.8rem;
-  color: #888;
-  margin-top: 0.15rem;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  max-width: 480px;
 }
 
 .endpoints-config-fields {

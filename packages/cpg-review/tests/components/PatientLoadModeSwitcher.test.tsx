@@ -41,7 +41,7 @@ describe('PatientLoadModeSwitcher', () => {
 
   it('renders the three segment options', () => {
     render(<PatientLoadModeSwitcher {...BASE_PROPS} />)
-    expect(screen.getByText('Manual')).toBeInTheDocument()
+    expect(screen.getByText('FHIR Bundle')).toBeInTheDocument()
     expect(screen.getByText('FHIR Data Endpoint')).toBeInTheDocument()
     expect(screen.getByText('Recent')).toBeInTheDocument()
   })

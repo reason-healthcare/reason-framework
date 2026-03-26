@@ -28,12 +28,15 @@ describe('EndpointsConfiguration', () => {
     jest.clearAllMocks()
   })
 
-  // 5.2 – collapsed on initial render
-  it('is collapsed on initial render (URL inputs not visible)', () => {
+  function getConfigHeaderButton() {
+    return screen.getByRole('button', {
+      name: /fhir endpoints configuration/i,
+    })
+  }
+
+  it('is collapsed on initial render when endpoint config is complete', () => {
     render(<EndpointsConfiguration {...makeProps()} />)
-    // Inputs are inside the collapsed panel — antd hides them via display:none
     const dataInput = screen.queryByPlaceholderText('http://localhost:8080/fhir')
-    // Either not in DOM or not visible
     if (dataInput) {
       expect(dataInput).not.toBeVisible()
     } else {
@@ -41,44 +44,60 @@ describe('EndpointsConfiguration', () => {
     }
   })
 
+  it('is expanded on initial render when endpoint config is incomplete', async () => {
+    localStorage.setItem(
+      'endpointsConfig',
+      JSON.stringify({
+        ...DEFAULTS,
+        txEndpoint: '',
+      })
+    )
+
+    render(<EndpointsConfiguration {...makeProps()} />)
+
+    await waitFor(() =>
+      expect(screen.getByText('Data Endpoint')).toBeVisible()
+    )
+  })
+
   // 5.3 – clicking header expands
   it('expands to reveal URL inputs when the header is clicked', async () => {
     render(<EndpointsConfiguration {...makeProps()} />)
-    await userEvent.click(screen.getByText('Endpoints Configuration'))
+    await userEvent.click(getConfigHeaderButton())
     // After expansion the Data Endpoint heading should be visible
     await waitFor(() =>
       expect(screen.getByText('Data Endpoint')).toBeVisible()
     )
   })
 
-  // 5.4 – collapsed summary shows data endpoint URL
-  it('collapsed summary displays the current Data endpoint URL', () => {
+  it('does not show endpoint preview values in collapsed header', () => {
     render(<EndpointsConfiguration {...makeProps()} />)
-    expect(
-      screen.getByText(`Data: ${DEFAULTS.dataEndpoint}`)
-    ).toBeInTheDocument()
+
+    expect(screen.queryByText(DEFAULTS.cpgEngineEndpoint)).toBeNull()
+    expect(screen.queryByText(DEFAULTS.contentEndpoint)).toBeNull()
+    expect(screen.queryByText(DEFAULTS.txEndpoint)).toBeNull()
+    expect(screen.queryByText(DEFAULTS.dataEndpoint)).toBeNull()
   })
 
-  // 5.5 – summary updates after URL change
-  it('collapsed summary updates after a URL is changed and section is collapsed', async () => {
-    render(<EndpointsConfiguration {...makeProps()} />)
-    // Expand
-    await userEvent.click(screen.getByText('Endpoints Configuration'))
-    await waitFor(() => expect(screen.getByText('Data Endpoint')).toBeVisible())
-
-    // Clear and type new URL into Data Endpoint input
-    const inputs = screen.getAllByPlaceholderText('http://localhost:8080/fhir')
-    const dataInput = inputs[0] // first is Data Endpoint
-    await userEvent.clear(dataInput)
-    await userEvent.type(dataInput, 'http://new-server/fhir')
-
-    // Collapse
-    await userEvent.click(screen.getByText('Endpoints Configuration'))
-
-    // Summary should now show the new URL
-    await waitFor(() =>
-      expect(screen.getByText('Data: http://new-server/fhir')).toBeInTheDocument()
+  it('remains collapsed on initial render when localStorage has complete endpoint config', () => {
+    localStorage.setItem(
+      'endpointsConfig',
+      JSON.stringify({
+        cpgEngineEndpoint: 'http://complete-engine/fhir/PlanDefinition/$r5.apply',
+        contentEndpoint: 'http://complete-content/fhir',
+        txEndpoint: 'http://complete-tx/fhir',
+        dataEndpoint: 'http://complete-data/fhir',
+      })
     )
+
+    render(<EndpointsConfiguration {...makeProps()} />)
+
+    const dataInput = screen.queryByPlaceholderText('http://localhost:8080/fhir')
+    if (dataInput) {
+      expect(dataInput).not.toBeVisible()
+    } else {
+      expect(dataInput).toBeNull()
+    }
   })
 
   // 5.6 – reads initial values from localStorage
@@ -93,7 +112,7 @@ describe('EndpointsConfiguration', () => {
     render(<EndpointsConfiguration {...makeProps()} />)
 
     // Expand to see inputs
-    await userEvent.click(screen.getByText('Endpoints Configuration'))
+    await userEvent.click(getConfigHeaderButton())
     await waitFor(() => expect(screen.getByText('Data Endpoint')).toBeVisible())
 
     expect(
@@ -109,7 +128,7 @@ describe('EndpointsConfiguration', () => {
   // 5.7 – localStorage updated on input change
   it('updates localStorage when a URL input changes', async () => {
     render(<EndpointsConfiguration {...makeProps()} />)
-    await userEvent.click(screen.getByText('Endpoints Configuration'))
+    await userEvent.click(getConfigHeaderButton())
     await waitFor(() => expect(screen.getByText('Data Endpoint')).toBeVisible())
 
     const inputs = screen.getAllByPlaceholderText('http://localhost:8080/fhir')
@@ -123,7 +142,7 @@ describe('EndpointsConfiguration', () => {
   // 5.8 – default values when no localStorage entry
   it('shows default values when no localStorage entry exists', async () => {
     render(<EndpointsConfiguration {...makeProps()} />)
-    await userEvent.click(screen.getByText('Endpoints Configuration'))
+    await userEvent.click(getConfigHeaderButton())
     await waitFor(() => expect(screen.getByText('Data Endpoint')).toBeVisible())
 
     expect(
@@ -142,7 +161,7 @@ describe('EndpointsConfiguration', () => {
         {...makeProps({ onDataEndpointChange })}
       />
     )
-    await userEvent.click(screen.getByText('Endpoints Configuration'))
+    await userEvent.click(getConfigHeaderButton())
     await waitFor(() => expect(screen.getByText('Data Endpoint')).toBeVisible())
 
     const inputs = screen.getAllByPlaceholderText('http://localhost:8080/fhir')
