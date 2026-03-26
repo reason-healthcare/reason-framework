@@ -54,7 +54,7 @@ const PatientLoadModeSwitcher = ({
     {
       value: 'fhir',
       label: (
-        <Tooltip title={!hasEndpoint ? 'Configure a data endpoint to enable patient search' : undefined}>
+        <Tooltip title={!hasEndpoint ? 'Configure a data endpoint to enable patient search' : undefined} style={{fontSize: '0.9rem'}}>
           <span>FHIR Data Endpoint</span>
         </Tooltip>
       ),
@@ -63,7 +63,7 @@ const PatientLoadModeSwitcher = ({
     {
       value: 'recent',
       label: (
-        <Tooltip title={!hasRecents ? 'No recently loaded patients' : undefined}>
+        <Tooltip title={!hasRecents ? 'No recently loaded patients' : undefined} style={{fontSize: '0.9rem'}}>
           <span>Recent</span>
         </Tooltip>
       ),
@@ -72,7 +72,7 @@ const PatientLoadModeSwitcher = ({
   ]
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: 4 }}>
+    <div className="patient-mode-switcher">
       <Segmented
         value={activeKey}
         onChange={handleChange}
@@ -81,9 +81,9 @@ const PatientLoadModeSwitcher = ({
       />
 
       {activeKey === 'manual' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className="patient-mode-manual-panel">
           <div>
-            <h1 className="form-title">Context Data</h1>
+            <h3 className="form-title">Context Data</h3>
             <p className="form-description">Add context data as a FHIR JSON Bundle.</p>
             <Input.TextArea
               onChange={(e) => onDataPayloadChange(e.target.value || undefined)}
@@ -92,7 +92,7 @@ const PatientLoadModeSwitcher = ({
             />
           </div>
           <div>
-            <h1 className="form-title">Subject</h1>
+            <h3 className="form-title">Subject</h3>
             <p className="form-description">Set reference to subject.</p>
             <Input
               placeholder="Patient/Patient-1"
@@ -105,7 +105,7 @@ const PatientLoadModeSwitcher = ({
       )}
 
       {activeKey === 'fhir' && hasEndpoint && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <div className="patient-mode-fhir-panel">
           <Text type="secondary">
             Search patients on <Text code>{dataEndpointUrl}</Text>
           </Text>

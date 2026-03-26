@@ -7,12 +7,14 @@ import { PatientSummary } from 'utils/recentPatientsStore'
 jest.mock('utils/recentPatientsStore', () => ({
   getAllPatients: jest.fn(),
   clearAll: jest.fn(),
+  addPatient: jest.fn(),
 }))
 
-import { getAllPatients, clearAll } from 'utils/recentPatientsStore'
+import { getAllPatients, clearAll, addPatient } from 'utils/recentPatientsStore'
 
 const mockGetAllPatients = getAllPatients as jest.MockedFunction<typeof getAllPatients>
 const mockClearAll = clearAll as jest.MockedFunction<typeof clearAll>
+const mockAddPatient = addPatient as jest.MockedFunction<typeof addPatient>
 
 const EP_URL = 'http://fhir.example.com/fhir'
 
@@ -69,10 +71,27 @@ describe('RecentPatientsPanel', () => {
     expect(screen.getByText('Manual')).toBeInTheDocument()
   })
 
-  it('calls onPatientSelect with correct subject when a row is clicked', async () => {
+  it('calls onPatientSelect with correct subject when Select is clicked', async () => {
     mockGetAllPatients.mockReturnValue([endpointPatient])
     render(<RecentPatientsPanel endpointUrl={EP_URL} onPatientSelect={onPatientSelect} />)
-    await userEvent.click(screen.getByText('Alice Brown'))
+    await userEvent.click(screen.getByRole('button', { name: /select alice brown/i }))
+    expect(onPatientSelect).toHaveBeenCalledWith('Patient/ep1', endpointPatient)
+    expect(mockAddPatient).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: endpointPatient.id,
+        source: endpointPatient.source,
+      })
+    )
+  })
+
+  it('allows keyboard selection via Enter on Select button', async () => {
+    mockGetAllPatients.mockReturnValue([endpointPatient])
+    render(<RecentPatientsPanel endpointUrl={EP_URL} onPatientSelect={onPatientSelect} />)
+
+    await userEvent.tab()
+    await userEvent.tab()
+    await userEvent.keyboard('{Enter}')
+
     expect(onPatientSelect).toHaveBeenCalledWith('Patient/ep1', endpointPatient)
   })
 

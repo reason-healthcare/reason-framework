@@ -182,8 +182,8 @@ describe('Task 7.5 – FHIR tab patient selection updates subject', () => {
     // Use the stub to select a patient
     await userEvent.click(screen.getByRole('button', { name: /select fhir patient/i }))
 
-    // Switch back to Manual tab to verify subject was set
-    await userEvent.click(screen.getByText('Manual'))
+    // Switch back to FHIR Bundle tab to verify subject was set
+    await userEvent.click(screen.getByText('FHIR Bundle'))
 
     await waitFor(() => {
       const subjectInput = screen.getByDisplayValue('Patient/fhir-pt')

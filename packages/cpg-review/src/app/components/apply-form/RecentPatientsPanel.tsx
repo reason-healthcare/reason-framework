@@ -3,7 +3,12 @@
 import { List, Tag, Typography } from 'antd'
 import { ClockCircleOutlined, ClearOutlined } from '@ant-design/icons'
 import { useState, useEffect } from 'react'
-import { getAllPatients, clearAll, PatientSummary } from 'utils/recentPatientsStore'
+import {
+  getAllPatients,
+  clearAll,
+  addPatient,
+  PatientSummary,
+} from 'utils/recentPatientsStore'
 
 const { Text } = Typography
 
@@ -24,7 +29,12 @@ const RecentPatientsPanel = ({ endpointUrl, onPatientSelect }: RecentPatientsPan
   }, [endpointUrl])
 
   const handleSelect = (summary: PatientSummary) => {
+    addPatient({
+      ...summary,
+      addedAt: new Date().toISOString(),
+    })
     onPatientSelect(`Patient/${summary.id}`, summary)
+    reload()
   }
 
   const handleClear = () => {
@@ -34,19 +44,19 @@ const RecentPatientsPanel = ({ endpointUrl, onPatientSelect }: RecentPatientsPan
 
   if (patients.length === 0) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center', padding: '1.5rem 0' }}>
-        <ClockCircleOutlined style={{ fontSize: 24, color: '#bfbfbf' }} />
+      <div className="recent-patients-empty">
+        <ClockCircleOutlined className="recent-patients-empty-icon" />
         <Text type="secondary">No recently loaded patients yet.</Text>
       </div>
     )
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+    <div className="recent-patients-panel">
+      <div className="recent-patients-toolbar">
         <button
           className="button-secondary button"
-          style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85rem' }}
+          style={{ fontSize: '0.85rem' }}
           onClick={handleClear}
         >
           <ClearOutlined /> Clear history
@@ -64,19 +74,30 @@ const RecentPatientsPanel = ({ endpointUrl, onPatientSelect }: RecentPatientsPan
           renderItem={(p) => (
             <List.Item
               className="patient-list-item"
-              style={{ cursor: 'pointer' }}
-              extra={
-                <Tag color={p.source === 'endpoint' ? 'blue' : 'default'}>
-                  {p.source === 'endpoint' ? 'Data Endpoint' : 'Manual'}
-                </Tag>
-              }
-              onClick={() => handleSelect(p)}
+              style={{ cursor: 'default' }}
             >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Text strong>{p.name || `Patient/${p.id}`}</Text>
-                <Text type="secondary" style={{ fontSize: '12px' }}>
-                  DOB: {p.dob ?? '—'} &nbsp;·&nbsp; Gender: {p.gender ?? '—'} &nbsp;·&nbsp; ID: {p.id}
-                </Text>
+              <div className="recent-patient-row">
+                <div className="recent-patient-details">
+                  <div className="recent-patient-name">
+                    <Text strong>{p.name || `Patient/${p.id}`}</Text>
+                    <Tag color={p.source === 'endpoint' ? 'blue' : 'default'}>
+                      {p.source === 'endpoint' ? 'Data Endpoint' : 'FHIR Bundle'}
+                    </Tag>
+                  </div>
+                  <Text type="secondary" className="recent-patient-meta">
+                    DOB: {p.dob ?? '—'} &nbsp;·&nbsp; Gender: {p.gender ?? '—'} &nbsp;·&nbsp; ID: {p.id}
+                  </Text>
+                </div>
+
+                <button
+                  type="button"
+                  className="button-simple"
+                  style={{ minWidth: 88, backgroundColor: '&hover: var(--drLightBlue)'}}
+                  onClick={() => handleSelect(p)}
+                  aria-label={`Select ${p.name || `Patient/${p.id}`}`}
+                >
+                  Select
+                </button>
               </div>
             </List.Item>
           )}

@@ -50,6 +50,15 @@ function persistConfig(config: EndpointsConfig) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(config))
 }
 
+function isConfigComplete(config: EndpointsConfig) {
+  return [
+    config.cpgEngineEndpoint,
+    config.contentEndpoint,
+    config.txEndpoint,
+    config.dataEndpoint,
+  ].every((value) => value.trim().length > 0)
+}
+
 const EndpointsConfiguration = forwardRef<
   EndpointsConfigurationHandle,
   EndpointsConfigurationProps
@@ -63,7 +72,9 @@ const EndpointsConfiguration = forwardRef<
   ref
 ) {
   const [config, setConfig] = useState<EndpointsConfig>(loadFromStorage)
-  const [activeKey, setActiveKey] = useState<string[]>([])
+  const [activeKey, setActiveKey] = useState<string[]>(() =>
+    isConfigComplete(loadFromStorage()) ? [] : ['endpoints']
+  )
 
   // Notify parent of initial values (which may come from localStorage)
   useEffect(() => {
@@ -97,25 +108,18 @@ const EndpointsConfiguration = forwardRef<
     cb(value)
   }
 
-  const isExpanded = activeKey.includes('endpoints')
-
   const collapseItems = [
     {
       key: 'endpoints',
       label: (
         <div>
           <span className="endpoints-config-title">FHIR Endpoints Configuration</span>
-          {!isExpanded && (
-            <div className="endpoints-config-summary">
-              Data: {config.dataEndpoint}
-            </div>
-          )}
         </div>
       ),
       children: (
         <div className="endpoints-config-fields">
           <div className="endpoints-config-field">
-            <h2 className="form-title">Data Endpoint</h2>
+            <h3 className="form-title">Data Endpoint</h3>
             <p className="form-description">
               FHIR server used as the <code>dataEndpoint</code> for{' '}
               <code>$apply</code>. Used to search for patients and to supply
@@ -131,7 +135,7 @@ const EndpointsConfiguration = forwardRef<
           </div>
 
           <div className="endpoints-config-field">
-            <h2 className="form-title">CPG Engine Endpoint</h2>
+            <h3 className="form-title">CPG Engine Endpoint</h3>
             <p className="form-description">
               Endpoint for PlanDefinition $apply operations
             </p>
@@ -149,7 +153,7 @@ const EndpointsConfiguration = forwardRef<
           </div>
 
           <div className="endpoints-config-field">
-            <h2 className="form-title">Content Endpoint</h2>
+            <h3 className="form-title">Content Endpoint</h3>
             <p className="form-description">FHIR server for content resources</p>
             <Input
               placeholder="http://localhost:8080/fhir"
@@ -165,7 +169,7 @@ const EndpointsConfiguration = forwardRef<
           </div>
 
           <div className="endpoints-config-field">
-            <h2 className="form-title">Terminology Endpoint</h2>
+            <h3 className="form-title">Terminology Endpoint</h3>
             <p className="form-description">
               FHIR terminology server for value set expansion and code validation
             </p>

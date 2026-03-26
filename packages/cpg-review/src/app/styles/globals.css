@@ -111,10 +111,19 @@ h2 {
   font-size: 1.2rem;
   font-weight: normal;
   line-height: 1.6rem;
+  margin: 0;
+}
+
+h3 {
+  font-size: 1.1rem;
+  font-weight: normal;
+  /* line-height: 1.6rem; */
+  margin: 0
 }
 
 p {
   font-size: 1rem;
+  margin: 0.5rem 0;
 }
 
 span {
