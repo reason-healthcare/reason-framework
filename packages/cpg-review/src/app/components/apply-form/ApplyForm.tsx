@@ -352,7 +352,7 @@ const ApplyForm = ({
         <Form
           onFinish={handleSubmit}
           form={form}
-          className="form"
+          className="form apply-form"
           autoComplete="off"
         >
           <Form.Item name="endpoints-configuration" className="form-item">

@@ -15,6 +15,35 @@ const BUNDLE = {
         name: [{ given: ['Jane'], family: 'Doe' }],
         birthDate: '1990-01-01',
         gender: 'female',
+        identifier: [
+          {
+            type: {
+              coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v2-0203', code: 'SS' }],
+            },
+            value: '999-99-1234',
+          },
+          {
+            type: {
+              coding: [
+                {
+                  system: 'http://terminology.hl7.org/CodeSystem/v2-0203',
+                  code: 'MR',
+                },
+              ],
+            },
+            use: 'usual',
+            value: 'MRN-pt1',
+          },
+        ],
+        address: [
+          {
+            text: '123 Main Street, Boston, MA 02101',
+            line: ['123 Main Street'],
+            city: 'Boston',
+            state: 'MA',
+            postalCode: '02101',
+          },
+        ],
       },
     },
     {
@@ -56,6 +85,52 @@ const BUNDLE = {
   ],
 }
 
+const PATIENT_ONLY_BUNDLE = {
+  resourceType: 'Bundle',
+  type: 'collection',
+  entry: [
+    {
+      fullUrl: 'http://example.org/fhir/Patient/pt1',
+      resource: {
+        resourceType: 'Patient',
+        id: 'pt1',
+        name: [{ given: ['Jane'], family: 'Doe' }],
+        birthDate: '1990-01-01',
+        gender: 'female',
+        identifier: [
+          {
+            type: {
+              coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v2-0203', code: 'SS' }],
+            },
+            value: '999-99-1234',
+          },
+          {
+            type: {
+              coding: [
+                {
+                  system: 'http://terminology.hl7.org/CodeSystem/v2-0203',
+                  code: 'MR',
+                },
+              ],
+            },
+            use: 'usual',
+            value: 'MRN-pt1',
+          },
+        ],
+        address: [
+          {
+            text: '123 Main Street, Boston, MA 02101',
+            line: ['123 Main Street'],
+            city: 'Boston',
+            state: 'MA',
+            postalCode: '02101',
+          },
+        ],
+      },
+    },
+  ],
+}
+
 describe('SelectedPatientPreviewCard', () => {
   it('does not render when no subject is set', () => {
     render(
@@ -82,6 +157,10 @@ describe('SelectedPatientPreviewCard', () => {
 
     expect(screen.getByTestId('selected-patient-preview')).toBeInTheDocument()
     expect(screen.getAllByText('Jane Doe').length).toBeGreaterThan(0)
+    expect(screen.getByText('MRN')).toBeInTheDocument()
+    expect(screen.getByText('MRN-pt1')).toBeInTheDocument()
+    expect(screen.getByText('Address')).toBeInTheDocument()
+    expect(screen.getByText('123 Main Street, Boston, MA 02101')).toBeInTheDocument()
 
     await userEvent.click(screen.getByText('Medications'))
     expect(screen.getByText('Atorvastatin 20mg')).toBeInTheDocument()
@@ -138,5 +217,78 @@ describe('SelectedPatientPreviewCard', () => {
     )
 
     expect(onClear).toHaveBeenCalledTimes(1)
+  })
+
+  it('shows endpoint-specific not-loaded empty states for resource tabs', async () => {
+    render(
+      <SelectedPatientPreviewCard
+        subjectPayload="http://example.org/fhir/Patient/pt1"
+        dataPayload={JSON.stringify(PATIENT_ONLY_BUNDLE)}
+        selectedPatient={{
+          id: 'pt1',
+          name: 'Jane Doe',
+          dob: '1990-01-01',
+          gender: 'female',
+          source: 'endpoint',
+          endpointUrl: 'http://example.org/fhir',
+          addedAt: '2026-03-27T00:00:00.000Z',
+        }}
+        onClear={jest.fn()}
+      />
+    )
+
+    await userEvent.click(screen.getByText('Medications'))
+    expect(
+      screen.getByText(
+        'Medication data is not loaded for endpoint-selected patients in this selection.'
+      )
+    ).toBeInTheDocument()
+
+    await userEvent.click(screen.getByText('Conditions'))
+    expect(
+      screen.getByText(
+        'Condition data is not loaded for endpoint-selected patients in this selection.'
+      )
+    ).toBeInTheDocument()
+
+    await userEvent.click(screen.getByText('Observations'))
+    expect(
+      screen.getByText(
+        'Observation data is not loaded for endpoint-selected patients in this selection.'
+      )
+    ).toBeInTheDocument()
+  })
+
+  it('shows generic empty states for manual or bundle contexts', async () => {
+    render(
+      <SelectedPatientPreviewCard
+        subjectPayload="http://example.org/fhir/Patient/pt1"
+        dataPayload={JSON.stringify(PATIENT_ONLY_BUNDLE)}
+        selectedPatient={{
+          id: 'pt1',
+          name: 'Jane Doe',
+          dob: '1990-01-01',
+          gender: 'female',
+          source: 'manual',
+          addedAt: '2026-03-27T00:00:00.000Z',
+        }}
+        onClear={jest.fn()}
+      />
+    )
+
+    await userEvent.click(screen.getByText('Medications'))
+    expect(
+      screen.getByText('No medications available for this patient context.')
+    ).toBeInTheDocument()
+
+    await userEvent.click(screen.getByText('Conditions'))
+    expect(
+      screen.getByText('No conditions available for this patient context.')
+    ).toBeInTheDocument()
+
+    await userEvent.click(screen.getByText('Observations'))
+    expect(
+      screen.getByText('No observations available for this patient context.')
+    ).toBeInTheDocument()
   })
 })

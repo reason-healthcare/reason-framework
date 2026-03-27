@@ -4,13 +4,10 @@
   flex-direction: column;
 }
 
-.form.apply-form {
-  margin-top: 0;
-  width: 100%;
-  max-width: 100%;
-  display: 'flex';
-  flex-direction: 'column';
-  gap: '1.5rem';
+.apply-form .form-item .ant-form-item-control-input-content{
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .apply-steps {
@@ -201,7 +198,7 @@
   border-radius: 999px;
   background: #edf2f1;
   color: #1f1f1f;
-  font-size: 0.95rem;
+  font-size: 0.8rem;
   font-weight: 500;
 }
 
@@ -240,6 +237,9 @@
   background: #e9f6f4;
   padding: 0.9rem 1rem 1rem;
   border-top: 1px solid rgba(168, 217, 212, 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .selected-patient-preview-title {
@@ -282,14 +282,35 @@
 
 .selected-patient-overview-grid {
   display: grid;
-  grid-template-columns: max-content 1fr max-content 1fr;
-  row-gap: 10px;
-  column-gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  row-gap: 0.9rem;
+  column-gap: 1.8rem;
   margin-top: 0.9rem;
 }
 
-.selected-patient-overview-grid .ant-typography {
+.selected-patient-overview-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.selected-patient-overview-item-full {
+  grid-column: 1 / -1;
+}
+
+.selected-patient-overview-label {
+  font-size: 0.8rem;
+}
+
+.selected-patient-overview-item .ant-typography {
   margin-bottom: 0;
+}
+
+
+@media (max-width: 760px) {
+  .selected-patient-overview-grid {
+    grid-template-columns: 1fr;
+    column-gap: 0;
+  }
 }
 
 .selected-patient-list {
