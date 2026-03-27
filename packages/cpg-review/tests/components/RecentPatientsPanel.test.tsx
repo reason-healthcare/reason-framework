@@ -65,10 +65,10 @@ describe('RecentPatientsPanel', () => {
     expect(screen.getByText('Data Endpoint')).toBeInTheDocument()
   })
 
-  it('shows "Manual" badge for manual-sourced patients', () => {
+  it('shows "FHIR Bundle" badge for manual-sourced patients', () => {
     mockGetAllPatients.mockReturnValue([manualPatient])
     render(<RecentPatientsPanel endpointUrl={EP_URL} onPatientSelect={onPatientSelect} />)
-    expect(screen.getByText('Manual')).toBeInTheDocument()
+    expect(screen.getByText('FHIR Bundle')).toBeInTheDocument()
   })
 
   it('calls onPatientSelect with correct subject when Select is clicked', async () => {

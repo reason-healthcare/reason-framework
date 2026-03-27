@@ -56,6 +56,86 @@ function parseRawJson(dataPayload: string | undefined): unknown {
   }
 }
 
+function normalizeIdentifierUse(use: fhir4.Identifier['use'] | undefined): number {
+  if (use === 'usual') return 0
+  if (use === 'official') return 1
+  if (use === 'secondary') return 2
+  return 3
+}
+
+function isMrnIdentifier(identifier: fhir4.Identifier): boolean {
+  const typeText = identifier.type?.text?.toLowerCase()
+  const systemText = identifier.system?.toLowerCase()
+
+  const codingMatches =
+    identifier.type?.coding?.some((coding) => {
+      const system = coding.system?.toLowerCase()
+      const code = coding.code?.toLowerCase()
+      const display = coding.display?.toLowerCase()
+
+      const isV2MrCode =
+        system === 'http://terminology.hl7.org/codesystem/v2-0203' &&
+        code === 'mr'
+
+      return (
+        isV2MrCode ||
+        code === 'mr' ||
+        code === 'mrn' ||
+        display?.includes('medical record') === true ||
+        display?.includes('mrn') === true
+      )
+    }) ?? false
+
+  return (
+    codingMatches ||
+    typeText?.includes('medical record') === true ||
+    typeText?.includes('mrn') === true ||
+    systemText?.includes('mrn') === true
+  )
+}
+
+function mrnValue(
+  patient: fhir4.Patient | undefined,
+  summary: PatientSummary | undefined,
+  patientId: string | undefined
+): string {
+  const identifiers = patient?.identifier ?? []
+
+  const mrnIdentifiers = identifiers
+    .filter((identifier) => !!identifier.value && isMrnIdentifier(identifier))
+    .sort((left, right) => normalizeIdentifierUse(left.use) - normalizeIdentifierUse(right.use))
+
+  const identifier = mrnIdentifiers[0] ?? identifiers.find((item) => !!item.value)
+
+  return (
+    identifier?.value ||
+    summary?.id ||
+    patientId ||
+    '—'
+  )
+}
+
+function formatAddress(patient: fhir4.Patient | undefined): string {
+  const addresses = patient?.address ?? []
+  const address =
+    addresses.find((entry) => entry.use === 'home') ??
+    addresses.find((entry) => entry.use === 'temp') ??
+    addresses[0]
+
+  if (!address) return '—'
+  if (address.text?.trim()) return address.text.trim()
+
+  const line = address.line?.filter(Boolean).join(', ')
+  const locality = [address.city, address.district, address.state]
+    .filter(Boolean)
+    .join(', ')
+  const postalAndCountry = [address.postalCode, address.country]
+    .filter(Boolean)
+    .join(' ')
+
+  return [line, locality, postalAndCountry].filter(Boolean).join(', ') || '—'
+}
+
 function getPatientId(subjectPayload: string | undefined): string | undefined {
   if (!subjectPayload?.trim()) return undefined
   const match = subjectPayload.trim().match(/^Patient\/(.+)$/)
@@ -395,6 +475,22 @@ const SelectedPatientPreviewCard = ({
     'overview' | 'medications' | 'conditions' | 'observations' | 'raw-json'
   >('overview')
   const rawFhirPayload = parseRawJson(dataPayload)
+  const isEndpointSelected = summary?.source === 'endpoint'
+
+  const medicationsEmptyState = isEndpointSelected
+    ? 'Medication data is not loaded for endpoint-selected patients in this selection.'
+    : 'No medications available for this patient context.'
+
+  const conditionsEmptyState = isEndpointSelected
+    ? 'Condition data is not loaded for endpoint-selected patients in this selection.'
+    : 'No conditions available for this patient context.'
+
+  const observationsEmptyState = isEndpointSelected
+    ? 'Observation data is not loaded for endpoint-selected patients in this selection.'
+    : 'No observations available for this patient context.'
+  const fullName = summary?.name || `Patient/${patientId ?? '—'}`
+  const mrn = mrnValue(patient, summary, patientId)
+  const address = formatAddress(patient)
 
   return (
     <div
@@ -493,22 +589,36 @@ const SelectedPatientPreviewCard = ({
 
           {activeSection === 'overview' && (
             <div className="selected-patient-overview-grid">
-              <Text strong>Full Name</Text>
-              <Text>{summary?.name || `Patient/${patientId ?? '—'}`}</Text>
-              <Text strong>Date of Birth</Text>
-              <Text>{summary?.dob ?? '—'}</Text>
-              <Text strong>Gender</Text>
-              <Text>{summary?.gender ?? '—'}</Text>
-              <Text strong>ID</Text>
-              <Text>{summary?.id || patientId || '—'}</Text>
-              <Text strong>Subject</Text>
-              <Text>{subjectPayload}</Text>
+              <div className="selected-patient-overview-item">
+                <Text type="secondary" className="selected-patient-overview-label">Full Name</Text>
+                <Text strong className="selected-patient-overview-value">{fullName}</Text>
+              </div>
+
+              <div className="selected-patient-overview-item">
+                <Text type="secondary" className="selected-patient-overview-label">Date of Birth</Text>
+                <Text strong className="selected-patient-overview-value">{summary?.dob ?? '—'}</Text>
+              </div>
+
+              <div className="selected-patient-overview-item">
+                <Text type="secondary" className="selected-patient-overview-label">Gender</Text>
+                <Text strong className="selected-patient-overview-value">{summary?.gender ?? '—'}</Text>
+              </div>
+
+              <div className="selected-patient-overview-item">
+                <Text type="secondary" className="selected-patient-overview-label">MRN</Text>
+                <Text strong className="selected-patient-overview-value">{mrn}</Text>
+              </div>
+
+              <div className="selected-patient-overview-item selected-patient-overview-item-full">
+                <Text type="secondary" className="selected-patient-overview-label">Address</Text>
+                <Text strong className="selected-patient-overview-value">{address}</Text>
+              </div>
             </div>
           )}
 
           {activeSection === 'medications' &&
             (medications.length === 0 ? (
-              <Text type="secondary">No medications available for this patient context.</Text>
+              <Text type="secondary">{medicationsEmptyState}</Text>
             ) : (
               <div className="selected-patient-resource-list">
                 {medications.map((item) => (
@@ -531,7 +641,7 @@ const SelectedPatientPreviewCard = ({
 
           {activeSection === 'conditions' &&
             (conditions.length === 0 ? (
-              <Text type="secondary">No conditions available for this patient context.</Text>
+              <Text type="secondary">{conditionsEmptyState}</Text>
             ) : (
               <div className="selected-patient-resource-list">
                 {conditions.map((item) => (
@@ -552,7 +662,7 @@ const SelectedPatientPreviewCard = ({
 
           {activeSection === 'observations' &&
             (observations.length === 0 ? (
-              <Text type="secondary">No observations available for this patient context.</Text>
+              <Text type="secondary">{observationsEmptyState}</Text>
             ) : (
               <div className="selected-patient-resource-list">
                 {observations.map((item) => (

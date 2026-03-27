@@ -1,18 +1,4 @@
-## ADDED Requirements
-
-### Requirement: Selected patient preview card is shown when context is active
-The apply form SHALL render a selected patient preview card whenever an active patient context exists.
-
-#### Scenario: Preview card appears after patient selection
-- **WHEN** the user selects a patient via manual input, endpoint search, or recent patients
-- **THEN** a selected patient preview card SHALL render in the patient context area
-
-### Requirement: Preview card includes clear selected patient action
-The selected patient preview card SHALL provide a clear action that removes the active patient context from the apply form.
-
-#### Scenario: Clearing selected patient resets active context
-- **WHEN** the user activates the clear selected patient action
-- **THEN** the active patient context SHALL be removed and the preview card SHALL no longer be shown
+## MODIFIED Requirements
 
 ### Requirement: Preview card supports tabbed patient detail views
 The selected patient preview card SHALL provide tabs named `Overview`, `Medications`, `Conditions`, `Observations`, and `Raw JSON`.
