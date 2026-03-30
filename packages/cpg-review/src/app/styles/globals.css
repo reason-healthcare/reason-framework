@@ -188,7 +188,7 @@ button:hover {
 
 .button-simple {
   border: 0px;
-  background-color: var(--background);
+  background-color: inherit;
   color: var(--teal);
   text-decoration: underline;
   font-weight: 400;
@@ -197,9 +197,11 @@ button:hover {
 
 .button-simple:focus {
   color: var(--brTeal);
+  background-color: inherit;
 }
 .button-simple:hover {
   color: var(--brTeal);
+  background-color: inherit;
 }
 
 .button:hover {

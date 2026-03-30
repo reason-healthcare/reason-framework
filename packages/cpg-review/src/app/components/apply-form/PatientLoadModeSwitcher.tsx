@@ -1,47 +1,57 @@
 'use client'
 
-import { Input, Segmented, Tooltip, Typography } from 'antd'
+import { Segmented, Tooltip, Typography } from 'antd'
 import { useEffect, useState } from 'react'
 import FhirPatientSearchPanel from 'components/apply-form/FhirPatientSearchPanel'
-import RecentPatientsPanel from 'components/apply-form/RecentPatientsPanel'
-import { getAllPatients, PatientSummary } from 'utils/recentPatientsStore'
+import PatientSelectionPanel from 'components/apply-form/PatientSelectionPanel'
+import { getAllPatients, getPackageCatalog, PatientSummary } from 'utils/recentPatientsStore'
+import BrowserResolver from 'resolver/browser'
 
 const { Text } = Typography
 
 const SESSION_KEY = 'cpg-review:patient-load-mode'
-type SegmentKey = 'manual' | 'fhir' | 'recent'
+type SegmentKey = 'bundle' | 'fhir' | 'recent'
 
 interface PatientLoadModeSwitcherProps {
+  resolver?: BrowserResolver | undefined
   dataEndpointUrl: string | undefined
-  dataPayload: string | undefined
-  onDataPayloadChange: (val: string | undefined) => void
-  subjectPayload: string | undefined
-  onSubjectChange: (val: string) => void
-  onPatientSelect: (subject: string, summary: PatientSummary) => void
+  onPatientSelect: (
+    subject: string,
+    summary: PatientSummary,
+    dataPayload?: string
+  ) => void
 }
 
 const PatientLoadModeSwitcher = ({
+  resolver,
   dataEndpointUrl,
-  dataPayload,
-  onDataPayloadChange,
-  subjectPayload,
-  onSubjectChange,
   onPatientSelect,
 }: PatientLoadModeSwitcherProps) => {
   const [activeKey, setActiveKey] = useState<SegmentKey>(() => {
     if (typeof window !== 'undefined') {
-      return (sessionStorage.getItem(SESSION_KEY) as SegmentKey) ?? 'manual'
+      const stored = sessionStorage.getItem(SESSION_KEY)
+      // Map legacy 'manual' mode to 'bundle' mode
+      if (stored === 'manual') return 'bundle'
+      return (stored as SegmentKey) ?? 'bundle'
     }
-    return 'manual'
+    return 'bundle'
   })
 
   const hasEndpoint = !!dataEndpointUrl?.trim()
+  const hasPackageBundles = getPackageCatalog().length > 0
   const hasRecents = getAllPatients(dataEndpointUrl).length > 0
 
-  // If the stored segment is no longer valid, fall back to manual
+  // If the stored segment is no longer valid, fall back to the next available mode.
   useEffect(() => {
-    if (activeKey === 'fhir' && !hasEndpoint) setActiveKey('manual')
-  }, [hasEndpoint, activeKey])
+    if (activeKey === 'fhir' && !hasEndpoint) {
+      setActiveKey(hasPackageBundles ? 'bundle' : hasRecents ? 'recent' : 'bundle')
+      return
+    }
+
+    if (activeKey === 'bundle' && !hasPackageBundles) {
+      setActiveKey(hasEndpoint ? 'fhir' : hasRecents ? 'recent' : 'bundle')
+    }
+  }, [hasEndpoint, hasPackageBundles, hasRecents, activeKey])
 
   const handleChange = (key: string | number) => {
     const k = key as SegmentKey
@@ -50,7 +60,15 @@ const PatientLoadModeSwitcher = ({
   }
 
   const options = [
-    { value: 'manual', label: 'FHIR Bundle' },
+    {
+      value: 'bundle',
+      label: (
+        <Tooltip title={!hasPackageBundles ? 'No package bundles available from uploaded content' : undefined} style={{fontSize: '0.9rem'}}>
+          <span>FHIR Bundle</span>
+        </Tooltip>
+      ),
+      disabled: !hasPackageBundles,
+    },
     {
       value: 'fhir',
       label: (
@@ -80,25 +98,21 @@ const PatientLoadModeSwitcher = ({
         block
       />
 
-      {activeKey === 'manual' && (
-        <div className="patient-mode-manual-panel">
+      {activeKey === 'bundle' && hasPackageBundles && (
+        <div className="patient-mode-bundle-panel">
           <div>
-            <h3 className="form-title">Context Data</h3>
-            <p className="form-description">Add context data as a FHIR JSON Bundle.</p>
-            <Input.TextArea
-              onChange={(e) => onDataPayloadChange(e.target.value || undefined)}
-              value={dataPayload}
-              rows={6}
-            />
-          </div>
-          <div>
-            <h3 className="form-title">Subject</h3>
-            <p className="form-description">Set reference to subject.</p>
-            <Input
-              placeholder="Patient/Patient-1"
-              defaultValue="Patient/Patient1"
-              onChange={(e) => onSubjectChange(e.target.value)}
-              value={subjectPayload}
+            <h3 className="form-title">FHIR Bundle Select</h3>
+            <p className="form-description">
+              Select a patient bundle from the uploaded package. Each bundle is listed separately.
+            </p>
+            <PatientSelectionPanel
+              resolver={resolver}
+              endpointUrl={dataEndpointUrl}
+              onPatientSelect={onPatientSelect}
+              sourceFilter="package"
+              hideClearButton
+              searchPlaceholder="Search bundles"
+              emptyMessage="No package bundles available in the uploaded content."
             />
           </div>
         </div>
@@ -117,7 +131,8 @@ const PatientLoadModeSwitcher = ({
       )}
 
       {activeKey === 'recent' && (
-        <RecentPatientsPanel
+        <PatientSelectionPanel
+          resolver={resolver}
           endpointUrl={dataEndpointUrl}
           onPatientSelect={onPatientSelect}
         />

@@ -4,7 +4,7 @@
 The apply form SHALL render a selected patient preview card whenever an active patient context exists.
 
 #### Scenario: Preview card appears after patient selection
-- **WHEN** the user selects a patient via manual input, endpoint search, or recent patients
+- **WHEN** the user selects a patient via bundle select, endpoint search, or recent patients/bundles
 - **THEN** a selected patient preview card SHALL render in the patient context area
 
 ### Requirement: Preview card includes clear selected patient action

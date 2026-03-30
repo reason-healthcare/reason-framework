@@ -1,9 +1,10 @@
 import '@/styles/narrativeDisplay.css'
-import { Alert, Form, Input, message, Spin, Steps } from 'antd'
+import { Alert, Form, message, Steps } from 'antd'
 import { ApplyPayload } from 'api/apply/route'
 import { is } from 'helpers'
 import { useEffect, useRef, useState } from 'react'
 import QuestionnaireRenderer from './QuestionnaireRenderer'
+import ApplyButton from './ApplyButton'
 import PatientLoadModeSwitcher from 'components/apply-form/PatientLoadModeSwitcher'
 import SelectedPatientPreviewCard from 'components/apply-form/SelectedPatientPreviewCard'
 import EndpointsConfiguration, {
@@ -12,10 +13,11 @@ import EndpointsConfiguration, {
 import { addPatient, PatientSummary, renderPatientName } from 'utils/recentPatientsStore'
 import '@/styles/applyForm.css'
 import '@/styles/uploadSection.css'
-import { LoadingOutlined } from '@ant-design/icons'
 import { SidePanelView } from 'page'
+import BrowserResolver from 'resolver/browser'
 
 interface ApplyFormProps {
+  resolver?: BrowserResolver | undefined
   planDefinition: fhir4.PlanDefinition
   contentEndpoint: string | undefined
   setRequestsBundle: React.Dispatch<
@@ -26,8 +28,8 @@ interface ApplyFormProps {
 }
 
 const ApplyForm = ({
+  resolver,
   planDefinition,
-  contentEndpoint,
   setRequestsBundle,
   setContextReference,
   setSidePanelView,
@@ -50,8 +52,6 @@ const ApplyForm = ({
   >('http://localhost:8080/fhir')
   const [questionnaireResponseServer, setQuestionnaireResponseServer] =
     useState<fhir4.QuestionnaireResponse>()
-  const [userQuestionnaireResponse, setUserQuestionnaireResponse] =
-    useState<fhir4.QuestionnaireResponse>()
   const [questionnaire, setQuestionnaire] = useState<
     fhir4.Questionnaire | undefined
   >()
@@ -65,7 +65,6 @@ const ApplyForm = ({
 
   const clearApplyOutputs = () => {
     setQuestionnaireResponseServer(undefined)
-    setUserQuestionnaireResponse(undefined)
     setQuestionnaire(undefined)
     setRequestsBundle(undefined)
   }
@@ -82,8 +81,6 @@ const ApplyForm = ({
     setDataPayload(undefined)
     setSubjectPayload(undefined)
     setSelectedPatientSummary(undefined)
-    setQuestionnaireResponseServer(undefined)
-    setUserQuestionnaireResponse(undefined)
     form.resetFields()
     localStorage.removeItem('applyPayload')
     endpointsRef.current?.reset()
@@ -102,42 +99,6 @@ const ApplyForm = ({
   }
 
   useEffect(() => {
-    let dataPayloadParsed
-    try {
-      dataPayloadParsed = dataPayload ? JSON.parse(dataPayload) : undefined
-    } catch (error) {
-      dataPayloadParsed = undefined
-    }
-    if (
-      userQuestionnaireResponse != undefined &&
-      dataPayloadParsed != undefined
-    ) {
-      const dataWithQr = {
-        ...dataPayloadParsed,
-        entry: [
-          ...(dataPayloadParsed.entry ?? []),
-          {
-            fullUrl:
-              'http://example.org/QuestionnaireResponse/questionnaireResponseTemp',
-            resource: userQuestionnaireResponse,
-          },
-        ],
-      }
-      const payloadWithQR = {
-        dataPayload: dataWithQr,
-        subjectPayload,
-        cpgEngineEndpointPayload,
-        contentEndpointPayload,
-        txEndpointPayload,
-        dataEndpointPayload,
-        planDefinition,
-        questionnaire,
-      }
-      handleApply(payloadWithQR)
-    }
-  }, [userQuestionnaireResponse])
-
-  useEffect(() => {
     const storedPayload = localStorage.getItem('applyPayload')
     if (storedPayload != null) {
       const payload = JSON.parse(storedPayload)
@@ -149,7 +110,13 @@ const ApplyForm = ({
         txEndpointPayload,
         dataEndpointPayload,
       } = payload
-      setDataPayload(dataPayload)
+      setDataPayload(
+        typeof dataPayload === 'string'
+          ? dataPayload
+          : dataPayload != null
+            ? JSON.stringify(dataPayload)
+            : undefined
+      )
       setSubjectPayload(subjectPayload)
       setCpgEngineEndpointPayload(cpgEngineEndpointPayload)
       setContentEndpointPayload(contentEndpointPayload)
@@ -179,8 +146,11 @@ const ApplyForm = ({
       )
       return false
     }
-    if (!is.Bundle(dataPayload)) {
+    if (dataPayload != null && !is.Bundle(dataPayload)) {
       message.error('Context data is not a valid FHIR Bundle')
+      return false
+    } else if (dataEndpointPayload == undefined) {
+      message.error('Data endpoint is required when no context data provided')
       return false
     }
     if (subjectPayload == undefined) {
@@ -206,22 +176,32 @@ const ApplyForm = ({
     )
   }
 
-  const handleDataChange = (val: string | undefined) => {
-    setDataPayload(val)
-  }
-  const handleSubjectChange = (val: string) => {
-    setSubjectPayload(val)
-    setSelectedPatientSummary(undefined)
-  }
-  const handlePatientSelect = (subject: string, summary: PatientSummary) => {
+  const handlePatientSelect = (
+    subject: string,
+    summary: PatientSummary,
+    nextDataPayload?: string
+  ) => {
+    setDataPayload(nextDataPayload)
     setSubjectPayload(subject)
     setSelectedPatientSummary(summary)
   }
   const handleClearSelectedPatient = () => {
+    setDataPayload(undefined)
     setSubjectPayload(undefined)
     setSelectedPatientSummary(undefined)
   }
-  const handleApply = async (payload: any) => {
+  const parseDataPayload = (payload: string | undefined) => {
+    try {
+      return payload ? JSON.parse(payload) : undefined
+    } catch (error) {
+      return undefined
+    }
+  }
+
+  const handleApply = async (
+    payload: Partial<ApplyPayload>,
+    options?: { fromQuestionnaire?: boolean }
+  ) => {
     if (isValidForm(payload)) {
       setIsApplying(true)
       try {
@@ -264,8 +244,8 @@ const ApplyForm = ({
           }
         }
         setIsApplied(true)
-        setContextReference(subjectPayload)
-        setCurrentStep(currentStep === 0 && !skipQuestionnaire ? 1 : 2)
+        setContextReference(payload.subjectPayload)
+        setCurrentStep(options?.fromQuestionnaire ? 2 : !skipQuestionnaire ? 1 : 2)
       } catch (error) {
         clearApplyOutputs()
         const errorMsg = 'Server error: Unable to run $apply'
@@ -279,14 +259,8 @@ const ApplyForm = ({
   }
 
   const handleSubmit = async () => {
-    clearApplyOutputs()
     setIsApplied(false)
-    let dataPayloadParsed
-    try {
-      dataPayloadParsed = dataPayload ? JSON.parse(dataPayload) : undefined
-    } catch (error) {
-      dataPayloadParsed = undefined
-    }
+    const dataPayloadParsed = parseDataPayload(dataPayload)
     const payload = {
       dataPayload: dataPayloadParsed,
       subjectPayload: subjectPayload?.trim(),
@@ -296,12 +270,18 @@ const ApplyForm = ({
       dataEndpointPayload: dataEndpointPayload?.trim(),
       planDefinition,
     }
-    localStorage.setItem('applyPayload', JSON.stringify(payload))
+    localStorage.setItem(
+      'applyPayload',
+      JSON.stringify({
+        ...payload,
+        dataPayload,
+      })
+    )
 
-    // Track manual-mode submission in recent patients
+    // Track bundle-mode submission in recent patients
     if (payload.dataPayload && payload.subjectPayload) {
       try {
-        const bundle = JSON.parse(payload.dataPayload) as fhir4.Bundle
+        const bundle = payload.dataPayload as fhir4.Bundle
         const patientId = payload.subjectPayload.replace(/^Patient\//, '')
         const patientResource = bundle.entry
           ?.map((e) => e.resource)
@@ -314,7 +294,7 @@ const ApplyForm = ({
           name: renderPatientName(patientResource?.name),
           dob: patientResource?.birthDate,
           gender: patientResource?.gender,
-          source: 'manual',
+          source: 'package',
           addedAt: new Date().toISOString(),
         }
         addPatient(summary)
@@ -324,10 +304,174 @@ const ApplyForm = ({
       }
     }
 
-    const result = handleApply(payload)
+    await handleApply(payload)
+  }
+
+  const handleQuestionnaireSubmit = async (
+    response: fhir4.QuestionnaireResponse
+  ) => {
+    setIsApplied(false)
+    const dataPayloadParsed = parseDataPayload(dataPayload)
+    // Use the existing bundle when available; fall back to a minimal collection
+    // bundle when only a data endpoint was configured (endpoint-only mode).
+    const baseBundle: fhir4.Bundle = is.Bundle(dataPayloadParsed)
+      ? dataPayloadParsed
+      : { resourceType: 'Bundle', type: 'collection', entry: [] }
+
+    const entriesWithoutQuestionnaireResponse = (baseBundle.entry ?? []).filter(
+      (entry) => entry.resource?.resourceType !== 'QuestionnaireResponse'
+    )
+
+    // Ensure QuestionnaireResponse.questionnaire references match the Questionnaire URL
+    const questionnaireUrl = questionnaire
+      ? `http://example.org/Questionnaire/${questionnaire.id}/${questionnaire.version}`
+      : response.questionnaire
+
+    const updatedResponse: fhir4.QuestionnaireResponse = {
+      ...response,
+      questionnaire: questionnaireUrl,
+    }
+
+    const dataWithQr = {
+      ...baseBundle,
+      entry: [
+        ...entriesWithoutQuestionnaireResponse,
+        {
+          fullUrl:
+            'http://example.org/QuestionnaireResponse/questionnaireResponseTemp',
+          resource: updatedResponse,
+        },
+      ],
+    }
+
+    // Update dataPayload state so subsequent edits build on this QuestionnaireResponse
+    setDataPayload(JSON.stringify(dataWithQr))
+
+    const payload: Partial<ApplyPayload> = {
+      dataPayload: dataWithQr,
+      subjectPayload: subjectPayload?.trim(),
+      cpgEngineEndpointPayload: cpgEngineEndpointPayload?.trim(),
+      contentEndpointPayload: contentEndpointPayload?.trim(),
+      txEndpointPayload: txEndpointPayload?.trim(),
+      dataEndpointPayload: dataEndpointPayload?.trim(),
+      planDefinition,
+      questionnaire,
+    }
+    await handleApply(payload, { fromQuestionnaire: true })
   }
 
   const [form] = Form.useForm()
+
+  const renderStepContent = () => {
+    if (currentStep === 0) {
+      return (
+        <Form
+          onFinish={handleSubmit}
+          form={form}
+          className="form apply-form"
+          autoComplete="off"
+        >
+          <Form.Item className="form-item">
+            <EndpointsConfiguration
+              ref={endpointsRef}
+              onCpgEngineEndpointChange={setCpgEngineEndpointPayload}
+              onContentEndpointChange={setContentEndpointPayload}
+              onTxEndpointChange={setTxEndpointPayload}
+              onDataEndpointChange={setDataEndpointPayload}
+            />
+          </Form.Item>
+          <Form.Item className="form-item">
+            <div>
+              <h2 className="form-title">Patient Context</h2>
+              <p className="form-description">
+                Upload a patient context file or search for a patient
+              </p>
+            </div>
+            <PatientLoadModeSwitcher
+              resolver={resolver}
+              dataEndpointUrl={dataEndpointPayload}
+              onPatientSelect={handlePatientSelect}
+            />
+
+            <SelectedPatientPreviewCard
+              subjectPayload={subjectPayload}
+              dataPayload={dataPayload}
+              selectedPatient={selectedPatientSummary}
+              onClear={handleClearSelectedPatient}
+            />
+          </Form.Item>
+
+          <Form.Item className="button-group">
+            <button
+              type="button"
+              className="button button-secondary"
+              onClick={resetForm}
+            >
+              {isApplying ? 'Cancel' : 'Reset'}
+            </button>
+            <ApplyButton isApplying={isApplying} label="Apply" type="submit" />
+          </Form.Item>
+        </Form>
+      )
+    }
+
+    if (currentStep === 1) {
+      return (
+        <QuestionnaireRenderer
+          questionnaireResponseServer={questionnaireResponseServer}
+          onSubmitQuestionnaire={handleQuestionnaireSubmit}
+          questionnaire={questionnaire}
+          setCurrentStep={setCurrentStep}
+          isApplying={isApplying}
+        />
+      )
+    }
+
+    return (
+      <Alert
+        className="success-alert"
+        message="Applied!"
+        description="Return to steps 1 or 2 or clear current patient context to return to plan definition"
+        type="success"
+        showIcon
+        action={
+          <div
+            style={{
+              display: 'flex',
+              gap: '0.5rem',
+              flexDirection: 'column',
+            }}
+          >
+            <button
+              className="button"
+              type="button"
+              onClick={() => {
+                setContextReference(undefined)
+                setSidePanelView(undefined)
+              }}
+            >
+              Return to Plan Definition
+            </button>
+            <button
+              className="button-secondary button"
+              type="button"
+              onClick={() => setCurrentStep(0)}
+            >
+              Edit Context
+            </button>
+            <button
+              className="button-secondary button"
+              type="button"
+              onClick={() => setCurrentStep(1)}
+            >
+              Edit Questionnaire Response
+            </button>
+          </div>
+        }
+      />
+    )
+  }
+
   return (
     <div className="apply-section">
       <Steps
@@ -348,136 +492,7 @@ const ApplyForm = ({
         ]}
         className="apply-steps"
       />
-      {currentStep === 0 ? (
-        <Form
-          onFinish={handleSubmit}
-          form={form}
-          className="form apply-form"
-          autoComplete="off"
-        >
-          <Form.Item name="endpoints-configuration" className="form-item">
-            <EndpointsConfiguration
-              ref={endpointsRef}
-              onCpgEngineEndpointChange={setCpgEngineEndpointPayload}
-              onContentEndpointChange={setContentEndpointPayload}
-              onTxEndpointChange={setTxEndpointPayload}
-              onDataEndpointChange={setDataEndpointPayload}
-            />
-          </Form.Item>
-          <Form.Item name="patient-context" className="form-item">
-            <div>
-              <h2 className="form-title">Patient Context</h2>
-              <p className='form-description'>Upload a patient context file or search for a patient</p>
-            </div>
-            <PatientLoadModeSwitcher
-              dataEndpointUrl={dataEndpointPayload}
-              dataPayload={dataPayload}
-              onDataPayloadChange={handleDataChange}
-              subjectPayload={subjectPayload}
-              onSubjectChange={handleSubjectChange}
-              onPatientSelect={handlePatientSelect}
-            />
-
-            <SelectedPatientPreviewCard
-              subjectPayload={subjectPayload}
-              dataPayload={dataPayload}
-              selectedPatient={selectedPatientSummary}
-              onClear={handleClearSelectedPatient}
-            />
-          </Form.Item>
-
-          {isApplying ? (
-            <Form.Item className="button-group">
-              <button
-                type="button"
-                className="button button-secondary"
-                onClick={resetForm}
-              >
-                Cancel
-              </button>
-              <button type="submit" className={'button'} disabled>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.6rem',
-                  }}
-                >
-                  Applying
-                  <Spin
-                    style={{ color: '#fff' }}
-                    indicator={<LoadingOutlined spin />}
-                    size="small"
-                  />
-                </div>
-              </button>
-            </Form.Item>
-          ) : (
-            <Form.Item className="button-group">
-              <button
-                type="button"
-                className="button button-secondary"
-                onClick={resetForm}
-              >
-                Reset
-              </button>
-              <button type="submit" className={'button'}>
-                Apply
-              </button>
-            </Form.Item>
-          )}
-        </Form>
-      ) : currentStep === 1 ? (
-        <QuestionnaireRenderer
-          questionnaireResponseServer={questionnaireResponseServer}
-          setUserQuestionnaireResponse={setUserQuestionnaireResponse}
-          questionnaire={questionnaire}
-          setCurrentStep={setCurrentStep}
-          isApplying={isApplying}
-        />
-      ) : (
-        <Alert
-          className="success-alert"
-          message="Applied!"
-          description="Return to steps 1 or 2 or clear current patient context to return to plan definition"
-          type="success"
-          showIcon
-          action={
-            <div
-              style={{
-                display: 'flex',
-                gap: '0.5rem',
-                flexDirection: 'column',
-              }}
-            >
-              <button
-                className="button"
-                type="button"
-                onClick={() => {
-                  setContextReference(undefined)
-                  setSidePanelView(undefined)
-                }}
-              >
-                Return to Plan Definition
-              </button>
-              <button
-                className="button-secondary button"
-                type="button"
-                onClick={() => setCurrentStep(0)}
-              >
-                Edit Context
-              </button>
-              <button
-                className="button-secondary button"
-                type="button"
-                onClick={() => setCurrentStep(1)}
-              >
-                Edit Questionnaire Response
-              </button>
-            </div>
-          }
-        />
-      )}
+      {renderStepContent()}
     </div>
   )
 }

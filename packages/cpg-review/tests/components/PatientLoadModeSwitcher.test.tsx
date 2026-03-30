@@ -11,19 +11,27 @@ jest.mock('components/apply-form/FhirPatientSearchPanel', () => ({
   ),
 }))
 
-jest.mock('components/apply-form/RecentPatientsPanel', () => ({
+jest.mock('components/apply-form/PatientSelectionPanel', () => ({
   __esModule: true,
-  default: () => <div data-testid="recent-panel">Recent Panel</div>,
+  default: (props: { searchPlaceholder?: string; sourceFilter?: string }) => (
+    <div data-testid={props.sourceFilter === 'package' ? 'bundle-panel' : 'recent-panel'}>
+      {props.searchPlaceholder ? <input placeholder={props.searchPlaceholder} /> : null}
+      {props.sourceFilter === 'package' ? 'Bundle Panel' : 'Recent Panel'}
+    </div>
+  ),
 }))
 
 jest.mock('utils/recentPatientsStore', () => ({
   getAllPatients: jest.fn(),
+  getPackageCatalog: jest.fn(),
 }))
 
-import { getAllPatients } from 'utils/recentPatientsStore'
+import { getAllPatients, getPackageCatalog } from 'utils/recentPatientsStore'
 const mockGetAllPatients = getAllPatients as jest.MockedFunction<typeof getAllPatients>
+const mockGetPackageCatalog = getPackageCatalog as jest.MockedFunction<typeof getPackageCatalog>
 
 const BASE_PROPS = {
+  resolver: undefined,
   dataEndpointUrl: 'http://fhir.example.com/fhir',
   dataPayload: undefined,
   onDataPayloadChange: jest.fn(),
@@ -37,6 +45,7 @@ describe('PatientLoadModeSwitcher', () => {
     jest.clearAllMocks()
     sessionStorage.clear()
     mockGetAllPatients.mockReturnValue([])
+    mockGetPackageCatalog.mockReturnValue([])
   })
 
   it('renders the three segment options', () => {
@@ -46,26 +55,31 @@ describe('PatientLoadModeSwitcher', () => {
     expect(screen.getByText('Recent')).toBeInTheDocument()
   })
 
-  it('defaults to Manual content', () => {
+  it('defaults to bundle select content when package bundles exist', () => {
+    mockGetPackageCatalog.mockReturnValue([
+      { id: 'Bundle/Test1', name: 'Alice [Bundle/Test1]', source: 'package', addedAt: new Date().toISOString() } as any,
+    ])
     render(<PatientLoadModeSwitcher {...BASE_PROPS} />)
-    expect(screen.getByRole('heading', { name: /Context Data/i })).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('Patient/Patient-1')).toBeInTheDocument()
+    expect(screen.getByTestId('bundle-panel')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Search bundles')).toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('Patient/Patient-1')).not.toBeInTheDocument()
   })
 
   it('does not show FHIR panel when FHIR option is disabled (no endpoint)', async () => {
+    mockGetPackageCatalog.mockReturnValue([
+      { id: 'Bundle/Test1', name: 'Alice [Bundle/Test1]', source: 'package', addedAt: new Date().toISOString() } as any,
+    ])
     render(<PatientLoadModeSwitcher {...BASE_PROPS} dataEndpointUrl={undefined} />)
     await userEvent.click(screen.getByText('FHIR Data Endpoint'))
-    // Manual content should still be visible — disabled option can't activate
-    expect(screen.getByRole('heading', { name: /Context Data/i })).toBeInTheDocument()
+    expect(screen.getByTestId('bundle-panel')).toBeInTheDocument()
     expect(screen.queryByTestId('fhir-panel')).not.toBeInTheDocument()
   })
 
-  it('does not show Recent panel when Recent option is disabled (no recents)', async () => {
+  it('does not show bundle select when no package bundles exist', async () => {
     mockGetAllPatients.mockReturnValue([])
     render(<PatientLoadModeSwitcher {...BASE_PROPS} />)
-    await userEvent.click(screen.getByText('Recent'))
-    expect(screen.getByRole('heading', { name: /Context Data/i })).toBeInTheDocument()
-    expect(screen.queryByTestId('recent-panel')).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /FHIR Bundle Select/i })).not.toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('Search bundles')).not.toBeInTheDocument()
   })
 
   it('enables and activates Recent option when recent patients exist', async () => {
@@ -78,6 +92,9 @@ describe('PatientLoadModeSwitcher', () => {
   })
 
   it('switches to FHIR panel on option click and persists to sessionStorage', async () => {
+    mockGetPackageCatalog.mockReturnValue([
+      { id: 'Bundle/Test1', name: 'Alice [Bundle/Test1]', source: 'package', addedAt: new Date().toISOString() } as any,
+    ])
     render(<PatientLoadModeSwitcher {...BASE_PROPS} />)
     await userEvent.click(screen.getByText('FHIR Data Endpoint'))
     expect(screen.getByTestId('fhir-panel')).toBeInTheDocument()
@@ -89,5 +106,14 @@ describe('PatientLoadModeSwitcher', () => {
     mockGetAllPatients.mockReturnValue([])
     render(<PatientLoadModeSwitcher {...BASE_PROPS} />)
     expect(screen.getByTestId('fhir-panel')).toBeInTheDocument()
+  })
+
+  it('maps legacy manual session key to bundle select', () => {
+    sessionStorage.setItem('cpg-review:patient-load-mode', 'manual')
+    mockGetPackageCatalog.mockReturnValue([
+      { id: 'Bundle/Test1', name: 'Alice [Bundle/Test1]', source: 'package', addedAt: new Date().toISOString() } as any,
+    ])
+    render(<PatientLoadModeSwitcher {...BASE_PROPS} />)
+    expect(screen.getByTestId('bundle-panel')).toBeInTheDocument()
   })
 })
