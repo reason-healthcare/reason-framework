@@ -6,16 +6,14 @@ import {
   useRendererQueryClient,
 } from '@aehrc/smart-forms-renderer'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Spin, Alert } from 'antd'
+import { Alert } from 'antd'
 import LoadIndicator from '../LoadIndicator'
-import { LoadingOutlined } from '@ant-design/icons'
+import ApplyButton from './ApplyButton'
 
 interface QuestionnaireRendererProps {
   questionnaireResponseServer: fhir4.QuestionnaireResponse | undefined
   questionnaire: fhir4.Questionnaire | undefined
-  setUserQuestionnaireResponse: React.Dispatch<
-    React.SetStateAction<fhir4.QuestionnaireResponse | undefined>
-  >
+  onSubmitQuestionnaire: (response: fhir4.QuestionnaireResponse) => void
   setCurrentStep: React.Dispatch<React.SetStateAction<number>>
   isApplying: boolean
 }
@@ -23,7 +21,7 @@ interface QuestionnaireRendererProps {
 const QuestionnaireRenderer = ({
   questionnaireResponseServer,
   questionnaire,
-  setUserQuestionnaireResponse,
+  onSubmitQuestionnaire,
   setCurrentStep,
   isApplying,
 }: QuestionnaireRendererProps) => {
@@ -110,12 +108,12 @@ const QuestionnaireRenderer = ({
   }
 
   const handleQuestionnaireSubmit = () => {
-    const questionnaireResponse = getResponse()
-    const userQuestionnaireResponse = copyQuestionnaireAnswers(
+    const questionnaireResponse = getResponse() as fhir4.QuestionnaireResponse
+    const fullQuestionnaireResponse = copyQuestionnaireAnswers(
       questionnaireResponse,
       questionnaire
     )
-    setUserQuestionnaireResponse(userQuestionnaireResponse)
+    onSubmitQuestionnaire(fullQuestionnaireResponse)
   }
 
   const queryClient = useRendererQueryClient()
@@ -126,47 +124,12 @@ const QuestionnaireRenderer = ({
       <QueryClientProvider client={queryClient as unknown as QueryClient}>
         <BaseRenderer />
       </QueryClientProvider>
-      {isApplying ? (
-        <button
-          type="button"
-          className={'button'}
-          onClick={handleQuestionnaireSubmit}
-          disabled
-          style={{ width: '100%' }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.6rem',
-              justifyContent: 'center',
-              width: '100%',
-            }}
-          >
-            Applying
-            <Spin
-              style={{ color: '#fff' }}
-              indicator={<LoadingOutlined spin />}
-              size="small"
-            />
-          </div>
-        </button>
-      ) : (
-        <button
-          type="button"
-          className={'button'}
-          onClick={handleQuestionnaireSubmit}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.6rem',
-            justifyContent: 'center',
-            width: '100%',
-          }}
-        >
-          Confirm & Apply
-        </button>
-      )}
+      <ApplyButton
+        isApplying={isApplying}
+        label="Confirm & Apply"
+        onClick={handleQuestionnaireSubmit}
+        style={{ width: '100%' }}
+      />
     </RendererThemeProvider>
   )
 }

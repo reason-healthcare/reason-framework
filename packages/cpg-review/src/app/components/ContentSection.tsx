@@ -59,6 +59,7 @@ const ContentSection = ({
     if (sidePanelView === 'apply' && planDefinition) {
       return (
         <ApplyForm
+          resolver={resolver}
           planDefinition={planDefinition}
           contentEndpoint={endpointPayload}
           setRequestsBundle={setRequestsBundle}

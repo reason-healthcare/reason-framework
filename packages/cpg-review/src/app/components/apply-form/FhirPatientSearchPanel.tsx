@@ -13,7 +13,11 @@ const DEBOUNCE_MS = 300
 interface FhirPatientSearchPanelProps {
   /** Address of the FHIR data endpoint (dataEndpoint.address). */
   dataEndpointUrl: string
-  onPatientSelect: (subject: string, summary: PatientSummary) => void
+  onPatientSelect: (
+    subject: string,
+    summary: PatientSummary,
+    dataPayload?: string
+  ) => void
 }
 
 interface PatientRow {
@@ -35,7 +39,7 @@ function toPatientRow(resource: fhir4.Patient): PatientRow {
 type SearchState =
   | { status: 'idle' }
   | { status: 'loading' }
-  | { status: 'results'; rows: PatientRow[] }
+  | { status: 'results'; rows: PatientRow[]; resources: fhir4.Patient[] }
   | { status: 'empty' }
   | { status: 'error'; message: string; errorType: 'network' | 'cors' | 'http' | 'parse' }
 
@@ -64,12 +68,12 @@ const FhirPatientSearchPanel = ({
     }
 
     const entries = result.data.entry ?? []
-    const rows: PatientRow[] = entries
+    const resources: fhir4.Patient[] = entries
       .map((e) => e.resource)
       .filter((r): r is fhir4.Patient => r?.resourceType === 'Patient' && !!r.id)
-      .map(toPatientRow)
+    const rows: PatientRow[] = resources.map(toPatientRow)
 
-    setSearchState(rows.length > 0 ? { status: 'results', rows } : { status: 'empty' })
+    setSearchState(rows.length > 0 ? { status: 'results', rows, resources } : { status: 'empty' })
   }
 
   const handleSearch = (value: string) => {
@@ -84,7 +88,8 @@ const FhirPatientSearchPanel = ({
   const handleChange = (patientId: string) => {
     if (searchState.status !== 'results') return
     const row = searchState.rows.find((r) => r.id === patientId)
-    if (!row) return
+    const patientResource = searchState.resources.find((r) => r.id === patientId)
+    if (!row || !patientResource) return
 
     const summary: PatientSummary = {
       id: row.id,
@@ -96,7 +101,15 @@ const FhirPatientSearchPanel = ({
       addedAt: new Date().toISOString(),
     }
     addPatient(summary)
-    onPatientSelect(`Patient/${row.id}`, summary)
+
+    // Pass the Patient resource as a minimal collection bundle
+    const bundle: fhir4.Bundle = {
+      resourceType: 'Bundle',
+      type: 'collection',
+      entry: [{ resource: patientResource }],
+    }
+
+    onPatientSelect(`Patient/${row.id}`, summary, JSON.stringify(bundle))
   }
 
   const isLoading = searchState.status === 'loading'

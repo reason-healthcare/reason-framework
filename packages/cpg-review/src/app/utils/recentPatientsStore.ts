@@ -1,5 +1,6 @@
 const MAX_PER_KEY = 10
-const MANUAL_KEY = 'cpg-review:recent-patients:manual'
+const PACKAGE_KEY = 'cpg-review:recent-patients:package'
+const PACKAGE_CATALOG_KEY = 'cpg-review:package-catalog'
 const PATIENTS_PREFIX = 'cpg-review:recent-patients:'
 
 function endpointKey(url: string): string {
@@ -11,8 +12,14 @@ export interface PatientSummary {
   name: string
   dob: string | undefined
   gender: string | undefined
-  source: 'manual' | 'endpoint'
+  source: 'endpoint' | 'package'
   endpointUrl?: string
+  bundleId?: string // Resource ID only (e.g., "123" from "Bundle/123")
+  bundleReference?: string // Full FHIR reference (e.g., "Bundle/123") for resolver lookups
+  bundleJson?: string
+  resourceCount?: number
+  resourceTypes?: string[]
+  patientId?: string
   addedAt: string
 }
 
@@ -43,10 +50,13 @@ function allStorageKeys(): string[] {
  * Evicts the oldest entry when the key exceeds MAX_PER_KEY.
  */
 export function addPatient(summary: PatientSummary): void {
-  const key =
-    summary.source === 'endpoint' && summary.endpointUrl != null
-      ? endpointKey(summary.endpointUrl)
-      : MANUAL_KEY
+  let key = PACKAGE_KEY
+  if (summary.source === 'endpoint' && summary.endpointUrl != null) {
+    key = endpointKey(summary.endpointUrl)
+  }
+  if (summary.source === 'package') {
+    key = PACKAGE_KEY
+  }
 
   const existing = readKey(key).filter((p) => p.id !== summary.id)
   const updated: PatientSummary[] = [
@@ -60,12 +70,12 @@ export function addPatient(summary: PatientSummary): void {
  * Return all recent patients, sorted by most recently added first.
  *
  * @param endpointUrl  When provided, returns patients from that endpoint key
- *                     plus the manual key. When omitted, returns all keys.
+ *                     plus package selections. When omitted, returns all keys.
  */
 export function getAllPatients(endpointUrl?: string): PatientSummary[] {
   const keys =
     endpointUrl != null
-      ? [MANUAL_KEY, endpointKey(endpointUrl)]
+      ? [PACKAGE_KEY, endpointKey(endpointUrl)]
       : allStorageKeys()
 
   const all = keys.flatMap((k) => readKey(k))
@@ -77,6 +87,34 @@ export function getAllPatients(endpointUrl?: string): PatientSummary[] {
  */
 export function clearAll(): void {
   allStorageKeys().forEach((k) => localStorage.removeItem(k))
+  localStorage.removeItem(PACKAGE_CATALOG_KEY)
+}
+
+/**
+ * Replace the package catalog (all bundles available from the current upload).
+ * This is the full index written at upload time; it is NOT included in
+ * getAllPatients() — only explicitly selected bundles go to PACKAGE_KEY.
+ */
+export function setPackageCatalog(bundles: PatientSummary[]): void {
+  localStorage.setItem(PACKAGE_CATALOG_KEY, JSON.stringify(bundles))
+}
+
+/**
+ * Return all entries in the package catalog (uploaded bundles), sorted newest first.
+ */
+export function getPackageCatalog(): PatientSummary[] {
+  try {
+    return JSON.parse(localStorage.getItem(PACKAGE_CATALOG_KEY) ?? '[]') as PatientSummary[]
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Remove the package catalog from localStorage.
+ */
+export function clearPackageCatalog(): void {
+  localStorage.removeItem(PACKAGE_CATALOG_KEY)
 }
 
 /**

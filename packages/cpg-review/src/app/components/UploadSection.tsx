@@ -16,6 +16,11 @@ import Link from 'next/link'
 import { debounce } from 'lodash'
 import { formatTitle, is, notEmpty, resolveCanonical } from 'helpers'
 import BrowserResolver from 'resolver/browser'
+import {
+  extractBundlesFromResolver,
+  indexPackageBundles,
+  PackageBundleExtract,
+} from 'utils/packageBundleExtractor'
 import '@/styles/uploadSection.css'
 
 const CPG_PATHWAY_DEF =
@@ -193,7 +198,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
           message.error(
             'Unable to process compressed data. Ensure that the data is a FHIR Implementation Guide Package ending in .tgz'
           )
-        } else {
+        } else if (decompressed instanceof BrowserResolver) {
           const { resourcesByCanonical } = resolver
           const plans = Object.keys(resourcesByCanonical)
             .map((k: string) => {
@@ -208,9 +213,18 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
             localStorage.clear()
             setPlanDefinition(undefined)
             setResolver(decompressed)
+
+            const bundles = extractBundlesFromResolver(decompressed)
+            const indexedCount = indexPackageBundles(bundles)
+
             try {
               localStorage.setItem('resolver', JSON.stringify(decompressed))
-              message.success('Saved content to local storage')
+              const bundleText = indexedCount
+                ? ` and indexed ${indexedCount} test bundle${
+                    indexedCount === 1 ? '' : 's'
+                  }`
+                : ''
+              message.success(`Saved content to local storage${bundleText}`)
             } catch (e) {
               console.error(e)
               message.info(
@@ -335,6 +349,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
         form={form}
         className="form"
         autoComplete="off"
+        style={{ marginTop: '2rem' }}
       >
         <Form.Item name="packageTypePayload" className="form-item">
           <h1 className="form-title">Select FHIR package type</h1>

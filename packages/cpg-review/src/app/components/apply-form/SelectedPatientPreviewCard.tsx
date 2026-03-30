@@ -37,8 +37,15 @@ interface BundleResourceEntry {
   resource: fhir4.FhirResource
 }
 
-function parseBundle(dataPayload: string | undefined): fhir4.Bundle | undefined {
-  if (!dataPayload?.trim()) return undefined
+function parseBundle(dataPayload: unknown): fhir4.Bundle | undefined {
+  if (dataPayload == null) return undefined
+  if (typeof dataPayload === 'object') {
+    const parsed = dataPayload as Partial<fhir4.Bundle>
+    return parsed.resourceType === 'Bundle'
+      ? (parsed as fhir4.Bundle)
+      : undefined
+  }
+  if (typeof dataPayload !== 'string' || !dataPayload.trim()) return undefined
   try {
     const parsed = JSON.parse(dataPayload) as fhir4.Bundle
     return parsed.resourceType === 'Bundle' ? parsed : undefined
@@ -47,8 +54,10 @@ function parseBundle(dataPayload: string | undefined): fhir4.Bundle | undefined 
   }
 }
 
-function parseRawJson(dataPayload: string | undefined): unknown {
-  if (!dataPayload?.trim()) return undefined
+function parseRawJson(dataPayload: unknown): unknown {
+  if (dataPayload == null) return undefined
+  if (typeof dataPayload !== 'string') return dataPayload
+  if (!dataPayload.trim()) return undefined
   try {
     return JSON.parse(dataPayload)
   } catch {
@@ -105,14 +114,9 @@ function mrnValue(
     .filter((identifier) => !!identifier.value && isMrnIdentifier(identifier))
     .sort((left, right) => normalizeIdentifierUse(left.use) - normalizeIdentifierUse(right.use))
 
-  const identifier = mrnIdentifiers[0] ?? identifiers.find((item) => !!item.value)
+  const identifier = mrnIdentifiers[0]
 
-  return (
-    identifier?.value ||
-    summary?.id ||
-    patientId ||
-    '—'
-  )
+  return identifier?.value || '—'
 }
 
 function formatAddress(patient: fhir4.Patient | undefined): string {
@@ -464,7 +468,7 @@ const SelectedPatientPreviewCard = ({
         name: renderPatientName(patient.name),
         dob: patient.birthDate,
         gender: patient.gender,
-        source: 'manual',
+        source: 'package',
         addedAt: new Date(0).toISOString(),
       }
     : undefined
@@ -507,7 +511,7 @@ const SelectedPatientPreviewCard = ({
               {summary?.name || `Patient/${patientId ?? '—'}`}
             </Text>
             <Text type="secondary" className="selected-patient-summary-meta">
-              ID: {summary?.id || patientId || '—'} |{' '}
+              ID: {summary?.bundleId || summary?.id || patientId || '—'} |{' '}
               {summary?.source === 'endpoint' ? 'From FHIR Server' : 'From FHIR Bundle'}
             </Text>
           </div>

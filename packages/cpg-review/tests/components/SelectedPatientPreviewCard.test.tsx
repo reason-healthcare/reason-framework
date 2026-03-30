@@ -269,7 +269,7 @@ describe('SelectedPatientPreviewCard', () => {
           name: 'Jane Doe',
           dob: '1990-01-01',
           gender: 'female',
-          source: 'manual',
+          source: 'package',
           addedAt: '2026-03-27T00:00:00.000Z',
         }}
         onClear={jest.fn()}

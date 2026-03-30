@@ -1,7 +1,7 @@
-## ADDED Requirements
+## MODIFIED Requirements
 
 ### Requirement: Mode switcher renders patient-loading modes
-The apply form SHALL render `FHIR Bundle`, `FHIR Data Endpoint`, and `Recent` patient-loading modes above the patient input area.
+The apply form SHALL render patient-loading modes above the patient input area.
 
 #### Scenario: Default mode prefers uploaded package bundles
 - **WHEN** the apply form is opened and uploaded package bundles are available
@@ -18,27 +18,12 @@ The apply form SHALL render `FHIR Bundle`, `FHIR Data Endpoint`, and `Recent` pa
 ### Requirement: Active tab persists within the session
 The apply form SHALL remember the last active patient-loading mode for the duration of the browser session.
 
-#### Scenario: Tab state retained after navigating away and back
-- **WHEN** the user switches to another patient-loading mode and navigates away then returns to the apply form
-- **THEN** that mode SHALL remain active when still valid
-
-### Requirement: Mode switcher accessibility
-The mode switcher tab elements SHALL be keyboard navigable and have accessible roles.
-
-#### Scenario: Keyboard navigation between tabs
-- **WHEN** focus is on the mode switcher and the user presses the arrow keys
-- **THEN** focus SHALL move between tabs and the focused tab SHALL be activatable with Enter or Space
+#### Scenario: Legacy manual session value maps to bundle mode
+- **WHEN** the stored session value is `manual`
+- **THEN** the apply form SHALL treat it as the `FHIR Bundle` mode
 
 ### Requirement: Mode switcher uses segmented button-group visual style
-The patient context mode switcher SHALL be rendered as a segmented button group — a row of bordered pill buttons with the active segment filled and elevated — rather than an underline tab style. No ink-bar or bottom border SHALL be present.
-
-#### Scenario: Active segment is visually distinct
-- **WHEN** a mode segment is active
-- **THEN** it SHALL render with a solid background fill and elevated appearance, and no underline or ink-bar SHALL be visible
-
-#### Scenario: Inactive segments are bordered and unfilled
-- **WHEN** a mode segment is inactive
-- **THEN** it SHALL render as a bordered pill button without background fill
+The patient context mode switcher SHALL be rendered as a segmented button group — a row of bordered pill buttons with the active segment filled and elevated — rather than an underline tab style.
 
 #### Scenario: Bundle mode is disabled when no uploaded package bundles are available
 - **WHEN** no patient-containing bundles have been indexed from the uploaded package
