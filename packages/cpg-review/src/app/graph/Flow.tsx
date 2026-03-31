@@ -15,6 +15,7 @@ import {
   PlanDefinitionAction,
   RequestGroupAction,
 } from 'fhir/r4'
+import { generateActionHash, buildActionHashMap, canMatchAllRQActions } from './actionHash'
 
 export interface FlowShape {
   nodes: Node[] | undefined
@@ -173,22 +174,20 @@ class Flow implements FlowShape {
     this.addNewEdge(edge)
   }
 
-  private findMatchingRQAction(
-    actions: RequestGroupAction[] | undefined,
-    id: string | undefined
+  /**
+   * Finds a matching RequestGroup action using hash-based matching.
+   * Uses action title, description, id (if present), and parent path for uniqueness.
+   * @param rqActionHashMap Pre-built map of action hashes to RequestGroup actions
+   * @param pdAction The PlanDefinition action to find a match for
+   * @param parentPath Array of parent action hashes forming the path to this action
+   */
+  private findMatchingRQActionByHash(
+    rqActionHashMap: Map<string, RequestGroupAction>,
+    pdAction: PlanDefinitionAction,
+    parentPath: string[] = []
   ): RequestGroupAction | undefined {
-    if (!actions || !id) return undefined
-    for (const rqAction of actions) {
-      if (rqAction.id === id) return rqAction
-      if (rqAction.action) {
-        const found = this.findMatchingRQAction(
-          rqAction.action as RequestGroupAction[],
-          id
-        )
-        if (found) return found
-      }
-    }
-    return undefined
+    const hash = generateActionHash(pdAction, parentPath)
+    return rqActionHashMap.get(hash)
   }
 
   /**
@@ -197,6 +196,9 @@ class Flow implements FlowShape {
    * @param resolver FHIR resolver
    * @param parent Parent node that will connect to new child node (used to create Edge)
    * @param parentSelection Selection behavior if any of the parent node (used to create Edge)
+   * @param requestBundle The request bundle containing RequestGroup resources
+   * @param rqActionHashMap Pre-built map of action hashes to RequestGroup actions
+   * @param parentPath Array of parent action hashes for uniqueness
    */
   private processActionNodes(
     planDefinition: fhir4.PlanDefinition,
@@ -207,13 +209,19 @@ class Flow implements FlowShape {
     parentSelection?:
       | fhir4.PlanDefinitionAction['selectionBehavior']
       | undefined,
-    requestBundle?: fhir4.Bundle | undefined
+    requestBundle?: fhir4.Bundle | undefined,
+    rqActionHashMap?: Map<string, RequestGroupAction>,
+    parentPath: string[] = []
   ) {
     actions?.map((action) => {
-      const requestGroupAction = this.findMatchingRQAction(
-        requestGroup?.action,
-        action.id
-      )
+      // Generate hash for current PD action
+      const actionHash = generateActionHash(action, parentPath)
+      const currentPath = [...parentPath, actionHash]
+
+      // Find matching RQ action using hash-based matching
+      const requestGroupAction = rqActionHashMap
+        ? this.findMatchingRQActionByHash(rqActionHashMap, action, parentPath)
+        : undefined
       const targetAction = requestGroupAction ?? action
       const targetResource =
         requestGroupAction != null && requestGroup
@@ -235,7 +243,7 @@ class Flow implements FlowShape {
       if (condition != null) {
         condition.forEach((c: any) => {
           const applicabilityNode = this.createApplicabilityNode(
-            `condition-${nodeId}`,
+            `condition-${nodeId}-${c.expression.expression}`,
             nodeId,
             c,
             targetAction,
@@ -281,7 +289,10 @@ class Flow implements FlowShape {
             definition.action,
             node,
             requestGroup,
-            selectionBehavior
+            selectionBehavior,
+            requestBundle,
+            rqActionHashMap,
+            currentPath
           )
           /** Process definition canonical = activity definition or questionnaire */
         } else if (
@@ -321,13 +332,17 @@ class Flow implements FlowShape {
           is.PlanDefinition(targetPlan) &&
           targetPlan.action != null
         ) {
+          // Build new hash map for nested RequestGroup
+          const nestedRQHashMap = buildActionHashMap(requestTarget.action)
           this.processActionNodes(
             targetPlan,
             targetPlan.action,
             node,
             requestTarget,
             selectionBehavior,
-            requestBundle
+            requestBundle,
+            nestedRQHashMap,
+            [] // Reset path for nested request group
           )
         } else if (is.RequestResource(requestTarget)) {
           let endNode = this.nodes?.find((n) => n.id === id)
@@ -350,7 +365,9 @@ class Flow implements FlowShape {
           node,
           requestGroup,
           selectionBehavior,
-          requestBundle
+          requestBundle,
+          rqActionHashMap,
+          currentPath
         )
       } else {
         /** Where there are no child nodes, the final node should be of type 'target'  */
@@ -364,6 +381,93 @@ class Flow implements FlowShape {
         inactive,
         recommended
       )
+    })
+  }
+
+  /**
+   * Process RequestGroup actions directly without PlanDefinition matching.
+   * Used as fallback when RQ actions cannot be matched to PD actions.
+   * @param requestGroup The RequestGroup resource
+   * @param actions RequestGroup actions to process
+   * @param parent Parent node
+   * @param requestBundle The request bundle containing nested resources
+   * @param parentSelection Selection behavior of parent
+   */
+  private processRQActionsOnly(
+    requestGroup: fhir4.RequestGroup,
+    actions: fhir4.RequestGroupAction[],
+    parent: Node,
+    requestBundle: fhir4.Bundle,
+    parentSelection?: fhir4.RequestGroupAction['selectionBehavior']
+  ) {
+    actions?.forEach((action) => {
+      const { title, id, condition, selectionBehavior } = action
+      const nodeId = `action-${title ?? id}-${v4()}`
+
+      // Handle Applicability conditions
+      let currentParent = parent
+      if (condition != null) {
+        condition.forEach((c: any) => {
+          const applicabilityNode = this.createApplicabilityNode(
+            `condition-${nodeId}-${c.expression?.expression ?? c.kind}`,
+            nodeId,
+            c as fhir4.PlanDefinitionActionCondition,
+            action,
+            requestGroup,
+            false
+          )
+          this.addNewNode(applicabilityNode)
+          this.connectNodes(currentParent.id, applicabilityNode.id, parentSelection, false, true)
+          currentParent = applicabilityNode
+        })
+      }
+
+      // Create action node
+      const node = this.createActionNode(nodeId, action, requestGroup, false)
+
+      // Handle children - either nested actions or resource references
+      if (action.action && action.action.length > 0) {
+        // Nested actions
+        this.processRQActionsOnly(
+          requestGroup,
+          action.action as fhir4.RequestGroupAction[],
+          node,
+          requestBundle,
+          selectionBehavior
+        )
+      } else if (action.resource?.reference) {
+        // Resource reference - could be nested RequestGroup or end resource
+        const resourceId = action.resource.reference.split('/').pop()
+        const resourceType = action.resource.reference.split('/').shift()
+        const referencedResource = requestBundle.entry?.find(
+          (e) => e.resource?.id === resourceId
+        )?.resource
+
+        if (is.RequestGroup(referencedResource) && referencedResource.action) {
+          // Nested RequestGroup - process its actions
+          this.processRQActionsOnly(
+            referencedResource,
+            referencedResource.action,
+            node,
+            requestBundle,
+            selectionBehavior
+          )
+        } else if (is.RequestResource(referencedResource)) {
+          // End resource (MedicationRequest, ServiceRequest, etc.)
+          let endNode = this.nodes?.find((n) => n.id === resourceId)
+          if (endNode == null) {
+            endNode = this.createEndNode(referencedResource, false)
+            this.addNewNode(endNode)
+          }
+          this.connectNodes(node.id, endNode.id, parentSelection, false, true)
+        }
+      } else {
+        // No children - this is a leaf node
+        node.data.handle = ['target']
+      }
+
+      this.addNewNode(node)
+      this.connectNodes(currentParent.id, node.id, parentSelection, false, true)
     })
   }
 
@@ -395,8 +499,8 @@ class Flow implements FlowShape {
    * Request Group overlay
    * Generate initial react flow
    * Generate request group
-   * How to find corresponding request group node?
-   *
+   * Attempts to match RQ actions to PD actions using hash-based matching.
+   * If matching fails for any RQ action, falls back to displaying only RQ actions.
    */
   public generateRequestGroupFlow(
     requestBundle: fhir4.Bundle,
@@ -411,19 +515,45 @@ class Flow implements FlowShape {
           (c) => c.split('|').shift() === planDefinition.url?.split('|').shift()
         )
     )?.resource as fhir4.RequestGroup | undefined
+
     if (is.RequestGroup(requestGroup)) {
       const node = this.createStartNode('start', requestGroup)
       this.addNewNode(node)
 
-      /** Handle children */
-      if (planDefinition.action != null) {
+      // Build hash maps for both PD and RQ actions
+      const rqActionHashMap = buildActionHashMap(requestGroup.action)
+      const pdActionHashMap = buildActionHashMap(planDefinition.action)
+
+      // Check if all RQ actions can be matched to PD actions
+      const canMatch = canMatchAllRQActions(
+        requestGroup.action,
+        pdActionHashMap,
+        []
+      )
+
+      if (canMatch && planDefinition.action != null) {
+        // All RQ actions match - use combined PD+RQ flow
         this.processActionNodes(
           planDefinition,
           planDefinition.action,
           node,
           requestGroup,
           undefined,
-          requestBundle
+          requestBundle,
+          rqActionHashMap,
+          []
+        )
+      } else if (requestGroup.action != null) {
+        // Matching failed - fall back to RQ-only flow
+        console.warn(
+          'Could not match all RequestGroup actions to PlanDefinition actions. Displaying RequestGroup actions only.'
+        )
+        this.processRQActionsOnly(
+          requestGroup,
+          requestGroup.action,
+          node,
+          requestBundle,
+          undefined
         )
       } else {
         console.log('There are no request group actions to display')
