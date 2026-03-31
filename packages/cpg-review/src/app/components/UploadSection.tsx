@@ -14,7 +14,7 @@ import { InboxOutlined, LoadingOutlined } from '@ant-design/icons'
 import type { RcFile, UploadFile } from 'antd/es/upload'
 import Link from 'next/link'
 import { debounce } from 'lodash'
-import { is, notEmpty, resolveCanonical } from 'helpers'
+import { formatTitle, is, notEmpty, resolveCanonical } from 'helpers'
 import BrowserResolver from 'resolver/browser'
 import '@/styles/uploadSection.css'
 
@@ -107,7 +107,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
     return planDefinitionOptions
       .map((plan) => {
         const type = getPlanOptionType(plan)
-        const label = plan.title ?? plan.name ?? plan.url ?? plan.id
+        const label = formatTitle(plan)
         return {
           planDefinition: plan,
           type,
