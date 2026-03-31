@@ -2,7 +2,7 @@ import '@/styles/narrativeDisplay.css'
 import { Alert, Form, message, Steps } from 'antd'
 import { ApplyPayload } from 'api/apply/route'
 import { is } from 'helpers'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import QuestionnaireRenderer from './QuestionnaireRenderer'
 import ApplyButton from './ApplyButton'
 import PatientLoadModeSwitcher from 'components/apply-form/PatientLoadModeSwitcher'
@@ -21,6 +21,12 @@ import '@/styles/applyForm.css'
 import '@/styles/uploadSection.css'
 import { SidePanelView } from 'page'
 import BrowserResolver from 'resolver/browser'
+
+const EMPTY_RECOMMENDATION_CONTEXT: fhir4.Bundle = {
+  resourceType: 'Bundle',
+  type: 'collection',
+  entry: [],
+}
 
 interface ApplyFormProps {
   resolver?: BrowserResolver | undefined
@@ -357,6 +363,21 @@ const ApplyForm = ({
   }
 
   const [form] = Form.useForm()
+  const recommendationContext = useMemo<fhir4.Bundle>(() => {
+    if (!dataPayload?.trim()) {
+      return EMPTY_RECOMMENDATION_CONTEXT
+    }
+
+    try {
+      const parsed = JSON.parse(dataPayload) as unknown
+      return is.Bundle(parsed)
+        ? (parsed as fhir4.Bundle)
+        : EMPTY_RECOMMENDATION_CONTEXT
+    } catch {
+      return EMPTY_RECOMMENDATION_CONTEXT
+    }
+  }, [dataPayload])
+
 
   const renderStepContent = () => {
     if (currentStep === 0) {
@@ -412,6 +433,7 @@ const ApplyForm = ({
       return (
         <QuestionnaireRenderer
           questionnaireResponseServer={questionnaireResponseServer}
+          recommendationContext={recommendationContext}
           onSubmitQuestionnaire={handleQuestionnaireSubmit}
           questionnaire={questionnaire}
           setCurrentStep={setCurrentStep}

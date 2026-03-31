@@ -11,10 +11,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Alert } from 'antd'
 import LoadIndicator from '../LoadIndicator'
 import ApplyButton from './ApplyButton'
+import RecommendationPanel from './RecommendationPanel'
 
 interface QuestionnaireRendererProps {
   questionnaireResponseServer: fhir4.QuestionnaireResponse | undefined
   questionnaire: fhir4.Questionnaire | undefined
+  recommendationContext: fhir4.Bundle
   onSubmitQuestionnaire: (response: fhir4.QuestionnaireResponse) => void
   setCurrentStep: React.Dispatch<React.SetStateAction<number>>
   isApplying: boolean
@@ -23,6 +25,7 @@ interface QuestionnaireRendererProps {
 const QuestionnaireRenderer = ({
   questionnaireResponseServer,
   questionnaire,
+  recommendationContext,
   onSubmitQuestionnaire,
   setCurrentStep,
   isApplying,
@@ -126,6 +129,10 @@ const QuestionnaireRenderer = ({
       <QueryClientProvider client={queryClient as unknown as QueryClient}>
         <BaseRenderer />
       </QueryClientProvider>
+      <RecommendationPanel
+        questionnaire={questionnaire}
+        context={recommendationContext}
+      />
       <ApplyButton
         isApplying={isApplying}
         label="Confirm & Apply"
