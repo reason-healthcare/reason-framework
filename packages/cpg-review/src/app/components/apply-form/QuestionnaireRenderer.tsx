@@ -61,6 +61,7 @@ const QuestionnaireRenderer = ({
    * @param targetItems - The original items to preserve (except answers)
    * @param sourceItems - The items containing answers to copy
    * @returns The target items with answers copied from source
+   * This is a workaround for a known smart forms issue: https://github.com/aehrc/smart-forms/issues/1801
    */
   function copyAnswersToItems(
     targetItems: any[] | undefined,
