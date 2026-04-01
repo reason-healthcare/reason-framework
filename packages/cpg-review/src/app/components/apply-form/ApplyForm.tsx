@@ -326,9 +326,9 @@ const ApplyForm = ({
             <h1 className="form-title">CPG Engine Endpoint</h1>
             <p className="form-description">Set CPG engine endpoint address</p>
             <Input
-              placeholder="http://0.0.0.0:9001/PlanDefinition/$apply"
+              placeholder="http://localhost:8080/fhir/PlanDefinition/$r5.apply"
               onChange={handleEngineEndpointChange}
-              defaultValue={'http://0.0.0.0:9001/PlanDefinition/$apply'}
+              defaultValue={cpgEngineEndpointPayload ?? 'http://localhost:8080/fhir/PlanDefinition/$r5.apply'}
               value={cpgEngineEndpointPayload}
             />
           </Form.Item>
