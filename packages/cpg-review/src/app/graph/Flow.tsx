@@ -243,7 +243,7 @@ class Flow implements FlowShape {
       if (condition != null) {
         condition.forEach((c: any) => {
           const applicabilityNode = this.createApplicabilityNode(
-            `condition-${nodeId}-${c.expression.expression}`,
+            `condition-${nodeId}-${c.expression?.expression ?? c.kind}`,
             nodeId,
             c,
             targetAction,

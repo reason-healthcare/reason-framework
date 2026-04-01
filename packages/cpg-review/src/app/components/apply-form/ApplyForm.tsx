@@ -26,7 +26,7 @@ const ApplyForm = ({
   setContextReference,
   setSidePanelView,
 }: ApplyFormProps) => {
-  const [dataPayload, setDataPayload] = useState<fhir4.Bundle | undefined>()
+  const [dataPayload, setDataPayload] = useState<string | undefined>()
   const [subjectPayload, setSubjectPayload] = useState<string | undefined>(
     'Patient/Patient1'
   )
@@ -88,11 +88,17 @@ const ApplyForm = ({
   }
 
   useEffect(() => {
-    if (userQuestionnaireResponse != undefined && dataPayload != undefined) {
+    let dataPayloadParsed
+    try {
+      dataPayloadParsed = dataPayload ? JSON.parse(dataPayload) : undefined
+    } catch (error) {
+      dataPayloadParsed = undefined
+    }
+    if (userQuestionnaireResponse != undefined && dataPayloadParsed != undefined) {
       const dataWithQr = {
-        ...dataPayload,
+        ...dataPayloadParsed,
         entry: [
-          ...dataPayload.entry ?? [],
+          ...dataPayloadParsed.entry ?? [],
           {
             fullUrl:
               'http://example.org/QuestionnaireResponse/questionnaireResponseTemp',
@@ -181,16 +187,7 @@ const ApplyForm = ({
   }
 
   const handleDataChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    try {
-      const parsed = JSON.parse(e.target.value)
-      if (is.Bundle(parsed)) {
-        setDataPayload(parsed)
-      } else {
-        setDataPayload(undefined)
-      }
-    } catch (error) {
-      setDataPayload(undefined)
-    }
+    setDataPayload(e.target.value)
   }
   const handleSubjectChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSubjectPayload(e.target.value)
@@ -265,8 +262,14 @@ const ApplyForm = ({
   const handleSubmit = async () => {
     clearApplyOutputs()
     setIsApplied(false)
+    let dataPayloadParsed
+    try {
+      dataPayloadParsed = dataPayload ? JSON.parse(dataPayload) : undefined
+    } catch (error) {
+      dataPayloadParsed = undefined
+    }
     const payload = {
-      dataPayload,
+      dataPayload: dataPayloadParsed,
       subjectPayload: subjectPayload?.trim(),
       cpgEngineEndpointPayload: cpgEngineEndpointPayload?.trim(),
       contentEndpointPayload: contentEndpointPayload?.trim(),
@@ -310,7 +313,7 @@ const ApplyForm = ({
             <p className="form-description">
               Add context data as a FHIR JSON Bundle.
             </p>
-            <TextArea onChange={handleDataChange} value={JSON.stringify(dataPayload, null, 2)} />
+            <TextArea onChange={handleDataChange} value={dataPayload} />
           </Form.Item>
           <Form.Item name="subject" className="form-item">
             <h1 className="form-title">Subject</h1>

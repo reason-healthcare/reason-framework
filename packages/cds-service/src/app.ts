@@ -414,7 +414,7 @@ export default async (options?: FastifyServerOptions) => {
                       : ('info' as const)
 
                   // Add source
-                  let source: CDSHooks.Source = { label: planDefinition.title ??'Placeholder Label' }
+                  let source: CDSHooks.Source = { label: planDefinition.title ?? 'Placeholder Label' }
                   const relatedArtifact = action.documentation?.find(
                     (d) => d.type === 'documentation'
                   )
