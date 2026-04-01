@@ -32,7 +32,7 @@ const ApplyForm = ({
   )
   const [cpgEngineEndpointPayload, setCpgEngineEndpointPayload] = useState<
     string | undefined
-  >('http://localhost:9001/PlanDefinition/$apply')
+  >('http://localhost:8080/fhir/PlanDefinition/$r5.apply')
   const [contentEndpointPayload, setContentEndpointPayload] = useState<
     string | undefined
   >('http://localhost:8080/fhir')
