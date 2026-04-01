@@ -242,11 +242,11 @@ const ApplyForm = ({
         setQuestionnaireResponseServer(undefined)
         setUserQuestionnaireResponse(undefined)
         setQuestionnaire(undefined)
+        setRequestsBundle(undefined)
         const errorMsg = 'Server error: Unable to run $apply'
         message.error(errorMsg)
         console.error(errorMsg, error)
         setIsApplied(false)
-        setQuestionnaireResponseServer(undefined)
       }
       setIsApplying(false)
     }
@@ -256,6 +256,7 @@ const ApplyForm = ({
     setQuestionnaireResponseServer(undefined)
     setUserQuestionnaireResponse(undefined)
     setQuestionnaire(undefined)
+    setRequestsBundle(undefined)
     const payload = {
       dataPayload,
       subjectPayload: subjectPayload?.trim(),
