@@ -49,14 +49,28 @@ const ApplyForm = ({
   const [isApplied, setIsApplied] = useState(false)
   const [isApplying, setIsApplying] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
+
+  const clearApplyOutputs = () => {
+    setQuestionnaireResponseServer(undefined)
+    setUserQuestionnaireResponse(undefined)
+    setQuestionnaire(undefined)
+    setRequestsBundle(undefined)
+  }
+
+  const resetApplyUiState = () => {
+    setIsApplying(false)
+    setIsApplied(false)
+    setCurrentStep(0)
+  }
+
   const resetForm = () => {
+    clearApplyOutputs()
+    resetApplyUiState()
     setDataPayload(undefined)
     setSubjectPayload(undefined)
     setCpgEngineEndpointPayload(undefined)
     setContentEndpointPayload(undefined)
     setTxEndpointPayload(undefined)
-    setQuestionnaireResponseServer(undefined)
-    setUserQuestionnaireResponse(undefined)
     form.resetFields()
     localStorage.removeItem('applyPayload')
   }
@@ -173,11 +187,9 @@ const ApplyForm = ({
         setDataPayload(parsed)
       } else {
         setDataPayload(undefined)
-        alert('Data is not a valid FHIR Bundle')
       }
     } catch (error) {
       setDataPayload(undefined)
-      alert('Invalid JSON format for context data')
     }
   }
   const handleSubjectChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -239,24 +251,20 @@ const ApplyForm = ({
         setContextReference(subjectPayload)
         setCurrentStep(currentStep === 0 && !skipQuestionnaire ? 1 : 2)
       } catch (error) {
-        setQuestionnaireResponseServer(undefined)
-        setUserQuestionnaireResponse(undefined)
-        setQuestionnaire(undefined)
-        setRequestsBundle(undefined)
+        clearApplyOutputs()
         const errorMsg = 'Server error: Unable to run $apply'
         message.error(errorMsg)
         console.error(errorMsg, error)
         setIsApplied(false)
+      } finally {
+        setIsApplying(false)
       }
-      setIsApplying(false)
     }
   }
 
-  const handleSubmit = async (e: Event) => {
-    setQuestionnaireResponseServer(undefined)
-    setUserQuestionnaireResponse(undefined)
-    setQuestionnaire(undefined)
-    setRequestsBundle(undefined)
+  const handleSubmit = async () => {
+    clearApplyOutputs()
+    setIsApplied(false)
     const payload = {
       dataPayload,
       subjectPayload: subjectPayload?.trim(),
