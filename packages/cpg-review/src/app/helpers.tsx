@@ -1151,15 +1151,15 @@ export const formatTimingRepeat = (repeat: fhir4.TimingRepeat) => {
     when,
     offset,
   } = repeat
-  return ` ${boundsDuration ?? boundsRange ?? boundsPeriod ?? ''} ${countMax ? `to at most ${countMax} times` : ''} ${
-    duration ? `for ${duration}${durationUnit ?? ''}` : ''
-  } ${frequency ? `${frequency} times` : ''} ${
-    period ? `every ${period}${periodUnit ?? ''}` : ''
-  } ${dayOfWeek ? `on ${formatValue(dayOfWeek)}` : ''} ${
-    timeOfDay ? `at ${formatValue(timeOfDay)}` : ''
-  } ${when ? `when ${formatValue(when)}` : ''} ${
-    count ? `x ${count}` : ''
-  }`
+  return ` ${boundsDuration ?? boundsRange ?? boundsPeriod ?? ''} ${
+    countMax ? `to at most ${countMax} times` : ''
+  } ${duration ? `for ${duration}${durationUnit ?? ''}` : ''} ${
+    frequency ? `${frequency} times` : ''
+  } ${period ? `every ${period}${periodUnit ?? ''}` : ''} ${
+    dayOfWeek ? `on ${formatValue(dayOfWeek)}` : ''
+  } ${timeOfDay ? `at ${formatValue(timeOfDay)}` : ''} ${
+    when ? `when ${formatValue(when)}` : ''
+  } ${count ? `x ${count}` : ''}`
 }
 
 export const formatExtension = (

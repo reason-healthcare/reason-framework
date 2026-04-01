@@ -89,7 +89,7 @@ export function generateActionHash(
  * Works with both PlanDefinitionAction and RequestGroupAction.
  */
 export function buildActionHashMap<
-  T extends PlanDefinitionAction | RequestGroupAction,
+  T extends PlanDefinitionAction | RequestGroupAction
 >(actions: T[] | undefined, parentPath: string[] = []): Map<string, T> {
   const map = new Map<string, T>()
   if (!actions) return map
@@ -127,7 +127,9 @@ export function canMatchAllRQActions(
     const hash = generateActionHash(rqAction, parentPath)
     if (!pdActionHashMap.has(hash)) {
       console.warn(
-        `No matching PD action found for RQ action: ${rqAction.title ?? rqAction.id ?? 'unknown'}`
+        `No matching PD action found for RQ action: ${
+          rqAction.title ?? rqAction.id ?? 'unknown'
+        }`
       )
       return false
     }

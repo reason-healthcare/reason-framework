@@ -94,11 +94,14 @@ const ApplyForm = ({
     } catch (error) {
       dataPayloadParsed = undefined
     }
-    if (userQuestionnaireResponse != undefined && dataPayloadParsed != undefined) {
+    if (
+      userQuestionnaireResponse != undefined &&
+      dataPayloadParsed != undefined
+    ) {
       const dataWithQr = {
         ...dataPayloadParsed,
         entry: [
-          ...dataPayloadParsed.entry ?? [],
+          ...(dataPayloadParsed.entry ?? []),
           {
             fullUrl:
               'http://example.org/QuestionnaireResponse/questionnaireResponseTemp',
@@ -223,7 +226,7 @@ const ApplyForm = ({
         if (!is.Bundle(bundle)) {
           throw new Error('Resource does not appear to be a FHIR bundle')
         }
-                
+
         setRequestsBundle(bundle)
         // Find QuestionnaireResponse
         const questionnaireResponseEntry = bundle.entry?.find(
@@ -331,7 +334,10 @@ const ApplyForm = ({
             <Input
               placeholder="http://localhost:8080/fhir/PlanDefinition/$r5.apply"
               onChange={handleEngineEndpointChange}
-              defaultValue={cpgEngineEndpointPayload ?? 'http://localhost:8080/fhir/PlanDefinition/$r5.apply'}
+              defaultValue={
+                cpgEngineEndpointPayload ??
+                'http://localhost:8080/fhir/PlanDefinition/$r5.apply'
+              }
               value={cpgEngineEndpointPayload}
             />
           </Form.Item>

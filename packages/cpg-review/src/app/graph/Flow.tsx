@@ -15,7 +15,11 @@ import {
   PlanDefinitionAction,
   RequestGroupAction,
 } from 'fhir/r4'
-import { generateActionHash, buildActionHashMap, canMatchAllRQActions } from './actionHash'
+import {
+  generateActionHash,
+  buildActionHashMap,
+  canMatchAllRQActions,
+} from './actionHash'
 
 export interface FlowShape {
   nodes: Node[] | undefined
@@ -417,7 +421,13 @@ class Flow implements FlowShape {
             false
           )
           this.addNewNode(applicabilityNode)
-          this.connectNodes(currentParent.id, applicabilityNode.id, parentSelection, false, true)
+          this.connectNodes(
+            currentParent.id,
+            applicabilityNode.id,
+            parentSelection,
+            false,
+            true
+          )
           currentParent = applicabilityNode
         })
       }

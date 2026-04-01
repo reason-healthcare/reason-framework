@@ -3,9 +3,9 @@ import {
   getResponse,
   RendererThemeProvider,
   useBuildForm,
-  useRendererQueryClient
+  useRendererQueryClient,
 } from '@aehrc/smart-forms-renderer'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Spin, Alert } from 'antd'
 import LoadIndicator from '../LoadIndicator'
 import { LoadingOutlined } from '@ant-design/icons'
@@ -27,7 +27,6 @@ const QuestionnaireRenderer = ({
   setCurrentStep,
   isApplying,
 }: QuestionnaireRendererProps) => {
-
   if (!questionnaire || !questionnaireResponseServer) {
     return (
       <Alert
@@ -50,7 +49,10 @@ const QuestionnaireRenderer = ({
     )
   }
 
-  const isBuilding = useBuildForm({ questionnaire, questionnaireResponse: questionnaireResponseServer })
+  const isBuilding = useBuildForm({
+    questionnaire,
+    questionnaireResponse: questionnaireResponseServer,
+  })
 
   if (isBuilding) {
     return <LoadIndicator />
@@ -68,28 +70,30 @@ const QuestionnaireRenderer = ({
     sourceItems: any[] | undefined
   ): any[] | undefined {
     if (!targetItems) {
-      return undefined;
+      return undefined
     }
 
-    return targetItems.map(targetItem => {
+    return targetItems.map((targetItem) => {
       // Find matching source item by linkId
-      const sourceItem = sourceItems?.find(s => s.linkId === targetItem.linkId);
+      const sourceItem = sourceItems?.find(
+        (s) => s.linkId === targetItem.linkId
+      )
 
       // Create a copy of the target item
-      const result = { ...targetItem };
+      const result = { ...targetItem }
 
       // Copy answer from source if it exists, otherwise remove it
       if (sourceItem?.definition) {
-        result.definition = sourceItem.definition;
+        result.definition = sourceItem.definition
       }
 
       // Recursively process nested items
       if (targetItem.item) {
-        result.item = copyAnswersToItems(targetItem.item, sourceItem?.item);
+        result.item = copyAnswersToItems(targetItem.item, sourceItem?.item)
       }
 
-      return result;
-    });
+      return result
+    })
   }
 
   /**
@@ -98,19 +102,19 @@ const QuestionnaireRenderer = ({
    * @param source - The QuestionnaireResponse containing answers to copy
    * @returns A new QuestionnaireResponse with target's structure and source's answers
    */
-  function copyQuestionnaireAnswers(
-    target: any,
-    source: any
-  ): any {
+  function copyQuestionnaireAnswers(target: any, source: any): any {
     return {
       ...target,
-      item: copyAnswersToItems(target.item, source.item)
-    };
+      item: copyAnswersToItems(target.item, source.item),
+    }
   }
 
   const handleQuestionnaireSubmit = () => {
     const questionnaireResponse = getResponse()
-    const userQuestionnaireResponse = copyQuestionnaireAnswers(questionnaireResponse, questionnaire)
+    const userQuestionnaireResponse = copyQuestionnaireAnswers(
+      questionnaireResponse,
+      questionnaire
+    )
     setUserQuestionnaireResponse(userQuestionnaireResponse)
   }
 
@@ -128,7 +132,7 @@ const QuestionnaireRenderer = ({
           className={'button'}
           onClick={handleQuestionnaireSubmit}
           disabled
-          style={{width: '100%'}}
+          style={{ width: '100%' }}
         >
           <div
             style={{
@@ -136,7 +140,7 @@ const QuestionnaireRenderer = ({
               alignItems: 'center',
               gap: '0.6rem',
               justifyContent: 'center',
-              width: '100%'
+              width: '100%',
             }}
           >
             Applying
@@ -157,7 +161,7 @@ const QuestionnaireRenderer = ({
             alignItems: 'center',
             gap: '0.6rem',
             justifyContent: 'center',
-            width: '100%'
+            width: '100%',
           }}
         >
           Confirm & Apply

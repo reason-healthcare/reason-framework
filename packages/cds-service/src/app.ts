@@ -414,7 +414,9 @@ export default async (options?: FastifyServerOptions) => {
                       : ('info' as const)
 
                   // Add source
-                  let source: CDSHooks.Source = { label: planDefinition.title ?? 'Placeholder Label' }
+                  let source: CDSHooks.Source = {
+                    label: planDefinition.title ?? 'Placeholder Label',
+                  }
                   const relatedArtifact = action.documentation?.find(
                     (d) => d.type === 'documentation'
                   )
@@ -451,7 +453,11 @@ export default async (options?: FastifyServerOptions) => {
                         return {
                           label: suggestionAction.title ?? 'label',
                           uuid: `${requestGroup.id}-${index}-${subIndex}`,
-                          actions: actions.filter((a) => Object.values(a).filter(a => a != null).length > 0),
+                          actions: actions.filter(
+                            (a) =>
+                              Object.values(a).filter((a) => a != null).length >
+                              0
+                          ),
                         }
                       })
                       .filter(notEmpty)
