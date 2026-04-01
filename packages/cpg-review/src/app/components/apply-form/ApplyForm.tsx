@@ -239,6 +239,9 @@ const ApplyForm = ({
         setContextReference(subjectPayload)
         setCurrentStep(currentStep === 0 && !skipQuestionnaire ? 1 : 2)
       } catch (error) {
+        setQuestionnaireResponseServer(undefined)
+        setUserQuestionnaireResponse(undefined)
+        setQuestionnaire(undefined)
         const errorMsg = 'Server error: Unable to run $apply'
         message.error(errorMsg)
         console.error(errorMsg, error)
