@@ -4,9 +4,14 @@ import NarrativeRouter from './narrative-display/NarrativeRouter'
 import ContentHeader from './ContentHeader'
 import { Panel, PanelGroup } from 'react-resizable-panels'
 import { ReactFlowProvider } from 'reactflow'
-import FlowDisplay from './flow-display/FlowDisplay'
+import dynamic from 'next/dynamic'
 import LoadIndicator from './LoadIndicator'
 import SidePanel from './SidePanel'
+
+const FlowDisplay = dynamic(() => import('./flow-display/FlowDisplay'), {
+  ssr: false,
+  loading: () => <LoadIndicator />,
+})
 import { SidePanelView } from 'page'
 import { NodeContent } from '@/types/NodeProps'
 import BrowserResolver from 'resolver/browser'

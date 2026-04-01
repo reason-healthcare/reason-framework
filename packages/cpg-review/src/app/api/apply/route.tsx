@@ -10,7 +10,7 @@ const handleLocalHost = (url: string) => {
 }
 
 export interface ApplyPayload {
-  dataPayload: string
+  dataPayload: fhir4.Bundle | undefined
   subjectPayload: string
   cpgEngineEndpointPayload: string
   contentEndpointPayload: string
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
       },
       {
         name: 'data',
-        resource: JSON.parse(dataPayload) as fhir4.Bundle,
+        resource: dataPayload,
       },
       {
         name: 'subject',

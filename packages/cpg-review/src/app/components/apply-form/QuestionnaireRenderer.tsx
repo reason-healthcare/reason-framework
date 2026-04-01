@@ -5,8 +5,8 @@ import {
   useBuildForm,
   useRendererQueryClient,
 } from '@aehrc/smart-forms-renderer'
-import { QueryClientProvider } from '@tanstack/react-query'
-import { message, Spin, Alert, Space } from 'antd'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { Spin, Alert } from 'antd'
 import LoadIndicator from '../LoadIndicator'
 import { LoadingOutlined } from '@ant-design/icons'
 
@@ -27,8 +27,6 @@ const QuestionnaireRenderer = ({
   setCurrentStep,
   isApplying,
 }: QuestionnaireRendererProps) => {
-  const queryClient = useRendererQueryClient()
-
   if (!questionnaire || !questionnaireResponseServer) {
     return (
       <Alert
@@ -51,21 +49,81 @@ const QuestionnaireRenderer = ({
     )
   }
 
-  const isBuilding = useBuildForm(questionnaire, questionnaireResponseServer)
+  const isBuilding = useBuildForm({
+    questionnaire,
+    questionnaireResponse: questionnaireResponseServer,
+  })
 
   if (isBuilding) {
     return <LoadIndicator />
   }
 
+  /**
+   * Recursively copies answers from source items to target items
+   * @param targetItems - The original items to preserve (except answers)
+   * @param sourceItems - The items containing answers to copy
+   * @returns The target items with answers copied from source
+   * This is a workaround for a known smart forms issue: https://github.com/aehrc/smart-forms/issues/1801
+   */
+  function copyAnswersToItems(
+    targetItems: any[] | undefined,
+    sourceItems: any[] | undefined
+  ): any[] | undefined {
+    if (!targetItems) {
+      return undefined
+    }
+
+    return targetItems.map((targetItem) => {
+      // Find matching source item by linkId
+      const sourceItem = sourceItems?.find(
+        (s) => s.linkId === targetItem.linkId
+      )
+
+      // Create a copy of the target item
+      const result = { ...targetItem }
+
+      // Copy answer from source if it exists, otherwise remove it
+      if (sourceItem?.definition) {
+        result.definition = sourceItem.definition
+      }
+
+      // Recursively process nested items
+      if (targetItem.item) {
+        result.item = copyAnswersToItems(targetItem.item, sourceItem?.item)
+      }
+
+      return result
+    })
+  }
+
+  /**
+   * Copies answers from a source QuestionnaireResponse to a target QuestionnaireResponse
+   * @param target - The original QuestionnaireResponse to preserve
+   * @param source - The QuestionnaireResponse containing answers to copy
+   * @returns A new QuestionnaireResponse with target's structure and source's answers
+   */
+  function copyQuestionnaireAnswers(target: any, source: any): any {
+    return {
+      ...target,
+      item: copyAnswersToItems(target.item, source.item),
+    }
+  }
+
   const handleQuestionnaireSubmit = () => {
     const questionnaireResponse = getResponse()
-    setUserQuestionnaireResponse(questionnaireResponse)
+    const userQuestionnaireResponse = copyQuestionnaireAnswers(
+      questionnaireResponse,
+      questionnaire
+    )
+    setUserQuestionnaireResponse(userQuestionnaireResponse)
   }
+
+  const queryClient = useRendererQueryClient()
 
   return (
     // The RendererThemeProvider provides the default renderer theme based on Material UI
     <RendererThemeProvider>
-      <QueryClientProvider client={queryClient}>
+      <QueryClientProvider client={queryClient as unknown as QueryClient}>
         <BaseRenderer />
       </QueryClientProvider>
       {isApplying ? (
@@ -74,6 +132,7 @@ const QuestionnaireRenderer = ({
           className={'button'}
           onClick={handleQuestionnaireSubmit}
           disabled
+          style={{ width: '100%' }}
         >
           <div
             style={{
@@ -81,6 +140,7 @@ const QuestionnaireRenderer = ({
               alignItems: 'center',
               gap: '0.6rem',
               justifyContent: 'center',
+              width: '100%',
             }}
           >
             Applying
@@ -96,6 +156,13 @@ const QuestionnaireRenderer = ({
           type="button"
           className={'button'}
           onClick={handleQuestionnaireSubmit}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.6rem',
+            justifyContent: 'center',
+            width: '100%',
+          }}
         >
           Confirm & Apply
         </button>

@@ -995,14 +995,16 @@ export const formatTitle = (
     | fhir4.PlanDefinitionAction
     | fhir4.RequestGroupAction
 ) => {
-  const { title, name, url, id, description } = resource as {
+  const { title, name, url, id, description, resourceType } = resource as {
     title?: string
     name?: string
     url?: string
     id?: string
     description?: string
+    resourceType?: string
   }
-  return title ?? addSpaces(name) ?? url ?? id ?? description
+  const reference = resourceType && id ? `${resourceType}/${id}` : undefined
+  return title ?? addSpaces(name) ?? url ?? reference ?? id ?? description
 }
 
 export const formatResourceType = (
@@ -1149,15 +1151,15 @@ export const formatTimingRepeat = (repeat: fhir4.TimingRepeat) => {
     when,
     offset,
   } = repeat
-  return `${boundsDuration ?? boundsRange ?? boundsPeriod ?? ''} ${
-    count ? `${count} times` : ''
-  } ${countMax ? `to at most ${countMax} times` : ''} ${
-    duration ? `for ${duration}${durationUnit ?? ''}` : ''
-  } ${frequency ? `${frequency} times` : null} ${
-    period ? `per ${period}${periodUnit ?? ''}` : ''
-  } ${dayOfWeek ? `on ${formatValue(dayOfWeek)}` : ''} ${
-    timeOfDay ? `at ${formatValue(timeOfDay)}` : ''
-  } ${when ? `when ${formatValue(when)}` : ''}`
+  return ` ${boundsDuration ?? boundsRange ?? boundsPeriod ?? ''} ${
+    countMax ? `to at most ${countMax} times` : ''
+  } ${duration ? `for ${duration}${durationUnit ?? ''}` : ''} ${
+    frequency ? `${frequency} times` : ''
+  } ${period ? `every ${period}${periodUnit ?? ''}` : ''} ${
+    dayOfWeek ? `on ${formatValue(dayOfWeek)}` : ''
+  } ${timeOfDay ? `at ${formatValue(timeOfDay)}` : ''} ${
+    when ? `when ${formatValue(when)}` : ''
+  } ${count ? `x ${count}` : ''}`
 }
 
 export const formatExtension = (
@@ -1316,8 +1318,6 @@ export const formatValue = (
     formattedValue = formatCodeableConcept(value, resolver, navigate)
   } else if (is.Condition(value)) {
     formattedValue = formatCondition(value, resolver, navigate)
-  } else if (is.DataRequirement(value)) {
-    formattedValue = formatDataRequirement(value, resolver, navigate)
   } else if (is.RelatedArtifact(value)) {
     formattedValue = formatRelatedArtifact(value, resolver, navigate)
   } else if (is.UsageContext(value)) {

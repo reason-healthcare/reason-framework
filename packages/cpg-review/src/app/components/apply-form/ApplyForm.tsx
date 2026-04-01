@@ -49,14 +49,28 @@ const ApplyForm = ({
   const [isApplied, setIsApplied] = useState(false)
   const [isApplying, setIsApplying] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
+
+  const clearApplyOutputs = () => {
+    setQuestionnaireResponseServer(undefined)
+    setUserQuestionnaireResponse(undefined)
+    setQuestionnaire(undefined)
+    setRequestsBundle(undefined)
+  }
+
+  const resetApplyUiState = () => {
+    setIsApplying(false)
+    setIsApplied(false)
+    setCurrentStep(0)
+  }
+
   const resetForm = () => {
+    clearApplyOutputs()
+    resetApplyUiState()
     setDataPayload(undefined)
     setSubjectPayload(undefined)
     setCpgEngineEndpointPayload(undefined)
     setContentEndpointPayload(undefined)
     setTxEndpointPayload(undefined)
-    setQuestionnaireResponseServer(undefined)
-    setUserQuestionnaireResponse(undefined)
     form.resetFields()
     localStorage.removeItem('applyPayload')
   }
@@ -74,12 +88,20 @@ const ApplyForm = ({
   }
 
   useEffect(() => {
-    if (userQuestionnaireResponse != undefined && dataPayload != undefined) {
-      const json = JSON.parse(dataPayload)
+    let dataPayloadParsed
+    try {
+      dataPayloadParsed = dataPayload ? JSON.parse(dataPayload) : undefined
+    } catch (error) {
+      dataPayloadParsed = undefined
+    }
+    if (
+      userQuestionnaireResponse != undefined &&
+      dataPayloadParsed != undefined
+    ) {
       const dataWithQr = {
-        ...json,
+        ...dataPayloadParsed,
         entry: [
-          ...json.entry,
+          ...(dataPayloadParsed.entry ?? []),
           {
             fullUrl:
               'http://example.org/QuestionnaireResponse/questionnaireResponseTemp',
@@ -88,7 +110,7 @@ const ApplyForm = ({
         ],
       }
       const payloadWithQR = {
-        dataPayload: JSON.stringify(dataWithQr),
+        dataPayload: dataWithQr,
         subjectPayload,
         cpgEngineEndpointPayload,
         contentEndpointPayload,
@@ -140,14 +162,7 @@ const ApplyForm = ({
       )
       return false
     }
-    let json: any
-    try {
-      json = JSON.parse(dataPayload.trim())
-    } catch (error) {
-      message.error('Context data is not valid JSON')
-      return false
-    }
-    if (!is.Bundle(json)) {
+    if (!is.Bundle(dataPayload)) {
       message.error('Context data is not a valid FHIR Bundle')
       return false
     }
@@ -192,8 +207,6 @@ const ApplyForm = ({
 
   const handleApply = async (payload: any) => {
     if (isValidForm(payload)) {
-      setQuestionnaire(undefined)
-      setQuestionnaireResponseServer(undefined)
       setIsApplying(true)
       try {
         const response = await fetch(`/api/apply`, {
@@ -213,6 +226,7 @@ const ApplyForm = ({
         if (!is.Bundle(bundle)) {
           throw new Error('Resource does not appear to be a FHIR bundle')
         }
+
         setRequestsBundle(bundle)
         // Find QuestionnaireResponse
         const questionnaireResponseEntry = bundle.entry?.find(
@@ -237,19 +251,28 @@ const ApplyForm = ({
         setContextReference(subjectPayload)
         setCurrentStep(currentStep === 0 && !skipQuestionnaire ? 1 : 2)
       } catch (error) {
+        clearApplyOutputs()
         const errorMsg = 'Server error: Unable to run $apply'
         message.error(errorMsg)
         console.error(errorMsg, error)
         setIsApplied(false)
-        setQuestionnaireResponseServer(undefined)
+      } finally {
+        setIsApplying(false)
       }
-      setIsApplying(false)
     }
   }
 
-  const handleSubmit = async (e: Event) => {
+  const handleSubmit = async () => {
+    clearApplyOutputs()
+    setIsApplied(false)
+    let dataPayloadParsed
+    try {
+      dataPayloadParsed = dataPayload ? JSON.parse(dataPayload) : undefined
+    } catch (error) {
+      dataPayloadParsed = undefined
+    }
     const payload = {
-      dataPayload: dataPayload?.trim(),
+      dataPayload: dataPayloadParsed,
       subjectPayload: subjectPayload?.trim(),
       cpgEngineEndpointPayload: cpgEngineEndpointPayload?.trim(),
       contentEndpointPayload: contentEndpointPayload?.trim(),
@@ -257,7 +280,7 @@ const ApplyForm = ({
       planDefinition,
     }
     localStorage.setItem('applyPayload', JSON.stringify(payload))
-    const result = handleApply(payload)
+    const result = await handleApply(payload)
   }
 
   const [form] = Form.useForm()
@@ -309,11 +332,11 @@ const ApplyForm = ({
             <h1 className="form-title">CPG Engine Endpoint</h1>
             <p className="form-description">Set CPG engine endpoint address</p>
             <Input
-              placeholder="http://0.0.0.0:8080/fhir/PlanDefinition/$r5.apply"
+              placeholder="http://localhost:8080/fhir/PlanDefinition/$r5.apply"
               onChange={handleEngineEndpointChange}
               defaultValue={
-                contentEndpoint ??
-                'http://0.0.0.0:8080/fhir/PlanDefinition/$r5.apply'
+                cpgEngineEndpointPayload ??
+                'http://localhost:8080/fhir/PlanDefinition/$r5.apply'
               }
               value={cpgEngineEndpointPayload}
             />
@@ -322,13 +345,13 @@ const ApplyForm = ({
             <h1 className="form-title">Content Endpoint</h1>
             <p className="form-description">Set content endpoint address</p>
             <Input
-              placeholder="https://packages.simplifier.net/hl7.fhir.uv.cpg/2.0.0"
+              placeholder="http://localhost:8080/fhir"
               onChange={handleContentEndpointChange}
               defaultValue={contentEndpoint ?? 'http://localhost:8080/fhir'}
               value={contentEndpointPayload}
             />
           </Form.Item>
-          <Form.Item name="content-endpoint" className="form-item">
+          <Form.Item name="terminology-endpoint" className="form-item">
             <h1 className="form-title">Terminology Endpoint</h1>
             <p className="form-description">
               Set terminology endpoint address.
@@ -336,7 +359,8 @@ const ApplyForm = ({
             <Input
               placeholder="http://tx.fhir.org"
               onChange={handleTxEndpointChange}
-              value={txEndpointPayload ?? 'http://localhost:8080/fhir'}
+              defaultValue={contentEndpoint ?? 'http://localhost:8080/fhir'}
+              value={txEndpointPayload}
             />
           </Form.Item>
           {isApplying ? (
