@@ -14,9 +14,6 @@ const DEFAULTS = {
 
 function makeProps(overrides = {}) {
   return {
-    onCpgEngineEndpointChange: jest.fn(),
-    onContentEndpointChange: jest.fn(),
-    onTxEndpointChange: jest.fn(),
     onDataEndpointChange: jest.fn(),
     ...overrides,
   }

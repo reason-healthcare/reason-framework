@@ -1,23 +1,14 @@
 import BrowserResolver from 'resolver/browser'
-import { renderPatientName } from 'utils/recentPatientsStore'
-import { setPackageCatalog, PatientSummary } from 'utils/recentPatientsStore'
-
-export interface PackageBundleExtract {
-  bundleId: string
-  bundleReference: string
-  bundleJson: string
-  patientId: string
-  patientName: string
-  patientDob?: string
-  patientGender?: string
-  resourceCount: number
-  resourceTypes: string[]
-}
+import {
+  renderPatientName,
+  setPackageCatalog,
+  PackagePatientSummary,
+} from 'utils/recentPatientsStore'
 
 export function extractBundlesFromResolver(
   localResolver: BrowserResolver | undefined
-): PackageBundleExtract[] {
-  const bundles: PackageBundleExtract[] = []
+): PackagePatientSummary[] {
+  const bundles: PackagePatientSummary[] = []
 
   if (!localResolver) {
     return bundles
@@ -41,42 +32,27 @@ export function extractBundlesFromResolver(
       if (type) resourceTypeSet.add(type)
     })
     const resourceTypes = Array.from(resourceTypeSet)
+    const patientName = renderPatientName(patient.name)
+    const bundleId = resource.id ?? 'unknown'
 
     bundles.push({
-      bundleId: resource.id ?? 'unknown',
-      bundleReference: reference,
-      bundleJson: JSON.stringify(resource),
-      patientId: patient.id ?? 'unknown',
-      patientName: renderPatientName(patient.name),
-      patientDob: patient.birthDate,
-      patientGender: patient.gender,
+      source: 'package',
+      resourceType: 'Bundle',
+      id: bundleId,
+      name: `${patientName || bundleId} [Bundle/${bundleId}]`,
+      dob: patient.birthDate,
+      gender: patient.gender,
+      json: JSON.stringify(resource),
       resourceCount: resource.entry.length,
       resourceTypes,
+      addedAt: new Date().toISOString(),
     })
   }
 
   return bundles
 }
 
-export function indexPackageBundles(bundles: PackageBundleExtract[]): number {
-  const catalog: PatientSummary[] = bundles.map((bundle) => ({
-    resourceType: 'Bundle',
-    id: bundle.bundleReference,
-    name: `${bundle.patientName || bundle.patientId} [${
-      bundle.bundleReference
-    }]`,
-    dob: bundle.patientDob,
-    gender: bundle.patientGender,
-    source: 'package',
-    bundleId: bundle.bundleId,
-    bundleReference: bundle.bundleReference,
-    bundleJson: bundle.bundleJson,
-    resourceCount: bundle.resourceCount,
-    resourceTypes: bundle.resourceTypes,
-    patientId: bundle.patientId,
-    addedAt: new Date().toISOString(),
-  }))
-
-  setPackageCatalog(catalog)
+export function indexPackageBundles(bundles: PackagePatientSummary[]): number {
+  setPackageCatalog(bundles)
   return bundles.length
 }

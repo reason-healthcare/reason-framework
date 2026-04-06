@@ -8,8 +8,10 @@ import {
   getPackageCatalog,
   clearAll,
   addPatient,
+  getPatientIdFromBundleJson,
   PatientSummary,
 } from 'utils/recentPatientsStore'
+import { ResourceIdentifier } from 'utils/fhirContextDeriver'
 import BrowserResolver from 'resolver/browser'
 
 const { Text } = Typography
@@ -19,7 +21,7 @@ interface PatientSelectionPanelProps {
   /** If provided, loads recents scoped to this endpoint URL plus package selections. */
   endpointUrl: string | undefined
   onPatientSelect: (
-    subject: string,
+    subject: ResourceIdentifier,
     summary: PatientSummary,
     dataPayload?: string
   ) => void
@@ -63,14 +65,14 @@ const PatientSelectionPanel = ({
     let effectiveBundleJson: string | undefined
 
     if (summary.source === 'package') {
-      const fallbackBundleJson =
-        !summary.bundleJson && summary.bundleReference && resolver
+      const fallbackJson =
+        !summary.json && resolver
           ? JSON.stringify(
-              resolver.resourcesByReference[summary.bundleReference]
+              resolver.resourcesByReference[`Bundle/${summary.id}`]
             )
           : undefined
 
-      effectiveBundleJson = summary.bundleJson ?? fallbackBundleJson
+      effectiveBundleJson = summary.json || fallbackJson
 
       if (!effectiveBundleJson) {
         message.error('Selected package bundle has no stored payload')
@@ -89,11 +91,16 @@ const PatientSelectionPanel = ({
       addedAt: new Date().toISOString(),
     })
 
-    const subject =
-      summary.source === 'package' && summary.patientId
-        ? `Patient/${summary.patientId}`
-        : `Patient/${summary.id}`
-    onPatientSelect(subject, summary, effectiveBundleJson)
+    if (summary.source === 'package' && effectiveBundleJson) {
+      const patientId = getPatientIdFromBundleJson(effectiveBundleJson)
+      if (!patientId) {
+        message.error('Could not determine patient ID from bundle')
+        return
+      }
+      onPatientSelect({ resourceType: 'Patient', id: patientId }, summary, effectiveBundleJson)
+    } else {
+      onPatientSelect({ resourceType: 'Patient', id: summary.id }, summary, undefined)
+    }
     reload()
   }
 
@@ -109,9 +116,7 @@ const PatientSelectionPanel = ({
     const haystack = [
       patient.name,
       patient.id,
-      patient.bundleId,
-      patient.patientId,
-      ...(patient.resourceTypes ?? []),
+      ...(patient.source === 'package' ? (patient.resourceTypes ?? []) : []),
     ]
       .filter(Boolean)
       .join(' ')
@@ -163,6 +168,7 @@ const PatientSelectionPanel = ({
               style={{ cursor: 'pointer' }}
               onClick={() => handleSelect(p)}
               onKeyDown={(e) => {
+                e.preventDefault()
                 if (e.key === 'Enter' || e.key === ' ') handleSelect(p)
               }}
               role="button"
@@ -208,7 +214,6 @@ const PatientSelectionPanel = ({
                     e.stopPropagation()
                     handleSelect(p)
                   }}
-                  aria-hidden="true"
                   tabIndex={-1}
                 >
                   Select

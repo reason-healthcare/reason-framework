@@ -46,9 +46,18 @@ The selected patient preview card SHALL provide tabs named `Overview`, `Medicati
 - **WHEN** the `Observations` tab is active and the selected patient source is a FHIR data endpoint and no observation resources were loaded for this selection
 - **THEN** the UI SHALL display a deterministic empty state indicating observation data is not loaded for endpoint-selected patients
 
-#### Scenario: Raw JSON tab shows loaded patient payload
-- **WHEN** the `Raw JSON` tab is active
-- **THEN** the UI SHALL render the raw FHIR JSON payload (as received from the patient context source, prior to any normalization or display transformation) in a readable preformatted view with internal scrolling if content exceeds available space
+#### Scenario: Raw JSON tab shows Patient resource for endpoint patients
+- **WHEN** the `Raw JSON` tab is active and the selected patient source is `'endpoint'`
+- **THEN** the UI SHALL render the raw `Patient` FHIR resource JSON (from `selectedPatient.json`) in a readable preformatted view
+- **AND** the rendered JSON SHALL have `resourceType: "Patient"` at the top level, not a Bundle wrapper
+
+#### Scenario: Raw JSON tab shows full payload for non-endpoint patients
+- **WHEN** the `Raw JSON` tab is active and the selected patient source is not `'endpoint'` (e.g. `'package'`)
+- **THEN** the UI SHALL render the full FHIR payload from the patient context data (the loaded Bundle) in a readable preformatted view
+
+#### Scenario: Raw JSON tab shows fallback when no payload available
+- **WHEN** the `Raw JSON` tab is active and no relevant payload is available
+- **THEN** the UI SHALL display "No raw FHIR payload loaded."
 
 ### Requirement: Patient details tabs use property-based resource rendering
 The selected patient preview card SHALL render loaded medication, condition, and observation resources by iterating non-META properties and formatting each property with `formatProperty`.
@@ -56,19 +65,19 @@ The selected patient preview card SHALL render loaded medication, condition, and
 #### Scenario: Medications tab shows loaded medication data
 - **WHEN** the `Medications` tab is active and medication data exists in loaded patient context
 - **THEN** the UI SHALL display medication entries using property-based iteration with `formatProperty`
-- **AND** the UI SHALL exclude META fields (`id`, `publisher`, `title`, `status`, `date`, `resourceType`, `text`, `meta`, `url`, `contact`, `name`, `version`, `content`, `mapping`, `snapshot`, `parameter`, `jurisdiction`, `count`)
+- **AND** the UI SHALL exclude META fields (`id`, `text`, `meta`)
 - **AND** `meta.profile` SHALL remain excluded as part of excluded `meta`
 
 #### Scenario: Conditions tab shows loaded condition data
 - **WHEN** the `Conditions` tab is active and condition data exists in loaded patient context
 - **THEN** the UI SHALL display condition entries using property-based iteration with `formatProperty`
-- **AND** the UI SHALL exclude META fields (`id`, `publisher`, `title`, `status`, `date`, `resourceType`, `text`, `meta`, `url`, `contact`, `name`, `version`, `content`, `mapping`, `snapshot`, `parameter`, `jurisdiction`, `count`)
+- **AND** the UI SHALL exclude META fields (`id`, `text`, `meta`)
 - **AND** `meta.profile` SHALL remain excluded as part of excluded `meta`
 
 #### Scenario: Observations tab shows loaded observation data
 - **WHEN** the `Observations` tab is active and observation data exists in loaded patient context
 - **THEN** the UI SHALL display observation entries using property-based iteration with `formatProperty`
-- **AND** the UI SHALL exclude META fields (`id`, `publisher`, `title`, `status`, `date`, `resourceType`, `text`, `meta`, `url`, `contact`, `name`, `version`, `content`, `mapping`, `snapshot`, `parameter`, `jurisdiction`, `count`)
+- **AND** the UI SHALL exclude META fields (`id`, `text`, `meta`)
 - **AND** `meta.profile` SHALL remain excluded as part of excluded `meta`
 
 #### Scenario: Observation properties include complex datatypes

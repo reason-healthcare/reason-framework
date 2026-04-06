@@ -1401,7 +1401,7 @@ export const formatProperty = (
   resolver?: BrowserResolver | undefined,
   navigate?: NavigateFunction,
   key?: string | undefined,
-  includeLinks = false
+  includeLinks = true
 ) => {
   let content
   const heading = addSpaces(capitalize(key))

@@ -37,6 +37,8 @@ jest.mock('utils/recentPatientsStore', () => ({
   renderPatientName: jest.fn((names: any[]) => names?.[0]?.family ?? 'Unknown'),
   getAllPatients: jest.fn(() => []),
   getPackageCatalog: jest.fn(() => []),
+  getPatientIdFromBundleJson: jest.requireActual('utils/recentPatientsStore').getPatientIdFromBundleJson,
+  makeBundlePatientSummary: jest.requireActual('utils/recentPatientsStore').makeBundlePatientSummary,
 }))
 
 jest.mock('utils/fhirClient', () => ({
@@ -67,17 +69,15 @@ const PLAN_DEF: fhir4.PlanDefinition = {
 }
 
 const PACKAGE_ENTRY = {
-  id: 'Bundle/Test123',
+  id: 'Test123',
+  resourceType: 'Bundle' as const,
   name: 'Eve Pack [Bundle/Test123]',
   dob: undefined,
   gender: undefined,
   source: 'package' as const,
-  bundleId: 'Test123',
-  bundleReference: 'Bundle/Test123',
-  patientId: 'pkg-1',
   resourceCount: 2,
   resourceTypes: ['Patient', 'Observation'],
-  bundleJson: JSON.stringify({
+  json: JSON.stringify({
     resourceType: 'Bundle',
     type: 'collection',
     entry: [

@@ -19,7 +19,6 @@ import BrowserResolver from 'resolver/browser'
 import {
   extractBundlesFromResolver,
   indexPackageBundles,
-  PackageBundleExtract,
 } from 'utils/packageBundleExtractor'
 import '@/styles/uploadSection.css'
 

@@ -1,7 +1,7 @@
 # FHIR Endpoint Configuration Panel
 
 - **Slug:** `fhir-endpoint-config-panel`
-- **Status:** proposed
+- **Status:** complete
 - **Priority:** high
 - **Owner:** cpg-review
 

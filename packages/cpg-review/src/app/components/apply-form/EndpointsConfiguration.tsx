@@ -19,12 +19,10 @@ export interface EndpointsConfig {
 
 export interface EndpointsConfigurationHandle {
   reset: () => void
+  getConfig: () => EndpointsConfig
 }
 
 interface EndpointsConfigurationProps {
-  onCpgEngineEndpointChange: (val: string) => void
-  onContentEndpointChange: (val: string) => void
-  onTxEndpointChange: (val: string) => void
   onDataEndpointChange: (val: string) => void
 }
 
@@ -57,25 +55,14 @@ function isConfigComplete(config: EndpointsConfig) {
 const EndpointsConfiguration = forwardRef<
   EndpointsConfigurationHandle,
   EndpointsConfigurationProps
->(function EndpointsConfiguration(
-  {
-    onCpgEngineEndpointChange,
-    onContentEndpointChange,
-    onTxEndpointChange,
-    onDataEndpointChange,
-  },
-  ref
-) {
+>(function EndpointsConfiguration({ onDataEndpointChange }, ref) {
   const [config, setConfig] = useState<EndpointsConfig>(loadFromStorage)
   const [activeKey, setActiveKey] = useState<string[]>(() =>
     isConfigComplete(loadFromStorage()) ? [] : ['endpoints']
   )
 
-  // Notify parent of initial values (which may come from localStorage)
+  // Notify parent of initial data endpoint value (may come from localStorage)
   useEffect(() => {
-    onCpgEngineEndpointChange(config.cpgEngineEndpoint)
-    onContentEndpointChange(config.contentEndpoint)
-    onTxEndpointChange(config.txEndpoint)
     onDataEndpointChange(config.dataEndpoint)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -85,22 +72,18 @@ const EndpointsConfiguration = forwardRef<
       localStorage.removeItem(STORAGE_KEY)
       const fresh = { ...DEFAULTS }
       setConfig(fresh)
-      onCpgEngineEndpointChange(fresh.cpgEngineEndpoint)
-      onContentEndpointChange(fresh.contentEndpoint)
-      onTxEndpointChange(fresh.txEndpoint)
       onDataEndpointChange(fresh.dataEndpoint)
+    },
+    getConfig() {
+      return config
     },
   }))
 
-  function updateField(
-    field: keyof EndpointsConfig,
-    value: string,
-    cb: (val: string) => void
-  ) {
+  function updateField(field: keyof EndpointsConfig, value: string) {
     const next = { ...config, [field]: value }
     setConfig(next)
     persistConfig(next)
-    cb(value)
+    if (field === 'dataEndpoint') onDataEndpointChange(value)
   }
 
   const collapseItems = [
@@ -125,13 +108,7 @@ const EndpointsConfiguration = forwardRef<
             <Input
               placeholder="http://localhost:8080/fhir"
               value={config.dataEndpoint}
-              onChange={(e) =>
-                updateField(
-                  'dataEndpoint',
-                  e.target.value,
-                  onDataEndpointChange
-                )
-              }
+              onChange={(e) => updateField('dataEndpoint', e.target.value)}
             />
           </div>
 
@@ -143,13 +120,7 @@ const EndpointsConfiguration = forwardRef<
             <Input
               placeholder="http://localhost:8080/fhir/PlanDefinition/$r5.apply"
               value={config.cpgEngineEndpoint}
-              onChange={(e) =>
-                updateField(
-                  'cpgEngineEndpoint',
-                  e.target.value,
-                  onCpgEngineEndpointChange
-                )
-              }
+              onChange={(e) => updateField('cpgEngineEndpoint', e.target.value)}
             />
           </div>
 
@@ -161,13 +132,7 @@ const EndpointsConfiguration = forwardRef<
             <Input
               placeholder="http://localhost:8080/fhir"
               value={config.contentEndpoint}
-              onChange={(e) =>
-                updateField(
-                  'contentEndpoint',
-                  e.target.value,
-                  onContentEndpointChange
-                )
-              }
+              onChange={(e) => updateField('contentEndpoint', e.target.value)}
             />
           </div>
 
@@ -180,9 +145,7 @@ const EndpointsConfiguration = forwardRef<
             <Input
               placeholder="http://localhost:8080/fhir"
               value={config.txEndpoint}
-              onChange={(e) =>
-                updateField('txEndpoint', e.target.value, onTxEndpointChange)
-              }
+              onChange={(e) => updateField('txEndpoint', e.target.value)}
             />
           </div>
         </div>

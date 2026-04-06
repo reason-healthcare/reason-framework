@@ -9,6 +9,7 @@ jest.mock('utils/recentPatientsStore', () => ({
   getPackageCatalog: jest.fn(),
   clearAll: jest.fn(),
   addPatient: jest.fn(),
+  getPatientIdFromBundleJson: jest.requireActual('utils/recentPatientsStore').getPatientIdFromBundleJson,
 }))
 
 import {
@@ -31,20 +32,24 @@ const EP_URL = 'http://fhir.example.com/fhir'
 
 const endpointPatient: PatientSummary = {
   id: 'ep1',
+  resourceType: 'Patient',
   name: 'Alice Brown',
   dob: '1985-07-15',
   gender: 'female',
   source: 'endpoint',
   endpointUrl: EP_URL,
+  json: JSON.stringify({ resourceType: 'Bundle', type: 'collection', entry: [{ resource: { resourceType: 'Patient', id: 'ep1' } }] }),
   addedAt: '2024-06-01T12:00:00.000Z',
 }
 
 const manualPatient: PatientSummary = {
   id: 'man1',
+  resourceType: 'Bundle',
   name: 'Bob Jones',
   dob: '1970-02-28',
   gender: 'male',
   source: 'package',
+  json: '',
   addedAt: '2024-01-01T12:00:00.000Z',
 }
 
@@ -71,17 +76,15 @@ const packageBundle: fhir4.Bundle = {
 }
 
 const packagePatient: PatientSummary = {
-  id: 'Bundle/Test123',
+  id: 'Test123',
+  resourceType: 'Bundle',
   name: 'Eve Pack [Bundle/Test123]',
   dob: undefined,
   gender: undefined,
   source: 'package',
-  bundleId: 'Test123',
-  bundleReference: 'Bundle/Test123',
-  bundleJson: JSON.stringify(packageBundle),
+  json: JSON.stringify(packageBundle),
   resourceCount: 2,
   resourceTypes: ['Patient', 'Observation'],
-  patientId: 'pkg-1',
   addedAt: '2024-08-01T12:00:00.000Z',
 }
 
@@ -168,7 +171,7 @@ describe('PatientSelectionPanel', () => {
       screen.getByRole('button', { name: /select alice brown/i })
     )
     expect(onPatientSelect).toHaveBeenCalledWith(
-      'Patient/ep1',
+      { resourceType: 'Patient', id: 'ep1' },
       endpointPatient,
       undefined
     )
@@ -194,7 +197,7 @@ describe('PatientSelectionPanel', () => {
     await userEvent.keyboard('{Enter}')
 
     expect(onPatientSelect).toHaveBeenCalledWith(
-      'Patient/ep1',
+      { resourceType: 'Patient', id: 'ep1' },
       endpointPatient,
       undefined
     )
@@ -251,9 +254,9 @@ describe('PatientSelectionPanel', () => {
     )
 
     expect(onPatientSelect).toHaveBeenCalledWith(
-      'Patient/pkg-1',
+      { resourceType: 'Patient', id: 'pkg-1' },
       packagePatient,
-      packagePatient.bundleJson
+      packagePatient.json
     )
   })
 })

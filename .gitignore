@@ -36,9 +36,6 @@ Thumbs.db
 # Ignore built ts files
 packages/**/dist/**/*
 packages/**/lib/**/*
-# Re-include source and test files that live under lib/ subdirectories
-!packages/**/src/**/*
-!packages/**/tests/**/*
 
 # ignore yarn.lock
 yarn.lock

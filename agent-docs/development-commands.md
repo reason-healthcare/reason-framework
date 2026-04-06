@@ -15,6 +15,7 @@ npm run build
 npm run fmt
 ```
 
+- Install dependencies from the monorepo root only. Running `npm install` inside individual workspace packages can leave package-local `node_modules` in a broken state.
 - `npm run build` cleans package `lib/` outputs and builds TypeScript project references.
 - `npm run fmt` runs each workspace package formatter.
 
@@ -44,6 +45,17 @@ npm run dev      # Next.js dev server on localhost:3000
 npm run build
 npm run start
 ```
+
+Run `cpg-review` package tests from the repository root via npm workspaces:
+
+```bash
+npm test --workspace @reason-framework/cpg-review -- --no-coverage
+npm test --workspace @reason-framework/cpg-review -- SelectedPatientPreviewCard --no-coverage
+npm run test:watch --workspace @reason-framework/cpg-review
+```
+
+- Prefer the workspace commands above even when working inside `packages/cpg-review`.
+- If tests fail with missing module errors after a package-local install, remove `packages/cpg-review/node_modules` and rerun `npm install` from the repository root.
 
 ### `packages/cpg-test-support`
 
