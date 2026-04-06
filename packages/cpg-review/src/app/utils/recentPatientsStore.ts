@@ -7,25 +7,55 @@ function endpointKey(url: string): string {
   return `${PATIENTS_PREFIX}endpoint:${url}`
 }
 
-export interface PatientSummary {
-  id: string
+export interface BasePatientSummary {
   name: string
   dob: string | undefined
   gender: string | undefined
-  source: 'endpoint' | 'package'
-  endpointUrl?: string
-  bundleId?: string // Resource ID only (e.g., "123" from "Bundle/123")
-  bundleReference?: string // Full FHIR reference (e.g., "Bundle/123") for resolver lookups
-  bundleJson?: string
+  /** Serialized FHIR payload. For endpoint patients: a minimal Patient collection Bundle. For package patients: the full uploaded Bundle. */
+  json: string
+  addedAt: string
+}
+
+export interface EndpointPatientSummary extends BasePatientSummary {
+  source: 'endpoint'
+  resourceType: 'Patient'
+  /** Patient.id */
+  id: string
+  endpointUrl: string
+}
+
+export interface PackagePatientSummary extends BasePatientSummary {
+  source: 'package'
+  resourceType: 'Bundle'
+  /** Bundle.id — full reference reconstructable as `Bundle/${id}` */
+  id: string
   resourceCount?: number
   resourceTypes?: string[]
-  patientId?: string
-  addedAt: string
+}
+
+export type PatientSummary = EndpointPatientSummary | PackagePatientSummary
+
+/**
+ * Extract the patient ID from a stored bundle JSON string.
+ * Returns the id of the first Patient resource found in the bundle's entries.
+ */
+export function getPatientIdFromBundleJson(json: string): string | undefined {
+  try {
+    const bundle = JSON.parse(json) as fhir4.Bundle
+    return bundle.entry?.find((e) => e.resource?.resourceType === 'Patient')
+      ?.resource?.id
+  } catch {
+    return undefined
+  }
 }
 
 function readKey(key: string): PatientSummary[] {
   try {
-    return JSON.parse(localStorage.getItem(key) ?? '[]') as PatientSummary[]
+    const raw = JSON.parse(
+      localStorage.getItem(key) ?? '[]'
+    ) as Array<Partial<PatientSummary>>
+    // Drop stale entries from before the discriminated-union refactor (missing resourceType)
+    return raw.filter((p): p is PatientSummary => p.resourceType != null)
   } catch {
     return []
   }
@@ -50,13 +80,10 @@ function allStorageKeys(): string[] {
  * Evicts the oldest entry when the key exceeds MAX_PER_KEY.
  */
 export function addPatient(summary: PatientSummary): void {
-  let key = PACKAGE_KEY
-  if (summary.source === 'endpoint' && summary.endpointUrl != null) {
-    key = endpointKey(summary.endpointUrl)
-  }
-  if (summary.source === 'package') {
-    key = PACKAGE_KEY
-  }
+  const key =
+    summary.source === 'endpoint'
+      ? endpointKey(summary.endpointUrl)
+      : PACKAGE_KEY
 
   const existing = readKey(key).filter((p) => p.id !== summary.id)
   const updated: PatientSummary[] = [
@@ -95,18 +122,20 @@ export function clearAll(): void {
  * This is the full index written at upload time; it is NOT included in
  * getAllPatients() — only explicitly selected bundles go to PACKAGE_KEY.
  */
-export function setPackageCatalog(bundles: PatientSummary[]): void {
+export function setPackageCatalog(bundles: PackagePatientSummary[]): void {
   localStorage.setItem(PACKAGE_CATALOG_KEY, JSON.stringify(bundles))
 }
 
 /**
  * Return all entries in the package catalog (uploaded bundles), sorted newest first.
  */
-export function getPackageCatalog(): PatientSummary[] {
+export function getPackageCatalog(): PackagePatientSummary[] {
   try {
-    return JSON.parse(
+    const raw = JSON.parse(
       localStorage.getItem(PACKAGE_CATALOG_KEY) ?? '[]'
-    ) as PatientSummary[]
+    ) as Array<Partial<PackagePatientSummary>>
+    // Drop stale entries missing resourceType
+    return raw.filter((p): p is PackagePatientSummary => p.resourceType != null)
   } catch {
     return []
   }
@@ -129,4 +158,33 @@ export function renderPatientName(
   if (!names?.length) return ''
   const { given = [], family = '' } = names[0]
   return [...given, family].filter(Boolean).join(' ')
+}
+
+/**
+ * Build a PackagePatientSummary from a bundle, optional patient resource, and
+ * raw data payload string. Used by both ApplyForm and SelectedPatientPreviewCard
+ * to avoid parallel inline constructions.
+ *
+ * @param bundle       The FHIR Bundle being submitted / previewed
+ * @param patient      Patient resource extracted from the bundle (may be undefined)
+ * @param dataPayload  Raw JSON string of the full bundle (used as `json` field)
+ * @param options.addedAt  ISO string for addedAt; defaults to now
+ * @param options.patientId  Fallback patient ID when bundle.id and patient.id are absent
+ */
+export function makeBundlePatientSummary(
+  bundle: fhir4.Bundle,
+  patient: fhir4.Patient | undefined,
+  dataPayload: string | undefined,
+  options?: { addedAt?: string; patientId?: string }
+): PackagePatientSummary {
+  return {
+    id: bundle.id ?? 'unknown',
+    resourceType: 'Bundle',
+    name: renderPatientName(patient?.name),
+    dob: patient?.birthDate,
+    gender: patient?.gender,
+    source: 'package',
+    json: typeof dataPayload === 'string' ? dataPayload : JSON.stringify(bundle),
+    addedAt: options?.addedAt ?? new Date().toISOString(),
+  }
 }

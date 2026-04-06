@@ -47,12 +47,12 @@ describe('UploadSection bundle extraction', () => {
     expect(result).toHaveLength(1)
     expect(result[0]).toEqual(
       expect.objectContaining({
-        bundleId: 'one',
-        bundleReference: 'Bundle/one',
-        patientId: 'p1',
-        patientName: 'Alice Smith',
-        patientDob: '1990-01-01',
-        patientGender: 'female',
+        source: 'package',
+        resourceType: 'Bundle',
+        id: 'one',
+        name: 'Alice Smith [Bundle/one]',
+        dob: '1990-01-01',
+        gender: 'female',
         resourceCount: 2,
         resourceTypes: ['Patient', 'Observation'],
       })
@@ -143,15 +143,15 @@ describe('UploadSection bundle extraction', () => {
     expect(catalogArg[0]).toEqual(
       expect.objectContaining({
         source: 'package',
-        bundleId: 'one',
-        bundleReference: 'Bundle/one',
+        resourceType: 'Bundle',
+        id: 'one',
       })
     )
     expect(catalogArg[1]).toEqual(
       expect.objectContaining({
         source: 'package',
-        bundleId: 'two',
-        bundleReference: 'Bundle/two',
+        resourceType: 'Bundle',
+        id: 'two',
       })
     )
   })

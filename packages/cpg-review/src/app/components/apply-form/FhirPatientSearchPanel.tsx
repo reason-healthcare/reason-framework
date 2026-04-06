@@ -8,7 +8,9 @@ import {
   addPatient,
   renderPatientName,
   PatientSummary,
+  EndpointPatientSummary,
 } from 'utils/recentPatientsStore'
+import { ResourceIdentifier } from 'utils/fhirContextDeriver'
 
 const { Text } = Typography
 
@@ -18,7 +20,7 @@ interface FhirPatientSearchPanelProps {
   /** Address of the FHIR data endpoint (dataEndpoint.address). */
   dataEndpointUrl: string
   onPatientSelect: (
-    subject: string,
+    subject: ResourceIdentifier,
     summary: PatientSummary,
     dataPayload?: string
   ) => void
@@ -109,25 +111,21 @@ const FhirPatientSearchPanel = ({
     )
     if (!row || !patientResource) return
 
-    const summary: PatientSummary = {
+    const summary: EndpointPatientSummary = {
       id: row.id,
+      resourceType: 'Patient',
       name: row.name,
       dob: row.dob,
       gender: row.gender,
       source: 'endpoint',
       endpointUrl: dataEndpointUrl,
+      json: JSON.stringify(patientResource),
       addedAt: new Date().toISOString(),
     }
     addPatient(summary)
 
-    // Pass the Patient resource as a minimal collection bundle
-    const bundle: fhir4.Bundle = {
-      resourceType: 'Bundle',
-      type: 'collection',
-      entry: [{ resource: patientResource }],
-    }
-
-    onPatientSelect(`Patient/${row.id}`, summary, JSON.stringify(bundle))
+    // Endpoint mode: no dataPayload — the CPG engine fetches from dataEndpointPayload at execution time
+    onPatientSelect({ resourceType: 'Patient', id: row.id }, summary, undefined)
   }
 
   const isLoading = searchState.status === 'loading'

@@ -2,6 +2,7 @@ import React from 'react'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import SelectedPatientPreviewCard from 'components/apply-form/SelectedPatientPreviewCard'
+import { PatientSummary } from 'utils/recentPatientsStore'
 
 const BUNDLE = {
   resourceType: 'Bundle',
@@ -146,11 +147,21 @@ const PATIENT_ONLY_BUNDLE = {
   ],
 }
 
+// A standalone Patient resource (not wrapped in a bundle) — used to test
+// that selectedPatient.json is preferred over dataPayload for Raw JSON display
+const PATIENT_RESOURCE: fhir4.Patient = {
+  resourceType: 'Patient',
+  id: 'pt-direct',
+  name: [{ given: ['Direct'], family: 'Resource' }],
+  birthDate: '1985-06-15',
+  gender: 'male',
+}
+
 describe('SelectedPatientPreviewCard', () => {
   it('does not render when no subject is set', () => {
     render(
       <SelectedPatientPreviewCard
-        subjectPayload={undefined}
+        subject={undefined}
         dataPayload={undefined}
         selectedPatient={undefined}
         onClear={jest.fn()}
@@ -163,7 +174,7 @@ describe('SelectedPatientPreviewCard', () => {
   it('renders overview and supports tab switching', async () => {
     render(
       <SelectedPatientPreviewCard
-        subjectPayload="http://example.org/fhir/Patient/pt1"
+        subject={{ resourceType: 'Patient', id: 'pt1' }}
         dataPayload={JSON.stringify(BUNDLE)}
         selectedPatient={undefined}
         onClear={jest.fn()}
@@ -206,7 +217,7 @@ describe('SelectedPatientPreviewCard', () => {
   it('collapses and expands details using the selected toggle', async () => {
     render(
       <SelectedPatientPreviewCard
-        subjectPayload="http://example.org/fhir/Patient/pt1"
+        subject={{ resourceType: 'Patient', id: 'pt1' }}
         dataPayload={JSON.stringify(BUNDLE)}
         selectedPatient={undefined}
         onClear={jest.fn()}
@@ -231,7 +242,7 @@ describe('SelectedPatientPreviewCard', () => {
 
     render(
       <SelectedPatientPreviewCard
-        subjectPayload="http://example.org/fhir/Patient/pt1"
+        subject={{ resourceType: 'Patient', id: 'pt1' }}
         dataPayload={JSON.stringify(BUNDLE)}
         selectedPatient={undefined}
         onClear={onClear}
@@ -248,15 +259,17 @@ describe('SelectedPatientPreviewCard', () => {
   it('shows endpoint-specific not-loaded empty states for resource tabs', async () => {
     render(
       <SelectedPatientPreviewCard
-        subjectPayload="http://example.org/fhir/Patient/pt1"
+        subject={{ resourceType: 'Patient', id: 'pt1' }}
         dataPayload={JSON.stringify(PATIENT_ONLY_BUNDLE)}
         selectedPatient={{
           id: 'pt1',
+          resourceType: 'Patient',
           name: 'Jane Doe',
           dob: '1990-01-01',
           gender: 'female',
           source: 'endpoint',
           endpointUrl: 'http://example.org/fhir',
+          json: JSON.stringify(PATIENT_ONLY_BUNDLE),
           addedAt: '2026-03-27T00:00:00.000Z',
         }}
         onClear={jest.fn()}
@@ -288,14 +301,16 @@ describe('SelectedPatientPreviewCard', () => {
   it('shows generic empty states for manual or bundle contexts', async () => {
     render(
       <SelectedPatientPreviewCard
-        subjectPayload="http://example.org/fhir/Patient/pt1"
+        subject={{ resourceType: 'Patient', id: 'pt1' }}
         dataPayload={JSON.stringify(PATIENT_ONLY_BUNDLE)}
         selectedPatient={{
           id: 'pt1',
+          resourceType: 'Bundle',
           name: 'Jane Doe',
           dob: '1990-01-01',
           gender: 'female',
           source: 'package',
+          json: JSON.stringify(PATIENT_ONLY_BUNDLE),
           addedAt: '2026-03-27T00:00:00.000Z',
         }}
         onClear={jest.fn()}
@@ -346,7 +361,7 @@ describe('SelectedPatientPreviewCard', () => {
 
     render(
       <SelectedPatientPreviewCard
-        subjectPayload="http://example.org/fhir/Patient/pt-code-text"
+        subject={{ resourceType: 'Patient', id: 'pt-code-text' }}
         dataPayload={JSON.stringify(codeTextBundle)}
         selectedPatient={undefined}
         onClear={jest.fn()}
@@ -396,7 +411,7 @@ describe('SelectedPatientPreviewCard', () => {
 
     render(
       <SelectedPatientPreviewCard
-        subjectPayload="http://example.org/fhir/Patient/pt-coding-display"
+        subject={{ resourceType: 'Patient', id: 'pt-coding-display' }}
         dataPayload={JSON.stringify(codingDisplayBundle)}
         selectedPatient={undefined}
         onClear={jest.fn()}
@@ -450,7 +465,7 @@ describe('SelectedPatientPreviewCard', () => {
 
     render(
       <SelectedPatientPreviewCard
-        subjectPayload="http://example.org/fhir/Patient/pt-observation-label"
+        subject={{ resourceType: 'Patient', id: 'pt-observation-label' }}
         dataPayload={JSON.stringify(observationBundle)}
         selectedPatient={undefined}
         onClear={jest.fn()}
@@ -464,5 +479,63 @@ describe('SelectedPatientPreviewCard', () => {
     expect(screen.getByText('Heart rate')).toBeInTheDocument()
     expect(screen.getByText('Value Quantity')).toBeInTheDocument()
     expect(screen.getByText(/72/)).toBeInTheDocument()
+  })
+
+  // ── Raw JSON tab ─────────────────────────────────────────────────────────────
+
+  it('Raw JSON tab renders selectedPatient.json when populated', async () => {
+    const selectedPatient: PatientSummary = {
+      id: 'pt-direct',
+      resourceType: 'Patient',
+      source: 'endpoint',
+      endpointUrl: 'https://fhir.example.org/fhir',
+      name: 'Direct Resource',
+      json: JSON.stringify(PATIENT_RESOURCE),
+      addedAt: new Date().toISOString(),
+    }
+
+    render(
+      <SelectedPatientPreviewCard
+        subject={{ resourceType: 'Patient', id: 'pt-direct' }}
+        dataPayload={JSON.stringify(BUNDLE)}
+        selectedPatient={selectedPatient}
+        onClear={jest.fn()}
+      />
+    )
+
+    await userEvent.click(screen.getByText('Raw JSON'))
+
+    // Should show the Patient resource stored in selectedPatient.json
+    expect(screen.getByText(/"id": "pt-direct"/)).toBeInTheDocument()
+    // Should NOT show the outer Bundle wrapper from dataPayload
+    expect(screen.queryByText(/"fullUrl": "http:\/\/example.org\/fhir\/Patient\/pt1"/)).toBeNull()
+  })
+
+  it('Raw JSON tab falls back to dataPayload when selectedPatient.json is absent', async () => {
+    const selectedPatient: PatientSummary = {
+      id: 'pt1',
+      resourceType: 'Bundle',
+      source: 'package',
+      name: 'Jane Doe',
+      json: '',
+      addedAt: new Date().toISOString(),
+    }
+
+    render(
+      <SelectedPatientPreviewCard
+        subject={{ resourceType: 'Patient', id: 'pt1' }}
+        dataPayload={JSON.stringify(BUNDLE)}
+        selectedPatient={selectedPatient}
+        onClear={jest.fn()}
+      />
+    )
+
+    await userEvent.click(screen.getByText('Raw JSON'))
+
+    // selectedPatient.json is empty — should fall back to dataPayload (the Bundle)
+    expect(screen.getByText(/"resourceType": "Bundle"/)).toBeInTheDocument()
+    expect(
+      screen.getByText(/"fullUrl": "http:\/\/example.org\/fhir\/Patient\/pt1"/)
+    ).toBeInTheDocument()
   })
 })

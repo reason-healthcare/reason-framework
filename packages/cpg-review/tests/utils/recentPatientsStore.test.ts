@@ -4,21 +4,19 @@ import {
   setPackageCatalog,
   getPackageCatalog,
   clearAll,
+  PackagePatientSummary,
 } from 'utils/recentPatientsStore'
-import { PatientSummary } from 'utils/recentPatientsStore'
 
-const catalogEntry: PatientSummary = {
-  id: 'Bundle/Cat1',
+const catalogEntry: PackagePatientSummary = {
+  id: 'Cat1',
+  resourceType: 'Bundle',
   name: 'Eve [Bundle/Cat1]',
   dob: undefined,
   gender: undefined,
   source: 'package',
-  bundleId: 'Cat1',
-  bundleReference: 'Bundle/Cat1',
-  bundleJson: JSON.stringify({ resourceType: 'Bundle', type: 'collection' }),
+  json: JSON.stringify({ resourceType: 'Bundle', type: 'collection' }),
   resourceCount: 1,
   resourceTypes: ['Patient'],
-  patientId: 'Patient/cat-1',
   addedAt: new Date().toISOString(),
 }
 
@@ -29,20 +27,18 @@ describe('recentPatientsStore package persistence', () => {
 
   it('persists package patients under package key via addPatient', () => {
     addPatient({
-      id: 'Bundle/Test123',
+      id: 'Test123',
+      resourceType: 'Bundle',
       name: 'Alice [Bundle/Test123]',
       dob: undefined,
       gender: undefined,
       source: 'package',
-      bundleId: 'Test123',
-      bundleReference: 'Bundle/Test123',
-      bundleJson: JSON.stringify({
+      json: JSON.stringify({
         resourceType: 'Bundle',
         type: 'collection',
       }),
       resourceCount: 1,
       resourceTypes: ['Patient'],
-      patientId: 'Patient/123',
       addedAt: new Date().toISOString(),
     })
 
@@ -52,9 +48,8 @@ describe('recentPatientsStore package persistence', () => {
     expect(parsed[0]).toEqual(
       expect.objectContaining({
         source: 'package',
-        id: 'Bundle/Test123',
-        bundleId: 'Test123',
-        bundleReference: 'Bundle/Test123',
+        resourceType: 'Bundle',
+        id: 'Test123',
       })
     )
 
@@ -68,7 +63,7 @@ describe('recentPatientsStore package persistence', () => {
     // Catalog is accessible via getPackageCatalog
     const catalog = getPackageCatalog()
     expect(catalog).toHaveLength(1)
-    expect(catalog[0].bundleId).toBe('Cat1')
+    expect(catalog[0].id).toBe('Cat1')
 
     // Catalog entries do NOT appear in getAllPatients
     const recents = getAllPatients()
@@ -79,10 +74,12 @@ describe('recentPatientsStore package persistence', () => {
     setPackageCatalog([catalogEntry])
     addPatient({
       id: 'manual-1',
+      resourceType: 'Bundle',
       name: 'Bob',
       dob: undefined,
       gender: undefined,
       source: 'package',
+      json: '',
       addedAt: new Date().toISOString(),
     })
 

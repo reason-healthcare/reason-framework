@@ -312,12 +312,12 @@ describe('FhirPatientSearchPanel', () => {
     await user.click(option)
 
     expect(onPatientSelect).toHaveBeenCalledWith(
-      'Patient/pt2',
+      { resourceType: 'Patient', id: 'pt2' },
       expect.objectContaining({ id: 'pt2', source: 'endpoint' }),
-      expect.stringContaining('"resourceType":"Patient"')
+      undefined
     )
     expect(addPatient).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 'pt2' })
+      expect.objectContaining({ id: 'pt2', json: JSON.stringify(patient) })
     )
   })
 })

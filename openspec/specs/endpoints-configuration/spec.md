@@ -17,19 +17,6 @@ The apply form SHALL render an `Endpoints Configuration` collapsible section as 
 
 ---
 
-### Requirement: Collapsed state renders a read-only URL summary
-When the `Endpoints Configuration` section is collapsed, it SHALL display a compact read-only summary of the currently configured endpoint URL values inline below or beside the section header.
-
-#### Scenario: Collapsed summary shows active URL values
-- **WHEN** the section is collapsed and all four endpoint values are set
-- **THEN** the header area displays a summary string containing at least the Data endpoint URL
-
-#### Scenario: Collapsed summary reflects updated values after edit
-- **WHEN** the user expands the section, changes a URL value, then collapses the section
-- **THEN** the collapsed summary reflects the newly entered URL
-
----
-
 ### Requirement: Endpoint URL values persist to localStorage
 All four endpoint URL values (CPG Engine, Content, Terminology, Data) SHALL be persisted to `localStorage` under the key `endpointsConfig` as a JSON object. Values SHALL be restored from `localStorage` on component mount.
 

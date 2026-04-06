@@ -9,6 +9,7 @@ import {
   getPackageCatalog,
   PatientSummary,
 } from 'utils/recentPatientsStore'
+import { ResourceIdentifier } from 'utils/fhirContextDeriver'
 import BrowserResolver from 'resolver/browser'
 
 const { Text } = Typography
@@ -20,7 +21,7 @@ interface PatientLoadModeSwitcherProps {
   resolver?: BrowserResolver | undefined
   dataEndpointUrl: string | undefined
   onPatientSelect: (
-    subject: string,
+    subject: ResourceIdentifier,
     summary: PatientSummary,
     dataPayload?: string
   ) => void

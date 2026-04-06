@@ -12,9 +12,10 @@ import EndpointsConfiguration, {
 } from 'components/apply-form/EndpointsConfiguration'
 import {
   addPatient,
+  makeBundlePatientSummary,
   PatientSummary,
-  renderPatientName,
 } from 'utils/recentPatientsStore'
+import { ResourceIdentifier } from 'utils/fhirContextDeriver'
 import '@/styles/applyForm.css'
 import '@/styles/uploadSection.css'
 import { SidePanelView } from 'page'
@@ -39,21 +40,12 @@ const ApplyForm = ({
   setSidePanelView,
 }: ApplyFormProps) => {
   const [dataPayload, setDataPayload] = useState<string | undefined>()
-  const [subjectPayload, setSubjectPayload] = useState<string | undefined>(
-    'Patient/Patient1'
-  )
-  const [cpgEngineEndpointPayload, setCpgEngineEndpointPayload] = useState<
-    string | undefined
-  >('http://localhost:8080/fhir/PlanDefinition/$r5.apply')
-  const [contentEndpointPayload, setContentEndpointPayload] = useState<
-    string | undefined
-  >('http://localhost:8080/fhir')
-  const [txEndpointPayload, setTxEndpointPayload] = useState<
-    string | undefined
-  >('http://localhost:8080/fhir')
+  const [patientSubject, setPatientSubject] = useState<
+    ResourceIdentifier | undefined
+  >()
   const [dataEndpointPayload, setDataEndpointPayload] = useState<
     string | undefined
-  >('http://localhost:8080/fhir')
+  >()
   const [questionnaireResponseServer, setQuestionnaireResponseServer] =
     useState<fhir4.QuestionnaireResponse>()
   const [questionnaire, setQuestionnaire] = useState<
@@ -83,7 +75,7 @@ const ApplyForm = ({
     clearApplyOutputs()
     resetApplyUiState()
     setDataPayload(undefined)
-    setSubjectPayload(undefined)
+    setPatientSubject(undefined)
     setSelectedPatientSummary(undefined)
     form.resetFields()
     localStorage.removeItem('applyPayload')
@@ -106,14 +98,7 @@ const ApplyForm = ({
     const storedPayload = localStorage.getItem('applyPayload')
     if (storedPayload != null) {
       const payload = JSON.parse(storedPayload)
-      const {
-        dataPayload,
-        subjectPayload,
-        cpgEngineEndpointPayload,
-        contentEndpointPayload,
-        txEndpointPayload,
-        dataEndpointPayload,
-      } = payload
+      const { dataPayload, subjectPayload } = payload
       setDataPayload(
         typeof dataPayload === 'string'
           ? dataPayload
@@ -121,11 +106,10 @@ const ApplyForm = ({
           ? JSON.stringify(dataPayload)
           : undefined
       )
-      setSubjectPayload(subjectPayload)
-      setCpgEngineEndpointPayload(cpgEngineEndpointPayload)
-      setContentEndpointPayload(contentEndpointPayload)
-      setTxEndpointPayload(txEndpointPayload)
-      if (dataEndpointPayload) setDataEndpointPayload(dataEndpointPayload)
+      const parts = typeof subjectPayload === 'string' ? subjectPayload.split('/') : []
+      if (parts.length === 2 && parts[0] && parts[1]) {
+        setPatientSubject({ resourceType: parts[0], id: parts[1] })
+      }
     }
   }, [])
 
@@ -153,9 +137,6 @@ const ApplyForm = ({
     if (dataPayload != null && !is.Bundle(dataPayload)) {
       message.error('Context data is not a valid FHIR Bundle')
       return false
-    } else if (dataEndpointPayload == undefined) {
-      message.error('Data endpoint is required when no context data provided')
-      return false
     }
     if (subjectPayload == undefined) {
       message.error('Subject reference is required')
@@ -181,17 +162,17 @@ const ApplyForm = ({
   }
 
   const handlePatientSelect = (
-    subject: string,
+    subject: ResourceIdentifier,
     summary: PatientSummary,
     nextDataPayload?: string
   ) => {
     setDataPayload(nextDataPayload)
-    setSubjectPayload(subject)
+    setPatientSubject(subject)
     setSelectedPatientSummary(summary)
   }
   const handleClearSelectedPatient = () => {
     setDataPayload(undefined)
-    setSubjectPayload(undefined)
+    setPatientSubject(undefined)
     setSelectedPatientSummary(undefined)
   }
   const parseDataPayload = (payload: string | undefined) => {
@@ -267,43 +248,36 @@ const ApplyForm = ({
   const handleSubmit = async () => {
     setIsApplied(false)
     const dataPayloadParsed = parseDataPayload(dataPayload)
+    const endpointsConfig = endpointsRef.current?.getConfig()
+    const subjectPayload = patientSubject
+      ? `${patientSubject.resourceType}/${patientSubject.id}`
+      : undefined
     const payload = {
       dataPayload: dataPayloadParsed,
-      subjectPayload: subjectPayload?.trim(),
-      cpgEngineEndpointPayload: cpgEngineEndpointPayload?.trim(),
-      contentEndpointPayload: contentEndpointPayload?.trim(),
-      txEndpointPayload: txEndpointPayload?.trim(),
-      dataEndpointPayload: dataEndpointPayload?.trim(),
+      subjectPayload,
+      cpgEngineEndpointPayload: endpointsConfig?.cpgEngineEndpoint.trim(),
+      contentEndpointPayload: endpointsConfig?.contentEndpoint.trim(),
+      txEndpointPayload: endpointsConfig?.txEndpoint.trim(),
+      dataEndpointPayload: endpointsConfig?.dataEndpoint.trim(),
       planDefinition,
     }
     localStorage.setItem(
       'applyPayload',
-      JSON.stringify({
-        ...payload,
-        dataPayload,
-      })
+      JSON.stringify({ dataPayload, subjectPayload })
     )
 
     // Track bundle-mode submission in recent patients
-    if (payload.dataPayload && payload.subjectPayload) {
+    if (payload.dataPayload && patientSubject) {
       try {
         const bundle = payload.dataPayload as fhir4.Bundle
-        const patientId = payload.subjectPayload.replace(/^Patient\//, '')
+        const patientId = patientSubject.id
         const patientResource = bundle.entry
           ?.map((e) => e.resource)
           .find(
             (r): r is fhir4.Patient =>
-              r?.resourceType === 'Patient' &&
-              (r.id === patientId || !patientId)
+              r?.resourceType === 'Patient' && r.id === patientId
           )
-        const summary: PatientSummary = {
-          id: patientResource?.id ?? patientId,
-          name: renderPatientName(patientResource?.name),
-          dob: patientResource?.birthDate,
-          gender: patientResource?.gender,
-          source: 'package',
-          addedAt: new Date().toISOString(),
-        }
+        const summary = makeBundlePatientSummary(bundle, patientResource, dataPayload, { patientId })
         addPatient(summary)
         setSelectedPatientSummary(summary)
       } catch {
@@ -356,11 +330,13 @@ const ApplyForm = ({
 
     const payload: Partial<ApplyPayload> = {
       dataPayload: dataWithQr,
-      subjectPayload: subjectPayload?.trim(),
-      cpgEngineEndpointPayload: cpgEngineEndpointPayload?.trim(),
-      contentEndpointPayload: contentEndpointPayload?.trim(),
-      txEndpointPayload: txEndpointPayload?.trim(),
-      dataEndpointPayload: dataEndpointPayload?.trim(),
+      subjectPayload: patientSubject
+        ? `${patientSubject.resourceType}/${patientSubject.id}`
+        : undefined,
+      cpgEngineEndpointPayload: endpointsRef.current?.getConfig().cpgEngineEndpoint.trim(),
+      contentEndpointPayload: endpointsRef.current?.getConfig().contentEndpoint.trim(),
+      txEndpointPayload: endpointsRef.current?.getConfig().txEndpoint.trim(),
+      dataEndpointPayload: endpointsRef.current?.getConfig().dataEndpoint.trim(),
       planDefinition,
       questionnaire,
     }
@@ -381,9 +357,6 @@ const ApplyForm = ({
           <Form.Item className="form-item">
             <EndpointsConfiguration
               ref={endpointsRef}
-              onCpgEngineEndpointChange={setCpgEngineEndpointPayload}
-              onContentEndpointChange={setContentEndpointPayload}
-              onTxEndpointChange={setTxEndpointPayload}
               onDataEndpointChange={setDataEndpointPayload}
             />
           </Form.Item>
@@ -401,10 +374,9 @@ const ApplyForm = ({
             />
 
             <SelectedPatientPreviewCard
-              subjectPayload={subjectPayload}
+              subject={patientSubject}
               dataPayload={dataPayload}
               selectedPatient={selectedPatientSummary}
-              resolver={resolver}
               onClear={handleClearSelectedPatient}
             />
           </Form.Item>
