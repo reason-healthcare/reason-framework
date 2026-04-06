@@ -3,7 +3,13 @@ import { ValueSet } from 'cql-execution'
 import Cache from '../cache'
 import { Resolver } from '../resolver'
 import BaseResolver from './base'
-import { canonicalResources, inspect, is, nonPatientScopedResources, notEmpty } from '../helpers'
+import {
+  canonicalResources,
+  inspect,
+  is,
+  nonPatientScopedResources,
+  notEmpty
+} from '../helpers'
 
 class RestResolver extends BaseResolver implements Resolver {
   client: Client

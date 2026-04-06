@@ -18,7 +18,12 @@ const BUNDLE = {
         identifier: [
           {
             type: {
-              coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v2-0203', code: 'SS' }],
+              coding: [
+                {
+                  system: 'http://terminology.hl7.org/CodeSystem/v2-0203',
+                  code: 'SS',
+                },
+              ],
             },
             value: '999-99-1234',
           },
@@ -60,7 +65,9 @@ const BUNDLE = {
       resource: {
         resourceType: 'MedicationRequest',
         id: 'med1',
-        subject: { reference: 'http://example.org/fhir/Patient/pt1/_history/1' },
+        subject: {
+          reference: 'http://example.org/fhir/Patient/pt1/_history/1',
+        },
         medicationReference: { reference: 'Medication/med1' },
       },
     },
@@ -70,7 +77,10 @@ const BUNDLE = {
         id: 'cond1',
         subject: { reference: 'Patient/pt1' },
         code: { text: 'Hypertension' },
-        text: { status: 'generated', div: '<div>Hypertension (narrative)</div>' },
+        text: {
+          status: 'generated',
+          div: '<div>Hypertension (narrative)</div>',
+        },
       },
     },
     {
@@ -100,7 +110,12 @@ const PATIENT_ONLY_BUNDLE = {
         identifier: [
           {
             type: {
-              coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v2-0203', code: 'SS' }],
+              coding: [
+                {
+                  system: 'http://terminology.hl7.org/CodeSystem/v2-0203',
+                  code: 'SS',
+                },
+              ],
             },
             value: '999-99-1234',
           },
@@ -160,7 +175,9 @@ describe('SelectedPatientPreviewCard', () => {
     expect(screen.getByText('MRN')).toBeInTheDocument()
     expect(screen.getByText('MRN-pt1')).toBeInTheDocument()
     expect(screen.getByText('Address')).toBeInTheDocument()
-    expect(screen.getByText('123 Main Street, Boston, MA 02101')).toBeInTheDocument()
+    expect(
+      screen.getByText('123 Main Street, Boston, MA 02101')
+    ).toBeInTheDocument()
 
     await userEvent.click(screen.getByText('Medications'))
     // With property-based rendering, we see property names and formatted values
@@ -180,7 +197,9 @@ describe('SelectedPatientPreviewCard', () => {
 
     await userEvent.click(screen.getByText('Raw JSON'))
     expect(screen.getByText(/"resourceType": "Bundle"/)).toBeInTheDocument()
-    expect(screen.getByText(/"fullUrl": "http:\/\/example.org\/fhir\/Patient\/pt1"/)).toBeInTheDocument()
+    expect(
+      screen.getByText(/"fullUrl": "http:\/\/example.org\/fhir\/Patient\/pt1"/)
+    ).toBeInTheDocument()
     expect(screen.queryByText(/"selectedPatient":/)).toBeNull()
   })
 
@@ -338,7 +357,9 @@ describe('SelectedPatientPreviewCard', () => {
 
     // Property-based rendering shows Code property with the text value
     expect(screen.getByText('Code')).toBeInTheDocument()
-    expect(screen.getByText('Structured condition from text')).toBeInTheDocument()
+    expect(
+      screen.getByText('Structured condition from text')
+    ).toBeInTheDocument()
   })
 
   it('condition label uses coding display when text is absent', async () => {
@@ -445,4 +466,3 @@ describe('SelectedPatientPreviewCard', () => {
     expect(screen.getByText(/72/)).toBeInTheDocument()
   })
 })
-

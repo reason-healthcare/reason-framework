@@ -62,9 +62,7 @@ export async function POST(req: NextRequest) {
         name: 'planDefinition',
         resource: planDefinition,
       },
-      ...(dataPayload != null
-        ? [{ name: 'data', resource: dataPayload }]
-        : []),
+      ...(dataPayload != null ? [{ name: 'data', resource: dataPayload }] : []),
       {
         name: 'subject',
         valueString: subjectPayload,

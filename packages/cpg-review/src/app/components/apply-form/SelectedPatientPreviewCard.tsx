@@ -1,4 +1,3 @@
-
 import {
   DownOutlined,
   FileTextOutlined,
@@ -10,17 +9,18 @@ import {
 } from '@ant-design/icons'
 import { Typography } from 'antd'
 import { useState } from 'react'
-import { formatCodeableConcept, formatValue, formatProperty, notEmpty } from 'helpers'
+import {
+  formatCodeableConcept,
+  formatValue,
+  formatProperty,
+  notEmpty,
+} from 'helpers'
 import { PatientSummary, renderPatientName } from 'utils/recentPatientsStore'
 import BrowserResolver from 'resolver/browser'
 
 const { Text } = Typography
 
-const META = [
-  'id',
-  'text',
-  'meta',
-]
+const META = ['id', 'text', 'meta']
 
 interface SelectedPatientPreviewCardProps {
   subjectPayload: string | undefined
@@ -73,7 +73,9 @@ function parseRawJson(dataPayload: unknown): unknown {
   }
 }
 
-function normalizeIdentifierUse(use: fhir4.Identifier['use'] | undefined): number {
+function normalizeIdentifierUse(
+  use: fhir4.Identifier['use'] | undefined
+): number {
   if (use === 'usual') return 0
   if (use === 'official') return 1
   if (use === 'secondary') return 2
@@ -120,7 +122,10 @@ function mrnValue(
 
   const mrnIdentifiers = identifiers
     .filter((identifier) => !!identifier.value && isMrnIdentifier(identifier))
-    .sort((left, right) => normalizeIdentifierUse(left.use) - normalizeIdentifierUse(right.use))
+    .sort(
+      (left, right) =>
+        normalizeIdentifierUse(left.use) - normalizeIdentifierUse(right.use)
+    )
 
   const identifier = mrnIdentifiers[0]
 
@@ -201,7 +206,9 @@ function createResourceResolver(entries: BundleResourceEntry[]) {
   for (const entry of entries) {
     const resource = entry.resource
     const resourceKey =
-      resource.id != null ? `${resource.resourceType}/${resource.id}` : undefined
+      resource.id != null
+        ? `${resource.resourceType}/${resource.id}`
+        : undefined
 
     if (resourceKey) {
       for (const alias of referenceAliases(resourceKey)) {
@@ -227,7 +234,9 @@ function createResourceResolver(entries: BundleResourceEntry[]) {
   }
 }
 
-function narrativeText(resource: fhir4.DomainResource | undefined): string | undefined {
+function narrativeText(
+  resource: fhir4.DomainResource | undefined
+): string | undefined {
   const div = resource?.text?.div
   if (!div) return undefined
   return div
@@ -327,7 +336,9 @@ function deriveContext(
   )
 
   const medications = resources.filter(
-    (resource): resource is fhir4.MedicationRequest | fhir4.MedicationStatement => {
+    (
+      resource
+    ): resource is fhir4.MedicationRequest | fhir4.MedicationStatement => {
       if (resource?.resourceType === 'MedicationRequest') {
         return matchesSubjectReference(resource.subject, patientReferenceSet)
       }
@@ -389,11 +400,7 @@ const SelectedPatientPreviewCard = ({
     conditions,
     observations,
     resolveResourceReference,
-  } = deriveContext(
-    bundle,
-    subjectPayload,
-    patientId
-  )
+  } = deriveContext(bundle, subjectPayload, patientId)
 
   const fallbackSummary: PatientSummary | undefined = patient
     ? {
@@ -445,7 +452,9 @@ const SelectedPatientPreviewCard = ({
             </Text>
             <Text type="secondary" className="selected-patient-summary-meta">
               ID: {summary?.bundleId || summary?.id || patientId || '—'} |{' '}
-              {summary?.source === 'endpoint' ? 'From FHIR Server' : 'From FHIR Bundle'}
+              {summary?.source === 'endpoint'
+                ? 'From FHIR Server'
+                : 'From FHIR Bundle'}
             </Text>
           </div>
         </div>
@@ -475,7 +484,11 @@ const SelectedPatientPreviewCard = ({
       {!isCollapsed && (
         <div className="selected-patient-preview-body">
           <div className="selected-patient-preview-header selected-patient-preview-header-actions">
-            <div className="selected-patient-tabs" role="tablist" aria-label="Patient preview sections">
+            <div
+              className="selected-patient-tabs"
+              role="tablist"
+              aria-label="Patient preview sections"
+            >
               {[
                 {
                   value: 'overview' as const,
@@ -527,28 +540,63 @@ const SelectedPatientPreviewCard = ({
           {activeSection === 'overview' && (
             <div className="selected-patient-overview-grid">
               <div className="selected-patient-overview-item">
-                <Text type="secondary" className="selected-patient-overview-label">Full Name</Text>
-                <Text strong className="selected-patient-overview-value">{fullName}</Text>
+                <Text
+                  type="secondary"
+                  className="selected-patient-overview-label"
+                >
+                  Full Name
+                </Text>
+                <Text strong className="selected-patient-overview-value">
+                  {fullName}
+                </Text>
               </div>
 
               <div className="selected-patient-overview-item">
-                <Text type="secondary" className="selected-patient-overview-label">Date of Birth</Text>
-                <Text strong className="selected-patient-overview-value">{summary?.dob ?? '—'}</Text>
+                <Text
+                  type="secondary"
+                  className="selected-patient-overview-label"
+                >
+                  Date of Birth
+                </Text>
+                <Text strong className="selected-patient-overview-value">
+                  {summary?.dob ?? '—'}
+                </Text>
               </div>
 
               <div className="selected-patient-overview-item">
-                <Text type="secondary" className="selected-patient-overview-label">Gender</Text>
-                <Text strong className="selected-patient-overview-value">{summary?.gender ?? '—'}</Text>
+                <Text
+                  type="secondary"
+                  className="selected-patient-overview-label"
+                >
+                  Gender
+                </Text>
+                <Text strong className="selected-patient-overview-value">
+                  {summary?.gender ?? '—'}
+                </Text>
               </div>
 
               <div className="selected-patient-overview-item">
-                <Text type="secondary" className="selected-patient-overview-label">MRN</Text>
-                <Text strong className="selected-patient-overview-value">{mrn}</Text>
+                <Text
+                  type="secondary"
+                  className="selected-patient-overview-label"
+                >
+                  MRN
+                </Text>
+                <Text strong className="selected-patient-overview-value">
+                  {mrn}
+                </Text>
               </div>
 
               <div className="selected-patient-overview-item selected-patient-overview-item-full">
-                <Text type="secondary" className="selected-patient-overview-label">Address</Text>
-                <Text strong className="selected-patient-overview-value">{address}</Text>
+                <Text
+                  type="secondary"
+                  className="selected-patient-overview-label"
+                >
+                  Address
+                </Text>
+                <Text strong className="selected-patient-overview-value">
+                  {address}
+                </Text>
               </div>
             </div>
           )}
@@ -575,10 +623,7 @@ const SelectedPatientPreviewCard = ({
             ) : (
               <div className="selected-patient-resource-list">
                 {conditions.map((item) => (
-                  <div
-                    key={item.id}
-                    className="selected-patient-resource-row"
-                  >
+                  <div key={item.id} className="selected-patient-resource-row">
                     {renderResourceProperties(item, resolver)}
                   </div>
                 ))}
@@ -591,10 +636,7 @@ const SelectedPatientPreviewCard = ({
             ) : (
               <div className="selected-patient-resource-list">
                 {observations.map((item) => (
-                  <div
-                    key={item.id}
-                    className="selected-patient-resource-row"
-                  >
+                  <div key={item.id} className="selected-patient-resource-row">
                     {renderResourceProperties(item, resolver)}
                   </div>
                 ))}

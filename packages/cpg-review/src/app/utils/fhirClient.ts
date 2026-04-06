@@ -37,8 +37,11 @@ export async function fhirClient<T>(
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
-    const type: FhirClientErrorType =
-      message.toLowerCase().includes('failed to fetch') ? 'cors' : 'network'
+    const type: FhirClientErrorType = message
+      .toLowerCase()
+      .includes('failed to fetch')
+      ? 'cors'
+      : 'network'
     return { ok: false, error: { message, type } }
   }
 
@@ -59,7 +62,8 @@ export async function fhirClient<T>(
     return {
       ok: false,
       error: {
-        message: err instanceof Error ? err.message : 'Failed to parse response',
+        message:
+          err instanceof Error ? err.message : 'Failed to parse response',
         type: 'parse',
       },
     }
