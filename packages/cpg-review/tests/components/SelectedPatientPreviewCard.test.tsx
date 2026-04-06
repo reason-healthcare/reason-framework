@@ -163,13 +163,20 @@ describe('SelectedPatientPreviewCard', () => {
     expect(screen.getByText('123 Main Street, Boston, MA 02101')).toBeInTheDocument()
 
     await userEvent.click(screen.getByText('Medications'))
-    expect(screen.getByText('Atorvastatin 20mg')).toBeInTheDocument()
+    // With property-based rendering, we see property names and formatted values
+    expect(screen.getByText('Subject')).toBeInTheDocument()
+    expect(screen.getByText(/Patient\/pt1/)).toBeInTheDocument()
 
     await userEvent.click(screen.getByText('Conditions'))
-    expect(screen.getByText('Hypertension (narrative)')).toBeInTheDocument()
+    // Condition code property should show the text
+    expect(screen.getByText('Code')).toBeInTheDocument()
+    expect(screen.getByText('Hypertension')).toBeInTheDocument()
+    expect(screen.queryByText('Hypertension (narrative)')).toBeNull()
 
     await userEvent.click(screen.getByText('Observations'))
-    expect(screen.getByText('Blood pressure: 120 mmHg')).toBeInTheDocument()
+    // Observation properties shown via formatProperty
+    expect(screen.getByText('Code')).toBeInTheDocument()
+    expect(screen.getByText('Blood pressure')).toBeInTheDocument()
 
     await userEvent.click(screen.getByText('Raw JSON'))
     expect(screen.getByText(/"resourceType": "Bundle"/)).toBeInTheDocument()
@@ -291,4 +298,151 @@ describe('SelectedPatientPreviewCard', () => {
       screen.getByText('No observations available for this patient context.')
     ).toBeInTheDocument()
   })
+
+  it('condition label uses CodeableConcept text when present', async () => {
+    const codeTextBundle = {
+      resourceType: 'Bundle',
+      type: 'collection',
+      entry: [
+        {
+          fullUrl: 'http://example.org/fhir/Patient/pt-code-text',
+          resource: {
+            resourceType: 'Patient',
+            id: 'pt-code-text',
+            name: [{ given: ['Code'], family: 'Text' }],
+          },
+        },
+        {
+          resource: {
+            resourceType: 'Condition',
+            id: 'cond-code-text',
+            subject: { reference: 'Patient/pt-code-text' },
+            code: {
+              text: 'Structured condition from text',
+            },
+          },
+        },
+      ],
+    }
+
+    render(
+      <SelectedPatientPreviewCard
+        subjectPayload="http://example.org/fhir/Patient/pt-code-text"
+        dataPayload={JSON.stringify(codeTextBundle)}
+        selectedPatient={undefined}
+        onClear={jest.fn()}
+      />
+    )
+
+    await userEvent.click(screen.getByText('Conditions'))
+
+    // Property-based rendering shows Code property with the text value
+    expect(screen.getByText('Code')).toBeInTheDocument()
+    expect(screen.getByText('Structured condition from text')).toBeInTheDocument()
+  })
+
+  it('condition label uses coding display when text is absent', async () => {
+    const codingDisplayBundle = {
+      resourceType: 'Bundle',
+      type: 'collection',
+      entry: [
+        {
+          fullUrl: 'http://example.org/fhir/Patient/pt-coding-display',
+          resource: {
+            resourceType: 'Patient',
+            id: 'pt-coding-display',
+            name: [{ given: ['Coding'], family: 'Display' }],
+          },
+        },
+        {
+          resource: {
+            resourceType: 'Condition',
+            id: 'cond-coding-display',
+            subject: { reference: 'Patient/pt-coding-display' },
+            code: {
+              coding: [
+                {
+                  system: 'http://snomed.info/sct',
+                  code: '38341003',
+                  display: 'Hypertensive disorder, systemic arterial',
+                },
+              ],
+            },
+          },
+        },
+      ],
+    }
+
+    render(
+      <SelectedPatientPreviewCard
+        subjectPayload="http://example.org/fhir/Patient/pt-coding-display"
+        dataPayload={JSON.stringify(codingDisplayBundle)}
+        selectedPatient={undefined}
+        onClear={jest.fn()}
+      />
+    )
+
+    await userEvent.click(screen.getByText('Conditions'))
+
+    // Property-based rendering shows Code property with formatted coding display
+    expect(screen.getByText('Code')).toBeInTheDocument()
+    expect(
+      screen.getByText('Hypertensive disorder, systemic arterial')
+    ).toBeInTheDocument()
+  })
+
+  it('observation shows properties via formatProperty', async () => {
+    const observationBundle = {
+      resourceType: 'Bundle',
+      type: 'collection',
+      entry: [
+        {
+          fullUrl: 'http://example.org/fhir/Patient/pt-observation-label',
+          resource: {
+            resourceType: 'Patient',
+            id: 'pt-observation-label',
+            name: [{ given: ['Obs'], family: 'Label' }],
+          },
+        },
+        {
+          resource: {
+            resourceType: 'Observation',
+            id: 'obs-structured',
+            subject: { reference: 'Patient/pt-observation-label' },
+            code: {
+              coding: [
+                {
+                  system: 'http://loinc.org',
+                  code: '8867-4',
+                  display: 'Heart rate',
+                },
+              ],
+            },
+            valueQuantity: {
+              value: 72,
+              unit: 'beats/min',
+            },
+          },
+        },
+      ],
+    }
+
+    render(
+      <SelectedPatientPreviewCard
+        subjectPayload="http://example.org/fhir/Patient/pt-observation-label"
+        dataPayload={JSON.stringify(observationBundle)}
+        selectedPatient={undefined}
+        onClear={jest.fn()}
+      />
+    )
+
+    await userEvent.click(screen.getByText('Observations'))
+
+    // Property-based rendering shows Code and Value Quantity properties
+    expect(screen.getByText('Code')).toBeInTheDocument()
+    expect(screen.getByText('Heart rate')).toBeInTheDocument()
+    expect(screen.getByText('Value Quantity')).toBeInTheDocument()
+    expect(screen.getByText(/72/)).toBeInTheDocument()
+  })
 })
+

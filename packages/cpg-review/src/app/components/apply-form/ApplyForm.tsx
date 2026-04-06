@@ -397,6 +397,7 @@ const ApplyForm = ({
               subjectPayload={subjectPayload}
               dataPayload={dataPayload}
               selectedPatient={selectedPatientSummary}
+              resolver={resolver}
               onClear={handleClearSelectedPatient}
             />
           </Form.Item>

@@ -1,4 +1,3 @@
-'use client'
 
 import {
   DownOutlined,
@@ -11,14 +10,23 @@ import {
 } from '@ant-design/icons'
 import { Typography } from 'antd'
 import { useState } from 'react'
+import { formatCodeableConcept, formatValue, formatProperty, notEmpty } from 'helpers'
 import { PatientSummary, renderPatientName } from 'utils/recentPatientsStore'
+import BrowserResolver from 'resolver/browser'
 
 const { Text } = Typography
+
+const META = [
+  'id',
+  'text',
+  'meta',
+]
 
 interface SelectedPatientPreviewCardProps {
   subjectPayload: string | undefined
   dataPayload: string | undefined
   selectedPatient: PatientSummary | undefined
+  resolver?: BrowserResolver | undefined
   onClear: () => void
 }
 
@@ -351,99 +359,24 @@ function deriveContext(
   }
 }
 
-function medicationLabel(
-  resource: fhir4.MedicationRequest | fhir4.MedicationStatement,
-  resolveResourceReference: (reference: string | undefined) => fhir4.FhirResource | undefined
-): string {
-  const narrative = narrativeText(resource)
-  if (narrative) return narrative
-
-  if (resource.resourceType === 'MedicationRequest' && resource.medicationReference?.reference) {
-    const medication = resolveResourceReference(resource.medicationReference.reference)
-    if (medication?.resourceType === 'Medication') {
-      return (
-        medication.code?.text ||
-        medication.code?.coding?.[0]?.display ||
-        medication.code?.coding?.[0]?.code ||
-        `${medication.resourceType}/${medication.id ?? 'unknown'}`
-      )
-    }
-  }
-
-  const codeableConcept =
-    resource.resourceType === 'MedicationRequest'
-      ? resource.medicationCodeableConcept
-      : resource.medicationCodeableConcept
-
-  return (
-    codeableConcept?.text ||
-    codeableConcept?.coding?.[0]?.display ||
-    codeableConcept?.coding?.[0]?.code ||
-    `${resource.resourceType}/${resource.id ?? 'unknown'}`
-  )
-}
-
-function medicationStatus(
-  resource: fhir4.MedicationRequest | fhir4.MedicationStatement
-): string | undefined {
-  return resource.status ?? undefined
-}
-
-function conditionLabel(resource: fhir4.Condition): string {
-  const narrative = narrativeText(resource)
-  if (narrative) return narrative
-
-  return (
-    resource.code?.text ||
-    resource.code?.coding?.[0]?.display ||
-    resource.code?.coding?.[0]?.code ||
-    `Condition/${resource.id ?? 'unknown'}`
-  )
-}
-
-function conditionStatus(resource: fhir4.Condition): string | undefined {
-  return (
-    resource.clinicalStatus?.text ||
-    resource.clinicalStatus?.coding?.[0]?.display ||
-    resource.clinicalStatus?.coding?.[0]?.code ||
-    resource.verificationStatus?.text ||
-    resource.verificationStatus?.coding?.[0]?.display ||
-    resource.verificationStatus?.coding?.[0]?.code
-  )
-}
-
-function observationLabel(resource: fhir4.Observation): string {
-  const narrative = narrativeText(resource)
-  if (narrative) return narrative
-
-  const valueText =
-    resource.valueQuantity != null
-      ? `${resource.valueQuantity.value ?? ''} ${resource.valueQuantity.unit ?? ''}`.trim()
-      : resource.valueString ??
-        resource.valueCodeableConcept?.text ??
-        resource.valueCodeableConcept?.coding?.[0]?.display
-
-  return (
-    [
-      resource.code?.text ||
-        resource.code?.coding?.[0]?.display ||
-        resource.code?.coding?.[0]?.code,
-      valueText,
-    ]
-      .filter(Boolean)
-      .join(': ') ||
-    `Observation/${resource.id ?? 'unknown'}`
-  )
-}
-
-function observationStatus(resource: fhir4.Observation): string | undefined {
-  return resource.status ?? undefined
+function renderResourceProperties(
+  resource: fhir4.FhirResource,
+  resolver?: BrowserResolver
+) {
+  return Object.entries(resource)
+    .map(([key, value]) => {
+      if (!META.includes(key)) {
+        return formatProperty(value, resolver, undefined, key, false)
+      }
+    })
+    .filter(notEmpty)
 }
 
 const SelectedPatientPreviewCard = ({
   subjectPayload,
   dataPayload,
   selectedPatient,
+  resolver,
   onClear,
 }: SelectedPatientPreviewCardProps) => {
   if (!subjectPayload?.trim()) return null
@@ -627,17 +560,10 @@ const SelectedPatientPreviewCard = ({
               <div className="selected-patient-resource-list">
                 {medications.map((item) => (
                   <div
-                    key={`${item.resourceType}-${item.id ?? medicationLabel(item, resolveResourceReference)}`}
+                    key={`${item.resourceType}-${item.id}`}
                     className="selected-patient-resource-row"
                   >
-                    <span className="selected-patient-resource-label">
-                      {medicationLabel(item, resolveResourceReference)}
-                    </span>
-                    {medicationStatus(item) && (
-                      <span className="selected-patient-resource-status">
-                        {medicationStatus(item)}
-                      </span>
-                    )}
+                    {renderResourceProperties(item, resolver)}
                   </div>
                 ))}
               </div>
@@ -650,15 +576,10 @@ const SelectedPatientPreviewCard = ({
               <div className="selected-patient-resource-list">
                 {conditions.map((item) => (
                   <div
-                    key={item.id ?? conditionLabel(item)}
+                    key={item.id}
                     className="selected-patient-resource-row"
                   >
-                    <span className="selected-patient-resource-label">{conditionLabel(item)}</span>
-                    {conditionStatus(item) && (
-                      <span className="selected-patient-resource-status">
-                        {conditionStatus(item)}
-                      </span>
-                    )}
+                    {renderResourceProperties(item, resolver)}
                   </div>
                 ))}
               </div>
@@ -671,15 +592,10 @@ const SelectedPatientPreviewCard = ({
               <div className="selected-patient-resource-list">
                 {observations.map((item) => (
                   <div
-                    key={item.id ?? observationLabel(item)}
+                    key={item.id}
                     className="selected-patient-resource-row"
                   >
-                    <span className="selected-patient-resource-label">{observationLabel(item)}</span>
-                    {observationStatus(item) && (
-                      <span className="selected-patient-resource-status">
-                        {observationStatus(item)}
-                      </span>
-                    )}
+                    {renderResourceProperties(item, resolver)}
                   </div>
                 ))}
               </div>

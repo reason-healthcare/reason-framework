@@ -1,5 +1,6 @@
-## ADDED Requirements
-
+## Purpose
+Define expected behavior for the selected patient preview card in the apply form, including visibility, clearing behavior, tabbed sections, and data presentation for patient context resources.
+## Requirements
 ### Requirement: Selected patient preview card is shown when context is active
 The apply form SHALL render a selected patient preview card whenever an active patient context exists.
 
@@ -48,3 +49,29 @@ The selected patient preview card SHALL provide tabs named `Overview`, `Medicati
 #### Scenario: Raw JSON tab shows loaded patient payload
 - **WHEN** the `Raw JSON` tab is active
 - **THEN** the UI SHALL render the raw FHIR JSON payload (as received from the patient context source, prior to any normalization or display transformation) in a readable preformatted view with internal scrolling if content exceeds available space
+
+### Requirement: Patient details tabs use property-based resource rendering
+The selected patient preview card SHALL render loaded medication, condition, and observation resources by iterating non-META properties and formatting each property with `formatProperty`.
+
+#### Scenario: Medications tab shows loaded medication data
+- **WHEN** the `Medications` tab is active and medication data exists in loaded patient context
+- **THEN** the UI SHALL display medication entries using property-based iteration with `formatProperty`
+- **AND** the UI SHALL exclude META fields (`id`, `publisher`, `title`, `status`, `date`, `resourceType`, `text`, `meta`, `url`, `contact`, `name`, `version`, `content`, `mapping`, `snapshot`, `parameter`, `jurisdiction`, `count`)
+- **AND** `meta.profile` SHALL remain excluded as part of excluded `meta`
+
+#### Scenario: Conditions tab shows loaded condition data
+- **WHEN** the `Conditions` tab is active and condition data exists in loaded patient context
+- **THEN** the UI SHALL display condition entries using property-based iteration with `formatProperty`
+- **AND** the UI SHALL exclude META fields (`id`, `publisher`, `title`, `status`, `date`, `resourceType`, `text`, `meta`, `url`, `contact`, `name`, `version`, `content`, `mapping`, `snapshot`, `parameter`, `jurisdiction`, `count`)
+- **AND** `meta.profile` SHALL remain excluded as part of excluded `meta`
+
+#### Scenario: Observations tab shows loaded observation data
+- **WHEN** the `Observations` tab is active and observation data exists in loaded patient context
+- **THEN** the UI SHALL display observation entries using property-based iteration with `formatProperty`
+- **AND** the UI SHALL exclude META fields (`id`, `publisher`, `title`, `status`, `date`, `resourceType`, `text`, `meta`, `url`, `contact`, `name`, `version`, `content`, `mapping`, `snapshot`, `parameter`, `jurisdiction`, `count`)
+- **AND** `meta.profile` SHALL remain excluded as part of excluded `meta`
+
+#### Scenario: Observation properties include complex datatypes
+- **WHEN** an observation has a `valueQuantity` with `value`, `unit`, and `system` fields
+- **THEN** the formatted `valueQuantity` property SHALL display subfields using existing type-appropriate formatters
+
