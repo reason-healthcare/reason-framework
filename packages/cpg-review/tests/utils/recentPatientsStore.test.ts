@@ -1,4 +1,10 @@
-import { addPatient, getAllPatients, setPackageCatalog, getPackageCatalog, clearAll } from 'utils/recentPatientsStore'
+import {
+  addPatient,
+  getAllPatients,
+  setPackageCatalog,
+  getPackageCatalog,
+  clearAll,
+} from 'utils/recentPatientsStore'
 import { PatientSummary } from 'utils/recentPatientsStore'
 
 const catalogEntry: PatientSummary = {
@@ -30,7 +36,10 @@ describe('recentPatientsStore package persistence', () => {
       source: 'package',
       bundleId: 'Test123',
       bundleReference: 'Bundle/Test123',
-      bundleJson: JSON.stringify({ resourceType: 'Bundle', type: 'collection' }),
+      bundleJson: JSON.stringify({
+        resourceType: 'Bundle',
+        type: 'collection',
+      }),
       resourceCount: 1,
       resourceTypes: ['Patient'],
       patientId: 'Patient/123',

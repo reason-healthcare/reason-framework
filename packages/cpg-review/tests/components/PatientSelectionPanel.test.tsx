@@ -11,10 +11,19 @@ jest.mock('utils/recentPatientsStore', () => ({
   addPatient: jest.fn(),
 }))
 
-import { getAllPatients, getPackageCatalog, clearAll, addPatient } from 'utils/recentPatientsStore'
+import {
+  getAllPatients,
+  getPackageCatalog,
+  clearAll,
+  addPatient,
+} from 'utils/recentPatientsStore'
 
-const mockGetAllPatients = getAllPatients as jest.MockedFunction<typeof getAllPatients>
-const mockGetPackageCatalog = getPackageCatalog as jest.MockedFunction<typeof getPackageCatalog>
+const mockGetAllPatients = getAllPatients as jest.MockedFunction<
+  typeof getAllPatients
+>
+const mockGetPackageCatalog = getPackageCatalog as jest.MockedFunction<
+  typeof getPackageCatalog
+>
 const mockClearAll = clearAll as jest.MockedFunction<typeof clearAll>
 const mockAddPatient = addPatient as jest.MockedFunction<typeof addPatient>
 
@@ -141,7 +150,9 @@ describe('PatientSelectionPanel', () => {
       />
     )
     expect(screen.getByText('From Package')).toBeInTheDocument()
-    expect(screen.getByText(/Resources: Patient, Observation/)).toBeInTheDocument()
+    expect(
+      screen.getByText(/Resources: Patient, Observation/)
+    ).toBeInTheDocument()
     expect(screen.getByText(/Count: 2/)).toBeInTheDocument()
   })
 
@@ -153,8 +164,14 @@ describe('PatientSelectionPanel', () => {
         onPatientSelect={onPatientSelect}
       />
     )
-    await userEvent.click(screen.getByRole('button', { name: /select alice brown/i }))
-    expect(onPatientSelect).toHaveBeenCalledWith('Patient/ep1', endpointPatient, undefined)
+    await userEvent.click(
+      screen.getByRole('button', { name: /select alice brown/i })
+    )
+    expect(onPatientSelect).toHaveBeenCalledWith(
+      'Patient/ep1',
+      endpointPatient,
+      undefined
+    )
     expect(mockAddPatient).toHaveBeenCalledWith(
       expect.objectContaining({
         id: endpointPatient.id,
@@ -176,12 +193,15 @@ describe('PatientSelectionPanel', () => {
     await userEvent.tab()
     await userEvent.keyboard('{Enter}')
 
-    expect(onPatientSelect).toHaveBeenCalledWith('Patient/ep1', endpointPatient, undefined)
+    expect(onPatientSelect).toHaveBeenCalledWith(
+      'Patient/ep1',
+      endpointPatient,
+      undefined
+    )
   })
 
   it('calls clearAll and reverts to empty state on clear button click', async () => {
-    mockGetAllPatients
-      .mockReturnValueOnce([endpointPatient]) // initial load
+    mockGetAllPatients.mockReturnValueOnce([endpointPatient]) // initial load
     render(
       <PatientSelectionPanel
         endpointUrl={EP_URL}
@@ -190,10 +210,14 @@ describe('PatientSelectionPanel', () => {
     )
     expect(screen.getByText('Alice Brown')).toBeInTheDocument()
 
-    await userEvent.click(screen.getByRole('button', { name: /clear history/i }))
+    await userEvent.click(
+      screen.getByRole('button', { name: /clear history/i })
+    )
     expect(mockClearAll).toHaveBeenCalled()
     await waitFor(() =>
-      expect(screen.getByText(/no recently loaded patients/i)).toBeInTheDocument()
+      expect(
+        screen.getByText(/no recently loaded patients/i)
+      ).toBeInTheDocument()
     )
   })
 
@@ -205,7 +229,9 @@ describe('PatientSelectionPanel', () => {
         onPatientSelect={onPatientSelect}
       />
     )
-    const scrollEl = document.querySelector('.recent-patients-scroll') as HTMLElement
+    const scrollEl = document.querySelector(
+      '.recent-patients-scroll'
+    ) as HTMLElement
     expect(scrollEl).toBeInTheDocument()
   })
 
@@ -219,9 +245,15 @@ describe('PatientSelectionPanel', () => {
     )
 
     await userEvent.click(
-      screen.getByRole('button', { name: /select eve pack \[bundle\/test123\]/i })
+      screen.getByRole('button', {
+        name: /select eve pack \[bundle\/test123\]/i,
+      })
     )
 
-    expect(onPatientSelect).toHaveBeenCalledWith('Patient/pkg-1', packagePatient, packagePatient.bundleJson)
+    expect(onPatientSelect).toHaveBeenCalledWith(
+      'Patient/pkg-1',
+      packagePatient,
+      packagePatient.bundleJson
+    )
   })
 })

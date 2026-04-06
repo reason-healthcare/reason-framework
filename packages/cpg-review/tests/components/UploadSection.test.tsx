@@ -7,7 +7,8 @@ import * as recentPatientsStore from 'utils/recentPatientsStore'
 jest.mock('utils/recentPatientsStore', () => ({
   ...jest.requireActual('utils/recentPatientsStore'),
   setPackageCatalog: jest.fn(),
-  renderPatientName: jest.requireActual('utils/recentPatientsStore').renderPatientName,
+  renderPatientName: jest.requireActual('utils/recentPatientsStore')
+    .renderPatientName,
 }))
 
 describe('UploadSection bundle extraction', () => {
@@ -127,7 +128,10 @@ describe('UploadSection bundle extraction', () => {
     } as any
 
     const bundles = extractBundlesFromResolver(resolver)
-    const mockSetPackageCatalog = recentPatientsStore.setPackageCatalog as jest.MockedFunction<typeof recentPatientsStore.setPackageCatalog>
+    const mockSetPackageCatalog =
+      recentPatientsStore.setPackageCatalog as jest.MockedFunction<
+        typeof recentPatientsStore.setPackageCatalog
+      >
     mockSetPackageCatalog.mockClear()
 
     const indexed = indexPackageBundles(bundles)

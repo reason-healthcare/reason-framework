@@ -105,23 +105,39 @@ describe('FhirPatientSearchPanel', () => {
     const input = screen.getByPlaceholderText(/search patients/i)
     await user.clear(input)
     await user.type(input, value)
-    await act(async () => { jest.runAllTimers() })
+    await act(async () => {
+      jest.runAllTimers()
+    })
   }
 
   // ── Render ──────────────────────────────────────────────────────────────────
   it('renders the search dropdown input', () => {
-    render(<FhirPatientSearchPanel dataEndpointUrl={ENDPOINT} onPatientSelect={onPatientSelect} />)
+    render(
+      <FhirPatientSearchPanel
+        dataEndpointUrl={ENDPOINT}
+        onPatientSelect={onPatientSelect}
+      />
+    )
     expect(screen.getByPlaceholderText(/search patients/i)).toBeInTheDocument()
   })
 
   // ── Empty query ─────────────────────────────────────────────────────────────
   it('does not fire a request when query is empty', async () => {
-    render(<FhirPatientSearchPanel dataEndpointUrl={ENDPOINT} onPatientSelect={onPatientSelect} />)
+    render(
+      <FhirPatientSearchPanel
+        dataEndpointUrl={ENDPOINT}
+        onPatientSelect={onPatientSelect}
+      />
+    )
     const input = screen.getByPlaceholderText(/search patients/i)
     await user.clear(input)
-    await act(async () => { jest.runAllTimers() })
+    await act(async () => {
+      jest.runAllTimers()
+    })
     expect(mockFhirClient).not.toHaveBeenCalled()
-    expect(screen.getByTestId('not-found-content')).toHaveTextContent(/type to search/i)
+    expect(screen.getByTestId('not-found-content')).toHaveTextContent(
+      /type to search/i
+    )
   })
 
   // ── Successful search ───────────────────────────────────────────────────────
@@ -133,14 +149,22 @@ describe('FhirPatientSearchPanel', () => {
       birthDate: '1990-05-20',
       gender: 'female',
     }
-    mockFhirClient.mockResolvedValue({ ok: true, data: makeBundle([patient]) } as any)
+    mockFhirClient.mockResolvedValue({
+      ok: true,
+      data: makeBundle([patient]),
+    } as any)
 
-    render(<FhirPatientSearchPanel dataEndpointUrl={ENDPOINT} onPatientSelect={onPatientSelect} />)
+    render(
+      <FhirPatientSearchPanel
+        dataEndpointUrl={ENDPOINT}
+        onPatientSelect={onPatientSelect}
+      />
+    )
     await typeAndSearch('Smith')
 
     expect(mockFhirClient).toHaveBeenCalledWith(
       ENDPOINT,
-      expect.objectContaining({ path: '/Patient', params: { name: 'Smith' } }),
+      expect.objectContaining({ path: '/Patient', params: { name: 'Smith' } })
     )
     expect(await screen.findByText('Jane Smith')).toBeInTheDocument()
   })
@@ -149,7 +173,12 @@ describe('FhirPatientSearchPanel', () => {
   it('shows "No patients found" when bundle is empty', async () => {
     mockFhirClient.mockResolvedValue({ ok: true, data: makeBundle([]) } as any)
 
-    render(<FhirPatientSearchPanel dataEndpointUrl={ENDPOINT} onPatientSelect={onPatientSelect} />)
+    render(
+      <FhirPatientSearchPanel
+        dataEndpointUrl={ENDPOINT}
+        onPatientSelect={onPatientSelect}
+      />
+    )
     await typeAndSearch('Unknown')
 
     expect(await screen.findByText(/no patients found/i)).toBeInTheDocument()
@@ -159,13 +188,20 @@ describe('FhirPatientSearchPanel', () => {
   it('debounces rapid keystrokes and fires only one request', async () => {
     mockFhirClient.mockResolvedValue({ ok: true, data: makeBundle([]) } as any)
 
-    render(<FhirPatientSearchPanel dataEndpointUrl={ENDPOINT} onPatientSelect={onPatientSelect} />)
+    render(
+      <FhirPatientSearchPanel
+        dataEndpointUrl={ENDPOINT}
+        onPatientSelect={onPatientSelect}
+      />
+    )
     const input = screen.getByPlaceholderText(/search patients/i)
 
     // Type three characters; each fires onSearch and resets the debounce timer.
     // Only the final scheduled timer fires when we flush.
     await user.type(input, 'Smi')
-    await act(async () => { jest.runAllTimers() })
+    await act(async () => {
+      jest.runAllTimers()
+    })
 
     await waitFor(() => expect(mockFhirClient).toHaveBeenCalledTimes(1))
   })
@@ -177,7 +213,12 @@ describe('FhirPatientSearchPanel', () => {
       error: { type: 'http', status: 404, message: '404 Not Found' },
     } as any)
 
-    render(<FhirPatientSearchPanel dataEndpointUrl={ENDPOINT} onPatientSelect={onPatientSelect} />)
+    render(
+      <FhirPatientSearchPanel
+        dataEndpointUrl={ENDPOINT}
+        onPatientSelect={onPatientSelect}
+      />
+    )
     await typeAndSearch('Smith')
 
     expect(await screen.findByText(/404 Not Found/i)).toBeInTheDocument()
@@ -189,11 +230,18 @@ describe('FhirPatientSearchPanel', () => {
       error: { type: 'cors', message: 'CORS error: request blocked' },
     } as any)
 
-    render(<FhirPatientSearchPanel dataEndpointUrl={ENDPOINT} onPatientSelect={onPatientSelect} />)
+    render(
+      <FhirPatientSearchPanel
+        dataEndpointUrl={ENDPOINT}
+        onPatientSelect={onPatientSelect}
+      />
+    )
     await typeAndSearch('Smith')
 
     expect(await screen.findByText(/CORS/i)).toBeInTheDocument()
-    expect(screen.getByText(/allows requests from this origin/i)).toBeInTheDocument()
+    expect(
+      screen.getByText(/allows requests from this origin/i)
+    ).toBeInTheDocument()
   })
 
   it('renders network error with server-down/CORS hint', async () => {
@@ -202,7 +250,12 @@ describe('FhirPatientSearchPanel', () => {
       error: { type: 'network', message: 'Network error: connection refused' },
     } as any)
 
-    render(<FhirPatientSearchPanel dataEndpointUrl={ENDPOINT} onPatientSelect={onPatientSelect} />)
+    render(
+      <FhirPatientSearchPanel
+        dataEndpointUrl={ENDPOINT}
+        onPatientSelect={onPatientSelect}
+      />
+    )
     await typeAndSearch('Smith')
 
     expect(await screen.findByText(/Network error/i)).toBeInTheDocument()
@@ -213,13 +266,23 @@ describe('FhirPatientSearchPanel', () => {
   it('renders parse error with "unexpected response" hint', async () => {
     mockFhirClient.mockResolvedValue({
       ok: false,
-      error: { type: 'parse', message: 'Failed to parse server response as JSON' },
+      error: {
+        type: 'parse',
+        message: 'Failed to parse server response as JSON',
+      },
     } as any)
 
-    render(<FhirPatientSearchPanel dataEndpointUrl={ENDPOINT} onPatientSelect={onPatientSelect} />)
+    render(
+      <FhirPatientSearchPanel
+        dataEndpointUrl={ENDPOINT}
+        onPatientSelect={onPatientSelect}
+      />
+    )
     await typeAndSearch('Smith')
 
-    expect(await screen.findByText(/parse server response/i)).toBeInTheDocument()
+    expect(
+      await screen.findByText(/parse server response/i)
+    ).toBeInTheDocument()
     expect(screen.getByText(/unexpected response/i)).toBeInTheDocument()
   })
 
@@ -232,9 +295,17 @@ describe('FhirPatientSearchPanel', () => {
       birthDate: '1975-03-10',
       gender: 'male',
     }
-    mockFhirClient.mockResolvedValue({ ok: true, data: makeBundle([patient]) } as any)
+    mockFhirClient.mockResolvedValue({
+      ok: true,
+      data: makeBundle([patient]),
+    } as any)
 
-    render(<FhirPatientSearchPanel dataEndpointUrl={ENDPOINT} onPatientSelect={onPatientSelect} />)
+    render(
+      <FhirPatientSearchPanel
+        dataEndpointUrl={ENDPOINT}
+        onPatientSelect={onPatientSelect}
+      />
+    )
     await typeAndSearch('Jones')
 
     const option = await screen.findByText('Bob Jones')
@@ -245,7 +316,8 @@ describe('FhirPatientSearchPanel', () => {
       expect.objectContaining({ id: 'pt2', source: 'endpoint' }),
       expect.stringContaining('"resourceType":"Patient"')
     )
-    expect(addPatient).toHaveBeenCalledWith(expect.objectContaining({ id: 'pt2' }))
+    expect(addPatient).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'pt2' })
+    )
   })
 })
-

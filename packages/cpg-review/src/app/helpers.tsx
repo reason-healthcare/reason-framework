@@ -1094,7 +1094,11 @@ export const formatCodeableConcept = (
 
   if (coding?.length && coding.length > 1) {
     return codeableConcept?.coding?.map((c: fhir4.Coding) => {
-      return <li key={c.code}>{formatCoding(c, resolver, navigate, includeLinks)}</li>
+      return (
+        <li key={c.code}>
+          {formatCoding(c, resolver, navigate, includeLinks)}
+        </li>
+      )
     })
   } else if (coding) {
     return formatCoding(coding[0], resolver, navigate, includeLinks)
@@ -1218,7 +1222,9 @@ export const formatExpression = (
         reference ? ` from ` : ''
       }`}</span>
       <span>
-        {reference ? formatValue(reference, resolver, navigate, includeLinks) : null}
+        {reference
+          ? formatValue(reference, resolver, navigate, includeLinks)
+          : null}
       </span>
     </>
   )
@@ -1236,8 +1242,12 @@ export const formatRelatedArtifact = (
       {type && <span>{`${capitalize(type)}: `}</span>}
       {(display || label) && <span>{display ?? label}</span>}
       {citation && <span>{citation}</span>}
-      {resource && <> {formatValue(resource, resolver, navigate, includeLinks)}</>}
-      {document && <> {formatValue(document, resolver, navigate, includeLinks)}</>}
+      {resource && (
+        <> {formatValue(resource, resolver, navigate, includeLinks)}</>
+      )}
+      {document && (
+        <> {formatValue(document, resolver, navigate, includeLinks)}</>
+      )}
     </>
   )
 }
@@ -1251,7 +1261,9 @@ export const formatDataRequirement = (
   const { type, profile } = dataRequirement
   const profileDisplay =
     profile?.length && profile.length > 1 ? (
-      profile.map((p) => <li key={p}>{formatValue(p, resolver, navigate, includeLinks)}</li>)
+      profile.map((p) => (
+        <li key={p}>{formatValue(p, resolver, navigate, includeLinks)}</li>
+      ))
     ) : profile ? (
       <span>{formatValue(profile[0], resolver, navigate, includeLinks)}</span>
     ) : null
@@ -1307,7 +1319,9 @@ export const formatCondition = (
   const { kind, expression } = condition
   return (
     <>
-      <span>{formatExpression(expression, resolver, navigate, includeLinks)}</span>
+      <span>
+        {formatExpression(expression, resolver, navigate, includeLinks)}
+      </span>
       <span>{`${expression ? ' ' : ''}${kind ? `(${kind})` : ''}`}</span>
     </>
   )
@@ -1343,11 +1357,21 @@ export const formatValue = (
   } else if (is.Expression(value)) {
     formattedValue = formatExpression(value, resolver, navigate, includeLinks)
   } else if (is.CodeableConcept(value)) {
-    formattedValue = formatCodeableConcept(value, resolver, navigate, includeLinks)
+    formattedValue = formatCodeableConcept(
+      value,
+      resolver,
+      navigate,
+      includeLinks
+    )
   } else if (is.Condition(value)) {
     formattedValue = formatCondition(value, resolver, navigate, includeLinks)
   } else if (is.RelatedArtifact(value)) {
-    formattedValue = formatRelatedArtifact(value, resolver, navigate, includeLinks)
+    formattedValue = formatRelatedArtifact(
+      value,
+      resolver,
+      navigate,
+      includeLinks
+    )
   } else if (is.UsageContext(value)) {
     formattedValue = formatUsageContext(value, resolver, navigate, includeLinks)
   } else if (is.Ratio(value)) {
@@ -1383,7 +1407,11 @@ export const formatProperty = (
   const heading = addSpaces(capitalize(key))
   if (Array.isArray(value) && value.length > 1) {
     const content = value.map((v) => {
-      return <li key={v4()}>{formatProperty(v, resolver, navigate, undefined, includeLinks)}</li>
+      return (
+        <li key={v4()}>
+          {formatProperty(v, resolver, navigate, undefined, includeLinks)}
+        </li>
+      )
     })
     return <ListDisplayItem key={heading} heading={heading} content={content} />
   } else {

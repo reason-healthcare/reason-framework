@@ -1,5 +1,11 @@
 import React from 'react'
-import { render, screen, waitFor, fireEvent, within } from '@testing-library/react'
+import {
+  render,
+  screen,
+  waitFor,
+  fireEvent,
+  within,
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ApplyForm from 'components/apply-form/ApplyForm'
 
@@ -28,7 +34,7 @@ jest.mock('api/apply/route', () => ({
 
 jest.mock('utils/recentPatientsStore', () => ({
   addPatient: jest.fn(),
-  renderPatientName: jest.fn((names: any[]) => (names?.[0]?.family ?? 'Unknown')),
+  renderPatientName: jest.fn((names: any[]) => names?.[0]?.family ?? 'Unknown'),
   getAllPatients: jest.fn(() => []),
   getPackageCatalog: jest.fn(() => []),
 }))
@@ -37,12 +43,20 @@ jest.mock('utils/fhirClient', () => ({
   fhirClient: jest.fn(),
 }))
 
-import { addPatient, getAllPatients, getPackageCatalog } from 'utils/recentPatientsStore'
+import {
+  addPatient,
+  getAllPatients,
+  getPackageCatalog,
+} from 'utils/recentPatientsStore'
 import { fhirClient } from 'utils/fhirClient'
 
 const mockAddPatient = addPatient as jest.MockedFunction<typeof addPatient>
-const mockGetAllPatients = getAllPatients as jest.MockedFunction<typeof getAllPatients>
-const mockGetPackageCatalog = getPackageCatalog as jest.MockedFunction<typeof getPackageCatalog>
+const mockGetAllPatients = getAllPatients as jest.MockedFunction<
+  typeof getAllPatients
+>
+const mockGetPackageCatalog = getPackageCatalog as jest.MockedFunction<
+  typeof getPackageCatalog
+>
 const mockFhirClient = fhirClient as jest.MockedFunction<typeof fhirClient>
 
 const PLAN_DEF: fhir4.PlanDefinition = {
@@ -120,10 +134,14 @@ describe('FHIR Bundle Select replaces manual JSON entry', () => {
   it('does not render manual JSON controls and instead renders FHIR Bundle Select', async () => {
     renderForm()
 
-    expect(screen.getByRole('heading', { name: /FHIR Bundle Select/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: /FHIR Bundle Select/i })
+    ).toBeInTheDocument()
     expect(screen.getByPlaceholderText('Search bundles')).toBeInTheDocument()
     expect(screen.queryByText(/Context Data/i)).not.toBeInTheDocument()
-    expect(screen.queryByPlaceholderText('Patient/Patient-1')).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Patient/Patient-1')
+    ).not.toBeInTheDocument()
   })
 })
 
@@ -132,7 +150,11 @@ describe('FHIR Bundle Select replaces manual JSON entry', () => {
 // integration test focused on subject propagation rather than search UX.
 jest.mock('components/apply-form/FhirPatientSearchPanel', () => ({
   __esModule: true,
-  default: ({ onPatientSelect }: { onPatientSelect: (subject: string, summary: any) => void }) => (
+  default: ({
+    onPatientSelect,
+  }: {
+    onPatientSelect: (subject: string, summary: any) => void
+  }) => (
     <button
       type="button"
       onClick={() =>
@@ -183,12 +205,16 @@ describe('Task 7.5 – FHIR tab patient selection updates subject', () => {
     await userEvent.click(screen.getByText('FHIR Data Endpoint'))
 
     // Use the stub to select a patient
-    await userEvent.click(screen.getByRole('button', { name: /select fhir patient/i }))
+    await userEvent.click(
+      screen.getByRole('button', { name: /select fhir patient/i })
+    )
 
     await waitFor(() => {
       const preview = screen.getByTestId('selected-patient-preview')
       expect(preview).toBeInTheDocument()
-      expect(within(preview).getAllByText('Alice Smith').length).toBeGreaterThan(0)
+      expect(
+        within(preview).getAllByText('Alice Smith').length
+      ).toBeGreaterThan(0)
       expect(within(preview).getByText(/from fhir server/i)).toBeInTheDocument()
     })
   })
@@ -210,7 +236,9 @@ describe('Package bundle recent selection integration', () => {
     expect(screen.getByText('Eve Pack [Bundle/Test123]')).toBeInTheDocument()
 
     await userEvent.click(
-      screen.getByRole('button', { name: /select eve pack \[bundle\/test123\]/i })
+      screen.getByRole('button', {
+        name: /select eve pack \[bundle\/test123\]/i,
+      })
     )
 
     await waitFor(() => {
@@ -220,19 +248,28 @@ describe('Package bundle recent selection integration', () => {
     await userEvent.click(screen.getByRole('tab', { name: /raw json/i }))
 
     await waitFor(() => {
-      expect(screen.getByText(/"resourceType": "Observation"/)).toBeInTheDocument()
+      expect(
+        screen.getByText(/"resourceType": "Observation"/)
+      ).toBeInTheDocument()
     })
   })
 
   it('browses and selects package bundles from the FHIR Bundle Select tab', async () => {
     renderForm()
 
-    expect(screen.getByRole('heading', { name: /FHIR Bundle Select/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: /FHIR Bundle Select/i })
+    ).toBeInTheDocument()
     expect(screen.getByText('Eve Pack [Bundle/Test123]')).toBeInTheDocument()
 
-    await userEvent.type(screen.getByPlaceholderText('Search bundles'), 'Eve Pack')
+    await userEvent.type(
+      screen.getByPlaceholderText('Search bundles'),
+      'Eve Pack'
+    )
     await userEvent.click(
-      screen.getByRole('button', { name: /select eve pack \[bundle\/test123\]/i })
+      screen.getByRole('button', {
+        name: /select eve pack \[bundle\/test123\]/i,
+      })
     )
 
     await waitFor(() => {

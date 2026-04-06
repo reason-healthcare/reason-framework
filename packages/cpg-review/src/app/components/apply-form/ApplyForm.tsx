@@ -10,7 +10,11 @@ import SelectedPatientPreviewCard from 'components/apply-form/SelectedPatientPre
 import EndpointsConfiguration, {
   EndpointsConfigurationHandle,
 } from 'components/apply-form/EndpointsConfiguration'
-import { addPatient, PatientSummary, renderPatientName } from 'utils/recentPatientsStore'
+import {
+  addPatient,
+  PatientSummary,
+  renderPatientName,
+} from 'utils/recentPatientsStore'
 import '@/styles/applyForm.css'
 import '@/styles/uploadSection.css'
 import { SidePanelView } from 'page'
@@ -114,8 +118,8 @@ const ApplyForm = ({
         typeof dataPayload === 'string'
           ? dataPayload
           : dataPayload != null
-            ? JSON.stringify(dataPayload)
-            : undefined
+          ? JSON.stringify(dataPayload)
+          : undefined
       )
       setSubjectPayload(subjectPayload)
       setCpgEngineEndpointPayload(cpgEngineEndpointPayload)
@@ -245,7 +249,9 @@ const ApplyForm = ({
         }
         setIsApplied(true)
         setContextReference(payload.subjectPayload)
-        setCurrentStep(options?.fromQuestionnaire ? 2 : !skipQuestionnaire ? 1 : 2)
+        setCurrentStep(
+          options?.fromQuestionnaire ? 2 : !skipQuestionnaire ? 1 : 2
+        )
       } catch (error) {
         clearApplyOutputs()
         const errorMsg = 'Server error: Unable to run $apply'
@@ -287,7 +293,8 @@ const ApplyForm = ({
           ?.map((e) => e.resource)
           .find(
             (r): r is fhir4.Patient =>
-              r?.resourceType === 'Patient' && (r.id === patientId || !patientId)
+              r?.resourceType === 'Patient' &&
+              (r.id === patientId || !patientId)
           )
         const summary: PatientSummary = {
           id: patientResource?.id ?? patientId,

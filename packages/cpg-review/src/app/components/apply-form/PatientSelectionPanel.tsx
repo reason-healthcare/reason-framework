@@ -46,13 +46,17 @@ const PatientSelectionPanel = ({
       setPatients(getPackageCatalog())
     } else {
       const allPatients = getAllPatients(endpointUrl)
-      setPatients(sourceFilter ? allPatients.filter((patient) => patient.source === sourceFilter) : allPatients)
+      setPatients(
+        sourceFilter
+          ? allPatients.filter((patient) => patient.source === sourceFilter)
+          : allPatients
+      )
     }
   }
 
   useEffect(() => {
     reload()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [endpointUrl])
 
   const handleSelect = (summary: PatientSummary) => {
@@ -61,7 +65,9 @@ const PatientSelectionPanel = ({
     if (summary.source === 'package') {
       const fallbackBundleJson =
         !summary.bundleJson && summary.bundleReference && resolver
-          ? JSON.stringify(resolver.resourcesByReference[summary.bundleReference])
+          ? JSON.stringify(
+              resolver.resourcesByReference[summary.bundleReference]
+            )
           : undefined
 
       effectiveBundleJson = summary.bundleJson ?? fallbackBundleJson
@@ -83,9 +89,10 @@ const PatientSelectionPanel = ({
       addedAt: new Date().toISOString(),
     })
 
-    const subject = summary.source === 'package' && summary.patientId
-      ? `Patient/${summary.patientId}`
-      : `Patient/${summary.id}`
+    const subject =
+      summary.source === 'package' && summary.patientId
+        ? `Patient/${summary.patientId}`
+        : `Patient/${summary.id}`
     onPatientSelect(subject, summary, effectiveBundleJson)
     reload()
   }
@@ -117,7 +124,9 @@ const PatientSelectionPanel = ({
     return (
       <div className="recent-patients-empty">
         <ClockCircleOutlined className="recent-patients-empty-icon" />
-        <Text type="secondary">{emptyMessage ?? 'No recently loaded patients yet.'}</Text>
+        <Text type="secondary">
+          {emptyMessage ?? 'No recently loaded patients yet.'}
+        </Text>
       </div>
     )
   }
@@ -153,7 +162,9 @@ const PatientSelectionPanel = ({
               className="patient-list-item"
               style={{ cursor: 'pointer' }}
               onClick={() => handleSelect(p)}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSelect(p) }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') handleSelect(p)
+              }}
               role="button"
               tabIndex={0}
               aria-label={`Select ${p.name || `Patient/${p.id}`}`}
@@ -167,21 +178,25 @@ const PatientSelectionPanel = ({
                         p.source === 'endpoint'
                           ? 'blue'
                           : p.source === 'package'
-                            ? 'green'
-                            : 'default'
+                          ? 'green'
+                          : 'default'
                       }
                     >
                       {p.source === 'endpoint'
                         ? 'Data Endpoint'
                         : p.source === 'package'
-                          ? 'From Package'
-                          : 'FHIR Bundle'}
+                        ? 'From Package'
+                        : 'FHIR Bundle'}
                     </Tag>
                   </div>
                   <Text type="secondary" className="recent-patient-meta">
                     {p.source === 'package'
-                      ? `Resources: ${p.resourceTypes?.join(', ') ?? '—'} · Count: ${p.resourceCount ?? 0}`
-                      : `DOB: ${p.dob ?? '—'} · Gender: ${p.gender ?? '—'} · ID: ${p.id}`}
+                      ? `Resources: ${
+                          p.resourceTypes?.join(', ') ?? '—'
+                        } · Count: ${p.resourceCount ?? 0}`
+                      : `DOB: ${p.dob ?? '—'} · Gender: ${
+                          p.gender ?? '—'
+                        } · ID: ${p.id}`}
                   </Text>
                 </div>
 
@@ -189,7 +204,10 @@ const PatientSelectionPanel = ({
                   type="button"
                   className="button-simple"
                   style={{ minWidth: 88 }}
-                  onClick={(e) => { e.stopPropagation(); handleSelect(p) }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleSelect(p)
+                  }}
                   aria-hidden="true"
                   tabIndex={-1}
                 >

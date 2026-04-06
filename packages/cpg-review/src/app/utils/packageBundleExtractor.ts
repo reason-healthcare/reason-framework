@@ -58,13 +58,13 @@ export function extractBundlesFromResolver(
   return bundles
 }
 
-export function indexPackageBundles(
-  bundles: PackageBundleExtract[]
-): number {
+export function indexPackageBundles(bundles: PackageBundleExtract[]): number {
   const catalog: PatientSummary[] = bundles.map((bundle) => ({
     resourceType: 'Bundle',
     id: bundle.bundleReference,
-    name: `${bundle.patientName || bundle.patientId} [${bundle.bundleReference}]`,
+    name: `${bundle.patientName || bundle.patientId} [${
+      bundle.bundleReference
+    }]`,
     dob: bundle.patientDob,
     gender: bundle.patientGender,
     source: 'package',

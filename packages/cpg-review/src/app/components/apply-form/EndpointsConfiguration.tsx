@@ -1,10 +1,5 @@
 import { Collapse, Input } from 'antd'
-import {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useState,
-} from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
 
 const STORAGE_KEY = 'endpointsConfig'
 
@@ -113,7 +108,9 @@ const EndpointsConfiguration = forwardRef<
       key: 'endpoints',
       label: (
         <div>
-          <span className="endpoints-config-title">FHIR Endpoints Configuration</span>
+          <span className="endpoints-config-title">
+            FHIR Endpoints Configuration
+          </span>
         </div>
       ),
       children: (
@@ -129,7 +126,11 @@ const EndpointsConfiguration = forwardRef<
               placeholder="http://localhost:8080/fhir"
               value={config.dataEndpoint}
               onChange={(e) =>
-                updateField('dataEndpoint', e.target.value, onDataEndpointChange)
+                updateField(
+                  'dataEndpoint',
+                  e.target.value,
+                  onDataEndpointChange
+                )
               }
             />
           </div>
@@ -154,7 +155,9 @@ const EndpointsConfiguration = forwardRef<
 
           <div className="endpoints-config-field">
             <h3 className="form-title">Content Endpoint</h3>
-            <p className="form-description">FHIR server for content resources</p>
+            <p className="form-description">
+              FHIR server for content resources
+            </p>
             <Input
               placeholder="http://localhost:8080/fhir"
               value={config.contentEndpoint}
@@ -171,7 +174,8 @@ const EndpointsConfiguration = forwardRef<
           <div className="endpoints-config-field">
             <h3 className="form-title">Terminology Endpoint</h3>
             <p className="form-description">
-              FHIR terminology server for value set expansion and code validation
+              FHIR terminology server for value set expansion and code
+              validation
             </p>
             <Input
               placeholder="http://localhost:8080/fhir"

@@ -36,7 +36,9 @@ describe('EndpointsConfiguration', () => {
 
   it('is collapsed on initial render when endpoint config is complete', () => {
     render(<EndpointsConfiguration {...makeProps()} />)
-    const dataInput = screen.queryByPlaceholderText('http://localhost:8080/fhir')
+    const dataInput = screen.queryByPlaceholderText(
+      'http://localhost:8080/fhir'
+    )
     if (dataInput) {
       expect(dataInput).not.toBeVisible()
     } else {
@@ -55,9 +57,7 @@ describe('EndpointsConfiguration', () => {
 
     render(<EndpointsConfiguration {...makeProps()} />)
 
-    await waitFor(() =>
-      expect(screen.getByText('Data Endpoint')).toBeVisible()
-    )
+    await waitFor(() => expect(screen.getByText('Data Endpoint')).toBeVisible())
   })
 
   // 5.3 – clicking header expands
@@ -65,9 +65,7 @@ describe('EndpointsConfiguration', () => {
     render(<EndpointsConfiguration {...makeProps()} />)
     await userEvent.click(getConfigHeaderButton())
     // After expansion the Data Endpoint heading should be visible
-    await waitFor(() =>
-      expect(screen.getByText('Data Endpoint')).toBeVisible()
-    )
+    await waitFor(() => expect(screen.getByText('Data Endpoint')).toBeVisible())
   })
 
   it('does not show endpoint preview values in collapsed header', () => {
@@ -83,7 +81,8 @@ describe('EndpointsConfiguration', () => {
     localStorage.setItem(
       'endpointsConfig',
       JSON.stringify({
-        cpgEngineEndpoint: 'http://complete-engine/fhir/PlanDefinition/$r5.apply',
+        cpgEngineEndpoint:
+          'http://complete-engine/fhir/PlanDefinition/$r5.apply',
         contentEndpoint: 'http://complete-content/fhir',
         txEndpoint: 'http://complete-tx/fhir',
         dataEndpoint: 'http://complete-data/fhir',
@@ -92,7 +91,9 @@ describe('EndpointsConfiguration', () => {
 
     render(<EndpointsConfiguration {...makeProps()} />)
 
-    const dataInput = screen.queryByPlaceholderText('http://localhost:8080/fhir')
+    const dataInput = screen.queryByPlaceholderText(
+      'http://localhost:8080/fhir'
+    )
     if (dataInput) {
       expect(dataInput).not.toBeVisible()
     } else {
@@ -156,11 +157,7 @@ describe('EndpointsConfiguration', () => {
   // 5.9 – onChange callback called on input change
   it('calls onDataEndpointChange when the Data Endpoint input changes', async () => {
     const onDataEndpointChange = jest.fn()
-    render(
-      <EndpointsConfiguration
-        {...makeProps({ onDataEndpointChange })}
-      />
-    )
+    render(<EndpointsConfiguration {...makeProps({ onDataEndpointChange })} />)
     await userEvent.click(getConfigHeaderButton())
     await waitFor(() => expect(screen.getByText('Data Endpoint')).toBeVisible())
 

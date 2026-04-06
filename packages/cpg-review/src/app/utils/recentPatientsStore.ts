@@ -104,7 +104,9 @@ export function setPackageCatalog(bundles: PatientSummary[]): void {
  */
 export function getPackageCatalog(): PatientSummary[] {
   try {
-    return JSON.parse(localStorage.getItem(PACKAGE_CATALOG_KEY) ?? '[]') as PatientSummary[]
+    return JSON.parse(
+      localStorage.getItem(PACKAGE_CATALOG_KEY) ?? '[]'
+    ) as PatientSummary[]
   } catch {
     return []
   }

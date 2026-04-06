@@ -4,7 +4,11 @@ import { Select, Typography } from 'antd'
 import { WarningOutlined } from '@ant-design/icons'
 import { useRef, useState } from 'react'
 import { fhirClient } from 'utils/fhirClient'
-import { addPatient, renderPatientName, PatientSummary } from 'utils/recentPatientsStore'
+import {
+  addPatient,
+  renderPatientName,
+  PatientSummary,
+} from 'utils/recentPatientsStore'
 
 const { Text } = Typography
 
@@ -41,13 +45,19 @@ type SearchState =
   | { status: 'loading' }
   | { status: 'results'; rows: PatientRow[]; resources: fhir4.Patient[] }
   | { status: 'empty' }
-  | { status: 'error'; message: string; errorType: 'network' | 'cors' | 'http' | 'parse' }
+  | {
+      status: 'error'
+      message: string
+      errorType: 'network' | 'cors' | 'http' | 'parse'
+    }
 
 const FhirPatientSearchPanel = ({
   dataEndpointUrl,
   onPatientSelect,
 }: FhirPatientSearchPanelProps) => {
-  const [searchState, setSearchState] = useState<SearchState>({ status: 'idle' })
+  const [searchState, setSearchState] = useState<SearchState>({
+    status: 'idle',
+  })
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const runSearch = async (query: string) => {
@@ -70,10 +80,16 @@ const FhirPatientSearchPanel = ({
     const entries = result.data.entry ?? []
     const resources: fhir4.Patient[] = entries
       .map((e) => e.resource)
-      .filter((r): r is fhir4.Patient => r?.resourceType === 'Patient' && !!r.id)
+      .filter(
+        (r): r is fhir4.Patient => r?.resourceType === 'Patient' && !!r.id
+      )
     const rows: PatientRow[] = resources.map(toPatientRow)
 
-    setSearchState(rows.length > 0 ? { status: 'results', rows, resources } : { status: 'empty' })
+    setSearchState(
+      rows.length > 0
+        ? { status: 'results', rows, resources }
+        : { status: 'empty' }
+    )
   }
 
   const handleSearch = (value: string) => {
@@ -88,7 +104,9 @@ const FhirPatientSearchPanel = ({
   const handleChange = (patientId: string) => {
     if (searchState.status !== 'results') return
     const row = searchState.rows.find((r) => r.id === patientId)
-    const patientResource = searchState.resources.find((r) => r.id === patientId)
+    const patientResource = searchState.resources.find(
+      (r) => r.id === patientId
+    )
     if (!row || !patientResource) return
 
     const summary: PatientSummary = {
@@ -121,10 +139,11 @@ const FhirPatientSearchPanel = ({
     label: row.name,
   }))
 
-  const notFoundContent =
-    isLoading ? 'Searching…' :
-    searchState.status === 'empty' ? 'No patients found. Try a different name.' :
-    'Type to search patients'
+  const notFoundContent = isLoading
+    ? 'Searching…'
+    : searchState.status === 'empty'
+    ? 'No patients found. Try a different name.'
+    : 'Type to search patients'
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -144,7 +163,8 @@ const FhirPatientSearchPanel = ({
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Text strong>{row.name}</Text>
               <Text type="secondary" style={{ fontSize: '12px' }}>
-                DOB: {row.dob ?? '—'} &nbsp;·&nbsp; Gender: {row.gender ?? '—'} &nbsp;·&nbsp; ID: {row.id}
+                DOB: {row.dob ?? '—'} &nbsp;·&nbsp; Gender: {row.gender ?? '—'}{' '}
+                &nbsp;·&nbsp; ID: {row.id}
               </Text>
             </div>
           )
@@ -170,25 +190,25 @@ const FhirPatientSearchPanel = ({
             {searchState.errorType === 'cors' && (
               <div>
                 <Text type="secondary" style={{ fontSize: '12px' }}>
-                  Ensure the FHIR server allows requests from this origin and that the
-                  data endpoint URL is correct.
+                  Ensure the FHIR server allows requests from this origin and
+                  that the data endpoint URL is correct.
                 </Text>
               </div>
             )}
             {searchState.errorType === 'network' && (
               <div>
                 <Text type="secondary" style={{ fontSize: '12px' }}>
-                  The server could not be reached. Verify the data endpoint URL is
-                  correct and the server is running. If the server is running, it may
-                  also be blocking requests due to CORS policy.
+                  The server could not be reached. Verify the data endpoint URL
+                  is correct and the server is running. If the server is
+                  running, it may also be blocking requests due to CORS policy.
                 </Text>
               </div>
             )}
             {searchState.errorType === 'parse' && (
               <div>
                 <Text type="secondary" style={{ fontSize: '12px' }}>
-                  The server returned an unexpected response. Confirm the endpoint is a
-                  valid FHIR server.
+                  The server returned an unexpected response. Confirm the
+                  endpoint is a valid FHIR server.
                 </Text>
               </div>
             )}
