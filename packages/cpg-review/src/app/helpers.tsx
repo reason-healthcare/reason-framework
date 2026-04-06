@@ -1029,8 +1029,13 @@ export const formatMarkdown = (markdown: string) => {
 export const formatUrl = (
   url: string,
   resolver?: BrowserResolver | undefined,
-  navigate?: NavigateFunction
+  navigate?: NavigateFunction,
+  includeLinks = true
 ) => {
+  if (!includeLinks) {
+    return url
+  }
+
   if (resolver != null && navigate != null) {
     const [canonical, version] = url.split('|')
     const resource =
@@ -1045,19 +1050,21 @@ export const formatUrl = (
     }
   }
   return (
-    <Link to={url} target="_blank">
+    <a href={url} target="_blank" rel="noreferrer">
       {url}
-    </Link>
+    </a>
   )
 }
 
 export const formatReference = (
   referenceObj: fhir4.Reference,
   resolver?: BrowserResolver | undefined,
-  navigate?: NavigateFunction
+  navigate?: NavigateFunction,
+  includeLinks = true
 ) => {
   const { reference, type, identifier, display } = referenceObj
   if (
+    includeLinks &&
     reference?.split('/').length == 2 &&
     resolver != null &&
     navigate != null
@@ -1077,35 +1084,48 @@ export const formatReference = (
 export const formatCodeableConcept = (
   codeableConcept: fhir4.CodeableConcept,
   resolver?: BrowserResolver | undefined,
-  navigate?: NavigateFunction
+  navigate?: NavigateFunction,
+  includeLinks = true
 ) => {
   const { coding, text } = codeableConcept
+  if (text) {
+    return text
+  }
+
   if (coding?.length && coding.length > 1) {
     return codeableConcept?.coding?.map((c: fhir4.Coding) => {
-      return <li key={c.code}>{formatCoding(c, resolver, navigate)}</li>
+      return <li key={c.code}>{formatCoding(c, resolver, navigate, includeLinks)}</li>
     })
   } else if (coding) {
-    return formatCoding(coding[0], resolver, navigate)
+    return formatCoding(coding[0], resolver, navigate, includeLinks)
   }
 }
 
 export const formatCoding = (
   coding: fhir4.Coding,
   resolver?: BrowserResolver | undefined,
-  navigate?: NavigateFunction
+  navigate?: NavigateFunction,
+  includeLinks = true
 ) => {
   const { system, code, display, version } = coding
   return (
     <>
       {system != null ? (
-        <>
-          <span>{`"${code}" from `}</span>
-          <span>{formatUrl(system, resolver, navigate)}</span>
+        includeLinks ? (
+          <>
+            <span>{`"${code}" from `}</span>
+            <span>{formatUrl(system, resolver, navigate, includeLinks)}</span>
+            <span>
+              {version ? `|${version}` : ''}
+              {display ? ` (${display})` : ''}
+            </span>
+          </>
+        ) : (
           <span>
+            {display || code}
             {version ? `|${version}` : ''}
-            {display ? ` (${display})` : ''}
           </span>
-        </>
+        )
       ) : (
         <span>{capitalize(code)}</span>
       )}
@@ -1165,7 +1185,8 @@ export const formatTimingRepeat = (repeat: fhir4.TimingRepeat) => {
 export const formatExtension = (
   extension: fhir4.Extension,
   resolver?: BrowserResolver | undefined,
-  navigate?: NavigateFunction
+  navigate?: NavigateFunction,
+  includeLinks = true
 ) => {
   const { url } = extension
   const title = url.split('/').pop()
@@ -1177,7 +1198,7 @@ export const formatExtension = (
     return (
       <>
         <span>{`${title}`}</span>:{' '}
-        <span>{formatValue(value, resolver, navigate)}</span>
+        <span>{formatValue(value, resolver, navigate, includeLinks)}</span>
       </>
     )
   }
@@ -1187,7 +1208,8 @@ export const formatExtension = (
 export const formatExpression = (
   exp: fhir4.Expression,
   resolver?: BrowserResolver | undefined,
-  navigate?: NavigateFunction
+  navigate?: NavigateFunction,
+  includeLinks = true
 ) => {
   const { language, expression, reference } = exp
   return (
@@ -1196,7 +1218,7 @@ export const formatExpression = (
         reference ? ` from ` : ''
       }`}</span>
       <span>
-        {reference ? formatValue(reference, resolver, navigate) : null}
+        {reference ? formatValue(reference, resolver, navigate, includeLinks) : null}
       </span>
     </>
   )
@@ -1205,7 +1227,8 @@ export const formatExpression = (
 export const formatRelatedArtifact = (
   artifact: fhir4.RelatedArtifact,
   resolver?: BrowserResolver | undefined,
-  navigate?: NavigateFunction
+  navigate?: NavigateFunction,
+  includeLinks = true
 ) => {
   const { type, display, label, resource, document, citation } = artifact
   return (
@@ -1213,8 +1236,8 @@ export const formatRelatedArtifact = (
       {type && <span>{`${capitalize(type)}: `}</span>}
       {(display || label) && <span>{display ?? label}</span>}
       {citation && <span>{citation}</span>}
-      {resource && <> {formatValue(resource, resolver, navigate)}</>}
-      {document && <> {formatValue(document, resolver, navigate)}</>}
+      {resource && <> {formatValue(resource, resolver, navigate, includeLinks)}</>}
+      {document && <> {formatValue(document, resolver, navigate, includeLinks)}</>}
     </>
   )
 }
@@ -1222,14 +1245,15 @@ export const formatRelatedArtifact = (
 export const formatDataRequirement = (
   dataRequirement: fhir4.DataRequirement,
   resolver?: BrowserResolver | undefined,
-  navigate?: NavigateFunction
+  navigate?: NavigateFunction,
+  includeLinks = true
 ) => {
   const { type, profile } = dataRequirement
   const profileDisplay =
     profile?.length && profile.length > 1 ? (
-      profile.map((p) => <li key={p}>{formatValue(p, resolver, navigate)}</li>)
+      profile.map((p) => <li key={p}>{formatValue(p, resolver, navigate, includeLinks)}</li>)
     ) : profile ? (
-      <span>{formatValue(profile[0], resolver, navigate)}</span>
+      <span>{formatValue(profile[0], resolver, navigate, includeLinks)}</span>
     ) : null
   return (
     <>
@@ -1242,7 +1266,8 @@ export const formatDataRequirement = (
 export const formatUsageContext = (
   usageContext: fhir4.UsageContext,
   resolver?: BrowserResolver | undefined,
-  navigate?: NavigateFunction
+  navigate?: NavigateFunction,
+  includeLinks = true
 ) => {
   const {
     code,
@@ -1257,7 +1282,8 @@ export const formatUsageContext = (
       {formatValue(
         valueCodeableConcept ?? valueQuantity ?? valueRange ?? valueReference,
         resolver,
-        navigate
+        navigate,
+        includeLinks
       )}
     </>
   )
@@ -1275,12 +1301,13 @@ export const formatAction = (
 export const formatCondition = (
   condition: any,
   resolver?: BrowserResolver | undefined,
-  navigate?: NavigateFunction
+  navigate?: NavigateFunction,
+  includeLinks = true
 ) => {
   const { kind, expression } = condition
   return (
     <>
-      <span>{formatExpression(expression, resolver, navigate)}</span>
+      <span>{formatExpression(expression, resolver, navigate, includeLinks)}</span>
       <span>{`${expression ? ' ' : ''}${kind ? `(${kind})` : ''}`}</span>
     </>
   )
@@ -1295,33 +1322,34 @@ export const formatCondition = (
 export const formatValue = (
   value: any,
   resolver?: BrowserResolver | undefined,
-  navigate?: NavigateFunction
+  navigate?: NavigateFunction,
+  includeLinks = true
 ): JSX.Element | string | undefined => {
   let formattedValue
   if (isMarkdown(value)) {
     formattedValue = formatMarkdown(value.toString())
   } else if (isUrl(value)) {
-    formattedValue = formatUrl(value, resolver, navigate)
+    formattedValue = formatUrl(value, resolver, navigate, includeLinks)
   } else if (isPrimitive(value)) {
     formattedValue = value.toString()
   } else if (is.PlanDefinitionAction(value) || is.RequestGroupAction(value)) {
     formattedValue = formatAction(value)
   } else if (is.Reference(value)) {
-    formattedValue = formatReference(value, resolver, navigate)
+    formattedValue = formatReference(value, resolver, navigate, includeLinks)
   } else if (is.Coding(value)) {
-    formattedValue = formatCoding(value, resolver, navigate)
+    formattedValue = formatCoding(value, resolver, navigate, includeLinks)
   } else if (is.Extension(value)) {
-    formattedValue = formatExtension(value, resolver, navigate)
+    formattedValue = formatExtension(value, resolver, navigate, includeLinks)
   } else if (is.Expression(value)) {
-    formattedValue = formatExpression(value, resolver, navigate)
+    formattedValue = formatExpression(value, resolver, navigate, includeLinks)
   } else if (is.CodeableConcept(value)) {
-    formattedValue = formatCodeableConcept(value, resolver, navigate)
+    formattedValue = formatCodeableConcept(value, resolver, navigate, includeLinks)
   } else if (is.Condition(value)) {
-    formattedValue = formatCondition(value, resolver, navigate)
+    formattedValue = formatCondition(value, resolver, navigate, includeLinks)
   } else if (is.RelatedArtifact(value)) {
-    formattedValue = formatRelatedArtifact(value, resolver, navigate)
+    formattedValue = formatRelatedArtifact(value, resolver, navigate, includeLinks)
   } else if (is.UsageContext(value)) {
-    formattedValue = formatUsageContext(value, resolver, navigate)
+    formattedValue = formatUsageContext(value, resolver, navigate, includeLinks)
   } else if (is.Ratio(value)) {
     formattedValue = formatRatio(value)
   } else if (is.Quantity(value)) {
@@ -1348,18 +1376,19 @@ export const formatProperty = (
   value: any,
   resolver?: BrowserResolver | undefined,
   navigate?: NavigateFunction,
-  key?: string | undefined
+  key?: string | undefined,
+  includeLinks = false
 ) => {
   let content
   const heading = addSpaces(capitalize(key))
   if (Array.isArray(value) && value.length > 1) {
     const content = value.map((v) => {
-      return <li key={v4()}>{formatProperty(v, resolver, navigate)}</li>
+      return <li key={v4()}>{formatProperty(v, resolver, navigate, undefined, includeLinks)}</li>
     })
     return <ListDisplayItem key={heading} heading={heading} content={content} />
   } else {
     const singleValue = Array.isArray(value) ? value[0] : value
-    content = formatValue(singleValue, resolver, navigate)
+    content = formatValue(singleValue, resolver, navigate, includeLinks)
     if (content != null) {
       return (
         <SingleDisplayItem key={heading} heading={heading} content={content} />
@@ -1368,7 +1397,7 @@ export const formatProperty = (
       content = Object.entries(singleValue)
         .map((e: [string, any]) => {
           const [k, v] = e
-          return formatProperty(v, resolver, navigate, k)
+          return formatProperty(v, resolver, navigate, k, includeLinks)
         })
         .filter(notEmpty)
       return (
