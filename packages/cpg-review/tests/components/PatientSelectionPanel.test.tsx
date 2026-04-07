@@ -9,7 +9,8 @@ jest.mock('utils/recentPatientsStore', () => ({
   getPackageCatalog: jest.fn(),
   clearAll: jest.fn(),
   addPatient: jest.fn(),
-  getPatientIdFromBundleJson: jest.requireActual('utils/recentPatientsStore').getPatientIdFromBundleJson,
+  getPatientIdFromBundleJson: jest.requireActual('utils/recentPatientsStore')
+    .getPatientIdFromBundleJson,
 }))
 
 import {
@@ -38,7 +39,11 @@ const endpointPatient: PatientSummary = {
   gender: 'female',
   source: 'endpoint',
   endpointUrl: EP_URL,
-  json: JSON.stringify({ resourceType: 'Bundle', type: 'collection', entry: [{ resource: { resourceType: 'Patient', id: 'ep1' } }] }),
+  json: JSON.stringify({
+    resourceType: 'Bundle',
+    type: 'collection',
+    entry: [{ resource: { resourceType: 'Patient', id: 'ep1' } }],
+  }),
   addedAt: '2024-06-01T12:00:00.000Z',
 }
 

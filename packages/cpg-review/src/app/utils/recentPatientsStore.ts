@@ -51,9 +51,9 @@ export function getPatientIdFromBundleJson(json: string): string | undefined {
 
 function readKey(key: string): PatientSummary[] {
   try {
-    const raw = JSON.parse(
-      localStorage.getItem(key) ?? '[]'
-    ) as Array<Partial<PatientSummary>>
+    const raw = JSON.parse(localStorage.getItem(key) ?? '[]') as Array<
+      Partial<PatientSummary>
+    >
     // Drop stale entries from before the discriminated-union refactor (missing resourceType)
     return raw.filter((p): p is PatientSummary => p.resourceType != null)
   } catch {
@@ -184,7 +184,8 @@ export function makeBundlePatientSummary(
     dob: patient?.birthDate,
     gender: patient?.gender,
     source: 'package',
-    json: typeof dataPayload === 'string' ? dataPayload : JSON.stringify(bundle),
+    json:
+      typeof dataPayload === 'string' ? dataPayload : JSON.stringify(bundle),
     addedAt: options?.addedAt ?? new Date().toISOString(),
   }
 }

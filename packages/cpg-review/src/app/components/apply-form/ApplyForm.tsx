@@ -59,7 +59,9 @@ const ApplyForm = ({
     PatientSummary | undefined
   >()
   const endpointsRef = useRef<EndpointsConfigurationHandle>(null)
-  const [capturedEndpointsConfig, setCapturedEndpointsConfig] = useState<EndpointsConfig | undefined>()
+  const [capturedEndpointsConfig, setCapturedEndpointsConfig] = useState<
+    EndpointsConfig | undefined
+  >()
 
   const clearApplyOutputs = () => {
     setQuestionnaireResponseServer(undefined)
@@ -109,7 +111,8 @@ const ApplyForm = ({
           ? JSON.stringify(dataPayload)
           : undefined
       )
-      const parts = typeof subjectPayload === 'string' ? subjectPayload.split('/') : []
+      const parts =
+        typeof subjectPayload === 'string' ? subjectPayload.split('/') : []
       if (parts.length === 2 && parts[0] && parts[1]) {
         setPatientSubject({ resourceType: parts[0], id: parts[1] })
       }
@@ -281,7 +284,12 @@ const ApplyForm = ({
             (r): r is fhir4.Patient =>
               r?.resourceType === 'Patient' && r.id === patientId
           )
-        const summary = makeBundlePatientSummary(bundle, patientResource, dataPayload, { patientId })
+        const summary = makeBundlePatientSummary(
+          bundle,
+          patientResource,
+          dataPayload,
+          { patientId }
+        )
         addPatient(summary)
         setSelectedPatientSummary(summary)
       } catch {
@@ -337,7 +345,8 @@ const ApplyForm = ({
       subjectPayload: patientSubject
         ? `${patientSubject.resourceType}/${patientSubject.id}`
         : undefined,
-      cpgEngineEndpointPayload: capturedEndpointsConfig?.cpgEngineEndpoint.trim(),
+      cpgEngineEndpointPayload:
+        capturedEndpointsConfig?.cpgEngineEndpoint.trim(),
       contentEndpointPayload: capturedEndpointsConfig?.contentEndpoint.trim(),
       txEndpointPayload: capturedEndpointsConfig?.txEndpoint.trim(),
       dataEndpointPayload: capturedEndpointsConfig?.dataEndpoint.trim(),

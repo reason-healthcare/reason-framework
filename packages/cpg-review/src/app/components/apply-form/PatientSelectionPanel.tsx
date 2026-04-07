@@ -97,9 +97,17 @@ const PatientSelectionPanel = ({
         message.error('Could not determine patient ID from bundle')
         return
       }
-      onPatientSelect({ resourceType: 'Patient', id: patientId }, summary, effectiveBundleJson)
+      onPatientSelect(
+        { resourceType: 'Patient', id: patientId },
+        summary,
+        effectiveBundleJson
+      )
     } else {
-      onPatientSelect({ resourceType: 'Patient', id: summary.id }, summary, undefined)
+      onPatientSelect(
+        { resourceType: 'Patient', id: summary.id },
+        summary,
+        undefined
+      )
     }
     reload()
   }
@@ -116,7 +124,7 @@ const PatientSelectionPanel = ({
     const haystack = [
       patient.name,
       patient.id,
-      ...(patient.source === 'package' ? (patient.resourceTypes ?? []) : []),
+      ...(patient.source === 'package' ? patient.resourceTypes ?? [] : []),
     ]
       .filter(Boolean)
       .join(' ')
