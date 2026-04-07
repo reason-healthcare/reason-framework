@@ -1,3 +1,5 @@
+'use client'
+
 import { Collapse, Input } from 'antd'
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
 
