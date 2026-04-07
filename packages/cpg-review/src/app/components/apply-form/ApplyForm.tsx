@@ -8,6 +8,7 @@ import ApplyButton from './ApplyButton'
 import PatientLoadModeSwitcher from 'components/apply-form/PatientLoadModeSwitcher'
 import SelectedPatientPreviewCard from 'components/apply-form/SelectedPatientPreviewCard'
 import EndpointsConfiguration, {
+  EndpointsConfig,
   EndpointsConfigurationHandle,
 } from 'components/apply-form/EndpointsConfiguration'
 import {
@@ -58,6 +59,7 @@ const ApplyForm = ({
     PatientSummary | undefined
   >()
   const endpointsRef = useRef<EndpointsConfigurationHandle>(null)
+  const [capturedEndpointsConfig, setCapturedEndpointsConfig] = useState<EndpointsConfig | undefined>()
 
   const clearApplyOutputs = () => {
     setQuestionnaireResponseServer(undefined)
@@ -77,6 +79,7 @@ const ApplyForm = ({
     setDataPayload(undefined)
     setPatientSubject(undefined)
     setSelectedPatientSummary(undefined)
+    setCapturedEndpointsConfig(undefined)
     form.resetFields()
     localStorage.removeItem('applyPayload')
     endpointsRef.current?.reset()
@@ -249,6 +252,7 @@ const ApplyForm = ({
     setIsApplied(false)
     const dataPayloadParsed = parseDataPayload(dataPayload)
     const endpointsConfig = endpointsRef.current?.getConfig()
+    setCapturedEndpointsConfig(endpointsConfig)
     const subjectPayload = patientSubject
       ? `${patientSubject.resourceType}/${patientSubject.id}`
       : undefined
@@ -333,10 +337,10 @@ const ApplyForm = ({
       subjectPayload: patientSubject
         ? `${patientSubject.resourceType}/${patientSubject.id}`
         : undefined,
-      cpgEngineEndpointPayload: endpointsRef.current?.getConfig().cpgEngineEndpoint.trim(),
-      contentEndpointPayload: endpointsRef.current?.getConfig().contentEndpoint.trim(),
-      txEndpointPayload: endpointsRef.current?.getConfig().txEndpoint.trim(),
-      dataEndpointPayload: endpointsRef.current?.getConfig().dataEndpoint.trim(),
+      cpgEngineEndpointPayload: capturedEndpointsConfig?.cpgEngineEndpoint.trim(),
+      contentEndpointPayload: capturedEndpointsConfig?.contentEndpoint.trim(),
+      txEndpointPayload: capturedEndpointsConfig?.txEndpoint.trim(),
+      dataEndpointPayload: capturedEndpointsConfig?.dataEndpoint.trim(),
       planDefinition,
       questionnaire,
     }

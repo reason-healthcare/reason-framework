@@ -161,6 +161,12 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
     handleEndpointInput(e.target.value)
   }
 
+  const resetLocalStorage = () => {
+    localStorage.removeItem('resolver')
+    localStorage.removeItem('planDefinition')
+    localStorage.removeItem('applyPayload')
+  }
+
   const resetForm = () => {
     setFileList([])
     setUploaded(undefined)
@@ -168,9 +174,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
     setPlanDefinitionPayload(undefined)
     setEndpointPayload(undefined)
     form.resetFields()
-    localStorage.removeItem('resolver')
-    localStorage.removeItem('planDefinition')
-    localStorage.removeItem('applyPayload')
+    resetLocalStorage()
     clearAll()
   }
 
@@ -213,9 +217,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
             .filter(notEmpty)
           if (plans?.length > 0) {
             setPlanDefinitionSelectionOptions(formatPlanOptions(plans))
-            localStorage.removeItem('resolver')
-            localStorage.removeItem('planDefinition')
-            localStorage.removeItem('applyPayload')
+            resetLocalStorage()
             clearAll()
             setPlanDefinition(undefined)
             setResolver(decompressed)
@@ -270,9 +272,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
     const { status, originFileObj } = info.file
     const { fileList } = info
     if (status === 'removed') {
-      localStorage.removeItem('resolver')
-      localStorage.removeItem('planDefinition')
-      localStorage.removeItem('applyPayload')
+      resetLocalStorage()
       clearAll()
     } else if (fileList.length > 1) {
       message.error('May only upload one compressed file')

@@ -11,7 +11,7 @@ export interface BasePatientSummary {
   name: string
   dob: string | undefined
   gender: string | undefined
-  /** Serialized FHIR payload. For endpoint patients: a minimal Patient collection Bundle. For package patients: the full uploaded Bundle. */
+  /** Serialized FHIR payload. For endpoint patients: a Patient resource. For package patients: the full uploaded Bundle. */
   json: string
   addedAt: string
 }
