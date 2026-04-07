@@ -1,11 +1,15 @@
 ## ADDED Requirements
 
-### Requirement: Endpoints configuration section renders inline and collapsed by default
-The apply form SHALL render an `Endpoints Configuration` collapsible section as the first item in the step-0 form. The section SHALL be collapsed by default on every page load.
+### Requirement: Endpoints configuration section renders inline with context-aware default state
+The apply form SHALL render an `Endpoints Configuration` collapsible section as the first item in the step-0 form. When all four endpoint values are non-empty (either from defaults or from a previously persisted complete config), the section SHALL be collapsed on initial render. When the persisted config is incomplete (any endpoint value is empty), the section SHALL be expanded on initial render to prompt the user to complete the configuration.
 
-#### Scenario: Section is collapsed on initial render
-- **WHEN** the apply form mounts for the first time
+#### Scenario: Section is collapsed on initial render when config is complete
+- **WHEN** the apply form mounts and all four endpoint URL values are non-empty
 - **THEN** the `Endpoints Configuration` section is collapsed and the URL inputs are not visible
+
+#### Scenario: Section is expanded on initial render when config is incomplete
+- **WHEN** the apply form mounts and any persisted endpoint URL value is empty
+- **THEN** the `Endpoints Configuration` section is expanded so the user can complete the configuration
 
 #### Scenario: Section expands on user interaction
 - **WHEN** the user clicks the `Endpoints Configuration` section header
