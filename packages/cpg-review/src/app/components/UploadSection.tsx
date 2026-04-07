@@ -20,6 +20,7 @@ import {
   extractBundlesFromResolver,
   indexPackageBundles,
 } from 'utils/packageBundleExtractor'
+import { clearAll } from 'utils/recentPatientsStore'
 import '@/styles/uploadSection.css'
 
 const CPG_PATHWAY_DEF =
@@ -167,7 +168,10 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
     setPlanDefinitionPayload(undefined)
     setEndpointPayload(undefined)
     form.resetFields()
-    localStorage.clear()
+    localStorage.removeItem('resolver')
+    localStorage.removeItem('planDefinition')
+    localStorage.removeItem('applyPayload')
+    clearAll()
   }
 
   const handlePackageTypeChange = (e: RadioChangeEvent) => {
@@ -209,7 +213,10 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
             .filter(notEmpty)
           if (plans?.length > 0) {
             setPlanDefinitionSelectionOptions(formatPlanOptions(plans))
-            localStorage.clear()
+            localStorage.removeItem('resolver')
+            localStorage.removeItem('planDefinition')
+            localStorage.removeItem('applyPayload')
+            clearAll()
             setPlanDefinition(undefined)
             setResolver(decompressed)
 
@@ -263,7 +270,10 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
     const { status, originFileObj } = info.file
     const { fileList } = info
     if (status === 'removed') {
-      localStorage.clear()
+      localStorage.removeItem('resolver')
+      localStorage.removeItem('planDefinition')
+      localStorage.removeItem('applyPayload')
+      clearAll()
     } else if (fileList.length > 1) {
       message.error('May only upload one compressed file')
     } else if (status === 'done') {
