@@ -9,11 +9,11 @@ import {
 } from '@ant-design/icons'
 import { Typography } from 'antd'
 import { useState } from 'react'
+import { formatProperty, notEmpty } from 'helpers'
 import {
-  formatProperty,
-  notEmpty,
-} from 'helpers'
-import { PatientSummary, makeBundlePatientSummary } from 'utils/recentPatientsStore'
+  PatientSummary,
+  makeBundlePatientSummary,
+} from 'utils/recentPatientsStore'
 import {
   deriveContext,
   formatAddress,
@@ -53,21 +53,20 @@ const SelectedPatientPreviewCard = ({
   if (!subject) return null
 
   const bundle = parseBundle(dataPayload)
-  const {
-    patient,
-    medications,
-    conditions,
-    observations,
-  } = deriveContext(bundle, subject)
+  const { patient, medications, conditions, observations } = deriveContext(
+    bundle,
+    subject
+  )
 
-  const fallbackSummary: PatientSummary | undefined = patient && bundle
-    ? makeBundlePatientSummary(
-        bundle,
-        patient,
-        typeof dataPayload === 'string' ? dataPayload : undefined,
-        { addedAt: new Date(0).toISOString(), patientId: subject.id }
-      )
-    : undefined
+  const fallbackSummary: PatientSummary | undefined =
+    patient && bundle
+      ? makeBundlePatientSummary(
+          bundle,
+          patient,
+          typeof dataPayload === 'string' ? dataPayload : undefined,
+          { addedAt: new Date(0).toISOString(), patientId: subject.id }
+        )
+      : undefined
 
   const summary = selectedPatient ?? fallbackSummary
   const [isCollapsed, setIsCollapsed] = useState(false)

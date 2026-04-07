@@ -492,6 +492,8 @@ describe('SelectedPatientPreviewCard', () => {
       name: 'Direct Resource',
       json: JSON.stringify(PATIENT_RESOURCE),
       addedAt: new Date().toISOString(),
+      dob: '1985-06-15',
+      gender: 'male',
     }
 
     render(
@@ -508,7 +510,11 @@ describe('SelectedPatientPreviewCard', () => {
     // Should show the Patient resource stored in selectedPatient.json
     expect(screen.getByText(/"id": "pt-direct"/)).toBeInTheDocument()
     // Should NOT show the outer Bundle wrapper from dataPayload
-    expect(screen.queryByText(/"fullUrl": "http:\/\/example.org\/fhir\/Patient\/pt1"/)).toBeNull()
+    expect(
+      screen.queryByText(
+        /"fullUrl": "http:\/\/example.org\/fhir\/Patient\/pt1"/
+      )
+    ).toBeNull()
   })
 
   it('Raw JSON tab falls back to dataPayload when selectedPatient.json is absent', async () => {
@@ -519,6 +525,8 @@ describe('SelectedPatientPreviewCard', () => {
       name: 'Jane Doe',
       json: '',
       addedAt: new Date().toISOString(),
+      dob: '1990-01-01',
+      gender: 'female',
     }
 
     render(

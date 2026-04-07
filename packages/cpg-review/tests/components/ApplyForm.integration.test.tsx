@@ -37,8 +37,10 @@ jest.mock('utils/recentPatientsStore', () => ({
   renderPatientName: jest.fn((names: any[]) => names?.[0]?.family ?? 'Unknown'),
   getAllPatients: jest.fn(() => []),
   getPackageCatalog: jest.fn(() => []),
-  getPatientIdFromBundleJson: jest.requireActual('utils/recentPatientsStore').getPatientIdFromBundleJson,
-  makeBundlePatientSummary: jest.requireActual('utils/recentPatientsStore').makeBundlePatientSummary,
+  getPatientIdFromBundleJson: jest.requireActual('utils/recentPatientsStore')
+    .getPatientIdFromBundleJson,
+  makeBundlePatientSummary: jest.requireActual('utils/recentPatientsStore')
+    .makeBundlePatientSummary,
 }))
 
 jest.mock('utils/fhirClient', () => ({
