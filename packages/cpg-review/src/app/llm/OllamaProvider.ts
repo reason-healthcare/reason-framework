@@ -62,11 +62,23 @@ export class OllamaProvider implements LLMProvider {
   }
 
   async recommend(request: RecommendationRequest): Promise<RecommendationResponse> {
+    const startTime = Date.now()
     const prompt = buildRecommendationPrompt(
       request.item,
       request.context,
       request.questionnaire
     )
+
+    console.log('[LLM] Starting recommendation request', {
+      linkId: request.item.linkId,
+      itemText: request.item.text,
+      itemType: request.item.type,
+      model: this.model,
+      baseUrl: this.baseUrl,
+      promptLength: prompt.length,
+    })
+
+    console.log('[LLM] Full prompt:', '\n' + prompt + '\n')
 
     const abortController = new AbortController()
     const timeout = setTimeout(() => abortController.abort(), RECOMMEND_TIMEOUT_MS)
@@ -87,6 +99,13 @@ export class OllamaProvider implements LLMProvider {
 
       if (!res.ok) {
         const errorText = await res.text()
+        const latencyMs = Date.now() - startTime
+        console.error('[LLM] Request failed', {
+          linkId: request.item.linkId,
+          status: res.status,
+          latencyMs,
+          errorText,
+        })
         return {
           recommendedAnswer: '',
           rationale: '',
@@ -98,6 +117,12 @@ export class OllamaProvider implements LLMProvider {
       const data = (await res.json()) as OllamaGenerateResponse
     
       if (data.error) {
+        const latencyMs = Date.now() - startTime
+        console.error('[LLM] Ollama returned error', {
+          linkId: request.item.linkId,
+          latencyMs,
+          error: data.error,
+        })
         return {
           recommendedAnswer: '',
           rationale: '',
@@ -107,7 +132,11 @@ export class OllamaProvider implements LLMProvider {
       }
 
       const rawText = (data.response ?? '').trim()
+      console.log('[LLM] Raw response:', '\n' + rawText + '\n')
+
       if (!rawText) {
+        const latencyMs = Date.now() - startTime
+        console.error('[LLM] Empty response', { linkId: request.item.linkId, latencyMs })
         return {
           recommendedAnswer: '',
           rationale: '',
@@ -123,6 +152,12 @@ export class OllamaProvider implements LLMProvider {
       const confidence = clampConfidence(parsed.confidence)
 
       if (!recommendedAnswer || !rationale) {
+        const latencyMs = Date.now() - startTime
+        console.error('[LLM] Invalid recommendation payload', {
+          linkId: request.item.linkId,
+          latencyMs,
+          parsed,
+        })
         return {
           recommendedAnswer: '',
           rationale: '',
@@ -131,13 +166,29 @@ export class OllamaProvider implements LLMProvider {
         }
       }
 
+      const latencyMs = Date.now() - startTime
+      console.log('[LLM] Recommendation completed', {
+        linkId: request.item.linkId,
+        latencyMs,
+        recommendedAnswer,
+        confidence,
+        rationaleLength: rationale.length,
+      })
+
       return {
         recommendedAnswer,
         rationale,
         confidence,
       }
     } catch (error) {
+      const latencyMs = Date.now() - startTime
+
       if (error instanceof Error && error.name === 'AbortError') {
+        console.error('[LLM] Request timed out', {
+          linkId: request.item.linkId,
+          latencyMs,
+          timeoutMs: RECOMMEND_TIMEOUT_MS,
+        })
         return {
           recommendedAnswer: '',
           rationale: '',
@@ -145,6 +196,13 @@ export class OllamaProvider implements LLMProvider {
           error: 'Recommendation request timed out',
         }
       }
+
+      console.error('[LLM] Unexpected error', {
+        linkId: request.item.linkId,
+        latencyMs,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      })
 
       return {
         recommendedAnswer: '',
@@ -158,11 +216,23 @@ export class OllamaProvider implements LLMProvider {
   }
 
   async recommendChunk(request: RecommendationChunkRequest): Promise<RecommendationChunkResponse> {
+    const startTime = Date.now()
     const prompt = buildBatchRecommendationPrompt(
       request.items,
       request.context,
       request.questionnaire
     )
+
+    const linkIds = request.items.map((item) => item.linkId)
+    console.log('[LLM] Starting batch recommendation request', {
+      itemCount: request.items.length,
+      linkIds,
+      model: this.model,
+      baseUrl: this.baseUrl,
+      promptLength: prompt.length,
+    })
+
+    console.log('[LLM] Full batch prompt:', '\n' + prompt + '\n')
 
     const abortController = new AbortController()
     const timeout = setTimeout(() => abortController.abort(), RECOMMEND_TIMEOUT_MS)
@@ -184,6 +254,14 @@ export class OllamaProvider implements LLMProvider {
 
       if (!res.ok) {
         const errorText = await res.text()
+        const latencyMs = Date.now() - startTime
+        console.error('[LLM] Batch request failed', {
+          itemCount: request.items.length,
+          linkIds,
+          status: res.status,
+          latencyMs,
+          errorText,
+        })
         return {
           recommendations: {},
           error: `Ollama request failed with status ${res.status}: ${errorText}`,
@@ -192,6 +270,13 @@ export class OllamaProvider implements LLMProvider {
 
       const data = (await res.json()) as OllamaGenerateResponse
       if (data.error) {
+        const latencyMs = Date.now() - startTime
+        console.error('[LLM] Batch - Ollama returned error', {
+          itemCount: request.items.length,
+          linkIds,
+          latencyMs,
+          error: data.error,
+        })
         return {
           recommendations: {},
           error: data.error,
@@ -199,7 +284,15 @@ export class OllamaProvider implements LLMProvider {
       }
 
       const rawText = (data.response ?? '').trim()
+      console.log('[LLM] Raw batch response:', '\n' + rawText + '\n')
+
       if (!rawText) {
+        const latencyMs = Date.now() - startTime
+        console.error('[LLM] Batch - Empty response', {
+          itemCount: request.items.length,
+          linkIds,
+          latencyMs,
+        })
         return {
           recommendations: {},
           error: 'Ollama returned an empty response',
@@ -218,6 +311,13 @@ export class OllamaProvider implements LLMProvider {
         parsedObject?.recommendations ?? parsedObject
 
       if (!recommendationMap || typeof recommendationMap !== 'object') {
+        const latencyMs = Date.now() - startTime
+        console.error('[LLM] Batch - Invalid payload structure', {
+          itemCount: request.items.length,
+          linkIds,
+          latencyMs,
+          parsed: parsedObject,
+        })
         return {
           recommendations: {},
           error: 'Provider returned invalid batch recommendation payload',
@@ -249,20 +349,61 @@ export class OllamaProvider implements LLMProvider {
       }
 
       if (matchedCount === 0) {
+        const latencyMs = Date.now() - startTime
+        console.error('[LLM] Batch - No matching recommendations', {
+          itemCount: request.items.length,
+          linkIds,
+          latencyMs,
+          recommendationMap,
+        })
         return {
           recommendations: {},
           error: 'Provider returned invalid batch recommendation payload',
         }
       }
 
+      const latencyMs = Date.now() - startTime
+      console.log('[LLM] Batch recommendation completed', {
+        itemCount: request.items.length,
+        matchedCount,
+        linkIds,
+        latencyMs,
+        recommendations: Object.fromEntries(
+          Object.entries(recommendations).map(([linkId, rec]) => [
+            linkId,
+            {
+              recommendedAnswer: rec.recommendedAnswer,
+              confidence: rec.confidence,
+              rationaleLength: rec.rationale?.length ?? 0,
+            },
+          ])
+        ),
+      })
+
       return { recommendations }
     } catch (error) {
+      const latencyMs = Date.now() - startTime
+
       if (error instanceof Error && error.name === 'AbortError') {
+        console.error('[LLM] Batch - Request timed out', {
+          itemCount: request.items.length,
+          linkIds,
+          latencyMs,
+          timeoutMs: RECOMMEND_TIMEOUT_MS,
+        })
         return {
           recommendations: {},
           error: 'Recommendation request timed out',
         }
       }
+
+      console.error('[LLM] Batch - Unexpected error', {
+        itemCount: request.items.length,
+        linkIds,
+        latencyMs,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      })
 
       return {
         recommendations: {},

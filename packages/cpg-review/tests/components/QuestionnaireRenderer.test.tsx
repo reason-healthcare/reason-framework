@@ -62,9 +62,9 @@ describe('QuestionnaireRenderer recommendation context wiring', () => {
         questionnaireResponseServer={questionnaireResponseServer}
         questionnaire={questionnaire}
         recommendationContext={recommendationContext}
-        setUserQuestionnaireResponse={jest.fn()}
         setCurrentStep={jest.fn()}
         isApplying={false}
+        onSubmitQuestionnaire={jest.fn()}
       />
     )
 
