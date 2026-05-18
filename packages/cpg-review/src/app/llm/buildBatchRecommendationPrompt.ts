@@ -10,19 +10,74 @@ function getAnswerOptionLabel(option: fhir4.QuestionnaireItemAnswerOption): stri
   return 'option'
 }
 
+const RAW_EXCERPTS_ENABLED = process.env.LLM_PROMPT_INCLUDE_RAW_EXCERPTS === 'true'
+const DEFAULT_MAX_RAW_EXCERPT_CHARS = 1200
+const DEFAULT_MAX_RAW_EXCERPT_ENTRIES = 3
+const DEFAULT_MAX_ADDITIONAL_SUMMARY_ENTRIES = 8
+
+function parsePositiveInt(raw: string | undefined, fallback: number): number {
+  const parsed = Number(raw)
+  if (!Number.isFinite(parsed) || parsed < 1) return fallback
+  return Math.floor(parsed)
+}
+
+const MAX_RAW_EXCERPT_CHARS = parsePositiveInt(
+  process.env.LLM_PROMPT_RAW_EXCERPT_MAX_CHARS,
+  DEFAULT_MAX_RAW_EXCERPT_CHARS
+)
+const MAX_RAW_EXCERPT_ENTRIES = parsePositiveInt(
+  process.env.LLM_PROMPT_RAW_EXCERPT_MAX_ENTRIES,
+  DEFAULT_MAX_RAW_EXCERPT_ENTRIES
+)
+const MAX_ADDITIONAL_SUMMARY_ENTRIES = parsePositiveInt(
+  process.env.LLM_PROMPT_MAX_ADDITIONAL_SUMMARY_ENTRIES,
+  DEFAULT_MAX_ADDITIONAL_SUMMARY_ENTRIES
+)
+
 type SupportedClinicalResource =
   | fhir4.Observation
   | fhir4.Condition
   | fhir4.MedicationStatement
   | fhir4.AllergyIntolerance
+  | fhir4.DiagnosticReport
+  | fhir4.Procedure
+  | fhir4.Encounter
+  | fhir4.MedicationRequest
+  | fhir4.ServiceRequest
+  | fhir4.Immunization
 
 function isSupportedClinicalResource(resource: fhir4.FhirResource): resource is SupportedClinicalResource {
   return (
     resource.resourceType === 'Observation' ||
     resource.resourceType === 'Condition' ||
     resource.resourceType === 'MedicationStatement' ||
-    resource.resourceType === 'AllergyIntolerance'
+    resource.resourceType === 'AllergyIntolerance' ||
+    resource.resourceType === 'DiagnosticReport' ||
+    resource.resourceType === 'Procedure' ||
+    resource.resourceType === 'Encounter' ||
+    resource.resourceType === 'MedicationRequest' ||
+    resource.resourceType === 'ServiceRequest' ||
+    resource.resourceType === 'Immunization'
   )
+}
+
+const ADDITIONAL_RESOURCE_TYPE_EXCLUSIONS = new Set([
+  'Patient',
+  'Practitioner',
+  'PractitionerRole',
+  'Organization',
+  'Location',
+  'RelatedPerson',
+  'Coverage',
+  'Provenance',
+  'AuditEvent',
+  'Composition',
+  'Bundle',
+  'Endpoint',
+])
+
+function shouldIncludeAdditionalResource(resource: fhir4.FhirResource): boolean {
+  return !isSupportedClinicalResource(resource) && !ADDITIONAL_RESOURCE_TYPE_EXCLUSIONS.has(resource.resourceType)
 }
 
 function firstCodingLabel(
@@ -97,6 +152,30 @@ function firstDate(resource: SupportedClinicalResource): string {
     return resource.effectiveDateTime ?? resource.effectivePeriod?.start ?? resource.dateAsserted ?? 'unknown'
   }
 
+  if (resource.resourceType === 'DiagnosticReport') {
+    return resource.effectiveDateTime ?? resource.issued ?? 'unknown'
+  }
+
+  if (resource.resourceType === 'Procedure') {
+    return resource.performedDateTime ?? resource.performedPeriod?.start ?? 'unknown'
+  }
+
+  if (resource.resourceType === 'Encounter') {
+    return resource.period?.start ?? 'unknown'
+  }
+
+  if (resource.resourceType === 'MedicationRequest') {
+    return resource.authoredOn ?? 'unknown'
+  }
+
+  if (resource.resourceType === 'ServiceRequest') {
+    return resource.authoredOn ?? resource.occurrenceDateTime ?? 'unknown'
+  }
+
+  if (resource.resourceType === 'Immunization') {
+    return resource.occurrenceDateTime ?? resource.recorded ?? 'unknown'
+  }
+
   return resource.recordedDate ?? resource.onsetDateTime ?? resource.lastOccurrence ?? 'unknown'
 }
 
@@ -142,6 +221,76 @@ function normalizeClinicalResource(resource: SupportedClinicalResource): string 
     ].join(' | ')
   }
 
+  if (resource.resourceType === 'DiagnosticReport') {
+    return [
+      'DiagnosticReport',
+      `code=${firstCodingLabel(resource.code)}`,
+      `status=${resource.status ?? 'unknown'}`,
+      `category=${resource.category?.map((concept) => codingListLabel(concept)).join(', ') ?? 'none'}`,
+      `effective=${resource.effectiveDateTime ?? effectivePeriodSummary(resource.effectivePeriod)}`,
+      `conclusion=${resource.conclusion ?? 'none'}`,
+      `resultCount=${resource.result?.length ?? 0}`,
+      `provenance=${provenance(resource)}`,
+    ].join(' | ')
+  }
+
+  if (resource.resourceType === 'Procedure') {
+    return [
+      'Procedure',
+      `code=${firstCodingLabel(resource.code)}`,
+      `status=${resource.status ?? 'unknown'}`,
+      `performed=${resource.performedDateTime ?? effectivePeriodSummary(resource.performedPeriod)}`,
+      `outcome=${firstCodingLabel(resource.outcome, 'none')}`,
+      `provenance=${provenance(resource)}`,
+    ].join(' | ')
+  }
+
+  if (resource.resourceType === 'Encounter') {
+    return [
+      'Encounter',
+      `status=${resource.status ?? 'unknown'}`,
+      `class=${resource.class?.display ?? resource.class?.code ?? 'unknown'}`,
+      `type=${resource.type?.map((concept) => codingListLabel(concept)).join(', ') ?? 'none'}`,
+      `period=${effectivePeriodSummary(resource.period)}`,
+      `provenance=${provenance(resource)}`,
+    ].join(' | ')
+  }
+
+  if (resource.resourceType === 'MedicationRequest') {
+    return [
+      'MedicationRequest',
+      `medication=${firstCodingLabel(resource.medicationCodeableConcept)}`,
+      `status=${resource.status ?? 'unknown'}`,
+      `intent=${resource.intent ?? 'unknown'}`,
+      `authoredOn=${resource.authoredOn ?? 'unknown'}`,
+      `dosage=${resource.dosageInstruction?.[0]?.text ?? 'unknown'}`,
+      `provenance=${provenance(resource)}`,
+    ].join(' | ')
+  }
+
+  if (resource.resourceType === 'ServiceRequest') {
+    return [
+      'ServiceRequest',
+      `code=${firstCodingLabel(resource.code)}`,
+      `status=${resource.status ?? 'unknown'}`,
+      `intent=${resource.intent ?? 'unknown'}`,
+      `authoredOn=${resource.authoredOn ?? 'unknown'}`,
+      `occurrence=${resource.occurrenceDateTime ?? 'unknown'}`,
+      `provenance=${provenance(resource)}`,
+    ].join(' | ')
+  }
+
+  if (resource.resourceType === 'Immunization') {
+    return [
+      'Immunization',
+      `vaccine=${firstCodingLabel(resource.vaccineCode)}`,
+      `status=${resource.status ?? 'unknown'}`,
+      `occurrence=${resource.occurrenceDateTime ?? 'unknown'}`,
+      `primarySource=${resource.primarySource ?? 'unknown'}`,
+      `provenance=${provenance(resource)}`,
+    ].join(' | ')
+  }
+
   const manifestations =
     resource.reaction
       ?.flatMap((reaction) =>
@@ -158,6 +307,78 @@ function normalizeClinicalResource(resource: SupportedClinicalResource): string 
     `reactionManifestations=${manifestations}`,
     `provenance=${provenance(resource)}`,
   ].join(' | ')
+}
+
+function truncate(value: string, maxChars: number): string {
+  if (value.length <= maxChars) return value
+  return `${value.slice(0, maxChars)}...(truncated)`
+}
+
+function normalizeAdditionalResource(resource: fhir4.FhirResource): string {
+  const generic = resource as {
+    status?: string
+    code?: fhir4.CodeableConcept
+    category?: fhir4.CodeableConcept[]
+    effectiveDateTime?: string
+    occurrenceDateTime?: string
+    authoredOn?: string
+    recordedDate?: string
+  }
+
+  const category = generic.category?.map((concept) => codingListLabel(concept)).join(', ') ?? 'none'
+  const date =
+    generic.effectiveDateTime ??
+    generic.occurrenceDateTime ??
+    generic.authoredOn ??
+    generic.recordedDate ??
+    'unknown'
+
+  return [
+    `${resource.resourceType}`,
+    `id=${resource.id ?? 'unknown'}`,
+    `status=${generic.status ?? 'unknown'}`,
+    `code=${firstCodingLabel(generic.code, 'unknown')}`,
+    `category=${category}`,
+    `date=${date}`,
+  ].join(' | ')
+}
+
+function buildRawExcerpts(resources: fhir4.FhirResource[]): string | undefined {
+  if (!RAW_EXCERPTS_ENABLED || resources.length === 0) return undefined
+
+  const lines = resources.slice(0, MAX_RAW_EXCERPT_ENTRIES).map((resource) => {
+    const generic = resource as {
+      status?: string
+      code?: fhir4.CodeableConcept
+      category?: fhir4.CodeableConcept[]
+      effectiveDateTime?: string
+      authoredOn?: string
+      occurrenceDateTime?: string
+      recordedDate?: string
+      text?: { div?: string }
+    }
+
+    const excerpt = {
+      resourceType: resource.resourceType,
+      id: resource.id,
+      status: generic.status,
+      code: generic.code,
+      category: generic.category,
+      effectiveDateTime: generic.effectiveDateTime,
+      authoredOn: generic.authoredOn,
+      occurrenceDateTime: generic.occurrenceDateTime,
+      recordedDate: generic.recordedDate,
+      narrative: generic.text?.div ? truncate(generic.text.div, 300) : undefined,
+    }
+
+    const serialized = JSON.stringify(excerpt)
+    return `- ${truncate(serialized, MAX_RAW_EXCERPT_CHARS)}`
+  })
+
+  return [
+    'Additional raw excerpts for uncommon resource types (truncated JSON):',
+    ...lines,
+  ].join('\n')
 }
 
 function summarisePatient(patient: fhir4.Patient): string {
@@ -186,12 +407,32 @@ function summariseContext(context: fhir4.Bundle): string {
     .map(normalizeClinicalResource)
     .filter((line): line is string => Boolean(line))
 
+  const additionalEntries = entries
+    .map((entry) => entry.resource)
+    .filter((resource): resource is fhir4.FhirResource => Boolean(resource))
+    .filter(shouldIncludeAdditionalResource)
+  const additionalSummaries = additionalEntries
+    .slice(0, MAX_ADDITIONAL_SUMMARY_ENTRIES)
+    .map(normalizeAdditionalResource)
+
   const clinicalSummary =
     clinicalLines.length > 0
       ? `Relevant normalized clinical entries:\n- ${clinicalLines.join('\n- ')}`
       : 'Relevant clinical entries: none provided.'
 
-  return [patientSummary, clinicalSummary].join('\n\n')
+  const additionalSummaryBlock =
+    additionalSummaries.length > 0
+      ? `Additional potentially relevant entries:\n- ${additionalSummaries.join('\n- ')}`
+      : undefined
+  const additionalSummaryOverflow =
+    additionalEntries.length > MAX_ADDITIONAL_SUMMARY_ENTRIES
+      ? `Additional entries omitted for brevity: ${additionalEntries.length - MAX_ADDITIONAL_SUMMARY_ENTRIES}.`
+      : undefined
+  const rawExcerpts = buildRawExcerpts(additionalEntries)
+
+  return [patientSummary, clinicalSummary, additionalSummaryBlock, additionalSummaryOverflow, rawExcerpts]
+    .filter((section): section is string => Boolean(section))
+    .join('\n\n')
 }
 
 function formatItems(items: fhir4.QuestionnaireItem[]): string {
@@ -219,7 +460,7 @@ export function buildBatchRecommendationPrompt(
     'You are a clinical decision support assistant.',
     questionnaireContext,
     summariseContext(context),
-    'Generate recommendations for all questionnaire items below.',
+    'Generate recommendations for all questionnaire items below. Base recommendations on relevant clinical information. Do not make assumptions beyond the provided context.',
     formatItems(items),
     'Respond ONLY as valid JSON with this exact shape:',
     '{"recommendations":{"<linkId>":{"recommendedAnswer":"string","rationale":"string","confidence":0.0}}}',

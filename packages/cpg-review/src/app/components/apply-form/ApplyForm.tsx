@@ -219,7 +219,7 @@ const ApplyForm = ({
         if (!is.Bundle(bundle)) {
           throw new Error('Resource does not appear to be a FHIR bundle')
         }
-
+        console.log('Apply response bundle', bundle)
         setRequestsBundle(bundle)
         // Find QuestionnaireResponse
         const questionnaireResponseEntry = bundle.entry?.find(
