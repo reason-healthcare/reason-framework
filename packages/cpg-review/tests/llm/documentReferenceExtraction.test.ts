@@ -71,6 +71,11 @@ describe('decodeDocumentAttachmentText', () => {
       __esModule: true,
       default: jest.fn().mockRejectedValue(new Error('parse failed')),
     }))
+    jest.doMock('pdfjs-dist/legacy/build/pdf.mjs', () => ({
+      getDocument: jest.fn(() => ({
+        promise: Promise.reject(new Error('pdfjs failed')),
+      })),
+    }))
 
     const decodeDocumentAttachmentText = await loadExtractor()
 
@@ -79,6 +84,57 @@ describe('decodeDocumentAttachmentText', () => {
       data: Buffer.from('%PDF fake bytes', 'utf8').toString('base64'),
     })
 
-    expect(result).toBe('pdf attachment: no extractable text or extraction timed out')
+    expect(result).toBe('pdf attachment extraction failed (parser error or unsupported/scan-only PDF)')
+  })
+
+  it('uses pdftotext CLI fallback when JS PDF parsers fail', async () => {
+    jest.doMock('pdf-parse', () => ({
+      __esModule: true,
+      default: jest.fn().mockRejectedValue(new Error('parse failed')),
+    }))
+    jest.doMock('pdfjs-dist/legacy/build/pdf.mjs', () => ({
+      getDocument: jest.fn(() => ({
+        promise: Promise.reject(new Error('pdfjs failed')),
+      })),
+    }))
+    jest.doMock('node:child_process', () => ({
+      execFile: jest.fn((file, args, options, callback) => {
+        callback(null, '', '')
+      }),
+    }))
+    jest.doMock('node:fs/promises', () => ({
+      mkdtemp: jest.fn().mockResolvedValue('/tmp/cpg-review-pdf-test'),
+      writeFile: jest.fn().mockResolvedValue(undefined),
+      readFile: jest.fn().mockResolvedValue('HER2 positive by IHC'),
+      rm: jest.fn().mockResolvedValue(undefined),
+    }))
+
+    const decodeDocumentAttachmentText = await loadExtractor()
+
+    const result = await decodeDocumentAttachmentText({
+      contentType: 'application/pdf',
+      data: Buffer.from('%PDF fake bytes', 'utf8').toString('base64'),
+    })
+
+    expect(result).toContain('HER2 positive by IHC')
+  })
+
+  it('returns timeout message when PDF extraction exceeds timeout', async () => {
+    process.env.LLM_PROMPT_PDF_EXTRACT_TIMEOUT_MS = '1'
+    jest.doMock('pdf-parse', () => ({
+      __esModule: true,
+      default: jest.fn().mockImplementation(
+        () => new Promise(() => undefined)
+      ),
+    }))
+
+    const decodeDocumentAttachmentText = await loadExtractor()
+
+    const result = await decodeDocumentAttachmentText({
+      contentType: 'application/pdf',
+      data: Buffer.from('%PDF fake bytes', 'utf8').toString('base64'),
+    })
+
+    expect(result).toBe('pdf attachment extraction timed out after 1ms')
   })
 })

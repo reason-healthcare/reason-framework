@@ -1,6 +1,11 @@
+import { execFile } from 'node:child_process'
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+
 const DEFAULT_ATTACHMENT_TEXT_EXCERPT_CHARS = 400
 const DEFAULT_ATTACHMENT_MAX_BASE64_CHARS = 2_000_000
-const DEFAULT_PDF_EXTRACT_TIMEOUT_MS = 2_500
+const DEFAULT_PDF_EXTRACT_TIMEOUT_MS = 12_000
 
 function parsePositiveInt(raw: string | undefined, fallback: number): number {
   const parsed = Number(raw)
@@ -21,6 +26,79 @@ const PDF_EXTRACT_TIMEOUT_MS = parsePositiveInt(
   DEFAULT_PDF_EXTRACT_TIMEOUT_MS
 )
 const PDF_EXTRACT_ENABLED = process.env.LLM_PROMPT_PDF_EXTRACT_ENABLED !== 'false'
+const PDF_TEXT_CLI_FALLBACK_ENABLED = process.env.LLM_PROMPT_PDF_TEXT_CLI_FALLBACK_ENABLED !== 'false'
+
+type PdfExtractResult =
+  | { status: 'disabled' }
+  | { status: 'timeout' }
+  | { status: 'error' }
+  | { status: 'ok'; text?: string }
+
+async function extractPdfTextWithPdfParse(buffer: Buffer): Promise<string | undefined> {
+  const pdfParseModule = await import('pdf-parse')
+  const parsed = await pdfParseModule.default(buffer)
+  return parsed.text
+}
+
+async function extractPdfTextWithPdfJs(buffer: Buffer): Promise<string | undefined> {
+  const pdfJsModule = await import('pdfjs-dist/legacy/build/pdf.mjs')
+  const getDocument = (pdfJsModule as { getDocument: (input: { data: Uint8Array }) => any })
+    .getDocument
+
+  const loadingTask = getDocument({ data: new Uint8Array(buffer) })
+  const pdf = await loadingTask.promise
+  const pageTexts: string[] = []
+
+  for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+    const page = await pdf.getPage(pageNumber)
+    const textContent = await page.getTextContent()
+    const items = Array.isArray(textContent?.items)
+      ? (textContent.items as Array<{ str?: string }>)
+      : []
+    const pageText = items
+      .map((item) => (typeof item?.str === 'string' ? item.str : ''))
+      .join(' ')
+      .trim()
+
+    if (pageText) pageTexts.push(pageText)
+  }
+
+  return pageTexts.join('\n')
+}
+
+function runExecFile(
+  file: string,
+  args: string[],
+  timeout: number
+): Promise<{ stdout: string; stderr: string }> {
+  return new Promise((resolve, reject) => {
+    execFile(file, args, { encoding: 'utf8', timeout, maxBuffer: 10 * 1024 * 1024 }, (error, stdout, stderr) => {
+      if (error) {
+        reject(error)
+        return
+      }
+
+      resolve({ stdout, stderr })
+    })
+  })
+}
+
+async function extractPdfTextWithPdftotext(buffer: Buffer): Promise<string | undefined> {
+  if (!PDF_TEXT_CLI_FALLBACK_ENABLED) return undefined
+
+  const tempDir = await mkdtemp(join(tmpdir(), 'cpg-review-pdf-'))
+  const inputPath = join(tempDir, 'document.pdf')
+  const outputPath = join(tempDir, 'document.txt')
+
+  try {
+    await writeFile(inputPath, buffer)
+    await runExecFile('pdftotext', ['-layout', inputPath, outputPath], PDF_EXTRACT_TIMEOUT_MS)
+    const extracted = await readFile(outputPath, 'utf8')
+    return extracted
+  } finally {
+    await rm(tempDir, { recursive: true, force: true })
+  }
+}
 
 const TEXT_MIME_PREFIXES = ['text/']
 const TEXT_MIME_EXACT = new Set([
@@ -87,24 +165,36 @@ function isKnownBinaryMime(mimeType: string): boolean {
   )
 }
 
-async function extractPdfText(buffer: Buffer): Promise<string | undefined> {
-  if (!PDF_EXTRACT_ENABLED) return undefined
+async function extractPdfText(buffer: Buffer): Promise<PdfExtractResult> {
+  if (!PDF_EXTRACT_ENABLED) return { status: 'disabled' }
 
-  const timeoutPromise = new Promise<undefined>((resolve) => {
-    setTimeout(() => resolve(undefined), PDF_EXTRACT_TIMEOUT_MS)
-  })
-
-  const parsePromise = (async () => {
+  const parsePromise = (async (): Promise<PdfExtractResult> => {
     try {
-      const pdfParseModule = await import('pdf-parse')
-      const parsed = await pdfParseModule.default(buffer)
-      return parsed.text
+      const text = await extractPdfTextWithPdfParse(buffer)
+      return { status: 'ok', text }
     } catch {
-      return undefined
+      try {
+        const text = await extractPdfTextWithPdfJs(buffer)
+        return { status: 'ok', text }
+      } catch {
+        try {
+          const text = await extractPdfTextWithPdftotext(buffer)
+          return { status: 'ok', text }
+        } catch {
+          return { status: 'error' }
+        }
+      }
     }
   })()
 
-  return Promise.race([parsePromise, timeoutPromise])
+  let timeoutHandle: ReturnType<typeof setTimeout> | undefined
+  const timeoutPromise = new Promise<PdfExtractResult>((resolve) => {
+    timeoutHandle = setTimeout(() => resolve({ status: 'timeout' }), PDF_EXTRACT_TIMEOUT_MS)
+  })
+
+  const result = await Promise.race([parsePromise, timeoutPromise])
+  if (timeoutHandle) clearTimeout(timeoutHandle)
+  return result
 }
 
 export async function decodeDocumentAttachmentText(
@@ -121,13 +211,20 @@ export async function decodeDocumentAttachmentText(
   if (!buffer) return 'encoded attachment could not be decoded'
 
   if (isPdfMime(mimeType)) {
-    const text = await extractPdfText(buffer)
-    if (!text) {
-      return PDF_EXTRACT_ENABLED
-        ? 'pdf attachment: no extractable text or extraction timed out'
-        : 'pdf attachment extraction disabled'
+    const extraction = await extractPdfText(buffer)
+    if (extraction.status === 'disabled') {
+      return 'pdf attachment extraction disabled'
     }
-    const normalized = compactWhitespace(text)
+
+    if (extraction.status === 'timeout') {
+      return `pdf attachment extraction timed out after ${PDF_EXTRACT_TIMEOUT_MS}ms`
+    }
+
+    if (extraction.status === 'error') {
+      return 'pdf attachment extraction failed (parser error or unsupported/scan-only PDF)'
+    }
+
+    const normalized = compactWhitespace(extraction.text ?? '')
     return normalized
       ? truncate(normalized, ATTACHMENT_TEXT_EXCERPT_CHARS)
       : 'pdf attachment contained no text'
