@@ -129,16 +129,22 @@ const QuestionnaireRenderer = ({
       <QueryClientProvider client={queryClient as unknown as QueryClient}>
         <BaseRenderer />
       </QueryClientProvider>
-      <RecommendationPanel
-        questionnaire={questionnaire}
-        context={recommendationContext}
-      />
-      <ApplyButton
-        isApplying={isApplying}
-        label="Confirm & Apply"
-        onClick={handleQuestionnaireSubmit}
-        style={{ width: '100%' }}
-      />
+      <div style={{
+            display: 'flex',
+            gap: '1rem',
+            flexDirection: 'column',
+          }}>
+        <RecommendationPanel
+          questionnaire={questionnaire}
+          context={recommendationContext}
+        />
+        <ApplyButton
+          isApplying={isApplying}
+          label="Confirm & Apply"
+          onClick={handleQuestionnaireSubmit}
+          style={{ width: '100%' }}
+        />
+      </div>
     </RendererThemeProvider>
   )
 }

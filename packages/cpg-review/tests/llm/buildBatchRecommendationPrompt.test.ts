@@ -1,8 +1,8 @@
 import { buildBatchRecommendationPrompt } from 'llm/buildBatchRecommendationPrompt'
 
 describe('buildBatchRecommendationPrompt', () => {
-  it('includes all item linkIds and deterministic keyed output schema', () => {
-    const prompt = buildBatchRecommendationPrompt(
+  it('includes all item linkIds and deterministic keyed output schema', async () => {
+    const prompt = await buildBatchRecommendationPrompt(
       [
         { linkId: 'item-1', text: 'Question 1', type: 'string' },
         { linkId: 'item-2', text: 'Question 2', type: 'choice', answerOption: [{ valueString: 'Yes' }] },
@@ -21,8 +21,8 @@ describe('buildBatchRecommendationPrompt', () => {
     expect(prompt).toContain('answerOptions=[Yes]')
   })
 
-  it('includes shared context summary once for the chunk', () => {
-    const prompt = buildBatchRecommendationPrompt(
+  it('includes shared context summary once for the chunk', async () => {
+    const prompt = await buildBatchRecommendationPrompt(
       [{ linkId: 'item-1', text: 'Question 1', type: 'string' }],
       {
         resourceType: 'Bundle',
@@ -62,5 +62,39 @@ describe('buildBatchRecommendationPrompt', () => {
     expect(prompt).toContain('interpretation=none')
     expect(prompt).toContain('status=final')
     expect(prompt).toContain('provenance=Observation/obs-1 @ unknown')
+  })
+
+  it('includes decoded DocumentReference attachment text excerpt in shared context', async () => {
+    const prompt = await buildBatchRecommendationPrompt(
+      [{ linkId: 'item-1', text: 'Question 1', type: 'string' }],
+      {
+        resourceType: 'Bundle',
+        type: 'collection',
+        entry: [
+          {
+            resource: {
+              resourceType: 'DocumentReference',
+              id: 'doc-1',
+              status: 'current',
+              type: { text: 'Progress Note' },
+              date: '2026-05-02',
+              content: [
+                {
+                  attachment: {
+                    contentType: 'text/plain',
+                    data: Buffer.from('Patient reports improved appetite and sleep.', 'utf8').toString('base64'),
+                    title: 'note.txt',
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      }
+    )
+
+    expect(prompt).toContain('DocumentReference')
+    expect(prompt).toContain('attachmentMime=text/plain')
+    expect(prompt).toContain('attachmentTextExcerpt=Patient reports improved appetite and sleep.')
   })
 })

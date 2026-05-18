@@ -63,7 +63,7 @@ export class OllamaProvider implements LLMProvider {
 
   async recommend(request: RecommendationRequest): Promise<RecommendationResponse> {
     const startTime = Date.now()
-    const prompt = buildRecommendationPrompt(
+    const prompt = await buildRecommendationPrompt(
       request.item,
       request.context,
       request.questionnaire
@@ -217,7 +217,7 @@ export class OllamaProvider implements LLMProvider {
 
   async recommendChunk(request: RecommendationChunkRequest): Promise<RecommendationChunkResponse> {
     const startTime = Date.now()
-    const prompt = buildBatchRecommendationPrompt(
+    const prompt = await buildBatchRecommendationPrompt(
       request.items,
       request.context,
       request.questionnaire

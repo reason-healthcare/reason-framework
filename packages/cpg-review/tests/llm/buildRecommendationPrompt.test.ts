@@ -1,7 +1,7 @@
 import { buildRecommendationPrompt } from 'llm/buildRecommendationPrompt'
 
 describe('buildRecommendationPrompt', () => {
-  it('includes item text, linkId, and answer options when present', () => {
+  it('includes item text, linkId, and answer options when present', async () => {
     const item: fhir4.QuestionnaireItem = {
       linkId: 'item-1',
       text: 'Smoking status',
@@ -12,7 +12,7 @@ describe('buildRecommendationPrompt', () => {
       ],
     }
 
-    const prompt = buildRecommendationPrompt(item, {
+    const prompt = await buildRecommendationPrompt(item, {
       resourceType: 'Bundle',
       type: 'collection',
       entry: [],
@@ -24,8 +24,8 @@ describe('buildRecommendationPrompt', () => {
     expect(prompt).toContain('Former smoker')
   })
 
-  it('instructs free-text output when no answer options exist', () => {
-    const prompt = buildRecommendationPrompt(
+  it('instructs free-text output when no answer options exist', async () => {
+    const prompt = await buildRecommendationPrompt(
       {
         linkId: 'item-2',
         text: 'Clinical notes',
@@ -42,22 +42,22 @@ describe('buildRecommendationPrompt', () => {
     expect(prompt).toContain('Respond ONLY as valid JSON')
   })
 
-  it('handles an empty context bundle without throwing', () => {
+  it('handles an empty context bundle without throwing', async () => {
     const item: fhir4.QuestionnaireItem = {
       linkId: 'item-3',
       text: 'Age',
       type: 'integer',
     }
 
-    expect(() =>
+    await expect(
       buildRecommendationPrompt(item, {
         resourceType: 'Bundle',
         type: 'collection',
         entry: [],
       })
-    ).not.toThrow()
+    ).resolves.toBeDefined()
 
-    const prompt = buildRecommendationPrompt(item, {
+    const prompt = await buildRecommendationPrompt(item, {
       resourceType: 'Bundle',
       type: 'collection',
       entry: [],
@@ -66,8 +66,8 @@ describe('buildRecommendationPrompt', () => {
     expect(prompt).not.toContain('raw JSON snippets')
   })
 
-  it('includes questionnaire title when provided', () => {
-    const prompt = buildRecommendationPrompt(
+  it('includes questionnaire title when provided', async () => {
+    const prompt = await buildRecommendationPrompt(
       {
         linkId: 'item-4',
         text: 'Blood pressure control status',
@@ -88,8 +88,8 @@ describe('buildRecommendationPrompt', () => {
     expect(prompt).toContain('Questionnaire title: Hypertension Follow-up')
   })
 
-  it('includes normalized Observation fields with provenance', () => {
-    const prompt = buildRecommendationPrompt(
+  it('includes normalized Observation fields with provenance', async () => {
+    const prompt = await buildRecommendationPrompt(
       {
         linkId: 'obs-item',
         text: 'What is the blood pressure status?',
@@ -127,8 +127,8 @@ describe('buildRecommendationPrompt', () => {
     expect(prompt).toContain('provenance=Observation/obs-1 @ 2026-03-31T12:00:00Z')
   })
 
-  it('includes normalized Condition fields with provenance', () => {
-    const prompt = buildRecommendationPrompt(
+  it('includes normalized Condition fields with provenance', async () => {
+    const prompt = await buildRecommendationPrompt(
       {
         linkId: 'condition-item',
         text: 'What condition is active?',
@@ -163,8 +163,8 @@ describe('buildRecommendationPrompt', () => {
     expect(prompt).toContain('provenance=Condition/cond-1 @ 2025-01-15')
   })
 
-  it('includes normalized MedicationStatement fields with provenance', () => {
-    const prompt = buildRecommendationPrompt(
+  it('includes normalized MedicationStatement fields with provenance', async () => {
+    const prompt = await buildRecommendationPrompt(
       {
         linkId: 'med-item',
         text: 'Current medication',
@@ -196,8 +196,8 @@ describe('buildRecommendationPrompt', () => {
     expect(prompt).toContain('provenance=MedicationStatement/med-1 @ 2026-01-01')
   })
 
-  it('includes normalized AllergyIntolerance fields with provenance', () => {
-    const prompt = buildRecommendationPrompt(
+  it('includes normalized AllergyIntolerance fields with provenance', async () => {
+    const prompt = await buildRecommendationPrompt(
       {
         linkId: 'allergy-item',
         text: 'Allergy summary',
@@ -230,6 +230,44 @@ describe('buildRecommendationPrompt', () => {
     expect(prompt).toContain('criticality=high')
     expect(prompt).toContain('reactionManifestations=Rash, Anaphylaxis')
     expect(prompt).toContain('provenance=AllergyIntolerance/alg-1 @ 2024-05-10')
+  })
+
+  it('includes decoded DocumentReference attachment text excerpt', async () => {
+    const prompt = await buildRecommendationPrompt(
+      {
+        linkId: 'doc-item',
+        text: 'Clinical note summary',
+        type: 'string',
+      },
+      {
+        resourceType: 'Bundle',
+        type: 'collection',
+        entry: [
+          {
+            resource: {
+              resourceType: 'DocumentReference',
+              id: 'doc-1',
+              status: 'current',
+              type: { text: 'Discharge Summary' },
+              date: '2026-05-01',
+              content: [
+                {
+                  attachment: {
+                    contentType: 'text/plain',
+                    data: Buffer.from('Patient discharged in stable condition. Follow up in 7 days.', 'utf8').toString('base64'),
+                    title: 'discharge.txt',
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      }
+    )
+
+    expect(prompt).toContain('DocumentReference')
+    expect(prompt).toContain('attachmentMime=text/plain')
+    expect(prompt).toContain('attachmentTextExcerpt=Patient discharged in stable condition. Follow up in 7 days.')
   })
 
 })

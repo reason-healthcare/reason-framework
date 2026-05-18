@@ -1,3 +1,5 @@
+import { decodeDocumentAttachmentText } from './documentReferenceExtraction'
+
 function getAnswerOptionLabel(option: fhir4.QuestionnaireItemAnswerOption): string {
   if (option.valueCoding) {
     return option.valueCoding.display ?? option.valueCoding.code ?? 'coded option'
@@ -39,6 +41,7 @@ type SupportedClinicalResource =
   | fhir4.Condition
   | fhir4.MedicationStatement
   | fhir4.AllergyIntolerance
+  | fhir4.DocumentReference
   | fhir4.DiagnosticReport
   | fhir4.Procedure
   | fhir4.Encounter
@@ -52,6 +55,7 @@ function isSupportedClinicalResource(resource: fhir4.FhirResource): resource is 
     resource.resourceType === 'Condition' ||
     resource.resourceType === 'MedicationStatement' ||
     resource.resourceType === 'AllergyIntolerance' ||
+    resource.resourceType === 'DocumentReference' ||
     resource.resourceType === 'DiagnosticReport' ||
     resource.resourceType === 'Procedure' ||
     resource.resourceType === 'Encounter' ||
@@ -145,6 +149,10 @@ function firstDate(resource: SupportedClinicalResource): string {
     return resource.effectiveDateTime ?? resource.effectivePeriod?.start ?? resource.dateAsserted ?? 'unknown'
   }
 
+  if (resource.resourceType === 'DocumentReference') {
+    return resource.date ?? resource.content?.[0]?.attachment?.creation ?? 'unknown'
+  }
+
   if (resource.resourceType === 'DiagnosticReport') {
     return resource.effectiveDateTime ?? resource.issued ?? 'unknown'
   }
@@ -176,7 +184,7 @@ function provenance(resource: SupportedClinicalResource): string {
   return `${resource.resourceType}/${resource.id ?? 'unknown'} @ ${firstDate(resource)}`
 }
 
-function normalizeClinicalResource(resource: SupportedClinicalResource): string {
+async function normalizeClinicalResource(resource: SupportedClinicalResource): Promise<string> {
   if (resource.resourceType === 'Observation') {
     const code = firstCodingLabel(resource.code)
     const interpretation = resource.interpretation?.map((concept) => codingListLabel(concept)).join(', ') ?? 'none'
@@ -210,6 +218,24 @@ function normalizeClinicalResource(resource: SupportedClinicalResource): string 
       `status=${resource.status ?? 'unknown'}`,
       `dosage=${resource.dosage?.[0]?.text ?? 'unknown'}`,
       `effectivePeriod=${effectivePeriodSummary(resource.effectivePeriod)}`,
+      `provenance=${provenance(resource)}`,
+    ].join(' | ')
+  }
+
+  if (resource.resourceType === 'DocumentReference') {
+    const firstAttachment = resource.content?.[0]?.attachment
+    const attachmentTextExcerpt = await decodeDocumentAttachmentText(firstAttachment)
+    return [
+      'DocumentReference',
+      `type=${firstCodingLabel(resource.type, 'unknown')}`,
+      `category=${resource.category?.map((concept) => codingListLabel(concept)).join(', ') ?? 'none'}`,
+      `status=${resource.status ?? 'unknown'}`,
+      `docStatus=${resource.docStatus ?? 'unknown'}`,
+      `description=${resource.description ?? 'none'}`,
+      `attachmentTitle=${firstAttachment?.title ?? 'unknown'}`,
+      `attachmentMime=${firstAttachment?.contentType ?? 'unknown'}`,
+      `attachmentUrl=${firstAttachment?.url ?? 'none'}`,
+      `attachmentTextExcerpt=${attachmentTextExcerpt}`,
       `provenance=${provenance(resource)}`,
     ].join(' | ')
   }
@@ -384,7 +410,7 @@ function summarisePatient(patient: fhir4.Patient): string {
   return `Patient: ${name}, gender: ${gender}, birthDate: ${birthDate}`
 }
 
-function summariseClinicalEntries(context: fhir4.Bundle): string[] {
+async function summariseClinicalEntries(context: fhir4.Bundle): Promise<string[]> {
   const entries = context.entry ?? []
   const summary: string[] = []
 
@@ -393,7 +419,7 @@ function summariseClinicalEntries(context: fhir4.Bundle): string[] {
     if (!resource) continue
 
     if (isSupportedClinicalResource(resource)) {
-      summary.push(normalizeClinicalResource(resource))
+      summary.push(await normalizeClinicalResource(resource))
     }
   }
 
@@ -408,11 +434,11 @@ function summariseAdditionalEntries(context: fhir4.Bundle): fhir4.FhirResource[]
     .filter(shouldIncludeAdditionalResource)
 }
 
-export function buildRecommendationPrompt(
+export async function buildRecommendationPrompt(
   item: fhir4.QuestionnaireItem,
   context: fhir4.Bundle,
   questionnaire?: fhir4.Questionnaire
-): string {
+): Promise<string> {
   const itemText = item.text ?? 'Unknown questionnaire item'
   const linkId = item.linkId
   const itemType = item.type
@@ -432,7 +458,7 @@ export function buildRecommendationPrompt(
     ? summarisePatient(patient)
     : 'Patient demographics: not available in the provided context bundle.'
 
-  const clinicalEntries = summariseClinicalEntries(context)
+  const clinicalEntries = await summariseClinicalEntries(context)
   const clinicalSummary =
     clinicalEntries.length > 0
       ? `Relevant normalized clinical entries:\n- ${clinicalEntries.join('\n- ')}`
