@@ -64,6 +64,7 @@ const ApplyForm = ({
   const [selectedPatientSummary, setSelectedPatientSummary] = useState<
     PatientSummary | undefined
   >()
+  const selectedPatientPreviewRef = useRef<HTMLDivElement | null>(null)
   const endpointsRef = useRef<EndpointsConfigurationHandle>(null)
   const [capturedEndpointsConfig, setCapturedEndpointsConfig] = useState<
     EndpointsConfig | undefined
@@ -181,6 +182,20 @@ const ApplyForm = ({
     setDataPayload(nextDataPayload)
     setPatientSubject(subject)
     setSelectedPatientSummary(summary)
+
+    const scrollToPreview = () => {
+      selectedPatientPreviewRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      })
+    }
+
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(scrollToPreview)
+      return
+    }
+
+    setTimeout(scrollToPreview, 0)
   }
   const handleClearSelectedPatient = () => {
     setDataPayload(undefined)
@@ -407,12 +422,14 @@ const ApplyForm = ({
               onPatientSelect={handlePatientSelect}
             />
 
-            <SelectedPatientPreviewCard
-              subject={patientSubject}
-              dataPayload={dataPayload}
-              selectedPatient={selectedPatientSummary}
-              onClear={handleClearSelectedPatient}
-            />
+            <div ref={selectedPatientPreviewRef}>
+              <SelectedPatientPreviewCard
+                subject={patientSubject}
+                dataPayload={dataPayload}
+                selectedPatient={selectedPatientSummary}
+                onClear={handleClearSelectedPatient}
+              />
+            </div>
           </Form.Item>
 
           <Form.Item className="button-group">

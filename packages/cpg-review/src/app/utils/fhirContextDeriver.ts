@@ -24,6 +24,10 @@ export interface DerivedContext {
   conditions: fhir4.Condition[]
   /** Observation resources whose subject matches the patient. */
   observations: fhir4.Observation[]
+  /** DiagnosticReport resources whose subject matches the patient. */
+  diagnosticReports: fhir4.DiagnosticReport[]
+  /** DocumentReference resources whose subject matches the patient. */
+  documentReferences: fhir4.DocumentReference[]
 }
 
 /**
@@ -373,7 +377,8 @@ export function matchesSubjectReference(
  * 1. Normalizes bundle entries, filtering out those without a resource.
  * 2. Builds a complete patient reference set using `buildPatientReferenceSet`.
  * 3. Locates the Patient resource whose `id` matches `subject.id`.
- * 4. Filters MedicationRequest, MedicationStatement, Condition, and Observation resources
+ * 4. Filters MedicationRequest, MedicationStatement, Condition, Observation, DiagnosticReport,
+ *    and DocumentReference resources
  *    to only those whose `subject` reference resolves to the target patient.
  *
  * @param bundle - The FHIR Bundle to traverse, or `undefined`.
@@ -434,10 +439,24 @@ export function deriveContext(
       matchesSubjectReference(resource.subject, patientReferenceSet)
   )
 
+  const diagnosticReports = resources.filter(
+    (resource): resource is fhir4.DiagnosticReport =>
+      resource?.resourceType === 'DiagnosticReport' &&
+      matchesSubjectReference(resource.subject, patientReferenceSet)
+  )
+
+  const documentReferences = resources.filter(
+    (resource): resource is fhir4.DocumentReference =>
+      resource?.resourceType === 'DocumentReference' &&
+      matchesSubjectReference(resource.subject, patientReferenceSet)
+  )
+
   return {
     patient,
     medications,
     conditions,
     observations,
+    diagnosticReports,
+    documentReferences,
   }
 }

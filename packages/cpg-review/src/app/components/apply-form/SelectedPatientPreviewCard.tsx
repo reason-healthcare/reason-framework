@@ -1,13 +1,15 @@
 import {
   DownOutlined,
   FileTextOutlined,
+  FileSearchOutlined,
   HeartOutlined,
   LineChartOutlined,
   MedicineBoxOutlined,
+  ReadOutlined,
   UpOutlined,
   UserOutlined,
 } from '@ant-design/icons'
-import { Typography } from 'antd'
+import { Modal, Typography } from 'antd'
 import { useState } from 'react'
 import { formatProperty, notEmpty } from 'helpers'
 import {
@@ -26,6 +28,46 @@ import {
 const { Text } = Typography
 
 const META = ['id', 'text', 'meta']
+
+function codeableText(codeableConcept?: fhir4.CodeableConcept): string {
+  return (
+    codeableConcept?.text ??
+    codeableConcept?.coding?.[0]?.display ??
+    codeableConcept?.coding?.[0]?.code ??
+    'Unknown'
+  )
+}
+
+function toDateLabel(value?: string): string {
+  if (!value) return 'Unknown'
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) return value
+  return parsed.toLocaleString()
+}
+
+function decodeBase64ToText(base64Data: string): string | undefined {
+  try {
+    if (typeof atob !== 'function') return undefined
+    return atob(base64Data)
+  } catch {
+    return undefined
+  }
+}
+
+function isTextLikeMime(mimeType: string): boolean {
+  const lower = mimeType.toLowerCase()
+  return (
+    lower.startsWith('text/') ||
+    lower === 'application/json' ||
+    lower === 'application/xml' ||
+    lower === 'application/fhir+json' ||
+    lower === 'application/fhir+xml'
+  )
+}
+
+function stripHtml(value: string): string {
+  return value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+}
 
 interface SelectedPatientPreviewCardProps {
   subject: ResourceIdentifier | undefined
@@ -53,7 +95,14 @@ const SelectedPatientPreviewCard = ({
   if (!subject) return null
 
   const bundle = parseBundle(dataPayload)
-  const { patient, medications, conditions, observations } = deriveContext(
+  const {
+    patient,
+    medications,
+    conditions,
+    observations,
+    diagnosticReports,
+    documentReferences,
+  } = deriveContext(
     bundle,
     subject
   )
@@ -71,8 +120,16 @@ const SelectedPatientPreviewCard = ({
   const summary = selectedPatient ?? fallbackSummary
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [activeSection, setActiveSection] = useState<
-    'overview' | 'medications' | 'conditions' | 'observations' | 'raw-json'
+    | 'overview'
+    | 'medications'
+    | 'conditions'
+    | 'observations'
+    | 'diagnostic-reports'
+    | 'documents'
+    | 'raw-json'
   >('overview')
+  const [activeDocumentIndex, setActiveDocumentIndex] = useState(0)
+  const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false)
   const rawFhirPayload = parseRawJson(selectedPatient?.json || dataPayload)
   const isEndpointSelected = summary?.source === 'endpoint'
 
@@ -87,6 +144,31 @@ const SelectedPatientPreviewCard = ({
   const observationsEmptyState = isEndpointSelected
     ? 'Observation data is not loaded for endpoint-selected patients in this selection.'
     : 'No observations available for this patient context.'
+
+  const reportsEmptyState = isEndpointSelected
+    ? 'Diagnostic report data is not loaded for endpoint-selected patients in this selection.'
+    : 'No diagnostic reports available for this patient context.'
+
+  const documentsEmptyState = isEndpointSelected
+    ? 'Document references are not loaded for endpoint-selected patients in this selection.'
+    : 'No document references available for this patient context.'
+
+  const activeDocument =
+    documentReferences.length > 0
+      ? documentReferences[Math.min(activeDocumentIndex, documentReferences.length - 1)]
+      : undefined
+  const activeAttachment = activeDocument?.content?.[0]?.attachment
+  const activeMimeType = activeAttachment?.contentType ?? ''
+  const decodedDocumentText = activeAttachment?.data
+    ? decodeBase64ToText(activeAttachment.data)
+    : undefined
+  const documentDataUrl =
+    activeAttachment?.data && activeMimeType
+      ? `data:${activeMimeType};base64,${activeAttachment.data}`
+      : undefined
+  const canRenderPdf = activeMimeType.toLowerCase() === 'application/pdf'
+  const canRenderText = Boolean(decodedDocumentText && isTextLikeMime(activeMimeType))
+  const canRenderHtml = Boolean(decodedDocumentText && activeMimeType.toLowerCase().includes('html'))
   const fullName = summary?.name || `Patient/${subject.id}`
   const mrn = mrnValue(patient)
   const address = formatAddress(patient)
@@ -166,6 +248,16 @@ const SelectedPatientPreviewCard = ({
                   icon: <LineChartOutlined />,
                 },
                 {
+                  value: 'diagnostic-reports' as const,
+                  label: 'Diagnostic Reports',
+                  icon: <FileSearchOutlined />,
+                },
+                {
+                  value: 'documents' as const,
+                  label: 'Documents',
+                  icon: <ReadOutlined />,
+                },
+                {
                   value: 'raw-json' as const,
                   label: 'Raw JSON',
                   icon: <FileTextOutlined />,
@@ -181,7 +273,12 @@ const SelectedPatientPreviewCard = ({
                     className={`selected-patient-tab ${
                       isActive ? 'selected-patient-tab-active' : ''
                     }`}
-                    onClick={() => setActiveSection(section.value)}
+                    onClick={() => {
+                      setActiveSection(section.value)
+                      if (section.value === 'documents') {
+                        setActiveDocumentIndex(0)
+                      }
+                    }}
                   >
                     <span className="selected-patient-tab-label">
                       {section.icon} {section.label}
@@ -298,6 +395,57 @@ const SelectedPatientPreviewCard = ({
               </div>
             ))}
 
+          {activeSection === 'diagnostic-reports' &&
+            (diagnosticReports.length === 0 ? (
+              <Text type="secondary">{reportsEmptyState}</Text>
+            ) : (
+              <div className="selected-patient-resource-list">
+                {diagnosticReports.map((report) => (
+                  <div
+                    key={report.id ?? report.identifier?.[0]?.value ?? report.code?.text ?? 'diagnostic-report'}
+                    className="selected-patient-resource-row"
+                  >
+                    {renderResourceProperties(report)}
+                  </div>
+                ))}
+              </div>
+            ))}
+
+          {activeSection === 'documents' &&
+            (documentReferences.length === 0 ? (
+              <Text type="secondary">{documentsEmptyState}</Text>
+            ) : (
+              <div className="selected-patient-document-layout">
+                <div className="selected-patient-document-list" role="tablist" aria-label="Document references">
+                  {documentReferences.map((doc, index) => {
+                    const isActive = index === activeDocumentIndex
+                    const attachment = doc.content?.[0]?.attachment
+                    return (
+                      <button
+                        key={doc.id ?? `${index}`}
+                        type="button"
+                        role="tab"
+                        aria-selected={isActive}
+                        className={`selected-patient-document-item ${
+                          isActive ? 'selected-patient-document-item-active' : ''
+                        }`}
+                        onClick={() => {
+                          setActiveDocumentIndex(index)
+                          setIsDocumentModalOpen(true)
+                        }}
+                      >
+                        <Text strong>{doc.description ?? codeableText(doc.type)}</Text>
+                        <Text type="secondary">
+                          {toDateLabel(doc.date ?? attachment?.creation)}
+                        </Text>
+                        <Text type="secondary">{attachment?.contentType ?? 'unknown mime'}</Text>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+
           {activeSection === 'raw-json' && (
             <pre className="selected-patient-raw-json">
               {rawFhirPayload == null
@@ -305,6 +453,51 @@ const SelectedPatientPreviewCard = ({
                 : JSON.stringify(rawFhirPayload, null, 2)}
             </pre>
           )}
+
+          <Modal
+            title={activeDocument?.description ?? codeableText(activeDocument?.type)}
+            open={isDocumentModalOpen}
+            onCancel={() => setIsDocumentModalOpen(false)}
+            footer={null}
+            width={960}
+            destroyOnHidden
+          >
+            <div className="selected-patient-document-viewer selected-patient-document-modal-viewer">
+              <Text type="secondary">
+                {activeAttachment?.title ?? activeAttachment?.url ?? 'No attachment metadata'}
+              </Text>
+
+              {canRenderPdf && documentDataUrl && (
+                <iframe
+                  title="Document PDF preview"
+                  src={documentDataUrl}
+                  className="selected-patient-document-frame"
+                />
+              )}
+
+              {canRenderHtml && decodedDocumentText && (
+                <iframe
+                  title="Document HTML preview"
+                  srcDoc={decodedDocumentText}
+                  className="selected-patient-document-frame"
+                />
+              )}
+
+              {canRenderText && decodedDocumentText && !canRenderHtml && (
+                <pre className="selected-patient-document-text">{decodedDocumentText}</pre>
+              )}
+
+              {!canRenderPdf && !canRenderHtml && !canRenderText && activeAttachment?.url && (
+                <a href={activeAttachment.url} target="_blank" rel="noreferrer">
+                  Open attachment URL
+                </a>
+              )}
+
+              {!canRenderPdf && !canRenderHtml && !canRenderText && !activeAttachment?.url && (
+                <Text type="secondary">No inline preview available for this attachment.</Text>
+              )}
+            </div>
+          </Modal>
         </div>
       )}
     </div>
