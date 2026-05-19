@@ -69,6 +69,49 @@
   gap: 0.5rem;
 }
 
+.questionnaire-inline-recommendation {
+  margin: 0.6rem 0 0.85rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid #d7ebe8;
+  border-radius: 10px;
+  background: #f3fbfa;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.questionnaire-inline-recommendation-loading {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.questionnaire-inline-recommendation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.questionnaire-inline-recommendation-label {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.questionnaire-inline-recommendation-answer {
+  font-size: 0.98rem;
+}
+
+.questionnaire-inline-recommendation-rationale.ant-typography {
+  margin: 0;
+}
+
+.questionnaire-inline-recommendation-note {
+  font-size: 0.8rem;
+}
+
 /* Patient list item hover */
 .ant-list .patient-list-item:hover,
 .ant-list .patient-list-item:focus-visible {

@@ -1,6 +1,7 @@
-import { Card, Spin, Tag, Typography } from 'antd'
+import { Spin, Tag, Typography } from 'antd'
 import { LoadingOutlined } from '@ant-design/icons'
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   RecommendationBatchResponse,
   RecommendationResponse,
@@ -48,6 +49,49 @@ interface RecommendationPanelProps {
   context: fhir4.Bundle
 }
 
+function InlineRecommendation({ state }: { state: ItemState }) {
+  if (state.status === 'loading') {
+    return (
+      <div className="questionnaire-inline-recommendation questionnaire-inline-recommendation-loading">
+        <Spin indicator={<LoadingOutlined spin />} size="small" />
+        <Text type="secondary">Generating recommendation...</Text>
+      </div>
+    )
+  }
+
+  if (state.status === 'error') {
+    return (
+      <div className="questionnaire-inline-recommendation">
+        <Text type="secondary">Recommendation unavailable</Text>
+      </div>
+    )
+  }
+
+  return (
+    <div className="questionnaire-inline-recommendation">
+      <div className="questionnaire-inline-recommendation-header">
+        <Text type="secondary" className="questionnaire-inline-recommendation-label">
+          Guidance
+        </Text>
+        <Tag
+          color={state.data.confidence < LOW_CONFIDENCE_THRESHOLD ? 'warning' : 'success'}
+        >
+          {Math.round(state.data.confidence * 100)}% confidence
+        </Tag>
+      </div>
+      <Text strong className="questionnaire-inline-recommendation-answer">
+        {state.data.recommendedAnswer}
+      </Text>
+      <Paragraph className="questionnaire-inline-recommendation-rationale" type="secondary">
+        {state.data.rationale}
+      </Paragraph>
+      <Text type="secondary" className="questionnaire-inline-recommendation-note">
+        AI can make mistakes. Review before applying.
+      </Text>
+    </div>
+  )
+}
+
 const RecommendationPanel = ({ questionnaire, context }: RecommendationPanelProps) => {
   const eligibleItems = useMemo(
     () => flattenEligibleItems(questionnaire.item ?? []),
@@ -57,11 +101,47 @@ const RecommendationPanel = ({ questionnaire, context }: RecommendationPanelProp
   const [itemStates, setItemStates] = useState<Record<string, ItemState>>(() =>
     Object.fromEntries(eligibleItems.map((item) => [item.linkId, { status: 'loading' }]))
   )
+  const [itemContainers, setItemContainers] = useState<Record<string, HTMLElement>>({})
 
   useEffect(() => {
     setItemStates(
       Object.fromEntries(eligibleItems.map((item) => [item.linkId, { status: 'loading' }]))
     )
+  }, [eligibleItems, questionnaire.id])
+
+  useEffect(() => {
+    if (typeof document === 'undefined' || eligibleItems.length === 0) {
+      setItemContainers({})
+      return
+    }
+
+    const syncContainers = () => {
+      const nodes = Array.from(document.querySelectorAll<HTMLElement>('[data-linkid]'))
+      const nextEntries = eligibleItems.flatMap((item) => {
+        const container = nodes.find((node) => node.dataset.linkid === item.linkId)
+        return container ? [[item.linkId, container] as const] : []
+      })
+      const next = Object.fromEntries(nextEntries)
+
+      setItemContainers((prev) => {
+        const prevEntries = Object.entries(prev)
+        if (
+          prevEntries.length === nextEntries.length &&
+          prevEntries.every(([linkId, node]) => next[linkId] === node)
+        ) {
+          return prev
+        }
+
+        return next
+      })
+    }
+
+    syncContainers()
+
+    const observer = new MutationObserver(syncContainers)
+    observer.observe(document.body, { childList: true, subtree: true })
+
+    return () => observer.disconnect()
   }, [eligibleItems, questionnaire.id])
 
   useEffect(() => {
@@ -113,51 +193,18 @@ const RecommendationPanel = ({ questionnaire, context }: RecommendationPanelProp
   if (eligibleItems.length === 0) return null
 
   return (
-    <div style={{ marginTop: '1.5rem' }}>
-      <Text strong style={{ fontSize: '1rem', display: 'block', marginBottom: '0.75rem' }}>
-        Questionnaire Recommendations
-      </Text>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        {eligibleItems.map((item) => {
-          const state = itemStates[item.linkId] ?? { status: 'loading' }
-          return (
-            <Card
-              key={item.linkId}
-              size="small"
-              title={<Text>{item.text ?? item.linkId}</Text>}
-              styles={{ body: { padding: '0.75rem 1rem' } }}
-            >
-              {state.status === 'loading' && (
-                <Spin indicator={<LoadingOutlined spin />} size="small" />
-              )}
+    <>
+      {eligibleItems.map((item) => {
+        const container = itemContainers[item.linkId]
+        if (!container) {
+          return null
+        }
 
-              {state.status === 'error' && (
-                <Text type="secondary">Recommendation unavailable</Text>
-              )}
+        const state = itemStates[item.linkId] ?? { status: 'loading' }
 
-              {state.status === 'success' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    <Text strong>{state.data.recommendedAnswer}</Text>
-                    <Tag
-                      color={state.data.confidence < LOW_CONFIDENCE_THRESHOLD ? 'warning' : 'success'}
-                    >
-                      {Math.round(state.data.confidence * 100)}% confidence
-                    </Tag>
-                  </div>
-                  <Paragraph
-                    style={{ margin: 0 }}
-                    type="secondary"
-                  >
-                    {state.data.rationale}
-                  </Paragraph>
-                </div>
-              )}
-            </Card>
-          )
-        })}
-      </div>
-    </div>
+        return createPortal(<InlineRecommendation state={state} />, container, item.linkId)
+      })}
+    </>
   )
 }
 

@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import RecommendationPanel from 'components/apply-form/RecommendationPanel'
 
 const QUESTIONNAIRE: fhir4.Questionnaire = {
@@ -25,6 +25,34 @@ function mockBatchFetch(recommendations: Record<string, object>) {
   } as Response)
 }
 
+function flattenEligibleItems(items: fhir4.QuestionnaireItem[] = []): fhir4.QuestionnaireItem[] {
+  return items.flatMap((item) => {
+    const nestedItems = flattenEligibleItems(item.item ?? [])
+
+    if (item.type === 'display' || item.type === 'group') {
+      return nestedItems
+    }
+
+    return [item, ...nestedItems]
+  })
+}
+
+function renderWithRecommendationAnchors(
+  questionnaire: fhir4.Questionnaire,
+  context: fhir4.Bundle = CONTEXT
+) {
+  const eligibleItems = flattenEligibleItems(questionnaire.item ?? [])
+
+  return render(
+    <>
+      {eligibleItems.map((item) => (
+        <div key={item.linkId} data-linkid={item.linkId} />
+      ))}
+      <RecommendationPanel questionnaire={questionnaire} context={context} />
+    </>
+  )
+}
+
 afterEach(() => {
   jest.resetAllMocks()
 })
@@ -35,13 +63,17 @@ describe('RecommendationPanel', () => {
       '1': { recommendedAnswer: '42', rationale: 'Based on clinical data.', confidence: 0.8 },
     })
 
-    render(<RecommendationPanel questionnaire={QUESTIONNAIRE} context={CONTEXT} />)
+    renderWithRecommendationAnchors(QUESTIONNAIRE)
 
     await waitFor(() => {
       expect(screen.getByText('42')).toBeInTheDocument()
       expect(screen.getByText('Based on clinical data.')).toBeInTheDocument()
       expect(screen.getByText('80% confidence')).toBeInTheDocument()
     })
+
+    const questionContainer = document.querySelector('[data-linkid="1"]')
+    expect(questionContainer).not.toBeNull()
+    expect(within(questionContainer as HTMLElement).getByText('42')).toBeInTheDocument()
 
     const firstCallArgs = (global.fetch as jest.Mock).mock.calls[0]
     const requestBody = JSON.parse(firstCallArgs[1].body as string)
@@ -62,7 +94,7 @@ describe('RecommendationPanel', () => {
       },
     })
 
-    render(<RecommendationPanel questionnaire={QUESTIONNAIRE} context={CONTEXT} />)
+    renderWithRecommendationAnchors(QUESTIONNAIRE)
 
     await waitFor(() => {
       expect(screen.getByText('Recommendation unavailable')).toBeInTheDocument()
@@ -81,9 +113,7 @@ describe('RecommendationPanel', () => {
     }
     global.fetch = jest.fn()
 
-    const { container } = render(
-      <RecommendationPanel questionnaire={displayOnlyQuestionnaire} context={CONTEXT} />
-    )
+    const { container } = renderWithRecommendationAnchors(displayOnlyQuestionnaire)
 
     expect(container.firstChild).toBeNull()
     expect(global.fetch).not.toHaveBeenCalled()
@@ -118,7 +148,7 @@ describe('RecommendationPanel', () => {
       ],
     }
 
-    render(<RecommendationPanel questionnaire={nestedQuestionnaire} context={CONTEXT} />)
+    renderWithRecommendationAnchors(nestedQuestionnaire)
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledTimes(1)
@@ -132,7 +162,7 @@ describe('RecommendationPanel', () => {
       '1': { recommendedAnswer: 'Maybe', rationale: 'Uncertain.', confidence: 0.3 },
     })
 
-    render(<RecommendationPanel questionnaire={QUESTIONNAIRE} context={CONTEXT} />)
+    renderWithRecommendationAnchors(QUESTIONNAIRE)
 
     await waitFor(() => {
       expect(screen.getByText('30% confidence')).toBeInTheDocument()
@@ -176,7 +206,7 @@ describe('RecommendationPanel', () => {
         }),
       } as Response)
 
-    render(<RecommendationPanel questionnaire={multiItemQuestionnaire} context={CONTEXT} />)
+    renderWithRecommendationAnchors(multiItemQuestionnaire)
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledTimes(2)
