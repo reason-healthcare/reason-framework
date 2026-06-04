@@ -28,17 +28,6 @@ const EMPTY_RECOMMENDATION_CONTEXT: fhir4.Bundle = {
   entry: [],
 }
 
-const getQuestionnaireCanonical = (questionnaire: fhir4.Questionnaire) => {
-  if (questionnaire.url != null) {
-    return questionnaire.url
-  }
-
-  const fallbackUrl = `http://example.org/Questionnaire/${questionnaire.id}`
-  return questionnaire.version != null
-    ? `${fallbackUrl}|${questionnaire.version}`
-    : fallbackUrl
-}
-
 interface ApplyFormProps {
   resolver?: BrowserResolver | undefined
   planDefinition: fhir4.PlanDefinition
@@ -245,7 +234,6 @@ const ApplyForm = ({
         if (!is.Bundle(bundle)) {
           throw new Error('Resource does not appear to be a FHIR bundle')
         }
-        console.log('Apply response bundle', bundle)
         setRequestsBundle(bundle)
         // Find QuestionnaireResponse
         const questionnaireResponseEntry = bundle.entry?.find(
@@ -333,7 +321,7 @@ const ApplyForm = ({
   }
 
   const handleQuestionnaireSubmit = async (
-    response: fhir4.QuestionnaireResponse
+    questionnaireResponse: fhir4.QuestionnaireResponse
   ) => {
     setIsApplied(false)
     const dataPayloadParsed = parseDataPayload(dataPayload)
@@ -349,15 +337,7 @@ const ApplyForm = ({
         entry.resource?.resourceType !== 'Questionnaire'
     )
 
-    // Ensure QuestionnaireResponse.questionnaire references match the Questionnaire URL
-    const questionnaireUrl = questionnaire
-      ? getQuestionnaireCanonical(questionnaire)
-      : response.questionnaire
 
-    const updatedResponse: fhir4.QuestionnaireResponse = {
-      ...response,
-      questionnaire: questionnaireUrl,
-    }
 
     const dataWithQr = {
       ...baseBundle,
@@ -366,7 +346,7 @@ const ApplyForm = ({
         ...(questionnaire != null
           ? [
               {
-                fullUrl: getQuestionnaireCanonical(questionnaire),
+                fullUrl: questionnaire.url,
                 resource: questionnaire,
               },
             ]
@@ -374,7 +354,7 @@ const ApplyForm = ({
         {
           fullUrl:
             'http://example.org/QuestionnaireResponse/questionnaireResponseTemp',
-          resource: updatedResponse,
+          resource: questionnaireResponse,
         },
       ],
     }

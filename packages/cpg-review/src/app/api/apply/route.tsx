@@ -20,35 +20,6 @@ const getQuestionnaireCanonical = (questionnaire: fhir4.Questionnaire) => {
     : fallbackUrl
 }
 
-const mergeQuestionnaireIntoDataPayload = (
-  dataPayload: fhir4.Bundle | undefined,
-  questionnaire: fhir4.Questionnaire | undefined
-): fhir4.Bundle | undefined => {
-  if (questionnaire == null) {
-    return dataPayload
-  }
-
-  const questionnaireCanonical = getQuestionnaireCanonical(questionnaire)
-  const baseBundle =
-    dataPayload != null
-      ? dataPayload
-      : ({ resourceType: 'Bundle', type: 'collection', entry: [] } as fhir4.Bundle)
-
-  const filteredEntries = (baseBundle.entry ?? []).filter(
-    (entry) => entry.resource?.resourceType !== 'Questionnaire'
-  )
-
-  return {
-    ...baseBundle,
-    entry: [
-      ...filteredEntries,
-      {
-        fullUrl: questionnaireCanonical,
-        resource: questionnaire,
-      },
-    ],
-  }
-}
 
 export interface ApplyPayload {
   dataPayload: fhir4.Bundle | undefined
@@ -72,14 +43,8 @@ export async function POST(req: NextRequest) {
     planDefinition,
     questionnaire,
   } = (await req.json()) as ApplyPayload
-  const dataPayloadWithQuestionnaire = mergeQuestionnaireIntoDataPayload(
-    dataPayload,
-    questionnaire
-  )
   if (questionnaire != null) {
     const questionnaireCanonical = getQuestionnaireCanonical(questionnaire)
-    console.log('questionnaire full url', questionnaireCanonical)
-    console.log('questionnaire url', questionnaire.url)
     const bundle: fhir4.Bundle = {
       resourceType: 'Bundle',
       type: 'transaction',
@@ -106,16 +71,6 @@ export async function POST(req: NextRequest) {
       console.log('Unable to post questionnaire')
     }
   }
-  console.log(
-    'data',
-    dataPayloadWithQuestionnaire?.entry?.map((e) => e.resource?.resourceType)
-  )
-  console.log(
-    'questionnaire response submitted',
-    dataPayloadWithQuestionnaire?.entry?.find(
-      (e) => e.resource?.resourceType === 'QuestionnaireResponse'
-    )?.resource?.questionnaire
-  )
   const parameters: fhir4.Parameters = {
     resourceType: 'Parameters',
     parameter: [
@@ -123,8 +78,8 @@ export async function POST(req: NextRequest) {
         name: 'planDefinition',
         resource: planDefinition,
       },
-      ...(dataPayloadWithQuestionnaire != null
-        ? [{ name: 'data', resource: dataPayloadWithQuestionnaire }]
+      ...(dataPayload != null
+        ? [{ name: 'data', resource: dataPayload }]
         : []),
       {
         name: 'subject',
