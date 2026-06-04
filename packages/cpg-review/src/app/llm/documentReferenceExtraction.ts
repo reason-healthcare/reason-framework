@@ -36,8 +36,22 @@ type PdfExtractResult =
 
 async function extractPdfTextWithPdfParse(buffer: Buffer): Promise<string | undefined> {
   const pdfParseModule = await import('pdf-parse')
-  const parsed = await pdfParseModule.default(buffer)
-  return parsed.text
+  const PDFParse = (pdfParseModule as { PDFParse?: unknown }).PDFParse
+  if (typeof PDFParse !== 'function') {
+    throw new Error('pdf-parse module does not expose the PDFParse API')
+  }
+
+  const parser = new (PDFParse as new (input: { data: Buffer }) => {
+    getText: () => Promise<{ text: string }>
+    destroy?: () => Promise<void> | void
+  })({ data: buffer })
+
+  try {
+    const parsed = await parser.getText()
+    return parsed.text
+  } finally {
+    await parser.destroy?.()
+  }
 }
 
 async function extractPdfTextWithPdfJs(buffer: Buffer): Promise<string | undefined> {

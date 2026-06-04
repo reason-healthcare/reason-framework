@@ -53,7 +53,10 @@ describe('decodeDocumentAttachmentText', () => {
   it('extracts text from PDF when parser succeeds', async () => {
     jest.doMock('pdf-parse', () => ({
       __esModule: true,
-      default: jest.fn().mockResolvedValue({ text: 'PDF extracted clinical summary' }),
+      PDFParse: jest.fn().mockImplementation(() => ({
+        getText: jest.fn().mockResolvedValue({ text: 'PDF extracted clinical summary' }),
+        destroy: jest.fn().mockResolvedValue(undefined),
+      })),
     }))
 
     const decodeDocumentAttachmentText = await loadExtractor()
@@ -69,7 +72,10 @@ describe('decodeDocumentAttachmentText', () => {
   it('returns PDF fallback message when parser fails', async () => {
     jest.doMock('pdf-parse', () => ({
       __esModule: true,
-      default: jest.fn().mockRejectedValue(new Error('parse failed')),
+      PDFParse: jest.fn().mockImplementation(() => ({
+        getText: jest.fn().mockRejectedValue(new Error('parse failed')),
+        destroy: jest.fn().mockResolvedValue(undefined),
+      })),
     }))
     jest.doMock('pdfjs-dist/legacy/build/pdf.mjs', () => ({
       getDocument: jest.fn(() => ({
@@ -90,7 +96,10 @@ describe('decodeDocumentAttachmentText', () => {
   it('uses pdftotext CLI fallback when JS PDF parsers fail', async () => {
     jest.doMock('pdf-parse', () => ({
       __esModule: true,
-      default: jest.fn().mockRejectedValue(new Error('parse failed')),
+      PDFParse: jest.fn().mockImplementation(() => ({
+        getText: jest.fn().mockRejectedValue(new Error('parse failed')),
+        destroy: jest.fn().mockResolvedValue(undefined),
+      })),
     }))
     jest.doMock('pdfjs-dist/legacy/build/pdf.mjs', () => ({
       getDocument: jest.fn(() => ({
@@ -123,9 +132,10 @@ describe('decodeDocumentAttachmentText', () => {
     process.env.LLM_PROMPT_PDF_EXTRACT_TIMEOUT_MS = '1'
     jest.doMock('pdf-parse', () => ({
       __esModule: true,
-      default: jest.fn().mockImplementation(
-        () => new Promise(() => undefined)
-      ),
+      PDFParse: jest.fn().mockImplementation(() => ({
+        getText: jest.fn().mockImplementation(() => new Promise(() => undefined)),
+        destroy: jest.fn().mockResolvedValue(undefined),
+      })),
     }))
 
     const decodeDocumentAttachmentText = await loadExtractor()
