@@ -19,7 +19,6 @@
         "name": "next"
       }
     ],
-    "typeRoots": ["type", "node_modules/@types"],
     "baseUrl": "./src/app/",
     "paths": {
       "@/types/*": ["types/*"],
@@ -29,6 +28,12 @@
       "utils/*": ["utils/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "type/**/*.d.ts"
+  ],
   "exclude": ["node_modules"]
 }
