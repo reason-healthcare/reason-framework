@@ -9,6 +9,47 @@ const handleLocalHost = (url: string) => {
   return url
 }
 
+const getQuestionnaireCanonical = (questionnaire: fhir4.Questionnaire) => {
+  if (questionnaire.url != null) {
+    return questionnaire.url
+  }
+
+  const fallbackUrl = `http://example.org/Questionnaire/${questionnaire.id}`
+  return questionnaire.version != null
+    ? `${fallbackUrl}|${questionnaire.version}`
+    : fallbackUrl
+}
+
+const mergeQuestionnaireIntoDataPayload = (
+  dataPayload: fhir4.Bundle | undefined,
+  questionnaire: fhir4.Questionnaire | undefined
+): fhir4.Bundle | undefined => {
+  if (questionnaire == null) {
+    return dataPayload
+  }
+
+  const questionnaireCanonical = getQuestionnaireCanonical(questionnaire)
+  const baseBundle =
+    dataPayload != null
+      ? dataPayload
+      : ({ resourceType: 'Bundle', type: 'collection', entry: [] } as fhir4.Bundle)
+
+  const filteredEntries = (baseBundle.entry ?? []).filter(
+    (entry) => entry.resource?.resourceType !== 'Questionnaire'
+  )
+
+  return {
+    ...baseBundle,
+    entry: [
+      ...filteredEntries,
+      {
+        fullUrl: questionnaireCanonical,
+        resource: questionnaire,
+      },
+    ],
+  }
+}
+
 export interface ApplyPayload {
   dataPayload: fhir4.Bundle | undefined
   subjectPayload: string
@@ -31,13 +72,20 @@ export async function POST(req: NextRequest) {
     planDefinition,
     questionnaire,
   } = (await req.json()) as ApplyPayload
+  const dataPayloadWithQuestionnaire = mergeQuestionnaireIntoDataPayload(
+    dataPayload,
+    questionnaire
+  )
   if (questionnaire != null) {
+    const questionnaireCanonical = getQuestionnaireCanonical(questionnaire)
+    console.log('questionnaire full url', questionnaireCanonical)
+    console.log('questionnaire url', questionnaire.url)
     const bundle: fhir4.Bundle = {
       resourceType: 'Bundle',
       type: 'transaction',
       entry: [
         {
-          fullUrl: `http://example.org/Questionnaire/${questionnaire.id}/${questionnaire.version}`,
+          fullUrl: questionnaireCanonical,
           resource: questionnaire,
           request: { method: 'PUT', url: `Questionnaire/${questionnaire.id}` },
         },
@@ -51,10 +99,23 @@ export async function POST(req: NextRequest) {
         },
         body: JSON.stringify(bundle),
       })
+      console.log(response)
+      const responseBody = await response.text()
+      console.log(responseBody)
     } catch (e) {
       console.log('Unable to post questionnaire')
     }
   }
+  console.log(
+    'data',
+    dataPayloadWithQuestionnaire?.entry?.map((e) => e.resource?.resourceType)
+  )
+  console.log(
+    'questionnaire response submitted',
+    dataPayloadWithQuestionnaire?.entry?.find(
+      (e) => e.resource?.resourceType === 'QuestionnaireResponse'
+    )?.resource?.questionnaire
+  )
   const parameters: fhir4.Parameters = {
     resourceType: 'Parameters',
     parameter: [
@@ -62,7 +123,9 @@ export async function POST(req: NextRequest) {
         name: 'planDefinition',
         resource: planDefinition,
       },
-      ...(dataPayload != null ? [{ name: 'data', resource: dataPayload }] : []),
+      ...(dataPayloadWithQuestionnaire != null
+        ? [{ name: 'data', resource: dataPayloadWithQuestionnaire }]
+        : []),
       {
         name: 'subject',
         valueString: subjectPayload,

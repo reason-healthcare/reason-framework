@@ -28,6 +28,17 @@ const EMPTY_RECOMMENDATION_CONTEXT: fhir4.Bundle = {
   entry: [],
 }
 
+const getQuestionnaireCanonical = (questionnaire: fhir4.Questionnaire) => {
+  if (questionnaire.url != null) {
+    return questionnaire.url
+  }
+
+  const fallbackUrl = `http://example.org/Questionnaire/${questionnaire.id}`
+  return questionnaire.version != null
+    ? `${fallbackUrl}|${questionnaire.version}`
+    : fallbackUrl
+}
+
 interface ApplyFormProps {
   resolver?: BrowserResolver | undefined
   planDefinition: fhir4.PlanDefinition
@@ -332,13 +343,15 @@ const ApplyForm = ({
       ? dataPayloadParsed
       : { resourceType: 'Bundle', type: 'collection', entry: [] }
 
-    const entriesWithoutQuestionnaireResponse = (baseBundle.entry ?? []).filter(
-      (entry) => entry.resource?.resourceType !== 'QuestionnaireResponse'
+    const entriesWithoutQuestionnaireArtifacts = (baseBundle.entry ?? []).filter(
+      (entry) =>
+        entry.resource?.resourceType !== 'QuestionnaireResponse' &&
+        entry.resource?.resourceType !== 'Questionnaire'
     )
 
     // Ensure QuestionnaireResponse.questionnaire references match the Questionnaire URL
     const questionnaireUrl = questionnaire
-      ? `http://example.org/Questionnaire/${questionnaire.id}/${questionnaire.version}`
+      ? getQuestionnaireCanonical(questionnaire)
       : response.questionnaire
 
     const updatedResponse: fhir4.QuestionnaireResponse = {
@@ -349,7 +362,15 @@ const ApplyForm = ({
     const dataWithQr = {
       ...baseBundle,
       entry: [
-        ...entriesWithoutQuestionnaireResponse,
+        ...entriesWithoutQuestionnaireArtifacts,
+        ...(questionnaire != null
+          ? [
+              {
+                fullUrl: getQuestionnaireCanonical(questionnaire),
+                resource: questionnaire,
+              },
+            ]
+          : []),
         {
           fullUrl:
             'http://example.org/QuestionnaireResponse/questionnaireResponseTemp',

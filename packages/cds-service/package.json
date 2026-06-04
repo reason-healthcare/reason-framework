@@ -24,7 +24,7 @@
     "ts-node": "^10.9.1"
   },
   "dependencies": {
-    "@fastify/cors": "^8.2.0",
+    "@fastify/cors": "^11.2.0",
     "@reason-framework/cpg-execution": "0.0.1-alpha",
     "fastify": "^5.8.4",
     "smart-typescript-support": "^0.0.3"
