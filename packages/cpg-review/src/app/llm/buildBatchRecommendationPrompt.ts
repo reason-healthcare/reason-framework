@@ -493,5 +493,7 @@ export async function buildBatchRecommendationPrompt(
     '{"recommendations":{"<linkId>":{"recommendedAnswer":"string","rationale":"string","confidence":0.0}}}',
     'Include one entry for each input linkId.',
     'Confidence must be a number between 0.0 and 1.0.',
+    'Treat 1.0 as exceptional: use it only when the provided context directly and unambiguously supports the answer with no meaningful uncertainty.',
+    'Most recommendations should be below 1.0. Prefer lower confidence when evidence is sparse, indirect, conflicting, outdated, or inferred.',
   ].join('\n\n')
 }

@@ -40,6 +40,8 @@ describe('buildRecommendationPrompt', () => {
 
     expect(prompt).toContain('No fixed answer options are provided')
     expect(prompt).toContain('Respond ONLY as valid JSON')
+    expect(prompt).toContain('Treat 1.0 as exceptional')
+    expect(prompt).toContain('Most recommendations should be below 1.0')
   })
 
   it('handles an empty context bundle without throwing', async () => {
