@@ -66,7 +66,10 @@ function isTextLikeMime(mimeType: string): boolean {
 }
 
 function stripHtml(value: string): string {
-  return value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+  return value
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 interface SelectedPatientPreviewCardProps {
@@ -102,10 +105,7 @@ const SelectedPatientPreviewCard = ({
     observations,
     diagnosticReports,
     documentReferences,
-  } = deriveContext(
-    bundle,
-    subject
-  )
+  } = deriveContext(bundle, subject)
 
   const fallbackSummary: PatientSummary | undefined =
     patient && bundle
@@ -155,7 +155,9 @@ const SelectedPatientPreviewCard = ({
 
   const activeDocument =
     documentReferences.length > 0
-      ? documentReferences[Math.min(activeDocumentIndex, documentReferences.length - 1)]
+      ? documentReferences[
+          Math.min(activeDocumentIndex, documentReferences.length - 1)
+        ]
       : undefined
   const activeAttachment = activeDocument?.content?.[0]?.attachment
   const activeMimeType = activeAttachment?.contentType ?? ''
@@ -167,8 +169,12 @@ const SelectedPatientPreviewCard = ({
       ? `data:${activeMimeType};base64,${activeAttachment.data}`
       : undefined
   const canRenderPdf = activeMimeType.toLowerCase() === 'application/pdf'
-  const canRenderText = Boolean(decodedDocumentText && isTextLikeMime(activeMimeType))
-  const canRenderHtml = Boolean(decodedDocumentText && activeMimeType.toLowerCase().includes('html'))
+  const canRenderText = Boolean(
+    decodedDocumentText && isTextLikeMime(activeMimeType)
+  )
+  const canRenderHtml = Boolean(
+    decodedDocumentText && activeMimeType.toLowerCase().includes('html')
+  )
   const fullName = summary?.name || `Patient/${subject.id}`
   const mrn = mrnValue(patient)
   const address = formatAddress(patient)
@@ -402,7 +408,12 @@ const SelectedPatientPreviewCard = ({
               <div className="selected-patient-resource-list">
                 {diagnosticReports.map((report) => (
                   <div
-                    key={report.id ?? report.identifier?.[0]?.value ?? report.code?.text ?? 'diagnostic-report'}
+                    key={
+                      report.id ??
+                      report.identifier?.[0]?.value ??
+                      report.code?.text ??
+                      'diagnostic-report'
+                    }
                     className="selected-patient-resource-row"
                   >
                     {renderResourceProperties(report)}
@@ -416,7 +427,11 @@ const SelectedPatientPreviewCard = ({
               <Text type="secondary">{documentsEmptyState}</Text>
             ) : (
               <div className="selected-patient-document-layout">
-                <div className="selected-patient-document-list" role="tablist" aria-label="Document references">
+                <div
+                  className="selected-patient-document-list"
+                  role="tablist"
+                  aria-label="Document references"
+                >
                   {documentReferences.map((doc, index) => {
                     const isActive = index === activeDocumentIndex
                     const attachment = doc.content?.[0]?.attachment
@@ -427,18 +442,24 @@ const SelectedPatientPreviewCard = ({
                         role="tab"
                         aria-selected={isActive}
                         className={`selected-patient-document-item ${
-                          isActive ? 'selected-patient-document-item-active' : ''
+                          isActive
+                            ? 'selected-patient-document-item-active'
+                            : ''
                         }`}
                         onClick={() => {
                           setActiveDocumentIndex(index)
                           setIsDocumentModalOpen(true)
                         }}
                       >
-                        <Text strong>{doc.description ?? codeableText(doc.type)}</Text>
+                        <Text strong>
+                          {doc.description ?? codeableText(doc.type)}
+                        </Text>
                         <Text type="secondary">
                           {toDateLabel(doc.date ?? attachment?.creation)}
                         </Text>
-                        <Text type="secondary">{attachment?.contentType ?? 'unknown mime'}</Text>
+                        <Text type="secondary">
+                          {attachment?.contentType ?? 'unknown mime'}
+                        </Text>
                       </button>
                     )
                   })}
@@ -455,7 +476,9 @@ const SelectedPatientPreviewCard = ({
           )}
 
           <Modal
-            title={activeDocument?.description ?? codeableText(activeDocument?.type)}
+            title={
+              activeDocument?.description ?? codeableText(activeDocument?.type)
+            }
             open={isDocumentModalOpen}
             onCancel={() => setIsDocumentModalOpen(false)}
             footer={null}
@@ -464,7 +487,9 @@ const SelectedPatientPreviewCard = ({
           >
             <div className="selected-patient-document-viewer selected-patient-document-modal-viewer">
               <Text type="secondary">
-                {activeAttachment?.title ?? activeAttachment?.url ?? 'No attachment metadata'}
+                {activeAttachment?.title ??
+                  activeAttachment?.url ??
+                  'No attachment metadata'}
               </Text>
 
               {canRenderPdf && documentDataUrl && (
@@ -484,18 +509,32 @@ const SelectedPatientPreviewCard = ({
               )}
 
               {canRenderText && decodedDocumentText && !canRenderHtml && (
-                <pre className="selected-patient-document-text">{decodedDocumentText}</pre>
+                <pre className="selected-patient-document-text">
+                  {decodedDocumentText}
+                </pre>
               )}
 
-              {!canRenderPdf && !canRenderHtml && !canRenderText && activeAttachment?.url && (
-                <a href={activeAttachment.url} target="_blank" rel="noreferrer">
-                  Open attachment URL
-                </a>
-              )}
+              {!canRenderPdf &&
+                !canRenderHtml &&
+                !canRenderText &&
+                activeAttachment?.url && (
+                  <a
+                    href={activeAttachment.url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Open attachment URL
+                  </a>
+                )}
 
-              {!canRenderPdf && !canRenderHtml && !canRenderText && !activeAttachment?.url && (
-                <Text type="secondary">No inline preview available for this attachment.</Text>
-              )}
+              {!canRenderPdf &&
+                !canRenderHtml &&
+                !canRenderText &&
+                !activeAttachment?.url && (
+                  <Text type="secondary">
+                    No inline preview available for this attachment.
+                  </Text>
+                )}
             </div>
           </Modal>
         </div>

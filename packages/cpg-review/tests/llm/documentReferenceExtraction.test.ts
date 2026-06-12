@@ -21,7 +21,9 @@ describe('decodeDocumentAttachmentText', () => {
 
     const result = await decodeDocumentAttachmentText({
       contentType: 'text/plain',
-      data: Buffer.from('Patient feels better today.', 'utf8').toString('base64'),
+      data: Buffer.from('Patient feels better today.', 'utf8').toString(
+        'base64'
+      ),
     })
 
     expect(result).toContain('Patient feels better today.')
@@ -33,7 +35,10 @@ describe('decodeDocumentAttachmentText', () => {
 
     const result = await decodeDocumentAttachmentText({
       contentType: 'text/plain',
-      data: Buffer.from('this content is definitely longer than ten base64 chars', 'utf8').toString('base64'),
+      data: Buffer.from(
+        'this content is definitely longer than ten base64 chars',
+        'utf8'
+      ).toString('base64'),
     })
 
     expect(result).toContain('attachment omitted: exceeds max payload')
@@ -54,7 +59,9 @@ describe('decodeDocumentAttachmentText', () => {
     jest.doMock('pdf-parse', () => ({
       __esModule: true,
       PDFParse: jest.fn().mockImplementation(() => ({
-        getText: jest.fn().mockResolvedValue({ text: 'PDF extracted clinical summary' }),
+        getText: jest
+          .fn()
+          .mockResolvedValue({ text: 'PDF extracted clinical summary' }),
         destroy: jest.fn().mockResolvedValue(undefined),
       })),
     }))
@@ -90,7 +97,9 @@ describe('decodeDocumentAttachmentText', () => {
       data: Buffer.from('%PDF fake bytes', 'utf8').toString('base64'),
     })
 
-    expect(result).toBe('pdf attachment extraction failed (parser error or unsupported/scan-only PDF)')
+    expect(result).toBe(
+      'pdf attachment extraction failed (parser error or unsupported/scan-only PDF)'
+    )
   })
 
   it('uses pdftotext CLI fallback when JS PDF parsers fail', async () => {
@@ -133,7 +142,9 @@ describe('decodeDocumentAttachmentText', () => {
     jest.doMock('pdf-parse', () => ({
       __esModule: true,
       PDFParse: jest.fn().mockImplementation(() => ({
-        getText: jest.fn().mockImplementation(() => new Promise(() => undefined)),
+        getText: jest
+          .fn()
+          .mockImplementation(() => new Promise(() => undefined)),
         destroy: jest.fn().mockResolvedValue(undefined),
       })),
     }))

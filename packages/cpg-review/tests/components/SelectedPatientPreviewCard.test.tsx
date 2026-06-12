@@ -243,13 +243,19 @@ describe('SelectedPatientPreviewCard', () => {
     expect(screen.getByText('Status')).toBeInTheDocument()
     expect(screen.getByText('final')).toBeInTheDocument()
     expect(screen.getByText('Conclusion')).toBeInTheDocument()
-    expect(screen.getByText('Mild anemia suggested by low hemoglobin.')).toBeInTheDocument()
+    expect(
+      screen.getByText('Mild anemia suggested by low hemoglobin.')
+    ).toBeInTheDocument()
 
     await userEvent.click(screen.getByText('Documents'))
     expect(screen.getByText('Follow-up progress note')).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('tab', { name: /follow-up progress note/i }))
+    await userEvent.click(
+      screen.getByRole('tab', { name: /follow-up progress note/i })
+    )
     expect(screen.getByRole('dialog')).toBeInTheDocument()
-    expect(screen.getAllByText('Follow-up progress note').length).toBeGreaterThan(0)
+    expect(
+      screen.getAllByText('Follow-up progress note').length
+    ).toBeGreaterThan(0)
     expect(screen.getByText('progress-note.txt')).toBeInTheDocument()
     expect(
       screen.getByText('Patient reports improved energy and sleep.')
@@ -397,12 +403,16 @@ describe('SelectedPatientPreviewCard', () => {
 
     await userEvent.click(screen.getByText('Diagnostic Reports'))
     expect(
-      screen.getByText('No diagnostic reports available for this patient context.')
+      screen.getByText(
+        'No diagnostic reports available for this patient context.'
+      )
     ).toBeInTheDocument()
 
     await userEvent.click(screen.getByText('Documents'))
     expect(
-      screen.getByText('No document references available for this patient context.')
+      screen.getByText(
+        'No document references available for this patient context.'
+      )
     ).toBeInTheDocument()
   })
 
