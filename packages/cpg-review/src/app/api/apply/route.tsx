@@ -9,6 +9,18 @@ const handleLocalHost = (url: string) => {
   return url
 }
 
+const getQuestionnaireCanonical = (questionnaire: fhir4.Questionnaire) => {
+  if (questionnaire.url != null) {
+    return questionnaire.url
+  }
+
+  const fallbackUrl = `http://example.org/Questionnaire/${questionnaire.id}`
+  return questionnaire.version != null
+    ? `${fallbackUrl}|${questionnaire.version}`
+    : fallbackUrl
+}
+
+
 export interface ApplyPayload {
   dataPayload: fhir4.Bundle | undefined
   subjectPayload: string
@@ -32,12 +44,13 @@ export async function POST(req: NextRequest) {
     questionnaire,
   } = (await req.json()) as ApplyPayload
   if (questionnaire != null) {
+    const questionnaireCanonical = getQuestionnaireCanonical(questionnaire)
     const bundle: fhir4.Bundle = {
       resourceType: 'Bundle',
       type: 'transaction',
       entry: [
         {
-          fullUrl: `http://example.org/Questionnaire/${questionnaire.id}/${questionnaire.version}`,
+          fullUrl: questionnaireCanonical,
           resource: questionnaire,
           request: { method: 'PUT', url: `Questionnaire/${questionnaire.id}` },
         },
@@ -51,6 +64,9 @@ export async function POST(req: NextRequest) {
         },
         body: JSON.stringify(bundle),
       })
+      console.log(response)
+      const responseBody = await response.text()
+      console.log(responseBody)
     } catch (e) {
       console.log('Unable to post questionnaire')
     }
@@ -62,7 +78,9 @@ export async function POST(req: NextRequest) {
         name: 'planDefinition',
         resource: planDefinition,
       },
-      ...(dataPayload != null ? [{ name: 'data', resource: dataPayload }] : []),
+      ...(dataPayload != null
+        ? [{ name: 'data', resource: dataPayload }]
+        : []),
       {
         name: 'subject',
         valueString: subjectPayload,
