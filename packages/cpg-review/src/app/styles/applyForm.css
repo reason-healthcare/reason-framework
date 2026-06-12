@@ -263,6 +263,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  overflow-x: hidden;
 }
 
 .selected-patient-preview-title {
@@ -355,6 +356,108 @@
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.7);
   padding: 0.6rem 0.7rem;
+}
+
+.selected-patient-document-layout {
+  display: block;
+  margin-top: 0.85rem;
+}
+
+.selected-patient-document-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 360px;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.selected-patient-document-item {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 0.55rem 0.65rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.selected-patient-document-item .ant-typography {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.selected-patient-document-item-active {
+  border-color: #85c8bc;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  background: #ffffff;
+}
+
+.selected-patient-document-viewer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 0.65rem;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.selected-patient-document-modal-viewer {
+  max-height: min(72vh, 760px);
+}
+
+.selected-patient-document-viewer > * {
+  max-width: 100%;
+}
+
+.selected-patient-document-frame {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  flex: 1;
+  min-height: 520px;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.selected-patient-document-text {
+  margin: 0;
+  flex: 1;
+  min-height: 520px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  padding: 0.6rem;
+}
+
+@media (max-width: 900px) {
+  .selected-patient-document-layout {
+    display: block;
+  }
+
+  .selected-patient-document-frame,
+  .selected-patient-document-text {
+    min-height: 360px;
+  }
 }
 
 .selected-patient-resource-label {

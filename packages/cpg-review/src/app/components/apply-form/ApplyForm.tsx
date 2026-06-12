@@ -2,7 +2,7 @@ import '@/styles/narrativeDisplay.css'
 import { Alert, Form, message, Steps } from 'antd'
 import { ApplyPayload } from 'api/apply/route'
 import { is } from 'helpers'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import QuestionnaireRenderer from './QuestionnaireRenderer'
 import ApplyButton from './ApplyButton'
 import PatientLoadModeSwitcher from 'components/apply-form/PatientLoadModeSwitcher'
@@ -58,6 +58,7 @@ const ApplyForm = ({
   const [selectedPatientSummary, setSelectedPatientSummary] = useState<
     PatientSummary | undefined
   >()
+  const selectedPatientPreviewRef = useRef<HTMLDivElement | null>(null)
   const endpointsRef = useRef<EndpointsConfigurationHandle>(null)
   const [capturedEndpointsConfig, setCapturedEndpointsConfig] = useState<
     EndpointsConfig | undefined
@@ -175,6 +176,20 @@ const ApplyForm = ({
     setDataPayload(nextDataPayload)
     setPatientSubject(subject)
     setSelectedPatientSummary(summary)
+
+    const scrollToPreview = () => {
+      selectedPatientPreviewRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      })
+    }
+
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(scrollToPreview)
+      return
+    }
+
+    setTimeout(scrollToPreview, 0)
   }
   const handleClearSelectedPatient = () => {
     setDataPayload(undefined)
@@ -301,7 +316,7 @@ const ApplyForm = ({
   }
 
   const handleQuestionnaireSubmit = async (
-    response: fhir4.QuestionnaireResponse
+    questionnaireResponse: fhir4.QuestionnaireResponse
   ) => {
     setIsApplied(false)
     const dataPayloadParsed = parseDataPayload(dataPayload)
@@ -311,28 +326,30 @@ const ApplyForm = ({
       ? dataPayloadParsed
       : { resourceType: 'Bundle', type: 'collection', entry: [] }
 
-    const entriesWithoutQuestionnaireResponse = (baseBundle.entry ?? []).filter(
-      (entry) => entry.resource?.resourceType !== 'QuestionnaireResponse'
+    const entriesWithoutQuestionnaireArtifacts = (baseBundle.entry ?? []).filter(
+      (entry) =>
+        entry.resource?.resourceType !== 'QuestionnaireResponse' &&
+        entry.resource?.resourceType !== 'Questionnaire'
     )
 
-    // Ensure QuestionnaireResponse.questionnaire references match the Questionnaire URL
-    const questionnaireUrl = questionnaire
-      ? `http://example.org/Questionnaire/${questionnaire.id}/${questionnaire.version}`
-      : response.questionnaire
 
-    const updatedResponse: fhir4.QuestionnaireResponse = {
-      ...response,
-      questionnaire: questionnaireUrl,
-    }
 
     const dataWithQr = {
       ...baseBundle,
       entry: [
-        ...entriesWithoutQuestionnaireResponse,
+        ...entriesWithoutQuestionnaireArtifacts,
+        ...(questionnaire != null
+          ? [
+              {
+                fullUrl: questionnaire.url,
+                resource: questionnaire,
+              },
+            ]
+          : []),
         {
           fullUrl:
             'http://example.org/QuestionnaireResponse/questionnaireResponseTemp',
-          resource: updatedResponse,
+          resource: questionnaireResponse,
         },
       ],
     }
@@ -386,12 +403,14 @@ const ApplyForm = ({
               onPatientSelect={handlePatientSelect}
             />
 
-            <SelectedPatientPreviewCard
-              subject={patientSubject}
-              dataPayload={dataPayload}
-              selectedPatient={selectedPatientSummary}
-              onClear={handleClearSelectedPatient}
-            />
+            <div ref={selectedPatientPreviewRef}>
+              <SelectedPatientPreviewCard
+                subject={patientSubject}
+                dataPayload={dataPayload}
+                selectedPatient={selectedPatientSummary}
+                onClear={handleClearSelectedPatient}
+              />
+            </div>
           </Form.Item>
 
           <Form.Item className="button-group">

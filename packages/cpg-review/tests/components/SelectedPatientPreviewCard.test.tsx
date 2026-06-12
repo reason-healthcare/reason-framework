@@ -93,6 +93,37 @@ const BUNDLE = {
         valueQuantity: { value: 120, unit: 'mmHg' },
       },
     },
+    {
+      resource: {
+        resourceType: 'DiagnosticReport',
+        id: 'dr1',
+        status: 'final',
+        subject: { reference: 'Patient/pt1' },
+        code: { text: 'CBC panel' },
+        issued: '2026-05-10T08:00:00Z',
+        conclusion: 'Mild anemia suggested by low hemoglobin.',
+      },
+    },
+    {
+      resource: {
+        resourceType: 'DocumentReference',
+        id: 'doc1',
+        status: 'current',
+        subject: { reference: 'Patient/pt1' },
+        type: { text: 'Progress Note' },
+        description: 'Follow-up progress note',
+        date: '2026-05-11T09:30:00Z',
+        content: [
+          {
+            attachment: {
+              contentType: 'text/plain',
+              title: 'progress-note.txt',
+              data: 'UGF0aWVudCByZXBvcnRzIGltcHJvdmVkIGVuZXJneSBhbmQgc2xlZXAu',
+            },
+          },
+        ],
+      },
+    },
   ],
 }
 
@@ -206,6 +237,24 @@ describe('SelectedPatientPreviewCard', () => {
     expect(screen.getByText('Code')).toBeInTheDocument()
     expect(screen.getByText('Blood pressure')).toBeInTheDocument()
 
+    await userEvent.click(screen.getByText('Diagnostic Reports'))
+    expect(screen.getByText('Code')).toBeInTheDocument()
+    expect(screen.getByText('CBC panel')).toBeInTheDocument()
+    expect(screen.getByText('Status')).toBeInTheDocument()
+    expect(screen.getByText('final')).toBeInTheDocument()
+    expect(screen.getByText('Conclusion')).toBeInTheDocument()
+    expect(screen.getByText('Mild anemia suggested by low hemoglobin.')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByText('Documents'))
+    expect(screen.getByText('Follow-up progress note')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('tab', { name: /follow-up progress note/i }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(screen.getAllByText('Follow-up progress note').length).toBeGreaterThan(0)
+    expect(screen.getByText('progress-note.txt')).toBeInTheDocument()
+    expect(
+      screen.getByText('Patient reports improved energy and sleep.')
+    ).toBeInTheDocument()
+
     await userEvent.click(screen.getByText('Raw JSON'))
     expect(screen.getByText(/"resourceType": "Bundle"/)).toBeInTheDocument()
     expect(
@@ -296,6 +345,20 @@ describe('SelectedPatientPreviewCard', () => {
         'Observation data is not loaded for endpoint-selected patients in this selection.'
       )
     ).toBeInTheDocument()
+
+    await userEvent.click(screen.getByText('Diagnostic Reports'))
+    expect(
+      screen.getByText(
+        'Diagnostic report data is not loaded for endpoint-selected patients in this selection.'
+      )
+    ).toBeInTheDocument()
+
+    await userEvent.click(screen.getByText('Documents'))
+    expect(
+      screen.getByText(
+        'Document references are not loaded for endpoint-selected patients in this selection.'
+      )
+    ).toBeInTheDocument()
   })
 
   it('shows generic empty states for manual or bundle contexts', async () => {
@@ -330,6 +393,16 @@ describe('SelectedPatientPreviewCard', () => {
     await userEvent.click(screen.getByText('Observations'))
     expect(
       screen.getByText('No observations available for this patient context.')
+    ).toBeInTheDocument()
+
+    await userEvent.click(screen.getByText('Diagnostic Reports'))
+    expect(
+      screen.getByText('No diagnostic reports available for this patient context.')
+    ).toBeInTheDocument()
+
+    await userEvent.click(screen.getByText('Documents'))
+    expect(
+      screen.getByText('No document references available for this patient context.')
     ).toBeInTheDocument()
   })
 
