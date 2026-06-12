@@ -14,15 +14,22 @@ jest.mock('components/apply-form/RecommendationPanel', () => ({
 jest.mock('@aehrc/smart-forms-renderer', () => ({
   __esModule: true,
   BaseRenderer: () => <div data-testid="base-renderer" />,
-  getResponse: jest.fn(() => ({ resourceType: 'QuestionnaireResponse', status: 'in-progress' })),
-  RendererThemeProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  getResponse: jest.fn(() => ({
+    resourceType: 'QuestionnaireResponse',
+    status: 'in-progress',
+  })),
+  RendererThemeProvider: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
   useBuildForm: jest.fn(() => false),
   useRendererQueryClient: jest.fn(() => ({})),
 }))
 
 jest.mock('@tanstack/react-query', () => ({
   __esModule: true,
-  QueryClientProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  QueryClientProvider: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
 }))
 
 describe('QuestionnaireRenderer recommendation context wiring', () => {

@@ -184,7 +184,10 @@ const ApplyForm = ({
       })
     }
 
-    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.requestAnimationFrame === 'function'
+    ) {
       window.requestAnimationFrame(scrollToPreview)
       return
     }
@@ -326,13 +329,13 @@ const ApplyForm = ({
       ? dataPayloadParsed
       : { resourceType: 'Bundle', type: 'collection', entry: [] }
 
-    const entriesWithoutQuestionnaireArtifacts = (baseBundle.entry ?? []).filter(
+    const entriesWithoutQuestionnaireArtifacts = (
+      baseBundle.entry ?? []
+    ).filter(
       (entry) =>
         entry.resource?.resourceType !== 'QuestionnaireResponse' &&
         entry.resource?.resourceType !== 'Questionnaire'
     )
-
-
 
     const dataWithQr = {
       ...baseBundle,

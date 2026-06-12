@@ -20,7 +20,6 @@ const getQuestionnaireCanonical = (questionnaire: fhir4.Questionnaire) => {
     : fallbackUrl
 }
 
-
 export interface ApplyPayload {
   dataPayload: fhir4.Bundle | undefined
   subjectPayload: string
@@ -78,9 +77,7 @@ export async function POST(req: NextRequest) {
         name: 'planDefinition',
         resource: planDefinition,
       },
-      ...(dataPayload != null
-        ? [{ name: 'data', resource: dataPayload }]
-        : []),
+      ...(dataPayload != null ? [{ name: 'data', resource: dataPayload }] : []),
       {
         name: 'subject',
         valueString: subjectPayload,

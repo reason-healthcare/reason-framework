@@ -25,8 +25,10 @@ const PDF_EXTRACT_TIMEOUT_MS = parsePositiveInt(
   process.env.LLM_PROMPT_PDF_EXTRACT_TIMEOUT_MS,
   DEFAULT_PDF_EXTRACT_TIMEOUT_MS
 )
-const PDF_EXTRACT_ENABLED = process.env.LLM_PROMPT_PDF_EXTRACT_ENABLED !== 'false'
-const PDF_TEXT_CLI_FALLBACK_ENABLED = process.env.LLM_PROMPT_PDF_TEXT_CLI_FALLBACK_ENABLED !== 'false'
+const PDF_EXTRACT_ENABLED =
+  process.env.LLM_PROMPT_PDF_EXTRACT_ENABLED !== 'false'
+const PDF_TEXT_CLI_FALLBACK_ENABLED =
+  process.env.LLM_PROMPT_PDF_TEXT_CLI_FALLBACK_ENABLED !== 'false'
 
 type PdfExtractResult =
   | { status: 'disabled' }
@@ -34,7 +36,9 @@ type PdfExtractResult =
   | { status: 'error' }
   | { status: 'ok'; text?: string }
 
-async function extractPdfTextWithPdfParse(buffer: Buffer): Promise<string | undefined> {
+async function extractPdfTextWithPdfParse(
+  buffer: Buffer
+): Promise<string | undefined> {
   const pdfParseModule = await import('pdf-parse')
   const PDFParse = (pdfParseModule as { PDFParse?: unknown }).PDFParse
   if (typeof PDFParse !== 'function') {
@@ -54,10 +58,13 @@ async function extractPdfTextWithPdfParse(buffer: Buffer): Promise<string | unde
   }
 }
 
-async function extractPdfTextWithPdfJs(buffer: Buffer): Promise<string | undefined> {
+async function extractPdfTextWithPdfJs(
+  buffer: Buffer
+): Promise<string | undefined> {
   const pdfJsModule = await import('pdfjs-dist/legacy/build/pdf.mjs')
-  const getDocument = (pdfJsModule as { getDocument: (input: { data: Uint8Array }) => any })
-    .getDocument
+  const getDocument = (
+    pdfJsModule as { getDocument: (input: { data: Uint8Array }) => any }
+  ).getDocument
 
   const loadingTask = getDocument({ data: new Uint8Array(buffer) })
   const pdf = await loadingTask.promise
@@ -86,18 +93,25 @@ function runExecFile(
   timeout: number
 ): Promise<{ stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
-    execFile(file, args, { encoding: 'utf8', timeout, maxBuffer: 10 * 1024 * 1024 }, (error, stdout, stderr) => {
-      if (error) {
-        reject(error)
-        return
-      }
+    execFile(
+      file,
+      args,
+      { encoding: 'utf8', timeout, maxBuffer: 10 * 1024 * 1024 },
+      (error, stdout, stderr) => {
+        if (error) {
+          reject(error)
+          return
+        }
 
-      resolve({ stdout, stderr })
-    })
+        resolve({ stdout, stderr })
+      }
+    )
   })
 }
 
-async function extractPdfTextWithPdftotext(buffer: Buffer): Promise<string | undefined> {
+async function extractPdfTextWithPdftotext(
+  buffer: Buffer
+): Promise<string | undefined> {
   if (!PDF_TEXT_CLI_FALLBACK_ENABLED) return undefined
 
   const tempDir = await mkdtemp(join(tmpdir(), 'cpg-review-pdf-'))
@@ -106,7 +120,11 @@ async function extractPdfTextWithPdftotext(buffer: Buffer): Promise<string | und
 
   try {
     await writeFile(inputPath, buffer)
-    await runExecFile('pdftotext', ['-layout', inputPath, outputPath], PDF_EXTRACT_TIMEOUT_MS)
+    await runExecFile(
+      'pdftotext',
+      ['-layout', inputPath, outputPath],
+      PDF_EXTRACT_TIMEOUT_MS
+    )
     const extracted = await readFile(outputPath, 'utf8')
     return extracted
   } finally {
@@ -151,7 +169,12 @@ function looksMostlyPrintable(value: string): boolean {
 
   for (const char of sample) {
     const code = char.charCodeAt(0)
-    if (code === 9 || code === 10 || code === 13 || (code >= 32 && code <= 126)) {
+    if (
+      code === 9 ||
+      code === 10 ||
+      code === 13 ||
+      (code >= 32 && code <= 126)
+    ) {
       printableCount += 1
     }
   }
@@ -203,7 +226,10 @@ async function extractPdfText(buffer: Buffer): Promise<PdfExtractResult> {
 
   let timeoutHandle: ReturnType<typeof setTimeout> | undefined
   const timeoutPromise = new Promise<PdfExtractResult>((resolve) => {
-    timeoutHandle = setTimeout(() => resolve({ status: 'timeout' }), PDF_EXTRACT_TIMEOUT_MS)
+    timeoutHandle = setTimeout(
+      () => resolve({ status: 'timeout' }),
+      PDF_EXTRACT_TIMEOUT_MS
+    )
   })
 
   const result = await Promise.race([parsePromise, timeoutPromise])
@@ -249,7 +275,9 @@ export async function decodeDocumentAttachmentText(
   }
 
   const decodedText = buffer.toString('utf8')
-  const maybeHtmlText = mimeType.includes('html') ? stripHtmlTags(decodedText) : decodedText
+  const maybeHtmlText = mimeType.includes('html')
+    ? stripHtmlTags(decodedText)
+    : decodedText
   const normalized = compactWhitespace(maybeHtmlText)
 
   if (isLikelyTextMime(mimeType) || looksMostlyPrintable(normalized)) {
