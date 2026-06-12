@@ -12,11 +12,13 @@ export interface RecommendationBatchRequest {
 
 export interface RecommendationChunkRequest extends RecommendationBatchRequest {}
 
+export type RecommendationConfidence = 'low' | 'medium' | 'high'
+
 export interface RecommendationResponse {
   recommendedAnswer: string
   rationale: string
-  /** Confidence score in the range 0.0–1.0 */
-  confidence: number
+  /** Confidence label returned by the model or derived from legacy numeric output */
+  confidence: RecommendationConfidence
   error?: string
 }
 

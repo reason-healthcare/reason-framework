@@ -19,8 +19,9 @@ describe('buildBatchRecommendationPrompt', () => {
     expect(prompt).toContain('"recommendations"')
     expect(prompt).toContain('"<linkId>"')
     expect(prompt).toContain('answerOptions=[Yes]')
-    expect(prompt).toContain('Treat 1.0 as exceptional')
-    expect(prompt).toContain('Most recommendations should be below 1.0')
+    expect(prompt).toContain('"confidence":"high|medium|low"')
+    expect(prompt).toContain('Confidence must be one of: "high", "medium", or "low".')
+    expect(prompt).toContain('Prefer "medium" or "low" when evidence is sparse')
   })
 
   it('includes shared context summary once for the chunk', async () => {

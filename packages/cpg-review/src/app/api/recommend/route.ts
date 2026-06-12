@@ -13,7 +13,7 @@ function errorEnvelope(error: string): RecommendationResponse {
   return {
     recommendedAnswer: '',
     rationale: '',
-    confidence: 0,
+    confidence: 'low',
     error,
   }
 }

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
   RecommendationBatchResponse,
+  RecommendationConfidence,
   RecommendationResponse,
 } from '../../types/recommendation'
 import { chunkItems, DEFAULT_RECOMMENDATION_CHUNK_SIZE } from '../../llm/chunkItems'
@@ -11,8 +12,19 @@ import { chunkItems, DEFAULT_RECOMMENDATION_CHUNK_SIZE } from '../../llm/chunkIt
 const { Text, Paragraph } = Typography
 
 const EXCLUDED_TYPES: fhir4.QuestionnaireItem['type'][] = ['display', 'group']
-const LOW_CONFIDENCE_THRESHOLD = 0.5
 const CLIENT_BATCH_CHUNK_SIZE = DEFAULT_RECOMMENDATION_CHUNK_SIZE
+
+const CONFIDENCE_TAG_COLOR: Record<RecommendationConfidence, 'success' | 'warning' | 'processing'> = {
+  high: 'success',
+  medium: 'processing',
+  low: 'warning',
+}
+
+const CONFIDENCE_LABEL: Record<RecommendationConfidence, string> = {
+  high: 'High confidence',
+  medium: 'Medium confidence',
+  low: 'Low confidence',
+}
 
 function isHiddenItem(item: fhir4.QuestionnaireItem): boolean {
   return (
@@ -73,10 +85,8 @@ function InlineRecommendation({ state }: { state: ItemState }) {
         <Text type="secondary" className="questionnaire-inline-recommendation-label">
           Guidance
         </Text>
-        <Tag
-          color={state.data.confidence < LOW_CONFIDENCE_THRESHOLD ? 'warning' : 'success'}
-        >
-          {Math.round(state.data.confidence * 100)}% confidence
+        <Tag color={CONFIDENCE_TAG_COLOR[state.data.confidence]}>
+          {CONFIDENCE_LABEL[state.data.confidence]}
         </Tag>
       </div>
       <Text strong className="questionnaire-inline-recommendation-answer">

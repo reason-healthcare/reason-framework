@@ -40,8 +40,9 @@ describe('buildRecommendationPrompt', () => {
 
     expect(prompt).toContain('No fixed answer options are provided')
     expect(prompt).toContain('Respond ONLY as valid JSON')
-    expect(prompt).toContain('Treat 1.0 as exceptional')
-    expect(prompt).toContain('Most recommendations should be below 1.0')
+    expect(prompt).toContain('"confidence":"high|medium|low"')
+    expect(prompt).toContain('Use "high" only when the provided context directly and unambiguously supports the answer')
+    expect(prompt).toContain('Prefer "medium" or "low" when evidence is sparse')
   })
 
   it('handles an empty context bundle without throwing', async () => {

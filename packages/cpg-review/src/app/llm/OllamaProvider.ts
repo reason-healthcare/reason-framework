@@ -1,4 +1,5 @@
 import {
+  RecommendationConfidence,
   RecommendationChunkRequest,
   RecommendationChunkResponse,
   RecommendationRequest,
@@ -17,11 +18,23 @@ interface OllamaGenerateResponse {
   error?: string
 }
 
-function clampConfidence(value: unknown): number {
-  if (typeof value !== 'number' || Number.isNaN(value)) return 0
-  if (value < 0) return 0
-  if (value > 1) return 1
-  return value
+function normalizeConfidence(value: unknown): RecommendationConfidence {
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase()
+    if (normalized === 'low' || normalized === 'medium' || normalized === 'high') {
+      return normalized
+    }
+
+    const parsed = Number(normalized)
+    if (!Number.isNaN(parsed)) {
+      value = parsed
+    }
+  }
+
+  if (typeof value !== 'number' || Number.isNaN(value)) return 'low'
+  if (value >= 0.8) return 'high'
+  if (value >= 0.5) return 'medium'
+  return 'low'
 }
 
 function safeErrorMessage(error: unknown): string {
@@ -33,7 +46,7 @@ function errorEnvelope(error: string): RecommendationResponse {
   return {
     recommendedAnswer: '',
     rationale: '',
-    confidence: 0,
+    confidence: 'low',
     error,
   }
 }
@@ -109,7 +122,7 @@ export class OllamaProvider implements LLMProvider {
         return {
           recommendedAnswer: '',
           rationale: '',
-          confidence: 0,
+          confidence: 'low',
           error: `Ollama request failed with status ${res.status}`,
         }
       }
@@ -126,7 +139,7 @@ export class OllamaProvider implements LLMProvider {
         return {
           recommendedAnswer: '',
           rationale: '',
-          confidence: 0,
+          confidence: 'low',
           error: data.error,
         }
       }
@@ -140,7 +153,7 @@ export class OllamaProvider implements LLMProvider {
         return {
           recommendedAnswer: '',
           rationale: '',
-          confidence: 0,
+          confidence: 'low',
           error: 'Ollama returned an empty response',
         }
       }
@@ -149,7 +162,7 @@ export class OllamaProvider implements LLMProvider {
       const parsed = JSON.parse(cleanedJson) as Partial<RecommendationResponse>
       const recommendedAnswer = (parsed.recommendedAnswer ?? '').toString().trim()
       const rationale = (parsed.rationale ?? '').toString().trim()
-      const confidence = clampConfidence(parsed.confidence)
+      const confidence = normalizeConfidence(parsed.confidence)
 
       if (!recommendedAnswer || !rationale) {
         const latencyMs = Date.now() - startTime
@@ -161,7 +174,7 @@ export class OllamaProvider implements LLMProvider {
         return {
           recommendedAnswer: '',
           rationale: '',
-          confidence: 0,
+          confidence: 'low',
           error: 'Provider returned an invalid recommendation payload',
         }
       }
@@ -192,7 +205,7 @@ export class OllamaProvider implements LLMProvider {
         return {
           recommendedAnswer: '',
           rationale: '',
-          confidence: 0,
+          confidence: 'low',
           error: 'Recommendation request timed out',
         }
       }
@@ -207,7 +220,7 @@ export class OllamaProvider implements LLMProvider {
       return {
         recommendedAnswer: '',
         rationale: '',
-        confidence: 0,
+        confidence: 'low',
         error: safeErrorMessage(error),
       }
     } finally {
@@ -335,7 +348,7 @@ export class OllamaProvider implements LLMProvider {
 
         const recommendedAnswer = (candidate?.recommendedAnswer ?? '').toString().trim()
         const rationale = (candidate?.rationale ?? '').toString().trim()
-        const confidence = clampConfidence(candidate?.confidence)
+        const confidence = normalizeConfidence(candidate?.confidence)
 
         if (!recommendedAnswer || !rationale) {
           recommendations[item.linkId] = errorEnvelope('Missing recommendation for item linkId')

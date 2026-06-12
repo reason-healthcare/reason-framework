@@ -60,7 +60,7 @@ afterEach(() => {
 describe('RecommendationPanel', () => {
   it('renders a recommended answer and rationale on success', async () => {
     mockBatchFetch({
-      '1': { recommendedAnswer: '42', rationale: 'Based on clinical data.', confidence: 0.8 },
+      '1': { recommendedAnswer: '42', rationale: 'Based on clinical data.', confidence: 'high' },
     })
 
     renderWithRecommendationAnchors(QUESTIONNAIRE)
@@ -68,7 +68,7 @@ describe('RecommendationPanel', () => {
     await waitFor(() => {
       expect(screen.getByText('42')).toBeInTheDocument()
       expect(screen.getByText('Based on clinical data.')).toBeInTheDocument()
-      expect(screen.getByText('80% confidence')).toBeInTheDocument()
+      expect(screen.getByText('High confidence')).toBeInTheDocument()
     })
 
     const questionContainer = document.querySelector('[data-linkid="1"]')
@@ -90,7 +90,7 @@ describe('RecommendationPanel', () => {
         error: 'LLM provider not configured',
         recommendedAnswer: '',
         rationale: '',
-        confidence: 0,
+        confidence: 'low',
       },
     })
 
@@ -124,7 +124,7 @@ describe('RecommendationPanel', () => {
       'nested-1': {
         recommendedAnswer: 'Nested answer',
         rationale: 'Nested rationale.',
-        confidence: 0.9,
+        confidence: 'high',
       },
     })
 
@@ -159,18 +159,33 @@ describe('RecommendationPanel', () => {
 
   it('renders a warning-coloured confidence tag for low-confidence results', async () => {
     mockBatchFetch({
-      '1': { recommendedAnswer: 'Maybe', rationale: 'Uncertain.', confidence: 0.3 },
+      '1': { recommendedAnswer: 'Maybe', rationale: 'Uncertain.', confidence: 'low' },
     })
 
     renderWithRecommendationAnchors(QUESTIONNAIRE)
 
     await waitFor(() => {
-      expect(screen.getByText('30% confidence')).toBeInTheDocument()
+      expect(screen.getByText('Low confidence')).toBeInTheDocument()
     })
 
     // Ant Design renders the Tag with ant-tag-warning class when color="warning"
-    const tag = screen.getByText('30% confidence').closest('.ant-tag')
+    const tag = screen.getByText('Low confidence').closest('.ant-tag')
     expect(tag).toHaveClass('ant-tag-warning')
+  })
+
+  it('renders a distinct tag for medium-confidence results', async () => {
+    mockBatchFetch({
+      '1': { recommendedAnswer: 'Possibly', rationale: 'Partial support.', confidence: 'medium' },
+    })
+
+    renderWithRecommendationAnchors(QUESTIONNAIRE)
+
+    await waitFor(() => {
+      expect(screen.getByText('Medium confidence')).toBeInTheDocument()
+    })
+
+    const tag = screen.getByText('Medium confidence').closest('.ant-tag')
+    expect(tag).toHaveClass('ant-tag-processing')
   })
 
   it('submits multiple chunked requests and reconciles per-item results by linkId', async () => {
@@ -190,18 +205,18 @@ describe('RecommendationPanel', () => {
       .mockResolvedValueOnce({
         json: async () => ({
           recommendations: {
-            'q-1': { recommendedAnswer: 'A1', rationale: 'R1', confidence: 0.8 },
-            'q-2': { recommendedAnswer: 'A2', rationale: 'R2', confidence: 0.8 },
-            'q-3': { recommendedAnswer: 'A3', rationale: 'R3', confidence: 0.8 },
-            'q-4': { recommendedAnswer: 'A4', rationale: 'R4', confidence: 0.8 },
-            'q-5': { recommendedAnswer: 'A5', rationale: 'R5', confidence: 0.8 },
+            'q-1': { recommendedAnswer: 'A1', rationale: 'R1', confidence: 'high' },
+            'q-2': { recommendedAnswer: 'A2', rationale: 'R2', confidence: 'high' },
+            'q-3': { recommendedAnswer: 'A3', rationale: 'R3', confidence: 'high' },
+            'q-4': { recommendedAnswer: 'A4', rationale: 'R4', confidence: 'high' },
+            'q-5': { recommendedAnswer: 'A5', rationale: 'R5', confidence: 'high' },
           },
         }),
       } as Response)
       .mockResolvedValueOnce({
         json: async () => ({
           recommendations: {
-            'q-6': { recommendedAnswer: 'A6', rationale: 'R6', confidence: 0.8 },
+            'q-6': { recommendedAnswer: 'A6', rationale: 'R6', confidence: 'high' },
           },
         }),
       } as Response)

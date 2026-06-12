@@ -490,10 +490,10 @@ export async function buildBatchRecommendationPrompt(
     'Generate recommendations for all questionnaire items below. Base recommendations on relevant clinical information. Do not make assumptions beyond the provided context.',
     formatItems(items),
     'Respond ONLY as valid JSON with this exact shape:',
-    '{"recommendations":{"<linkId>":{"recommendedAnswer":"string","rationale":"string","confidence":0.0}}}',
+    '{"recommendations":{"<linkId>":{"recommendedAnswer":"string","rationale":"string","confidence":"high|medium|low"}}}',
     'Include one entry for each input linkId.',
-    'Confidence must be a number between 0.0 and 1.0.',
-    'Treat 1.0 as exceptional: use it only when the provided context directly and unambiguously supports the answer with no meaningful uncertainty.',
-    'Most recommendations should be below 1.0. Prefer lower confidence when evidence is sparse, indirect, conflicting, outdated, or inferred.',
+    'Confidence must be one of: "high", "medium", or "low".',
+    'Use "high" only when the provided context directly and unambiguously supports the answer with no meaningful uncertainty.',
+    'Prefer "medium" or "low" when evidence is sparse, indirect, conflicting, outdated, or inferred.',
   ].join('\n\n')
 }

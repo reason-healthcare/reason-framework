@@ -52,8 +52,8 @@ describe('/api/recommend route', () => {
   it('returns deterministic linkId-keyed results for batch mode', async () => {
     recommendChunkMock.mockResolvedValueOnce({
       recommendations: {
-        'item-1': { recommendedAnswer: 'A1', rationale: 'R1', confidence: 0.9 },
-        'item-2': { recommendedAnswer: 'A2', rationale: 'R2', confidence: 0.8 },
+        'item-1': { recommendedAnswer: 'A1', rationale: 'R1', confidence: 'high' },
+        'item-2': { recommendedAnswer: 'A2', rationale: 'R2', confidence: 'high' },
       },
     })
 
@@ -80,8 +80,8 @@ describe('/api/recommend route', () => {
   it('preserves per-item error envelopes in batch mode', async () => {
     recommendChunkMock.mockResolvedValueOnce({
       recommendations: {
-        'item-1': { recommendedAnswer: 'A1', rationale: 'R1', confidence: 0.9 },
-        'item-2': { recommendedAnswer: '', rationale: '', confidence: 0, error: 'failed' },
+        'item-1': { recommendedAnswer: 'A1', rationale: 'R1', confidence: 'high' },
+        'item-2': { recommendedAnswer: '', rationale: '', confidence: 'low', error: 'failed' },
       },
     })
 
@@ -108,7 +108,7 @@ describe('/api/recommend route', () => {
       recommendations: Object.fromEntries(
         items.map((item) => [
           item.linkId,
-          { recommendedAnswer: `A-${item.linkId}`, rationale: 'ok', confidence: 0.5 },
+          { recommendedAnswer: `A-${item.linkId}`, rationale: 'ok', confidence: 'medium' },
         ])
       ),
     }))
@@ -138,17 +138,17 @@ describe('/api/recommend route', () => {
     recommendChunkMock
       .mockResolvedValueOnce({
         recommendations: {
-          'item-1': { recommendedAnswer: 'A1', rationale: 'R1', confidence: 0.9 },
-          'item-2': { recommendedAnswer: 'A2', rationale: 'R2', confidence: 0.9 },
-          'item-3': { recommendedAnswer: 'A3', rationale: 'R3', confidence: 0.9 },
-          'item-4': { recommendedAnswer: 'A4', rationale: 'R4', confidence: 0.9 },
-          'item-5': { recommendedAnswer: 'A5', rationale: 'R5', confidence: 0.9 },
+          'item-1': { recommendedAnswer: 'A1', rationale: 'R1', confidence: 'high' },
+          'item-2': { recommendedAnswer: 'A2', rationale: 'R2', confidence: 'high' },
+          'item-3': { recommendedAnswer: 'A3', rationale: 'R3', confidence: 'high' },
+          'item-4': { recommendedAnswer: 'A4', rationale: 'R4', confidence: 'high' },
+          'item-5': { recommendedAnswer: 'A5', rationale: 'R5', confidence: 'high' },
         },
       })
       .mockResolvedValueOnce({ recommendations: {}, error: 'invalid chunk json' })
       .mockResolvedValueOnce({
         recommendations: {
-          'item-6': { recommendedAnswer: 'A6', rationale: 'R6', confidence: 0.9 },
+          'item-6': { recommendedAnswer: 'A6', rationale: 'R6', confidence: 'high' },
         },
       })
       .mockResolvedValueOnce({ recommendations: {}, error: 'still invalid' })

@@ -496,10 +496,10 @@ export async function buildRecommendationPrompt(
     rawExcerpts,
     'Recommend one concise answer value or phrase that matches the item type and constraints.',
     'Respond ONLY as valid JSON with this exact shape and keys:',
-    '{"recommendedAnswer":"string","rationale":"string","confidence":0.0}',
-    'Use confidence as a number from 0.0 to 1.0.',
-    'Treat 1.0 as exceptional: use it only when the provided context directly and unambiguously supports the answer with no meaningful uncertainty.',
-    'Most recommendations should be below 1.0. Prefer lower confidence when evidence is sparse, indirect, conflicting, outdated, or inferred.',
+    '{"recommendedAnswer":"string","rationale":"string","confidence":"high|medium|low"}',
+    'Use confidence as one of: "high", "medium", or "low".',
+    'Use "high" only when the provided context directly and unambiguously supports the answer with no meaningful uncertainty.',
+    'Prefer "medium" or "low" when evidence is sparse, indirect, conflicting, outdated, or inferred.',
   ]
     .filter((section): section is string => Boolean(section))
     .join('\n\n')
