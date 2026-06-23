@@ -6,6 +6,21 @@ This is a monorepo using npm's workspace feature. See
 https://docs.npmjs.com/cli/v9/using-npm/workspaces for information on how this
 works.
 
+## Packages
+
+The monorepo is organized around four npm workspace packages:
+
+* `packages/cpg-execution` - core CPG execution library for applying FHIR
+  `ActivityDefinition` and `PlanDefinition` resources, resolving content, and
+  generating questionnaire-related outputs.
+* `packages/cds-service` - Fastify service that exposes CDS Hooks and FHIR
+  operation endpoints backed by `cpg-execution`.
+* `packages/cpg-review` - Next.js review UI for loading CPG artifacts,
+  visualizing plan definitions, selecting patient context, and reviewing
+  `$apply` results.
+* `packages/cpg-test-support` - Cucumber-based integration and end-to-end test
+  support, including example Implementation Guide fixtures.
+
 ## Install
 
 Use Node.js `20.19.0` or newer `20.x`.
@@ -65,7 +80,7 @@ cd packages/cpg-execution
 ./bin/prepare-ig
 ```
 
-## Supported features
+## CDS Service
 This technology focuses on imlementing [Workflow]([url](https://hl7.org/fhir/r5/workflow-module.html)) module of FHIR as well as the [Clinical Guidelines IG](https://hl7.org/fhir/uv/cpg/index.html). In particular, the following features are supported:
 
 * ActivityDefinition/$apply from [FHIR R5](https://hl7.org/fhir/r5/activitydefinition-operation-apply.html)
@@ -76,6 +91,8 @@ This technology focuses on imlementing [Workflow]([url](https://hl7.org/fhir/r5/
 * PlanDefinition/$questionnaire - not yet defined in FHIR spec. See packages/cpg-execution/documentation/questionnaire.md for in progress documentation.
 
 ## Docker
+
+### CDS service
 
 To run with docker, first build the project
 ```
@@ -98,6 +115,24 @@ endpoints.
 ```
 ./bin/docker-run http://hapi.fhir.org/baseR4
 ```
+
+### CPG review tool
+
+The Next.js review UI has its own Docker image and runs on port `3000`:
+
+```
+./bin/docker-build-cpg-review
+./bin/docker-run-cpg-review
+```
+
+Open [http://localhost:3000](http://localhost:3000) in browser. Set
+`HOST_PORT` to expose it on a different local port:
+
+```
+HOST_PORT=3001 ./bin/docker-run-cpg-review
+```
+
+See `packages/cpg-review/README.md` for package-specific details.
 
 ## Postman collection
 
