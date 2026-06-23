@@ -1,11 +1,12 @@
 .side-panel-content {
   display: flex;
   flex-direction: column;
-  margin-bottom: 5rem;
+  margin-bottom: 2rem;
   gap: 1.5rem;
   white-space: normal;
   word-break: break-word;
   height: 90%;
+  background: var(--surface);
 }
 
 .narrative-container-outer {
@@ -29,6 +30,7 @@
   text-decoration: underline;
   font-weight: 500;
   padding: 0;
+  color: var(--brand-dark);
 }
 
 .close {
@@ -42,13 +44,13 @@
 }
 
 .ant-radio-button-wrapper {
-  border-radius: 0 !important;
+  border-radius: 10px !important;
   padding: 0 0.5rem;
-  background: var(--background);
+  background: var(--surface);
 
   &:hover,
   span:hover {
-    color: var(--brTeal);
+    color: var(--brand-dark);
   }
 
   & span {
@@ -56,20 +58,20 @@
   }
 
   & :focus-visible {
-    border-color: var(--brTeal) !important;
-    outline-color: var(--brTeal) !important;
+    border-color: var(--brand-light) !important;
+    outline-color: var(--brand-light) !important;
   }
 }
 
 .ant-radio-button-wrapper-checked,
 ::before {
-  background: var(--teal) !important;
-  border-color: var(--teal) !important;
-  color: white !important;
+  background: var(--brand-light) !important;
+  border-color: var(--brand-light) !important;
+  color: var(--brand-dark) !important;
 
   &:hover,
   span:hover {
-    color: white !important;
+    color: var(--brand-dark) !important;
   }
 }
 
@@ -82,13 +84,16 @@
 }
 
 .code-container {
-  background-color: var(--secondary-background);
-  padding: 2rem;
+  background-color: var(--brand-dark);
+  border-radius: 16px;
+  padding: 1.25rem;
+  color: var(--neutral-100);
+  overflow: auto;
 }
 
 code {
-  font-size: 1rem;
-  color: var(--purple);
+  font-size: 0.9rem;
+  color: var(--brand-light);
 }
 
 .buttons-container {
@@ -100,7 +105,7 @@ code {
 .format-button {
   border: none;
   background: none;
-  color: var(--teal);
+  color: var(--brand-dark);
   text-decoration: underline;
   font-size: 1rem;
 }

@@ -4,33 +4,39 @@
   gap: 0.6rem;
   align-self: flex-start;
   align-items: flex-start;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .plan-title {
   display: flex;
   & h1 {
-    font-size: 1.2rem;
+    font-size: 1.45rem;
     font-weight: 500;
+    color: var(--brand-dark);
   }
 }
 
 .data-panel-group {
   display: flex;
   justify-content: center;
-  gap: 3.5rem;
+  gap: 2rem;
   box-sizing: border-box;
+  width: 100%;
+  height: 100%;
 }
 
 .panel-separator {
   width: 1px;
-  background: lightgray;
+  background: var(--border-subtle);
   height: 90%;
+  margin: 0 1rem;
 }
 
 .flow-container {
   height: 85%;
   width: 100%;
+  overflow: hidden;
+  background: var(--surface);
 }
 
 .context {
@@ -50,25 +56,25 @@
   text-align: center;
   justify-content: center;
   gap: 0.2rem;
-  padding: 0.2rem 0.4rem;
-  font-size: 14px;
-  background: #e6f4ff;
-  color: #1677ff;
-  border: 1px solid #91caff;
-  border-radius: 4px;
+  padding: 0.25rem 0.55rem;
+  font-size: 13px;
+  background: var(--bright-green-50);
+  color: var(--brand-dark);
+  border: 1px solid var(--bright-green-200);
+  border-radius: 999px;
 }
 
 .close-button {
   border: none;
   background: none;
-  color: #1677ff;
+  color: var(--bright-green-700);
   padding: 0;
   margin-left: 0.6rem;
   display: flex;
 }
 
 .applied-guidance {
-  color: #666666;
+  color: var(--neutral-600);
   fontweight: normal;
   fontsize: 18px;
 }

@@ -4,7 +4,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2rem;
+  gap: 1.5rem;
+  padding: 0;
 
   & a {
     text-decoration: underline;
@@ -25,94 +26,97 @@
 }
 
 .ant-radio-checked .ant-radio-inner {
-  background-color: var(--teal) !important;
-  border-color: var(--teal) !important;
+  background-color: var(--brand-light) !important;
+  border-color: var(--brand-light) !important;
 }
 
 .ant-radio-wrapper:hover .ant-radio-inner {
-  border-color: var(--brTeal);
-  outline-color: var(--brTeal) !important;
+  border-color: var(--brand-light);
+  outline-color: var(--brand-light) !important;
 }
 
 .ant-input-outlined {
   &:hover {
-    border-color: var(--brTeal);
+    border-color: var(--brand-light);
   }
   &:active {
-    border-color: var(--brTeal);
+    border-color: var(--brand-light);
   }
   &:focus {
-    border-color: var(--brTeal);
+    border-color: var(--brand-light);
   }
   &:focus-visible {
-    border-color: var(--brTeal);
+    border-color: var(--brand-light);
   }
 }
 
 .ant-upload {
   background-color: white;
+  border-color: var(--neutral-300) !important;
 
   &:hover {
-    border-color: var(--brTeal) !important;
+    border-color: var(--brand-light) !important;
+    background-color: var(--bright-green-50) !important;
   }
 }
 .ant-select-outlined:hover {
   &.ant-select-selector {
-    border-color: var(--brTeal) !important;
-    outline-color: var(--brTeal) !important;
+    border-color: var(--brand-light) !important;
+    outline-color: var(--brand-light) !important;
   }
 
   &:focus-visible {
-    border-color: var(--brTeal) !important;
-    outline-color: var(--brTeal) !important;
+    border-color: var(--brand-light) !important;
+    outline-color: var(--brand-light) !important;
   }
 }
 
 #rc_select_0_list {
   &:hover {
-    border-color: var(--brTeal) !important;
-    outline-color: var(--brTeal) !important;
+    border-color: var(--brand-light) !important;
+    outline-color: var(--brand-light) !important;
   }
 
   &:focus-visible {
-    border-color: var(--brTeal) !important;
-    outline-color: var(--brTeal) !important;
+    border-color: var(--brand-light) !important;
+    outline-color: var(--brand-light) !important;
   }
 }
 
 .ant-select-focused .ant-select-selector {
-  border-color: var(--brTeal) !important;
-  outline-color: var(--brTeal) !important;
+  border-color: var(--brand-light) !important;
+  outline-color: var(--brand-light) !important;
 
   &:focus-visible {
-    border-color: var(--brTeal) !important;
-    outline-color: var(--brTeal) !important;
+    border-color: var(--brand-light) !important;
+    outline-color: var(--brand-light) !important;
   }
 }
 
 .ant-select-selector {
   &:hover {
-    border-color: var(--brTeal) !important;
-    outline-color: var(--brTeal) !important;
+    border-color: var(--brand-light) !important;
+    outline-color: var(--brand-light) !important;
   }
 
   &:focus-visible {
-    border-color: var(--brTeal) !important;
-    outline-color: var(--brTeal) !important;
+    border-color: var(--brand-light) !important;
+    outline-color: var(--brand-light) !important;
   }
 }
 
 .form-title {
   font-weight: 600;
+  color: var(--brand-dark);
 }
 
 .form-description {
   margin: 0.5rem 0 0.5rem 0;
-  color: var(--ltGray);
+  color: var(--neutral-600);
 }
 
 .ant-upload-drag-icon svg {
-  color: var(--brTeal);
+  color: var(--brand-light);
 }
 
 .hidden .ant-upload-drag {
@@ -124,7 +128,7 @@
 .button-group .ant-form-item-control-input-content {
   display: flex;
   gap: 1rem;
-  padding: 1rem;
+  padding: 0.5rem 0 0;
 }
 
 .endpoint-input-wrapper {
@@ -136,4 +140,11 @@
 .endpoint-input-wrapper .ant-spin-spinning {
   position: absolute !important;
   right: 0.7rem !important;
+}
+
+@media (max-width: 720px) {
+  .form {
+    max-width: 100%;
+    width: 100%;
+  }
 }
