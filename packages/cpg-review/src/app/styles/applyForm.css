@@ -21,16 +21,16 @@
 }
 
 .ant-steps-item-icon {
-  background-color: var(--brTeal) !important;
-  border-color: var(--brTeal) !important;
+  background-color: var(--brand-light) !important;
+  border-color: var(--brand-light) !important;
 }
 
 .ant-steps-item-title::after {
-  background-color: var(--brTeal) !important;
+  background-color: var(--brand-light) !important;
 }
 
 .ant-steps-item-finish .ant-steps-item-icon > .ant-steps-icon {
-  color: #fff !important;
+  color: var(--brand-dark) !important;
 }
 
 /* ── Teal overrides for patient context components ── */
@@ -40,14 +40,14 @@
 
 /* Segmented active item fill */
 .ant-segmented .ant-segmented-item-selected {
-  background-color: var(--teal) !important;
-  color: #fff !important;
+  background-color: var(--brand-light) !important;
+  color: var(--brand-dark) !important;
 }
 .ant-segmented
   .ant-segmented-item:hover:not(.ant-segmented-item-selected):not(
     .ant-segmented-item-disabled
   ) {
-  color: var(--teal) !important;
+  color: var(--brand-dark) !important;
 }
 
 .patient-mode-switcher {
@@ -78,7 +78,7 @@
 }
 
 .ant-list .patient-list-item:focus-visible {
-  box-shadow: inset 0 0 0 2px var(--teal);
+  box-shadow: inset 0 0 0 2px var(--brand-light);
 }
 
 .recent-patients-panel {
@@ -93,8 +93,8 @@
      caused the bottom border to be cut off at the overflow boundary. */
   max-height: 420px;
   overflow-y: auto;
-  border: 1px solid #d9d9d9;
-  border-radius: 6px;
+  border: 1px solid var(--neutral-300);
+  border-radius: 14px;
   /* 1 px gap prevents the last list-item's border sitting flush against
      the clip edge, which can make it invisible. */
   padding-bottom: 1px;
@@ -139,17 +139,17 @@
 
 .recent-patients-empty-icon {
   font-size: 24px;
-  color: #bfbfbf;
+  color: var(--neutral-400);
 }
 
 .selected-patient-preview-card {
-  border: 1px solid #a8d9d4;
-  border-radius: 14px;
+  border: 1px solid var(--bright-green-200);
+  border-radius: 16px;
   overflow: hidden;
   margin-top: 1rem;
   display: flex;
   flex-direction: column;
-  background: #e9f6f4;
+  background: var(--bright-green-50);
 }
 
 .selected-patient-preview-header {
@@ -182,8 +182,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--teal);
-  background: rgba(73, 170, 155, 0.2);
+  color: var(--brand-dark);
+  background: rgba(27, 233, 142, 0.22);
   font-size: 18px;
   flex: 0 0 auto;
 }
@@ -217,10 +217,10 @@
   display: inline-flex;
   align-items: center;
   padding: 0.18rem 0.65rem;
-  border: 1px solid #cfd8d7;
+  border: 1px solid var(--neutral-300);
   border-radius: 999px;
-  background: #edf2f1;
-  color: #1f1f1f;
+  background: var(--surface);
+  color: var(--brand-dark);
   font-size: 0.8rem;
   font-weight: 500;
 }
@@ -228,7 +228,7 @@
 .selected-patient-clear-link {
   border: none;
   background: transparent;
-  color: var(--teal);
+  color: var(--brand-dark);
   font-size: 0.9rem;
   font-weight: 500;
   padding: 0.2rem 0.3rem;
@@ -242,7 +242,7 @@
 .selected-patient-chevron-toggle {
   border: none;
   background: transparent;
-  color: #595959;
+  color: var(--neutral-600);
   width: 28px;
   height: 28px;
   border-radius: 999px;
@@ -257,7 +257,7 @@
 }
 
 .selected-patient-preview-body {
-  background: #e9f6f4;
+  background: var(--bright-green-50);
   padding: 0.9rem 1rem 1rem;
   border-top: 1px solid rgba(168, 217, 212, 0.55);
   display: flex;

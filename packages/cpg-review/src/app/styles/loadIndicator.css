@@ -4,13 +4,14 @@
   justify-content: center;
   justify-items: center;
   align-items: center;
-  font-size: 0.6rem;
+  font-size: 0.85rem;
   text-align: center;
+  color: var(--neutral-600);
 }
 
 .load-icon {
-  font-size: 0.8rem;
+  font-size: 1rem;
   display: flex;
   justify-content: center;
-  color: var(--brTeal);
+  color: var(--brand-light);
 }

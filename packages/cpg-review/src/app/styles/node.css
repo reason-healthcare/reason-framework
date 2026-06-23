@@ -1,14 +1,14 @@
 .info-icon {
-  color: var(--teal);
+  color: var(--bright-green-700);
 }
 
 .action-selection-label {
   margin: 0.2rem;
   text-align: center;
-  background-color: #f8f8f9;
+  background-color: var(--surface);
   white-space: nowrap;
   font-size: 0.5rem;
-  color: var(--brTeal);
+  color: var(--brand-dark);
   font-weight: bold;
 }
 
@@ -20,11 +20,12 @@
   white-space: normal;
   word-break: break-word;
   width: 150px;
-  background-color: #f8f8f9;
+  background-color: var(--surface);
   line-height: 0.8rem;
   & p {
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     margin: 0;
+    color: var(--brand-dark);
   }
 }
 
@@ -42,13 +43,13 @@
   justify-content: center;
 
   &.node-highlight {
-    background: #90fab4;
-    border-color: #0ad14d;
+    background: var(--bright-green-200);
+    border-color: var(--brand-light);
   }
 }
 
 .activity-node {
-  border-radius: 30px !important;
+  border-radius: 999px !important;
   padding: 0.8rem 1.2rem !important;
 }
 
@@ -56,10 +57,11 @@
   font-size: 12px;
   text-align: center;
   padding: 10px;
-  border-radius: 0.15rem;
+  border-radius: 0.75rem;
   height: 100%;
   width: 100%;
   box-sizing: border-box;
+  color: var(--brand-dark);
 }
 
 .node-container.applicability {
@@ -72,13 +74,14 @@
 }
 
 .node-unhighlight {
-  border: 0.1px solid var(--ltGray);
-  background-color: var(--background);
+  border: 1px solid var(--neutral-300);
+  background-color: var(--surface);
 }
 
 .node-highlight {
-  border: 2px dotted var(--yellow);
-  background-color: var(--ltYellow);
+  border: 2px solid var(--brand-light);
+  background-color: var(--bright-green-50);
+  box-shadow: 0 0 0 4px rgba(27, 233, 142, 0.14);
 }
 
 /* Handles */
@@ -91,7 +94,7 @@
   transform: translate(-53%, 0);
   z-index: 100;
   font-size: 1.25rem;
-  color: var(--teal);
+  color: var(--brand-dark);
 }
 
 .hidden-handle {

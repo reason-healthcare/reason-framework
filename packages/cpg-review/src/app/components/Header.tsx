@@ -23,9 +23,11 @@ export default function Header({
         aria-label="visit reason healthcare"
         className="logo"
       >
-        <span className="r">r</span>
-        <span>.</span>
-        <span>h</span>
+        <img
+          src="/images/brand/reasonhub-logo-full-color-rgb.svg"
+          alt="ReasonHealth"
+          className="logo-wordmark"
+        />
       </Link>
       <div className="links">
         {!showUploadPage && (
