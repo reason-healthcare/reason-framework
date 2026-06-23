@@ -2,3 +2,6 @@
 packages/*/.env
 node_modules
 packages/*/node_modules
+packages/*/.next
+packages/*/coverage
+packages/*/lib

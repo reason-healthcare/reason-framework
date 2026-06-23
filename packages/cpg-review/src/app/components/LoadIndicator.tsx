@@ -1,7 +1,7 @@
 import React from 'react'
 import { LoadingOutlined } from '@ant-design/icons'
 import { Spin } from 'antd'
-import '@/styles/loadindicator.css'
+import '@/styles/loadIndicator.css'
 
 const LoadIndicator = () => (
   <div className="load-container">

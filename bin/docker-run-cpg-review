@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd -P "$(dirname -- "${BASH_SOURCE}")" >/dev/null 2>&1 && pwd)"
+DOCKER_IMAGE="${DOCKER_IMAGE:-reason-framework-cpg-review:latest}"
+HOST_PORT="${HOST_PORT:-3000}"
+
+cd "$SCRIPT_DIR/../"
+docker run --rm \
+  --name reason-cpg-review \
+  -p "${HOST_PORT}:3000" \
+  "$DOCKER_IMAGE"

@@ -33,6 +33,31 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in browser.
 
+## Docker
+
+Build the review tool image from the repository root:
+
+```
+./bin/docker-build-cpg-review
+```
+
+Run the container:
+
+```
+./bin/docker-run-cpg-review
+```
+
+Open [http://localhost:3000](http://localhost:3000) in browser. To use a
+different host port, set `HOST_PORT`, for example:
+
+```
+HOST_PORT=3001 ./bin/docker-run-cpg-review
+```
+
+The Dockerfile lives at `packages/cpg-review/Dockerfile` and expects the
+repository root as its build context so it can install dependencies from the
+workspace lockfile.
+
 ## Running with HAPI clinical reasoning module
 
 docker pull hapiproject/hapi:latest
