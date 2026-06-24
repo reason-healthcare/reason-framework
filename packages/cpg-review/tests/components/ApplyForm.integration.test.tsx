@@ -1,4 +1,5 @@
 import React from 'react'
+import { message } from 'antd'
 import {
   render,
   screen,
@@ -18,6 +19,7 @@ jest.mock('components/apply-form/QuestionnaireRenderer', () => ({
 jest.mock('helpers', () => ({
   is: {
     Bundle: jest.fn((v: any) => v?.resourceType === 'Bundle'),
+    Parameters: jest.fn((v: any) => v?.resourceType === 'Parameters'),
     PlanDefinition: jest.fn(() => false),
     ActivityDefinition: jest.fn(() => false),
   },
@@ -277,5 +279,51 @@ describe('Package bundle recent selection integration', () => {
     await waitFor(() => {
       expect(screen.getByTestId('selected-patient-preview')).toBeInTheDocument()
     })
+  })
+
+  it('surfaces apply API errors returned by the server', async () => {
+    const originalFetch = global.fetch
+    const messageErrorSpy = jest.fn()
+    const useMessageSpy = jest
+      .spyOn(message, 'useMessage')
+      .mockReturnValue([
+        { error: messageErrorSpy },
+        <div key="message-holder" />,
+      ] as unknown as ReturnType<typeof message.useMessage>)
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(jest.fn())
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: async () => ({
+          message:
+            'Problem reaching CPG Engine endpoint http://127.0.0.1:8080/fhir/PlanDefinition/$r5.apply: fetch failed. Cause: connect ECONNREFUSED 127.0.0.1:8080',
+        }),
+      }) as typeof fetch
+
+    try {
+      renderForm()
+
+      await userEvent.click(
+        screen.getByRole('button', {
+          name: /select eve pack \[bundle\/test123\]/i,
+        })
+      )
+
+      await userEvent.click(screen.getByRole('button', { name: /^apply$/i }))
+
+      await waitFor(() => {
+        expect(messageErrorSpy).toHaveBeenCalledWith(
+          'Problem reaching CPG Engine endpoint http://127.0.0.1:8080/fhir/PlanDefinition/$r5.apply: fetch failed. Cause: connect ECONNREFUSED 127.0.0.1:8080'
+        )
+      })
+    } finally {
+      global.fetch = originalFetch
+      useMessageSpy.mockRestore()
+      consoleErrorSpy.mockRestore()
+    }
   })
 })

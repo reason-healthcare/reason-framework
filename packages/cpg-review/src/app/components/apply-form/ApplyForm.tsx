@@ -63,6 +63,7 @@ const ApplyForm = ({
   const [capturedEndpointsConfig, setCapturedEndpointsConfig] = useState<
     EndpointsConfig | undefined
   >()
+  const [messageApi, messageContextHolder] = message.useMessage()
 
   const clearApplyOutputs = () => {
     setQuestionnaireResponseServer(undefined)
@@ -94,7 +95,7 @@ const ApplyForm = ({
       !endpoint.startsWith('https://') &&
       !endpoint.startsWith('file://')
     ) {
-      message.error(`${endpoint} does not appear to be a valid endpoint`)
+      messageApi.error(`${endpoint} does not appear to be a valid endpoint`)
       return false
     }
     return true
@@ -136,29 +137,29 @@ const ApplyForm = ({
       txEndpointPayload,
     } = payload
     if (dataPayload == undefined && !payload.dataEndpointPayload) {
-      message.error(
+      messageApi.error(
         'Either context data (FHIR JSON Bundle) or a data endpoint is required'
       )
       return false
     }
     if (dataPayload != null && !is.Bundle(dataPayload)) {
-      message.error('Context data is not a valid FHIR Bundle')
+      messageApi.error('Context data is not a valid FHIR Bundle')
       return false
     }
     if (subjectPayload == undefined) {
-      message.error('Subject reference is required')
+      messageApi.error('Subject reference is required')
       return false
     }
     if (cpgEngineEndpointPayload == undefined) {
-      message.error('CPG Engine endpoint is required')
+      messageApi.error('CPG Engine endpoint is required')
       return false
     }
     if (contentEndpointPayload == undefined) {
-      message.error('Content endpoint is required')
+      messageApi.error('Content endpoint is required')
       return false
     }
     if (txEndpointPayload == undefined) {
-      message.error('Terminology endpoint is required')
+      messageApi.error('Terminology endpoint is required')
       return false
     }
     return (
@@ -207,6 +208,32 @@ const ApplyForm = ({
     }
   }
 
+  const getErrorMessage = (error: unknown) => {
+    if (error instanceof Error && error.message.length > 0) {
+      return error.message
+    }
+
+    if (typeof error === 'string' && error.length > 0) {
+      return error
+    }
+
+    return 'Server error: Unable to run $apply'
+  }
+
+  const getResponseMessage = (json: unknown) => {
+    if (
+      json != null &&
+      typeof json === 'object' &&
+      'message' in json &&
+      typeof json.message === 'string' &&
+      json.message.length > 0
+    ) {
+      return json.message
+    }
+
+    return undefined
+  }
+
   const handleApply = async (
     payload: Partial<ApplyPayload>,
     options?: { fromQuestionnaire?: boolean }
@@ -226,6 +253,14 @@ const ApplyForm = ({
           body: JSON.stringify(payload),
         })
         const json = await response.json()
+
+        if (!response.ok) {
+          throw new Error(
+            getResponseMessage(json) ??
+              `Server error: Unable to run $apply (HTTP ${response.status})`
+          )
+        }
+
         // Return will be a FHIR parameters resource with a Bundle or a Bundle
         let bundle = json
         if (is.Parameters(json)) {
@@ -263,8 +298,8 @@ const ApplyForm = ({
         )
       } catch (error) {
         clearApplyOutputs()
-        const errorMsg = 'Server error: Unable to run $apply'
-        message.error(errorMsg)
+        const errorMsg = getErrorMessage(error)
+        messageApi.error(errorMsg)
         console.error(errorMsg, error)
         setIsApplied(false)
       } finally {
@@ -498,6 +533,7 @@ const ApplyForm = ({
 
   return (
     <div className="apply-section">
+      {messageContextHolder}
       <Steps
         onChange={(step) => {
           if (isApplying) {
