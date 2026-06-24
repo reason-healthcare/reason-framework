@@ -26,7 +26,7 @@
   "dependencies": {
     "@fastify/cors": "^11.2.0",
     "@reason-framework/cpg-execution": "0.0.1-alpha",
-    "fastify": "^5.8.4",
+    "fastify": "^5.8.5",
     "smart-typescript-support": "^0.0.3"
   }
 }
