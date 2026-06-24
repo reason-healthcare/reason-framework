@@ -1,13 +1,10 @@
 'use server'
 
 import { NextRequest, NextResponse } from 'next/server'
-
-const handleLocalHost = (url: string) => {
-  if (url.startsWith('http://localhost')) {
-    return url.replace('http://localhost', 'http://127.0.0.1')
-  }
-  return url
-}
+import {
+  toServerReachableEndpointUrl,
+  toUserFacingEndpointText,
+} from './endpointUrls'
 
 const getQuestionnaireCanonical = (questionnaire: fhir4.Questionnaire) => {
   if (questionnaire.url != null) {
@@ -42,6 +39,18 @@ export async function POST(req: NextRequest) {
     planDefinition,
     questionnaire,
   } = (await req.json()) as ApplyPayload
+  const serverCpgEngineEndpoint = toServerReachableEndpointUrl(
+    cpgEngineEndpointPayload
+  )
+  const serverContentEndpoint = toServerReachableEndpointUrl(
+    contentEndpointPayload
+  )
+  const serverTxEndpoint = toServerReachableEndpointUrl(txEndpointPayload)
+  const serverDataEndpoint =
+    dataEndpointPayload != null
+      ? toServerReachableEndpointUrl(dataEndpointPayload)
+      : undefined
+
   if (questionnaire != null) {
     const questionnaireCanonical = getQuestionnaireCanonical(questionnaire)
     const bundle: fhir4.Bundle = {
@@ -79,13 +88,13 @@ export async function POST(req: NextRequest) {
         name: 'subject',
         valueString: subjectPayload,
       },
-      ...(dataEndpointPayload
+      ...(serverDataEndpoint
         ? [
             {
               name: 'dataEndpoint',
               resource: {
                 resourceType: 'Endpoint',
-                address: dataEndpointPayload,
+                address: serverDataEndpoint,
                 status: 'active',
                 payloadType: [
                   {
@@ -107,7 +116,7 @@ export async function POST(req: NextRequest) {
         name: 'contentEndpoint',
         resource: {
           resourceType: 'Endpoint',
-          address: contentEndpointPayload,
+          address: serverContentEndpoint,
           status: 'active',
           payloadType: [
             {
@@ -127,7 +136,7 @@ export async function POST(req: NextRequest) {
         name: 'terminologyEndpoint',
         resource: {
           resourceType: 'Endpoint',
-          address: txEndpointPayload,
+          address: serverTxEndpoint,
           status: 'active',
           payloadType: [
             {
@@ -146,7 +155,7 @@ export async function POST(req: NextRequest) {
     ],
   }
   try {
-    const response = await fetch(handleLocalHost(cpgEngineEndpointPayload), {
+    const response = await fetch(serverCpgEngineEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -157,13 +166,17 @@ export async function POST(req: NextRequest) {
     const json = await response.json()
 
     if (!response.ok) {
-      const message = `Error running $apply: ${JSON.stringify(json)}`
+      const message = toUserFacingEndpointText(
+        `Error running $apply: ${JSON.stringify(json)}`
+      )
       console.error(message)
       return NextResponse.json({ message }, { status: response.status })
     }
     return NextResponse.json(json, { status: response.status })
   } catch (error) {
-    const message = `Problem fetching FHIR package: ${error}`
+    const message = toUserFacingEndpointText(
+      `Problem fetching FHIR package: ${error}`
+    )
     console.error(message)
     return NextResponse.json({ message }, { status: 500 })
   }

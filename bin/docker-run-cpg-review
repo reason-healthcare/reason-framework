@@ -8,5 +8,6 @@ HOST_PORT="${HOST_PORT:-3000}"
 cd "$SCRIPT_DIR/../"
 docker run --rm \
   --name reason-cpg-review \
+  --add-host=host.docker.internal:host-gateway \
   -p "${HOST_PORT}:3000" \
   "$DOCKER_IMAGE"
