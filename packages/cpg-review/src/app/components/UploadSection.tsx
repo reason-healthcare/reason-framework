@@ -254,10 +254,15 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
   }
 
   const beforeFileUpload = (file: RcFile) => {
-    const isTar = file.type === 'application/gzip'
+    const isTar =
+      file.name.toLowerCase().endsWith('.tgz') ||
+      file.type === 'application/gzip' ||
+      file.type === 'application/x-gzip'
     if (isTar && uploaded == null) {
       setUploaded(file)
       setFileList([file])
+      handleUploadFile(file)
+      return false
     } else {
       if (uploaded != null) {
         message.error('May only upload one compressed package')
@@ -284,7 +289,7 @@ const UploadSection = (uploadSectionProps: UploadSectionProps) => {
   const uploadProps: UploadProps = {
     name: 'file',
     multiple: false,
-    accept: 'tgz',
+    accept: '.tgz,application/gzip,application/x-gzip',
     beforeUpload: beforeFileUpload,
     onChange: handleFileUploadChange,
     onRemove: resetForm,
