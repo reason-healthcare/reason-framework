@@ -2,24 +2,20 @@
 
 ## Current Status
 
-- The repository baseline has been moved to Node.js `20.x` with `.tool-versions` set to `20.20.1`.
-- Validation on Node `20.20.1` matched the current Node `18.17.0` baseline:
-  - `npm ci` passed
-  - root build passed
-  - `@reason-framework/cpg-test-support` build/test passed
-  - `@reason-framework/cpg-review` build passed
-  - `@reason-framework/cpg-execution` tests were already failing before the upgrade and remained failing after the upgrade
+- The repository baseline is Node.js `22.x` with `.tool-versions` set to `22.22.1`.
+- Node 22 is required after upgrading `@cucumber/cucumber` to `13.x`; Cucumber 13 supports Node `22 || 24 || >=26`, so Node 20 is no longer a valid baseline.
+- After changing Node major versions, run a clean root install (`npm ci` or remove `node_modules` and run `npm install`) before validating commands.
 
 ## Dependency Follow-Up After the Node Upgrade
 
-No dependency updates are strictly required to complete the Node 20 migration, because the currently passing build/test commands stayed green on Node `20.20.1`.
+Recommended follow-up updates:
 
 Recommended follow-up updates:
 
 1. **Align `@types/node` with the new runtime**
    - `packages/cds-service/package.json` still uses `@types/node` `^16.10.3`.
-   - `packages/cpg-review/package.json` already uses `@types/node` `^20`.
-   - Recommendation: move `cds-service` to Node 20 typings so editor/type behavior matches the runtime baseline.
+   - `packages/cpg-review/package.json` still uses `@types/node` `^20`.
+   - Recommendation: move package Node typings to Node 22 in a separate pass so editor/type behavior matches the runtime baseline.
 
 2. **Modernize `ts-jest` / Jest-era test tooling in `cpg-execution`**
    - `packages/cpg-execution/package.json` uses `ts-jest` `^28.0.1`.
@@ -33,20 +29,20 @@ Recommended follow-up updates:
    - Recommendation: keep them for now unless you start changing runtime loaders, ESM settings, or local dev startup flows.
 
 4. **Optional: refresh stale frontend/tooling dependencies during a separate maintenance pass**
-   - `packages/cpg-review/package.json` uses Next `14.1.3`, which is compatible with Node `>=18.17.0` and passed on Node 20.
-   - The build emitted a stale Browserslist database warning, which is maintenance noise rather than a Node 20 blocker.
+   - `packages/cpg-review/package.json` uses Next 15, which supports Node 22.
+   - The build can require network access for `next/font/google` unless fonts are made local.
 
 ## Compatibility Notes Confirmed in This Repo
 
-- `@cucumber/cucumber` supports Node `18 || >=20`, so the current version is compatible with the new baseline.
-- `next@14.1.3` supports Node `>=18.17.0`, so Node 20 is within its supported range.
-- `ts-standard` supports Node `>=16`, so the current linter/runtime range remains compatible with Node 20.
+- `@cucumber/cucumber@13` supports Node `22 || 24 || >=26`, so Node 22 is the lowest supported LTS baseline for the current dependency set.
+- `next@15` supports Node 22.
+- `ts-standard` supports Node `>=16`, so the current linter/runtime range remains compatible with Node 22.
 
-## Potential Breaking Changes To Watch During Node 18 -> 20 Migration
+## Potential Breaking Changes To Watch During Node 20 -> 22 Migration
 
 1. **Type/runtime skew**
    - Packages typed against older Node definitions may compile cleanly while missing newer runtime APIs or surfacing different overload behavior.
-   - The main known mismatch is in `cds-service` (`@types/node` 16 vs runtime Node 20).
+   - Known mismatches: `cds-service` still uses Node 16 typings, and `cpg-review` still uses Node 20 typings.
 
 2. **`ts-jest` and TypeScript compatibility drift**
    - The current `cpg-execution` test stack is already outside the `ts-jest` tested TypeScript range.
@@ -56,7 +52,7 @@ Recommended follow-up updates:
      - changed module-resolution behavior inside tests
 
 3. **Built-in Fetch / Web API overlap**
-   - Node 20 includes built-in `fetch`, `Request`, `Response`, and `Headers`.
+   - Node 22 includes built-in `fetch`, `Request`, `Response`, and `Headers`.
    - `packages/cpg-test-support/step_definitions/steps.ts` uses global `fetch` successfully today.
    - Watch for issues if future code mixes Node's built-in web APIs with `node-fetch` imports or mismatched typings.
 
@@ -66,18 +62,17 @@ Recommended follow-up updates:
 
 5. **TLS / remote endpoint strictness**
    - This codebase talks to remote FHIR endpoints in tests and resolver flows.
-   - Node 20 can expose handshake or certificate issues that older environments tolerated.
+   - Node 22 can expose handshake or certificate issues that older environments tolerated.
    - If remote resolver behavior changes, check endpoint TLS compatibility before assuming application logic broke.
 
 6. **`npm` major-version behavior changes**
-   - Node 20 currently brings npm 10 in local validation.
-   - Expect small differences in install output, peer dependency messaging, and lockfile metadata handling compared with npm 9.
+   - Expect small differences in install output, peer dependency messaging, and lockfile metadata handling compared with older npm versions.
    - Prefer `npm ci` in automation to keep installs reproducible.
 
 ## Practical Migration Checklist
 
 - Run `npm ci` after switching Node versions.
-- Do not reuse pre-Node-20 `node_modules` or Docker layers blindly.
+- Do not reuse pre-Node-22 `node_modules` or Docker layers blindly.
 - Gate the upgrade on commands that were already green before the migration.
 - Treat `cpg-execution` failures as separate pre-existing work unless a new Node-only delta appears.
-- If follow-up cleanup is desired, start with `@types/node` in `cds-service`, then evaluate `ts-jest` modernization.
+- If follow-up cleanup is desired, start with package `@types/node` alignment, then evaluate `ts-jest` modernization.

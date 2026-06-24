@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS deps
 WORKDIR /app
 
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -20,7 +20,7 @@ COPY packages/cpg-review ./packages/cpg-review
 
 RUN npm run build --workspace @reason-framework/cpg-review
 
-FROM node:20-alpine AS runtime
+FROM node:22-alpine AS runtime
 WORKDIR /app
 
 ENV HOSTNAME=0.0.0.0
