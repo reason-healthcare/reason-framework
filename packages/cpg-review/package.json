@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Reason Framework CPG Preview Tool",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "fmt": "prettier --write .",
