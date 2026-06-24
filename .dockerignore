@@ -1,7 +1,14 @@
 .env
+.git
+.agents
+.codex
+.impeccable
 packages/*/.env
 node_modules
 packages/*/node_modules
 packages/*/.next
 packages/*/coverage
 packages/*/lib
+packages/cpg-test-support/DevIG/input-cache
+packages/cpg-test-support/DevIG/output
+packages/cpg-test-support/DevIG/temp

@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Node.js `22.x` (see `.tool-versions`). Node 20 is no longer sufficient because `@cucumber/cucumber@13` requires Node `22 || 24 || >=26`.
+- Node.js `22.x` (see `.tool-versions`)
 - For Implementation Guide generation: Java 17, Ruby 3.1, and `fsh-sushi`.
 
 ## Root Commands
