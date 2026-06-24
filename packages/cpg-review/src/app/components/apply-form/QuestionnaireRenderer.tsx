@@ -110,6 +110,10 @@ const QuestionnaireRenderer = ({
   }
 
   const handleQuestionnaireSubmit = () => {
+    if (isApplying) {
+      return
+    }
+
     const questionnaireResponse = getResponse() as fhir4.QuestionnaireResponse
     const fullQuestionnaireResponse = copyQuestionnaireAnswers(
       questionnaireResponse,

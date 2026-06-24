@@ -145,6 +145,7 @@ const NarrativeDisplay = ({
           {formattedContent}
           {cql != null && contentFormat === 'text' && <CodeBlock code={cql} />}
           <Radio.Group
+            className="narrative-format-toggle"
             onChange={onContentFormatChange}
             value={contentFormat}
             optionType="button"

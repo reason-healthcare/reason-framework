@@ -36,7 +36,7 @@
   height: 85%;
   width: 100%;
   overflow: hidden;
-  background: var(--surface);
+  background: var(--background);
 }
 
 .context {
@@ -58,16 +58,16 @@
   gap: 0.2rem;
   padding: 0.25rem 0.55rem;
   font-size: 13px;
-  background: var(--bright-green-50);
+  background: var(--surface);
   color: var(--brand-dark);
-  border: 1px solid var(--bright-green-200);
+  border: 1px solid var(--brand-muted-green);
   border-radius: 999px;
 }
 
 .close-button {
   border: none;
   background: none;
-  color: var(--bright-green-700);
+  color: var(--brand-dark);
   padding: 0;
   margin-left: 0.6rem;
   display: flex;

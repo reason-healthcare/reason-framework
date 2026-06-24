@@ -47,8 +47,8 @@
   --ltBlueGray: var(--neutral-100);
   --drBlueGray: var(--neutral-400);
   --teal: var(--brand-dark);
-  --ltTeal: rgba(27, 233, 142, 0.12);
-  --brTeal: var(--bright-green-600);
+  --ltTeal: rgba(98, 191, 130, 0.14);
+  --brTeal: var(--brand-dark);
   --purple: var(--cyan-600);
   --ltPurple: rgba(45, 233, 224, 0.16);
   --yellow: var(--warning);
@@ -57,7 +57,7 @@
   --drGray: var(--brand-dark);
   --ltGray: var(--neutral-600);
   --accentGray: var(--neutral-300);
-  --background: var(--neutral-0);
+  --background: var(--neutral-50);
   --secondary-background: var(--neutral-100);
 }
 
@@ -74,6 +74,8 @@ body {
 
 body {
   font-size: 16px;
+  font-family: var(--font-roobert), Roobert, ui-sans-serif, -apple-system,
+    BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background-color: var(--background);
   display: flex;
   color: var(--drGray);
@@ -102,7 +104,7 @@ body {
   padding: 2rem 3rem 2.5rem 3rem;
   box-sizing: border-box;
   overflow: auto;
-  background: var(--neutral-0);
+  background: var(--background);
 }
 
 .header-container {
@@ -126,8 +128,8 @@ body {
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
-  font-size: 0.95rem;
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--brand-dark);
   text-decoration: none;
   padding: 0.35rem 0 0.3rem;
@@ -212,7 +214,7 @@ li {
 }
 
 a {
-  color: var(--bright-green-700);
+  color: var(--brand-dark);
 }
 
 a:hover {
@@ -262,8 +264,8 @@ button:hover:not([disabled]) {
 
   &:hover {
     color: var(--brand-dark);
-    background-color: var(--bright-green-50);
-    border-color: var(--brand-light);
+    background-color: var(--surface-subtle);
+    border-color: var(--brand-dark);
   }
 }
 
@@ -277,11 +279,11 @@ button:hover:not([disabled]) {
 }
 
 .button-simple:focus {
-  color: var(--bright-green-700);
+  color: var(--brand-dark);
   background-color: inherit;
 }
 .button-simple:hover {
-  color: var(--bright-green-700);
+  color: var(--brand-dark);
   background-color: inherit;
 }
 
@@ -289,6 +291,16 @@ button:hover:not([disabled]) {
   background-color: var(--bright-green-300);
   color: var(--brand-dark);
   border: 1px solid var(--bright-green-300);
+}
+
+.button:disabled,
+.button:disabled:hover,
+.button-secondary:disabled,
+.button-secondary:disabled:hover {
+  cursor: not-allowed;
+  background-color: var(--neutral-200);
+  color: var(--neutral-500);
+  border-color: var(--neutral-200);
 }
 
 .button-secondary.small {
@@ -312,7 +324,7 @@ button:hover:not([disabled]) {
 }
 
 .ant-btn-default:not(:disabled):not(.ant-btn-disabled):hover {
-  border-color: var(--brand-light);
+  border-color: var(--brand-dark);
   color: var(--brand-dark);
 }
 
@@ -328,7 +340,7 @@ button:hover:not([disabled]) {
 .ant-input:focus,
 .ant-input-focused,
 .ant-select-focused .ant-select-selector {
-  border-color: var(--brand-light) !important;
+  border-color: var(--brand-dark) !important;
   box-shadow: 0 0 0 3px rgba(27, 233, 142, 0.16) !important;
 }
 

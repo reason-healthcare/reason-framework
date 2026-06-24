@@ -211,6 +211,10 @@ const ApplyForm = ({
     payload: Partial<ApplyPayload>,
     options?: { fromQuestionnaire?: boolean }
   ) => {
+    if (isApplying) {
+      return
+    }
+
     if (isValidForm(payload)) {
       setIsApplying(true)
       try {
@@ -270,6 +274,10 @@ const ApplyForm = ({
   }
 
   const handleSubmit = async () => {
+    if (isApplying) {
+      return
+    }
+
     setIsApplied(false)
     const dataPayloadParsed = parseDataPayload(dataPayload)
     const endpointsConfig = endpointsRef.current?.getConfig()
@@ -421,8 +429,9 @@ const ApplyForm = ({
               type="button"
               className="button button-secondary"
               onClick={resetForm}
+              disabled={isApplying}
             >
-              {isApplying ? 'Cancel' : 'Reset'}
+              Reset
             </button>
             <ApplyButton isApplying={isApplying} label="Apply" type="submit" />
           </Form.Item>
@@ -491,6 +500,9 @@ const ApplyForm = ({
     <div className="apply-section">
       <Steps
         onChange={(step) => {
+          if (isApplying) {
+            return
+          }
           if (step === 2) {
             return
           }
@@ -498,8 +510,8 @@ const ApplyForm = ({
         }}
         current={currentStep}
         items={[
-          { title: 'Context' },
-          { title: 'Questionnaire', disabled: !isApplied },
+          { title: 'Context', disabled: isApplying },
+          { title: 'Questionnaire', disabled: isApplying || !isApplied },
           {
             title: 'Applied',
             disabled: true,

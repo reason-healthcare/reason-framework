@@ -1,7 +1,14 @@
 import type { Metadata } from 'next'
+import { Roboto } from 'next/font/google'
 import localFont from 'next/font/local'
 import 'reactflow/dist/style.css'
 import './styles/globals.css'
+
+const roboto = Roboto({
+  subsets: ['latin'],
+  weight: ['400', '500', '700'],
+  variable: '--font-roboto',
+})
 
 const roobert = localFont({
   src: [
@@ -39,7 +46,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={roobert.className}>{children}</body>
+      <body className={`${roobert.variable} ${roboto.variable}`}>
+        {children}
+      </body>
     </html>
   )
 }

@@ -26,27 +26,27 @@
 }
 
 .ant-radio-checked .ant-radio-inner {
-  background-color: var(--brand-light) !important;
-  border-color: var(--brand-light) !important;
+  background-color: var(--brand-dark) !important;
+  border-color: var(--brand-dark) !important;
 }
 
 .ant-radio-wrapper:hover .ant-radio-inner {
-  border-color: var(--brand-light);
-  outline-color: var(--brand-light) !important;
+  border-color: var(--brand-dark);
+  outline-color: var(--brand-dark) !important;
 }
 
 .ant-input-outlined {
   &:hover {
-    border-color: var(--brand-light);
+    border-color: var(--brand-dark);
   }
   &:active {
-    border-color: var(--brand-light);
+    border-color: var(--brand-dark);
   }
   &:focus {
-    border-color: var(--brand-light);
+    border-color: var(--brand-dark);
   }
   &:focus-visible {
-    border-color: var(--brand-light);
+    border-color: var(--brand-dark);
   }
 }
 
@@ -55,53 +55,53 @@
   border-color: var(--neutral-300) !important;
 
   &:hover {
-    border-color: var(--brand-light) !important;
-    background-color: var(--bright-green-50) !important;
+    border-color: var(--brand-dark) !important;
+    background-color: var(--surface-subtle) !important;
   }
 }
 .ant-select-outlined:hover {
   &.ant-select-selector {
-    border-color: var(--brand-light) !important;
-    outline-color: var(--brand-light) !important;
+    border-color: var(--brand-dark) !important;
+    outline-color: var(--brand-dark) !important;
   }
 
   &:focus-visible {
-    border-color: var(--brand-light) !important;
-    outline-color: var(--brand-light) !important;
+    border-color: var(--brand-dark) !important;
+    outline-color: var(--brand-dark) !important;
   }
 }
 
 #rc_select_0_list {
   &:hover {
-    border-color: var(--brand-light) !important;
-    outline-color: var(--brand-light) !important;
+    border-color: var(--brand-dark) !important;
+    outline-color: var(--brand-dark) !important;
   }
 
   &:focus-visible {
-    border-color: var(--brand-light) !important;
-    outline-color: var(--brand-light) !important;
+    border-color: var(--brand-dark) !important;
+    outline-color: var(--brand-dark) !important;
   }
 }
 
 .ant-select-focused .ant-select-selector {
-  border-color: var(--brand-light) !important;
-  outline-color: var(--brand-light) !important;
+  border-color: var(--brand-dark) !important;
+  outline-color: var(--brand-dark) !important;
 
   &:focus-visible {
-    border-color: var(--brand-light) !important;
-    outline-color: var(--brand-light) !important;
+    border-color: var(--brand-dark) !important;
+    outline-color: var(--brand-dark) !important;
   }
 }
 
 .ant-select-selector {
   &:hover {
-    border-color: var(--brand-light) !important;
-    outline-color: var(--brand-light) !important;
+    border-color: var(--brand-dark) !important;
+    outline-color: var(--brand-dark) !important;
   }
 
   &:focus-visible {
-    border-color: var(--brand-light) !important;
-    outline-color: var(--brand-light) !important;
+    border-color: var(--brand-dark) !important;
+    outline-color: var(--brand-dark) !important;
   }
 }
 
@@ -116,7 +116,7 @@
 }
 
 .ant-upload-drag-icon svg {
-  color: var(--brand-light);
+  color: var(--brand-dark);
 }
 
 .hidden .ant-upload-drag {

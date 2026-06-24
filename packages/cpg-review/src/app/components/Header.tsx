@@ -18,7 +18,7 @@ export default function Header({
   return (
     <>
       <Link
-        href="https://www.vermonster.com/products"
+        href="https://reason.health/"
         target="_blank"
         aria-label="visit reason healthcare"
         className="logo"
