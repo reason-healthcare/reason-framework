@@ -1,15 +1,21 @@
+.react-flow__node {
+  --node-font-family: var(--font-roboto), Roboto, ui-sans-serif, -apple-system,
+    BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
 .info-icon {
-  color: var(--bright-green-700);
+  color: var(--brand-dark);
 }
 
 .action-selection-label {
   margin: 0.2rem;
   text-align: center;
-  background-color: var(--surface);
+  background-color: transparent;
   white-space: nowrap;
   font-size: 0.5rem;
   color: var(--brand-dark);
-  font-weight: bold;
+  font-weight: 400;
+  font-family: var(--node-font-family) !important;
 }
 
 .opacity {
@@ -20,12 +26,15 @@
   white-space: normal;
   word-break: break-word;
   width: 150px;
-  background-color: var(--surface);
+  background-color: transparent;
   line-height: 0.8rem;
+  font-family: var(--node-font-family) !important;
   & p {
     font-size: 0.72rem;
     margin: 0;
     color: var(--brand-dark);
+    font-weight: 400;
+    font-family: var(--node-font-family) !important;
   }
 }
 
@@ -41,10 +50,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-
   &.node-highlight {
-    background: var(--bright-green-200);
-    border-color: var(--brand-light);
+    background: var(--surface);
+    border-color: var(--brand-dark);
   }
 }
 
@@ -62,11 +70,17 @@
   width: 100%;
   box-sizing: border-box;
   color: var(--brand-dark);
+  font-family: var(--node-font-family) !important;
+}
+
+.node-container p {
+  font-family: var(--node-font-family) !important;
 }
 
 .node-container.applicability {
   border: none;
   padding: 0;
+  background: transparent;
 }
 
 .clickable {
@@ -79,9 +93,9 @@
 }
 
 .node-highlight {
-  border: 2px solid var(--brand-light);
-  background-color: var(--bright-green-50);
-  box-shadow: 0 0 0 4px rgba(27, 233, 142, 0.14);
+  border: 2px solid var(--brand-dark);
+  background-color: var(--surface);
+  box-shadow: 0 0 0 4px rgba(98, 191, 130, 0.18);
 }
 
 /* Handles */
@@ -142,5 +156,10 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-  font-weight: 700;
+  font-weight: 400;
+  font-family: var(--node-font-family) !important;
+}
+
+.diamond-text-container p {
+  font-family: var(--node-font-family) !important;
 }

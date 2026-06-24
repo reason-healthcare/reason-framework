@@ -188,13 +188,9 @@ const PatientSelectionPanel = ({
                   <div className="recent-patient-name">
                     <Text strong>{p.name || `Patient/${p.id}`}</Text>
                     <Tag
-                      color={
-                        p.source === 'endpoint'
-                          ? 'blue'
-                          : p.source === 'package'
-                          ? 'green'
-                          : 'default'
-                      }
+                      className={`patient-source-tag patient-source-tag-${
+                        p.source ?? 'bundle'
+                      }`}
                     >
                       {p.source === 'endpoint'
                         ? 'Data Endpoint'
