@@ -16,6 +16,7 @@ import BrowserResolver from 'resolver/browser'
 import CodeBlock from './CodeBlock'
 import BackButton from '../BackButton'
 import SingleDisplayItem from './SingleDisplayItem'
+import ReadOnlyQuestionnaireRenderer from './ReadOnlyQuestionnaireRenderer'
 import { NodeContent } from '@/types/NodeProps'
 import '@/styles/narrativeDisplay.css'
 
@@ -108,7 +109,9 @@ const NarrativeDisplay = ({
 
   if (resource != null) {
     const formattedContent =
-      contentFormat === 'text' ? (
+      contentFormat === 'text' && is.Questionnaire(resource) ? (
+        <ReadOnlyQuestionnaireRenderer questionnaire={resource} />
+      ) : contentFormat === 'text' ? (
         Object.entries(resource)
           .map((e: [string, any]) => {
             const [key, value] = e
