@@ -103,6 +103,23 @@
   margin: 0.5rem 0 0.5rem 0;
 }
 
+.narrative-questionnaire-renderer {
+  margin-top: 1rem;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.narrative-questionnaire-renderer form,
+.narrative-questionnaire-renderer fieldset {
+  max-width: 100%;
+}
+
+.narrative-questionnaire-renderer label,
+.narrative-questionnaire-renderer p,
+.narrative-questionnaire-renderer span {
+  word-break: normal;
+}
+
 .code-container {
   background-color: var(--brand-dark);
   border-radius: 16px;
