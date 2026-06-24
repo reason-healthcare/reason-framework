@@ -26,7 +26,10 @@ export default function Header({
         <img
           src="/images/brand/reasonhub-logo-full-color-rgb.svg"
           alt="ReasonHealth"
+          width="180"
+          height="22"
           className="logo-wordmark"
+          style={{ width: 180, height: 'auto' }}
         />
       </Link>
       <div className="links">
