@@ -63,9 +63,6 @@ export async function POST(req: NextRequest) {
         },
         body: JSON.stringify(bundle),
       })
-      console.log(response)
-      const responseBody = await response.text()
-      console.log(responseBody)
     } catch (e) {
       console.log('Unable to post questionnaire')
     }
