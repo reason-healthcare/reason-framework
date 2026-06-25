@@ -64,12 +64,90 @@ describe('NarrativeDisplay questionnaire rendering', () => {
     expect(screen.getByText('Questionnaire: Vitals Check')).toBeInTheDocument()
     expect(screen.getByTestId('base-renderer')).toBeInTheDocument()
     expect(mockUseBuildForm).toHaveBeenCalledWith({
-      questionnaire,
-      readOnly: true,
+      questionnaire: {
+        ...questionnaire,
+        item: [
+          {
+            ...questionnaire.item?.[0],
+            readOnly: true,
+          },
+        ],
+      },
+      readOnly: false,
       rendererConfigOptions: {
         readOnlyVisualStyle: 'readonly',
       },
+      qItemOverrideComponents: {},
     })
+  })
+
+  it('renders choice dropdowns through an inspect-only override while making fields read-only', () => {
+    const questionnaire: fhir4.Questionnaire = {
+      resourceType: 'Questionnaire',
+      id: 'q-1',
+      title: 'Vitals Check',
+      status: 'active',
+      item: [
+        {
+          linkId: 'vitals',
+          text: 'Vitals',
+          type: 'group',
+          item: [
+            {
+              linkId: 'blood-pressure',
+              text: 'Blood pressure',
+              type: 'string',
+            },
+            {
+              linkId: 'position',
+              text: 'Position',
+              type: 'choice',
+              answerOption: [
+                { valueString: 'Sitting' },
+                { valueString: 'Standing' },
+              ],
+            },
+          ],
+        },
+      ],
+    }
+
+    render(
+      <MemoryRouter>
+        <NarrativeDisplay
+          resolver={undefined}
+          setSelectedNode={jest.fn()}
+          narrativeContent={{ resource: questionnaire }}
+        />
+      </MemoryRouter>
+    )
+
+    const buildFormParams = mockUseBuildForm.mock.calls[0][0] as {
+      questionnaire: fhir4.Questionnaire
+      qItemOverrideComponents: Record<string, React.ComponentType>
+    }
+    const builtQuestionnaire = buildFormParams.questionnaire
+    const group = builtQuestionnaire.item?.[0]
+    const stringItem = group?.item?.[0]
+    const choiceItem = group?.item?.[1]
+    const qItemOverrideComponents = buildFormParams.qItemOverrideComponents
+
+    expect(mockUseBuildForm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        readOnly: false,
+        rendererConfigOptions: {
+          readOnlyVisualStyle: 'readonly',
+        },
+        qItemOverrideComponents: expect.objectContaining({
+          position: expect.any(Function),
+        }),
+      })
+    )
+    expect(group?.readOnly).toBeUndefined()
+    expect(stringItem?.readOnly).toBe(true)
+    expect(choiceItem?.readOnly).toBe(true)
+    expect(qItemOverrideComponents['position']).toEqual(expect.any(Function))
+    expect(questionnaire.item?.[0].item?.[0].readOnly).toBeUndefined()
   })
 
   it('keeps the JSON view available for Questionnaire resources', () => {
