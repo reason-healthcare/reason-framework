@@ -34,7 +34,9 @@ describe('apply route endpoint translation', () => {
 
   it('uses Docker-reachable URLs for the engine fetch and embedded endpoint resources', async () => {
     ;(global.fetch as jest.Mock).mockResolvedValue(
-      new Response(JSON.stringify({ resourceType: 'Bundle', type: 'collection' }))
+      new Response(
+        JSON.stringify({ resourceType: 'Bundle', type: 'collection' })
+      )
     )
 
     await POST(makeRequest())
@@ -46,7 +48,9 @@ describe('apply route endpoint translation', () => {
 
     const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body)
     const endpointAddresses = body.parameter
-      .filter((parameter: any) => parameter.resource?.resourceType === 'Endpoint')
+      .filter(
+        (parameter: any) => parameter.resource?.resourceType === 'Endpoint'
+      )
       .map((parameter: any) => parameter.resource.address)
 
     expect(endpointAddresses).toEqual([

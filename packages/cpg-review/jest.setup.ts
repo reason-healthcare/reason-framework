@@ -41,7 +41,9 @@ window.getComputedStyle = ((element: Element, pseudoElt?: string | null) => {
     const fallback = originalGetComputedStyle(element)
     const originalGetPropertyValue = fallback.getPropertyValue.bind(fallback)
     fallback.getPropertyValue = ((property: string) =>
-      property ? originalGetPropertyValue(property) : '') as typeof fallback.getPropertyValue
+      property
+        ? originalGetPropertyValue(property)
+        : '') as typeof fallback.getPropertyValue
     return fallback
   }
 
