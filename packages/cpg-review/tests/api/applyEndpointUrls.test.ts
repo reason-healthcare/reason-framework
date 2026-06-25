@@ -36,10 +36,7 @@ describe('apply endpoint URL handling', () => {
       )
     ).toBe('https://fhir.example.test/base')
     expect(
-      toServerReachableEndpointUrl(
-        'file:///tmp/fhir',
-        'host.docker.internal'
-      )
+      toServerReachableEndpointUrl('file:///tmp/fhir', 'host.docker.internal')
     ).toBe('file:///tmp/fhir')
   })
 

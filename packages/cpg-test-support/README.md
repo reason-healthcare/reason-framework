@@ -13,9 +13,11 @@ npm run build
 An example implementation guide is included `./DevIG` along with test features. Prior to running the tests, the IG must be generated using the IG publisher.
 
 First, ensure sushi is installed:
+
 ```
 npm install -g fsh-sushi
 ```
+
 Then, run the publisher:
 
 ```

@@ -293,16 +293,14 @@ describe('Package bundle recent selection integration', () => {
     const consoleErrorSpy = jest
       .spyOn(console, 'error')
       .mockImplementation(jest.fn())
-    global.fetch = jest
-      .fn()
-      .mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-        json: async () => ({
-          message:
-            'Problem reaching CPG Engine endpoint http://127.0.0.1:8080/fhir/PlanDefinition/$r5.apply: fetch failed. Cause: connect ECONNREFUSED 127.0.0.1:8080',
-        }),
-      }) as typeof fetch
+    global.fetch = jest.fn().mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      json: async () => ({
+        message:
+          'Problem reaching CPG Engine endpoint http://127.0.0.1:8080/fhir/PlanDefinition/$r5.apply: fetch failed. Cause: connect ECONNREFUSED 127.0.0.1:8080',
+      }),
+    }) as typeof fetch
 
     try {
       renderForm()
