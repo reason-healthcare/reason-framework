@@ -10,6 +10,7 @@ import {
   UserOutlined,
 } from '@ant-design/icons'
 import { Modal, Typography } from 'antd'
+import type { ReactNode } from 'react'
 import { useState } from 'react'
 import { formatProperty, notEmpty } from 'helpers'
 import {
@@ -28,6 +29,14 @@ import {
 const { Text } = Typography
 
 const META = ['id', 'text', 'meta']
+type SectionValue =
+  | 'overview'
+  | 'medications'
+  | 'conditions'
+  | 'observations'
+  | 'diagnostic-reports'
+  | 'documents'
+  | 'raw-json'
 
 function codeableText(codeableConcept?: fhir4.CodeableConcept): string {
   return (
@@ -119,15 +128,7 @@ const SelectedPatientPreviewCard = ({
 
   const summary = selectedPatient ?? fallbackSummary
   const [isCollapsed, setIsCollapsed] = useState(false)
-  const [activeSection, setActiveSection] = useState<
-    | 'overview'
-    | 'medications'
-    | 'conditions'
-    | 'observations'
-    | 'diagnostic-reports'
-    | 'documents'
-    | 'raw-json'
-  >('overview')
+  const [activeSection, setActiveSection] = useState<SectionValue>('overview')
   const [activeDocumentIndex, setActiveDocumentIndex] = useState(0)
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false)
   const rawFhirPayload = parseRawJson(selectedPatient?.json || dataPayload)
@@ -178,6 +179,53 @@ const SelectedPatientPreviewCard = ({
   const fullName = summary?.name || `Patient/${subject.id}`
   const mrn = mrnValue(patient)
   const address = formatAddress(patient)
+  const sections: {
+    value: SectionValue
+    label: string
+    icon: ReactNode
+    count?: number
+  }[] = [
+    {
+      value: 'overview',
+      label: 'Overview',
+      icon: <UserOutlined />,
+    },
+    {
+      value: 'medications',
+      label: 'Medications',
+      icon: <MedicineBoxOutlined />,
+      count: medications.length,
+    },
+    {
+      value: 'conditions',
+      label: 'Conditions',
+      icon: <HeartOutlined />,
+      count: conditions.length,
+    },
+    {
+      value: 'observations',
+      label: 'Observations',
+      icon: <LineChartOutlined />,
+      count: observations.length,
+    },
+    {
+      value: 'diagnostic-reports',
+      label: 'Diagnostic Reports',
+      icon: <FileSearchOutlined />,
+      count: diagnosticReports.length,
+    },
+    {
+      value: 'documents',
+      label: 'Documents',
+      icon: <ReadOutlined />,
+      count: documentReferences.length,
+    },
+    {
+      value: 'raw-json',
+      label: 'Raw JSON',
+      icon: <FileTextOutlined />,
+    },
+  ]
 
   return (
     <div
@@ -232,43 +280,7 @@ const SelectedPatientPreviewCard = ({
               role="tablist"
               aria-label="Patient preview sections"
             >
-              {[
-                {
-                  value: 'overview' as const,
-                  label: 'Overview',
-                  icon: <UserOutlined />,
-                },
-                {
-                  value: 'medications' as const,
-                  label: 'Medications',
-                  icon: <MedicineBoxOutlined />,
-                },
-                {
-                  value: 'conditions' as const,
-                  label: 'Conditions',
-                  icon: <HeartOutlined />,
-                },
-                {
-                  value: 'observations' as const,
-                  label: 'Observations',
-                  icon: <LineChartOutlined />,
-                },
-                {
-                  value: 'diagnostic-reports' as const,
-                  label: 'Diagnostic Reports',
-                  icon: <FileSearchOutlined />,
-                },
-                {
-                  value: 'documents' as const,
-                  label: 'Documents',
-                  icon: <ReadOutlined />,
-                },
-                {
-                  value: 'raw-json' as const,
-                  label: 'Raw JSON',
-                  icon: <FileTextOutlined />,
-                },
-              ].map((section) => {
+              {sections.map((section) => {
                 const isActive = activeSection === section.value
                 return (
                   <button
@@ -287,7 +299,16 @@ const SelectedPatientPreviewCard = ({
                     }}
                   >
                     <span className="selected-patient-tab-label">
-                      {section.icon} {section.label}
+                      {section.icon}
+                      <span>{section.label}</span>
+                      {section.count != null && (
+                        <span
+                          className="selected-patient-tab-count"
+                          aria-label={`${section.count} resources`}
+                        >
+                          {section.count}
+                        </span>
+                      )}
                     </span>
                   </button>
                 )

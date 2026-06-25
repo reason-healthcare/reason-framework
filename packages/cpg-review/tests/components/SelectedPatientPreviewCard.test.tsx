@@ -220,6 +220,21 @@ describe('SelectedPatientPreviewCard', () => {
     expect(
       screen.getByText('123 Main Street, Boston, MA 02101')
     ).toBeInTheDocument()
+    expect(
+      screen.getByRole('tab', { name: /Medications 1 resources/i })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('tab', { name: /Conditions 1 resources/i })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('tab', { name: /Observations 1 resources/i })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('tab', { name: /Diagnostic Reports 1 resources/i })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('tab', { name: /Documents 1 resources/i })
+    ).toBeInTheDocument()
 
     await userEvent.click(screen.getByText('Medications'))
     // With property-based rendering, we see property names and formatted values
@@ -330,6 +345,9 @@ describe('SelectedPatientPreviewCard', () => {
         onClear={jest.fn()}
       />
     )
+    expect(
+      screen.getByRole('tab', { name: /Observations 0 resources/i })
+    ).toBeInTheDocument()
 
     await userEvent.click(screen.getByText('Medications'))
     expect(

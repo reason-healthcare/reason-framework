@@ -326,6 +326,26 @@
   gap: 0.35rem;
 }
 
+.selected-patient-tab-count {
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-muted);
+  color: var(--neutral-700);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.selected-patient-tab-active .selected-patient-tab-count {
+  background: rgba(98, 191, 130, 0.18);
+  color: var(--brand-dark);
+}
+
 .selected-patient-overview-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
