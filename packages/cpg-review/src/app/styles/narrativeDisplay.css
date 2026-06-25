@@ -120,6 +120,22 @@
   word-break: normal;
 }
 
+.narrative-readonly-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0.75rem 0;
+}
+
+.narrative-readonly-choice-label {
+  color: var(--brand-dark);
+  font-weight: 500;
+}
+
+.narrative-readonly-choice-select {
+  max-width: 440px;
+}
+
 .code-container {
   background-color: var(--brand-dark);
   border-radius: 16px;
