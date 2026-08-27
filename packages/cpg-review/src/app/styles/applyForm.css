@@ -559,3 +559,12 @@
   flex-direction: column;
   gap: 0.25rem;
 }
+
+/* Mirrors the step 1 `.button-group` layout for the questionnaire actions */
+.questionnaire-button-group {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem 0 2rem;
+}
+

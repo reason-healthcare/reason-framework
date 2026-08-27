@@ -125,18 +125,31 @@ const QuestionnaireRenderer = ({
   const queryClient = useRendererQueryClient()
 
   return (
-    // The RendererThemeProvider provides the default renderer theme based on Material UI
-    <RendererThemeProvider>
-      <QueryClientProvider client={queryClient as unknown as QueryClient}>
-        <BaseRenderer />
-      </QueryClientProvider>
-      <ApplyButton
-        isApplying={isApplying}
-        label="Confirm & Apply"
-        onClick={handleQuestionnaireSubmit}
-        style={{ width: '100%' }}
-      />
-    </RendererThemeProvider>
+    <>
+      {/* The RendererThemeProvider provides the default renderer theme based on Material UI */}
+      <RendererThemeProvider>
+        <QueryClientProvider client={queryClient as unknown as QueryClient}>
+          <BaseRenderer />
+        </QueryClientProvider>
+      </RendererThemeProvider>
+      {/* Kept outside the renderer so the actions sit below the form card
+          rather than inside its surface */}
+      <div className="questionnaire-button-group">
+        <button
+          type="button"
+          className="button button-secondary"
+          onClick={() => setCurrentStep(2)}
+          disabled={isApplying}
+        >
+          Skip
+        </button>
+        <ApplyButton
+          isApplying={isApplying}
+          label="Submit"
+          onClick={handleQuestionnaireSubmit}
+        />
+      </div>
+    </>
   )
 }
 
