@@ -568,3 +568,42 @@
   padding: 1rem 0 2rem;
 }
 
+/* Generated questionnaire error items, marked up via `rendering-xhtml` */
+.questionnaire-error-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--error);
+  border-radius: 12px;
+  background-color: #fdecee;
+  color: var(--neutral-900);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.questionnaire-error-callout-icon {
+  flex: none;
+  margin-top: 0.1rem;
+  color: var(--error);
+}
+
+.questionnaire-error-callout-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.questionnaire-error-callout-label {
+  font-weight: 600;
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+  color: var(--error);
+}
+
+.questionnaire-error-callout-message {
+  overflow-wrap: anywhere;
+}

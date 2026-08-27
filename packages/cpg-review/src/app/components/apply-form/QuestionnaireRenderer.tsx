@@ -11,6 +11,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Alert } from 'antd'
 import LoadIndicator from '../LoadIndicator'
 import ApplyButton from './ApplyButton'
+import { styleQuestionnaireErrors } from 'utils/questionnaireErrorItems'
 
 interface QuestionnaireRendererProps {
   questionnaireResponseServer: fhir4.QuestionnaireResponse | undefined
@@ -49,8 +50,12 @@ const QuestionnaireRenderer = ({
     )
   }
 
+  // Generated error items render as plain body copy by default; mark them up as
+  // callouts so they read as errors rather than as question text.
+  const styledQuestionnaire = styleQuestionnaireErrors(questionnaire)!
+
   const isBuilding = useBuildForm({
-    questionnaire,
+    questionnaire: styledQuestionnaire,
     questionnaireResponse: questionnaireResponseServer,
   })
 
