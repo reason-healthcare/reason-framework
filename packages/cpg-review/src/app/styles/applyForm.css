@@ -41,6 +41,30 @@
   color: var(--neutral-0) !important;
 }
 
+/* Steps hover. antd hovers clickable steps to its own primary blue. --brand-dark
+   is where the title already sits (1.06:1 against it — no visible change), so
+   shift to the mid teal instead: 7.9:1 on white, a legible step away from rest. */
+.ant-steps-item:not(.ant-steps-item-active)
+  > .ant-steps-item-container[role='button']:hover
+  .ant-steps-item-title,
+.ant-steps-item:not(.ant-steps-item-active)
+  > .ant-steps-item-container[role='button']:hover
+  .ant-steps-item-subtitle,
+.ant-steps-item:not(.ant-steps-item-active)
+  > .ant-steps-item-container[role='button']:hover
+  .ant-steps-item-description {
+  color: var(--cyan-600) !important;
+}
+
+/* Only the wait state, whose icon sits on a light fill. Finish icons are filled
+   with --brand-dark, so recolouring their glyph would hide it. */
+.ant-steps-item-wait:not(.ant-steps-item-active)
+  > .ant-steps-item-container[role='button']:hover
+  .ant-steps-item-icon
+  .ant-steps-icon {
+  color: var(--cyan-600) !important;
+}
+
 /* ── Teal overrides for patient context components ── */
 .ant-segmented-item {
   background-color: rgba(0, 0, 0, 0.02) !important;
@@ -558,4 +582,52 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+}
+
+/* Mirrors the step 1 `.button-group` layout for the questionnaire actions */
+.questionnaire-button-group {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem 0 2rem;
+}
+
+/* Generated questionnaire error items, marked up via `rendering-xhtml` */
+.questionnaire-error-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--error);
+  border-radius: 12px;
+  background-color: #fdecee;
+  color: var(--neutral-900);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.questionnaire-error-callout-icon {
+  flex: none;
+  margin-top: 0.1rem;
+  color: var(--error);
+}
+
+.questionnaire-error-callout-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.questionnaire-error-callout-label {
+  font-weight: 600;
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+  color: var(--error);
+}
+
+.questionnaire-error-callout-message {
+  overflow-wrap: anywhere;
 }

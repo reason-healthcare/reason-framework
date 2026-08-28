@@ -11,6 +11,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Alert } from 'antd'
 import LoadIndicator from '../LoadIndicator'
 import ApplyButton from './ApplyButton'
+import { styleQuestionnaireErrors } from 'utils/questionnaireErrorItems'
 
 interface QuestionnaireRendererProps {
   questionnaireResponseServer: fhir4.QuestionnaireResponse | undefined
@@ -49,8 +50,12 @@ const QuestionnaireRenderer = ({
     )
   }
 
+  // Generated error items render as plain body copy by default; mark them up as
+  // callouts so they read as errors rather than as question text.
+  const styledQuestionnaire = styleQuestionnaireErrors(questionnaire)!
+
   const isBuilding = useBuildForm({
-    questionnaire,
+    questionnaire: styledQuestionnaire,
     questionnaireResponse: questionnaireResponseServer,
   })
 
@@ -125,18 +130,31 @@ const QuestionnaireRenderer = ({
   const queryClient = useRendererQueryClient()
 
   return (
-    // The RendererThemeProvider provides the default renderer theme based on Material UI
-    <RendererThemeProvider>
-      <QueryClientProvider client={queryClient as unknown as QueryClient}>
-        <BaseRenderer />
-      </QueryClientProvider>
-      <ApplyButton
-        isApplying={isApplying}
-        label="Confirm & Apply"
-        onClick={handleQuestionnaireSubmit}
-        style={{ width: '100%' }}
-      />
-    </RendererThemeProvider>
+    <>
+      {/* The RendererThemeProvider provides the default renderer theme based on Material UI */}
+      <RendererThemeProvider>
+        <QueryClientProvider client={queryClient as unknown as QueryClient}>
+          <BaseRenderer />
+        </QueryClientProvider>
+      </RendererThemeProvider>
+      {/* Kept outside the renderer so the actions sit below the form card
+          rather than inside its surface */}
+      <div className="questionnaire-button-group">
+        <button
+          type="button"
+          className="button button-secondary"
+          onClick={() => setCurrentStep(2)}
+          disabled={isApplying}
+        >
+          Skip
+        </button>
+        <ApplyButton
+          isApplying={isApplying}
+          label="Submit"
+          onClick={handleQuestionnaireSubmit}
+        />
+      </div>
+    </>
   )
 }
 
